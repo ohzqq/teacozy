@@ -4,12 +4,18 @@ import (
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/util"
+)
+
+var (
+	width  = util.TermWidth()
+	height = util.TermHeight()
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	m := frameModel()
+	m := listModel()
 
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
@@ -21,6 +27,4 @@ func main() {
 func menuModel() {
 }
 func listModel() {
-}
-func frameModel() frame.Model {
 }
