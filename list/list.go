@@ -24,6 +24,10 @@ type List struct {
 func New(title string, items Items) List {
 	m := List{Items: items}
 	m.Model = list.New(items.All, NewItemDelegate(m.IsMultiSelect), m.Width(), m.Height())
+	m.Model.Title = title
+	m.Model.Styles = ListStyles()
+	m.Model.SetShowStatusBar(false)
+	m.Model.SetShowHelp(false)
 	return m
 }
 

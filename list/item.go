@@ -27,11 +27,41 @@ func (i *Items) appendItem(item Item) {
 	i.All = append(i.All, item)
 }
 
+type itemState int
+
+const (
+	itemNotSelected itemState = iota + 1
+	itemSelected
+	itemListOpen
+	itemListClosed
+	check    string = "[x] "
+	uncheck  string = "[ ] "
+	dash     string = "- "
+	openSub  string = `[+] `
+	closeSub string = `[-] `
+)
+
+func (s itemState) Prefix() string {
+	switch s {
+	case itemNotSelected:
+		return uncheck
+	case itemSelected:
+		return check
+	case itemListOpen:
+		return closeSub
+	case itemListClosed:
+		return openSub
+	default:
+		return dash
+	}
+}
+
 type Item struct {
+	state         itemState
 	idx           int
+	level         int
 	Content       string
 	Items         Items
-	level         int
 	IsVisible     bool
 	IsSelected    bool
 	IsSub         bool
@@ -48,6 +78,6 @@ func (i Item) FilterValue() string {
 	return i.Content
 }
 
-func (i Item) Mark() string {
-	return "- "
+func (i Item) Prefix() string {
+	return i.state.Prefix()
 }

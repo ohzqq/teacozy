@@ -12,14 +12,6 @@ import (
 	cozykey "github.com/ohzqq/teacozy/key"
 )
 
-const (
-	check    string = "[x] "
-	uncheck  string = "[ ] "
-	dash     string = "- "
-	openSub  string = `[+] `
-	closeSub string = `[-] `
-)
-
 type itemDelegate struct {
 	MultiSelect bool
 	keys        cozykey.KeyMap
@@ -101,27 +93,26 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	render := iStyle.NormalItem.Render
 
-	mark := curItem.Mark()
+	prefix := curItem.Prefix()
 	if curItem.HasList && !curItem.ListIsOpen {
-		//mark = itemListClosed.Mark()
-		mark = "- "
+		prefix = itemListClosed.Prefix()
 	}
 
 	if isCurrent {
 		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
 		}
 	} else if isSelected {
 		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
 		}
 	} else if isSub {
 		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
 		}
 	} else {
 		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
 		}
 	}
 
