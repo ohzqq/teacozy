@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,13 +24,26 @@ func main() {
 		log.Fatal(err)
 	}
 
+	for _, s := range m.Items.Selections() {
+		println(s.Prefix())
+		println(s.Content)
+	}
+
+	fmt.Printf("%+V\n", m.Items.All)
 }
 
 func menuModel() {
 }
-func listModel() tea.Model {
-	items := list.Items{}
+func listModel() list.List {
+	items := list.NewItems()
+	items.MultiSelect = false
 	items.Add(list.NewItem("poot"))
-	items.Add(list.NewItem("toot"))
-	return items.NewList("test")
+	toot := list.NewItem("toot")
+	toot.Items = list.NewItems()
+	toot.Items.Add(list.NewItem("moot"))
+	items.Add(toot)
+	m := items.NewList("test", false)
+	m.Action = list.SingleSelectAction(m)
+	//m.Action = list.MultiSelectAction(m)
+	return m
 }

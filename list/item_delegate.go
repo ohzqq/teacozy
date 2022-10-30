@@ -14,16 +14,16 @@ import (
 )
 
 type itemDelegate struct {
-	MultiSelect bool
-	keys        cozykey.KeyMap
-	styles      ItemStyle
+	IsMultiSelect bool
+	keys          cozykey.KeyMap
+	styles        ItemStyle
 }
 
 func NewItemDelegate(multi bool) itemDelegate {
 	return itemDelegate{
-		MultiSelect: multi,
-		keys:        cozykey.DefaultKeys(),
-		styles:      ItemStyles(),
+		IsMultiSelect: multi,
+		keys:          cozykey.DefaultKeys(),
+		styles:        ItemStyles(),
 	}
 }
 
@@ -46,12 +46,15 @@ func (d itemDelegate) FullHelp() [][]key.Binding {
 }
 
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
-	//var cur Item
+	var (
+		cur  Item
+		cmds []tea.Cmd
+	)
 
-	//switch i := m.SelectedItem().(type) {
-	//case Item:
-	//  cur = i
-	//}
+	switch i := m.SelectedItem().(type) {
+	case Item:
+		cur = i
+	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -61,11 +64,13 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			//return ToggleItemListCmd(cur)
 			//return curItem.ShowListItemsCmd()
 			//}
-			return m.NewStatusMessage("item toggled")
-			//return toggleItemCmd(cur)
+			//cur.state = itemSelected
+			msg := fmt.Sprintf("%v", cur.Content)
+			cmds = append(cmds, m.NewStatusMessage(msg))
+			cmds = append(cmds, ToggleItemCmd())
 		}
 	}
-	return nil
+	return tea.Batch(cmds...)
 }
 
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
@@ -78,7 +83,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		title = strconv.Itoa(i.idx) + i.Content
+		title = strconv.Itoa(i.Idx) + i.Content
 	}
 
 	if m.Width() > 0 {
@@ -95,8 +100,12 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	render := iStyle.NormalItem.Render
 
 	prefix := curItem.Prefix()
-	if curItem.HasList && !curItem.ListIsOpen {
+	if curItem.HasList() && !curItem.ListIsOpen {
 		prefix = itemListClosed.Prefix()
+	}
+
+	if !d.IsMultiSelect {
+		prefix = dash
 	}
 
 	if isCurrent {
