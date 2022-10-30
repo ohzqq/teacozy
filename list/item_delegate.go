@@ -3,6 +3,7 @@ package list
 import (
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -77,7 +78,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		title = i.Content
+		title = strconv.Itoa(i.idx) + i.Content
 	}
 
 	if m.Width() > 0 {

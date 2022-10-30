@@ -47,6 +47,12 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.IsMultiSelect {
+		} else {
+			switch {
+			case key.Matches(msg, m.Keys.Enter):
+			}
+		}
 		switch {
 		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
