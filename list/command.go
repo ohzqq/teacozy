@@ -22,6 +22,14 @@ func ToggleItemCmd() tea.Cmd {
 	}
 }
 
+type SetFocusedViewMsg string
+
+func SetFocusedViewCmd(v string) tea.Cmd {
+	return func() tea.Msg {
+		return SetFocusedViewMsg(v)
+	}
+}
+
 func MultiSelectAction(m List) func(List) tea.Cmd {
 	fn := func(m List) tea.Cmd {
 		for _, item := range m.Items.All {
@@ -49,3 +57,13 @@ func SingleSelectAction(m List) func(List) tea.Cmd {
 	}
 	return fn
 }
+
+type UpdateMenuContentMsg string
+
+func UpdateMenuContentCmd(s string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateMenuContentMsg(s)
+	}
+}
+
+type MenuCmd func(m *List) tea.Cmd

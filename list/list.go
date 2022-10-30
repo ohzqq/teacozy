@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	cozykey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -20,6 +21,8 @@ type List struct {
 	width            int
 	height           int
 	ShowMenu         bool
+	Menus            Menus
+	CurrentMenu      *Menu
 	Action           ListAction
 }
 
@@ -30,6 +33,7 @@ func New(title string, items Items, multi bool) List {
 	m.Model.Styles = ListStyles()
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
+	m.Menus = make(Menus)
 	return m
 }
 
@@ -59,6 +63,14 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
+		default:
+			for label, menu := range m.Menus {
+				if key.Matches(msg, menu.Toggle) {
+					m.CurrentMenu = menu
+					m.ShowMenu = !m.ShowMenu
+					cmds = append(cmds, SetFocusedViewCmd(label))
+				}
+			}
 		}
 	case ToggleItemMsg:
 		cur := m.Model.SelectedItem().(Item)
@@ -66,13 +78,36 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cur.IsSelected = !cur.IsSelected
 		}
 		m.SetItem(m.Model.Index(), cur)
+	case SetFocusedViewMsg:
+		m.FocusedView = string(msg)
 	case UpdateVisibleItemsMsg:
 		switch string(msg) {
 		case "selected":
 		}
 	}
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
+
+	switch focus := m.FocusedView; focus {
+	case "list":
+		switch msg := msg.(type) {
+		//case UpdateDisplayedItemsMsg:
+		//items := m.DisplayItems(string(msg))
+		//m.Model.SetHeight(m.GetHeight(items))
+		//cmds = append(cmds, m.Model.SetItems(items))
+		case UpdateMenuContentMsg:
+			m.CurrentMenu.Model.SetContent(string(msg))
+			m.ShowMenu = false
+		}
+
+		m.Model, cmd = m.Model.Update(msg)
+		cmds = append(cmds, cmd)
+	default:
+		for label, _ := range m.Menus {
+			if focus == label {
+				cmds = append(cmds, UpdateMenu(&m, msg))
+			}
+		}
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -81,12 +116,39 @@ func (m *List) SetItem(modelIndex int, item Item) {
 	m.Items.All[item.Idx] = item
 }
 
+func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) *Menu {
+	cm := NewMenu(label, t).SetKeys(keys)
+	cm.SetWidth(l.width)
+	cm.BuildModel()
+	l.Menus[label] = cm
+	return cm
+}
+
 func (m List) Init() tea.Cmd {
 	return nil
 }
 
 func (m List) View() string {
-	return m.Model.View()
+	var (
+		sections    []string
+		availHeight = m.Model.Height()
+	)
+
+	var menu string
+	if m.ShowMenu {
+		menu = m.CurrentMenu.Model.View()
+		availHeight -= lipgloss.Height(menu)
+	}
+
+	m.Model.SetSize(m.width, availHeight)
+	content := m.Model.View()
+	sections = append(sections, content)
+
+	if m.ShowMenu {
+		sections = append(sections, menu)
+	}
+
+	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
 
 //func (l List) GetHeight(items []list.Item) int {
