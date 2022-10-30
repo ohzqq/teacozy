@@ -4,14 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ReturnSelectedItemMsg struct{}
-
-func ReturnSelectedItemCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectedItemMsg{}
-	}
-}
-
 type ListAction func(m List) tea.Cmd
 
 type UpdateVisibleItemsMsg string
