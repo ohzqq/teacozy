@@ -1,17 +1,16 @@
 package list
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/lipgloss"
-	cozykey "github.com/ohzqq/key"
+	tea "github.com/charmbracelet/bubbletea"
+	cozykey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/util"
 )
 
 type List struct {
 	Model            list.Model
-	AllItems         Items
 	Items            Items
-	Selections       Items
 	Keys             cozykey.KeyMap
 	Title            string
 	ShowSelectedOnly bool
@@ -20,10 +19,12 @@ type List struct {
 	width            int
 	height           int
 	ShowMenu         bool
-	frame            lipgloss.Style
 }
 
-func New(title string, items Items) *List {
+func New(title string, items Items) List {
+	m := List{Items: items}
+	m.Model = list.New(items.All, NewItemDelegate(m.IsMultiSelect), m.Width(), m.Height())
+	return m
 }
 
 func (l List) Width() int {
@@ -32,6 +33,32 @@ func (l List) Width() int {
 
 func (l List) Height() int {
 	return util.TermHeight()
+}
+
+func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.Keys.ExitScreen):
+			cmds = append(cmds, tea.Quit)
+		}
+	}
+	m.Model, cmd = m.Model.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
+}
+
+func (m List) Init() tea.Cmd {
+	return nil
+}
+
+func (m List) View() string {
+	return m.Model.View()
 }
 
 //func (l List) GetHeight(items []list.Item) int {

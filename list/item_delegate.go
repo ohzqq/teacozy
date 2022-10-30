@@ -9,8 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
-	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
-	"github.com/ohzqq/urbooks-core/bubbles/style"
+	cozykey "github.com/ohzqq/teacozy/key"
 )
 
 const (
@@ -23,15 +22,15 @@ const (
 
 type itemDelegate struct {
 	MultiSelect bool
-	keys        urkey.KeyMap
-	styles      style.ItemStyle
+	keys        cozykey.KeyMap
+	styles      ItemStyle
 }
 
 func NewItemDelegate(multi bool) itemDelegate {
 	return itemDelegate{
 		MultiSelect: multi,
-		styles:      style.ItemStyles(),
-		keys:        urkey.DefaultKeys(),
+		keys:        cozykey.DefaultKeys(),
+		styles:      ItemStyles(),
 	}
 }
 
@@ -54,22 +53,23 @@ func (d itemDelegate) FullHelp() [][]key.Binding {
 }
 
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
-	var curItem Item
+	//var cur Item
 
-	switch i := m.SelectedItem().(type) {
-	case Item:
-		curItem = i
-	}
+	//switch i := m.SelectedItem().(type) {
+	//case Item:
+	//  cur = i
+	//}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, d.keys.ToggleItem):
-			if curItem.HasList() {
-				return ToggleItemListCmd(curItem)
-				//return curItem.ShowListItemsCmd()
-			}
-			return toggleItemCmd(curItem)
+			//if cur.HasList() {
+			//return ToggleItemListCmd(cur)
+			//return curItem.ShowListItemsCmd()
+			//}
+			return m.NewStatusMessage("item toggled")
+			//return toggleItemCmd(cur)
 		}
 	}
 	return nil
@@ -85,25 +85,26 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		title = i.Title()
+		title = i.Content
 	}
 
 	if m.Width() > 0 {
 		textwidth := uint(m.Width() - iStyle.CurrentItem.GetPaddingLeft() - iStyle.CurrentItem.GetPaddingRight())
-		title = padding.String(truncate.StringWithTail(title, textwidth, style.Ellipsis), textwidth)
+		title = padding.String(truncate.StringWithTail(title, textwidth, Ellipsis), textwidth)
 	}
 
 	var (
 		isCurrent  = index == m.Index()
-		isSelected = curItem.IsSelected()
-		isSub      = curItem.IsSub()
+		isSelected = curItem.IsSelected
+		isSub      = curItem.IsSub
 	)
 
 	render := iStyle.NormalItem.Render
 
 	mark := curItem.Mark()
-	if curItem.HasList() && !curItem.ListIsOpen() {
-		mark = itemListClosed.Mark()
+	if curItem.HasList && !curItem.ListIsOpen {
+		//mark = itemListClosed.Mark()
+		mark = "- "
 	}
 
 	if isCurrent {

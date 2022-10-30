@@ -4,6 +4,7 @@ import (
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -26,5 +27,9 @@ func main() {
 
 func menuModel() {
 }
-func listModel() {
+func listModel() tea.Model {
+	items := list.Items{}
+	items.Add(list.NewItem("poot"))
+	items.Add(list.NewItem("toot"))
+	return items.NewList("test")
 }
