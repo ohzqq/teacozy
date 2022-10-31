@@ -4,20 +4,20 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Menus map[string]*Menu
+type Fields map[string]*Field
 
-func (m Menus) Get(key string) *Menu {
+func (m Fields) Get(key string) *Field {
 	return m[key]
 }
 
-type Menu struct {
-	Model     viewport.Model
+type Field struct {
+	Model     textarea.Model
 	width     int
 	Toggle    key.Binding
 	height    int
@@ -26,20 +26,20 @@ type Menu struct {
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Keys      MenuItems
+	Keys      FieldItems
 	Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
-type MenuItems []MenuItem
+type FieldItems []FieldItem
 
-func NewMenu(l string, toggle key.Binding) *Menu {
-	return &Menu{
+func NewField(l string, toggle key.Binding) *Field {
+	return &Field{
 		Label:  l,
 		Toggle: toggle,
 	}
 }
 
-func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
+func UpdateField(m *List, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -48,16 +48,16 @@ func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.CurrentMenu.Toggle):
-			m.ShowMenu = false
+			m.ShowTextArea = false
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
 			for _, item := range m.CurrentMenu.Keys {
 				if key.Matches(msg, item.Key) {
 					cmds = append(cmds, item.Cmd(m))
-					m.ShowMenu = false
+					m.ShowTextArea = false
 				}
 			}
-			m.ShowMenu = false
+			m.ShowTextArea = false
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
@@ -66,19 +66,19 @@ func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Menu) SetKeys(keys MenuItems) *Menu {
+func (m *Field) SetKeys(keys FieldItems) *Field {
 	m.Keys = keys
 	return m
 }
 
-func (m *Menu) BuildModel() {
+func (m *Field) BuildModel() {
 	m.content = m.Render()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.content)
-	m.Model = vp
+	area := textarea.New()
+	area.SetValue(m.content)
+	m.Model = area
 }
 
-func (m Menu) Render() string {
+func (m Field) Render() string {
 	var kh []string
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
@@ -87,29 +87,29 @@ func (m Menu) Render() string {
 	return style.Render(strings.Join(kh, "\n"))
 }
 
-func (m *Menu) SetWidth(w int) *Menu {
+func (m *Field) SetWidth(w int) *Field {
 	m.width = w
 	return m
 }
 
-func (m Menu) Width() int {
+func (m Field) Width() int {
 	if m.width != 0 {
 		return m.width
 	}
 	return util.TermWidth() - 2
 }
 
-func (m Menu) Height() int {
+func (m Field) Height() int {
 	return lipgloss.Height(m.content)
 }
 
-type MenuItem struct {
+type FieldItem struct {
 	Key key.Binding
 	Cmd MenuCmd
 }
 
-func NewMenuItem(k, h string, cmd MenuCmd) MenuItem {
-	return MenuItem{
+func NewFieldItem(k, h string, cmd MenuCmd) FieldItem {
+	return FieldItem{
 		Key: key.NewBinding(
 			key.WithKeys(k),
 			key.WithHelp(k, h),
@@ -118,6 +118,6 @@ func NewMenuItem(k, h string, cmd MenuCmd) MenuItem {
 	}
 }
 
-func (i MenuItem) String() string {
+func (i FieldItem) String() string {
 	return i.Key.Help().Key + ": " + i.Key.Help().Desc
 }

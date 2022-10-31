@@ -23,6 +23,9 @@ type List struct {
 	ShowMenu         bool
 	Menus            Menus
 	CurrentMenu      *Menu
+	ShowTextArea     bool
+	Fields           Fields
+	CurrentField     *Field
 	Action           ListAction
 }
 
