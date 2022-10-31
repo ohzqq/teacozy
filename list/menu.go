@@ -17,17 +17,16 @@ func (m Menus) Get(key string) Menu {
 }
 
 type Menu struct {
-	Model     viewport.Model
-	width     int
-	toggle    key.Binding
-	height    int
-	label     string
-	content   string
-	show      bool
-	focus     bool
-	style     lipgloss.Style
-	IsFocused bool
-	Keys      MenuItems
+	Model   viewport.Model
+	width   int
+	toggle  key.Binding
+	height  int
+	label   string
+	content string
+	show    bool
+	focus   bool
+	style   lipgloss.Style
+	Keys    MenuItems
 }
 
 func (m Menu) Label() string {
@@ -36,8 +35,8 @@ func (m Menu) Label() string {
 
 type MenuItems []MenuItem
 
-func NewMenu(l string, toggle key.Binding) Menu {
-	return Menu{
+func NewMenu(l string, toggle key.Binding) *Menu {
+	return &Menu{
 		label:  l,
 		toggle: toggle,
 	}

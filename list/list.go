@@ -22,8 +22,6 @@ type List struct {
 	height           int
 	Widgets          map[string]Widget
 	focusWidget      bool
-	Menus            Menus
-	CurrentMenu      Menu
 	Action           ListAction
 }
 
@@ -38,7 +36,6 @@ func New(title string, items Items, multi bool) List {
 	m.Model.Styles = ListStyles()
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
-	m.Menus = make(Menus)
 	return m
 }
 
@@ -145,14 +142,8 @@ func (m *List) ShowWidget() {
 	}
 }
 
-func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
-	cm := NewMenu(label, t)
-	cm.SetKeys(keys)
-	cm.SetWidth(l.width)
-	cm.BuildModel()
-	l.Menus[label] = cm
-	l.Widgets[label] = &cm
-	return cm
+func (l *List) NewWidget(widget Widget) {
+	l.Widgets[widget.Label()] = widget
 }
 
 func (m List) Init() tea.Cmd {

@@ -17,15 +17,29 @@ func (m Fields) Get(key string) *Field {
 }
 
 type Field struct {
-	Model     textarea.Model
-	width     int
-	height    int
-	title     string
-	content   string
-	show      bool
-	style     lipgloss.Style
-	IsFocused bool
+	Model   textarea.Model
+	width   int
+	height  int
+	title   string
+	toggle  key.Binding
+	content string
+	show    bool
+	focus   bool
+	style   lipgloss.Style
 	//Update    func(tea.Model, tea.Msg) tea.Cmd
+}
+
+func (f Field) Toggle() key.Binding { return f.toggle }
+func (f Field) Label() string       { return f.label }
+func (f Field) Focused() bool       { return f.focus }
+
+func (f *Field) Focus() tea.Cmd {
+	f.focus = true
+	return nil
+}
+
+func (f *Field) Blur() {
+	f.focus = false
 }
 
 func NewField(title, content string) *Field {
@@ -36,6 +50,11 @@ func NewField(title, content string) *Field {
 		width:   util.TermWidth() - 4,
 	}
 
+	t := key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit field"),
+	)
+	field.toggle = t
 	field.Model = textarea.New()
 	field.SetValue(content)
 	field.SetHeight(field.height)
@@ -45,7 +64,7 @@ func NewField(title, content string) *Field {
 	return &field
 }
 
-func (m Field) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Field) Update(list *list.List, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -62,7 +81,7 @@ func (m Field) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 type UpdateFieldContentMsg string
@@ -77,27 +96,6 @@ func (f *Field) UpdateFieldContentCmd(value string) tea.Cmd {
 func (f *Field) SetContent(content string) {
 	f.content = content
 	f.Model.SetValue(content)
-}
-
-func UpdateField(m *list.List, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if key.Matches(msg, cozykey.SaveAndExit) {
-			m.SetContent(m.Model.Value())
-			m.Model.Blur()
-		}
-		if m.Model.Focused() {
-			m.Model, cmd = m.Model.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	}
-	m.CurrentField.Model, cmd = m.CurrentField.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
 }
 
 func (m Field) View() string {
