@@ -21,15 +21,20 @@ type List struct {
 	width            int
 	height           int
 	ShowWidget       bool
-	//CurrentWidget    Widget
-	ShowMenu    bool
-	Menus       Menus
-	CurrentMenu *Menu
-	Action      ListAction
+	Widgets          map[string]Widget
+	CurrentWidget    Widget
+	ShowMenu         bool
+	Menus            Menus
+	CurrentMenu      *Menu
+	Action           ListAction
 }
 
 func New(title string, items Items, multi bool) List {
-	m := List{Items: items, Keys: cozykey.DefaultKeys()}
+	m := List{
+		Items:   items,
+		Keys:    cozykey.DefaultKeys(),
+		Widgets: make(map[string]Widget),
+	}
 	m.Model = list.New(items.All, NewItemDelegate(multi), m.Width(), m.Height())
 	m.Model.Title = title
 	m.Model.Styles = ListStyles()
@@ -67,7 +72,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		default:
 			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle) {
+				if key.Matches(msg, menu.Toggle()) {
 					m.CurrentMenu = menu
 					m.ShowMenu = !m.ShowMenu
 					cmds = append(cmds, SetFocusedViewCmd(label))
@@ -111,6 +116,33 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+func UpdateWidget(m *List, msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.CurrentWidget.Toggle()):
+			m.ShowWidget = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
+		default:
+			for _, item := range m.CurrentMenu.Keys {
+				if key.Matches(msg, item.Key) {
+					cmds = append(cmds, item.Cmd(m))
+					m.ShowWidget = false
+				}
+			}
+			m.ShowWidget = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
+		}
+	}
+	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
+	cmds = append(cmds, cmd)
+	return tea.Batch(cmds...)
 }
 
 func (m *List) SetItem(modelIndex int, item Item) {

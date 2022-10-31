@@ -25,7 +25,7 @@ type Field struct {
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Update    func(tea.Model, tea.Msg) tea.Cmd
+	//Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
 func NewField(title, content string) *Field {

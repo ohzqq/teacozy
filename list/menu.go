@@ -19,24 +19,64 @@ func (m Menus) Get(key string) *Menu {
 type Menu struct {
 	Model     viewport.Model
 	width     int
-	Toggle    key.Binding
+	toggle    key.Binding
 	height    int
-	Label     string
+	label     string
 	content   string
 	show      bool
+	focus     bool
 	style     lipgloss.Style
 	IsFocused bool
 	Keys      MenuItems
-	Update    func(tea.Model, tea.Msg) tea.Cmd
+	//Update    func(tea.Model, tea.Msg) tea.Cmd
+}
+
+func (m Menu) Label() string {
+	return m.label
 }
 
 type MenuItems []MenuItem
 
 func NewMenu(l string, toggle key.Binding) *Menu {
 	return &Menu{
-		Label:  l,
-		Toggle: toggle,
+		label:  l,
+		toggle: toggle,
 	}
+}
+
+func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	menu := list.CurrentWidget.(*Menu)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		//case key.Matches(msg, m.Toggle()):
+		default:
+			for _, item := range menu.Keys {
+				if key.Matches(msg, item.Key) {
+					cmds = append(cmds, item.Cmd(list))
+					list.ShowMenu = false
+				}
+			}
+			list.ShowMenu = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
+		}
+	}
+	menu.Model, cmd = menu.Model.Update(msg)
+	list.CurrentWidget = menu
+	cmds = append(cmds, cmd)
+	return tea.Batch(cmds...)
+}
+
+func (m Menu) Toggle() key.Binding {
+	return m.toggle
+}
+
+func (m *Menu) Blur() {
+	m.focus = false
 }
 
 func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
@@ -47,7 +87,7 @@ func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.CurrentMenu.Toggle):
+		case key.Matches(msg, m.CurrentMenu.Toggle()):
 			m.ShowMenu = false
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
@@ -72,13 +112,13 @@ func (m *Menu) SetKeys(keys MenuItems) *Menu {
 }
 
 func (m *Menu) BuildModel() {
-	m.content = m.Render()
+	m.content = m.View()
 	vp := viewport.New(m.Width(), m.Height())
 	vp.SetContent(m.content)
 	m.Model = vp
 }
 
-func (m Menu) Render() string {
+func (m Menu) View() string {
 	var kh []string
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
@@ -102,6 +142,17 @@ func (m Menu) Width() int {
 func (m Menu) Height() int {
 	return lipgloss.Height(m.content)
 }
+
+func (m Menu) Focus() tea.Cmd {
+	m.focus = true
+	return nil
+}
+
+func (m Menu) Focused() bool {
+	return m.focus
+}
+
+type MenuCmd func(m *List) tea.Cmd
 
 type MenuItem struct {
 	Key key.Binding

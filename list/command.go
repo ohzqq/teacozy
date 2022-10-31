@@ -65,5 +65,3 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 		return UpdateMenuContentMsg(s)
 	}
 }
-
-type MenuCmd func(m *List) tea.Cmd
