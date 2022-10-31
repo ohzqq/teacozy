@@ -20,13 +20,12 @@ type List struct {
 	IsMultiSelect    bool
 	width            int
 	height           int
-	ShowMenu         bool
-	Menus            Menus
-	CurrentMenu      *Menu
-	ShowTextArea     bool
-	Fields           Fields
-	CurrentField     *Field
-	Action           ListAction
+	ShowWidget       bool
+	//CurrentWidget    Widget
+	ShowMenu    bool
+	Menus       Menus
+	CurrentMenu *Menu
+	Action      ListAction
 }
 
 func New(title string, items Items, multi bool) List {
@@ -59,7 +58,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.IsMultiSelect {
 		} else {
 			switch {
-			case key.Matches(msg, m.Keys.Enter):
+			case key.Matches(msg, cozykey.Enter):
 				cmds = append(cmds, m.Action(m))
 			}
 		}

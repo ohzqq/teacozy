@@ -72,6 +72,10 @@ var (
 		key.WithKeys("ctrl+c", "esc"),
 		key.WithHelp("ctrl+c", "quit"),
 	)
+	SaveAndExit = key.NewBinding(
+		key.WithKeys("ctrl+q"),
+		key.WithHelp("ctrl+q", "save and exit"),
+	)
 	Enter = key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "select item"),

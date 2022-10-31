@@ -1,12 +1,12 @@
-package list
+package form
 
 import (
-	"strings"
-
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/tea/key"
+	cozykey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -19,72 +19,89 @@ func (m Fields) Get(key string) *Field {
 type Field struct {
 	Model     textarea.Model
 	width     int
-	Toggle    key.Binding
 	height    int
-	Label     string
+	title     string
 	content   string
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Keys      FieldItems
 	Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
-type FieldItems []FieldItem
-
-func NewField(l string, toggle key.Binding) *Field {
-	return &Field{
-		Label:  l,
-		Toggle: toggle,
+func NewField(title, content string) *Field {
+	field := Field{
+		title:   title,
+		content: content,
+		height:  lipgloss.Height(content),
+		width:   util.TermWidth() - 4,
 	}
+
+	field.Model = textarea.New()
+	field.SetValue(content)
+	field.SetHeight(field.height)
+	field.SetWidth(field.width)
+	field.ShowLineNumbers = false
+
+	return &field
 }
 
-func UpdateField(m *List, msg tea.Msg) tea.Cmd {
+func (m Field) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.CurrentMenu.Toggle):
-			m.ShowTextArea = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, item := range m.CurrentMenu.Keys {
-				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(m))
-					m.ShowTextArea = false
-				}
-			}
-			m.ShowTextArea = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
+		if key.Matches(msg, cozykey.SaveAndExit) {
+			m.SetContent(m.Model.Value())
+			m.Model.Blur()
+		}
+		if m.Model.Focused() {
+			m.Model, cmd = m.Model.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	}
-	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
+
+	return m, tea.Batch(cmds...)
+}
+
+type UpdateFieldContentMsg string
+
+func (f *Field) UpdateFieldContentCmd(value string) tea.Cmd {
+	return func() tea.Msg {
+		f.content = value
+		return UpdateFieldContentMsg(content)
+	}
+}
+
+func (f *Field) SetContent(content string) {
+	f.content = content
+	f.Model.SetValue(content)
+}
+
+func UpdateField(m *list.List, msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if key.Matches(msg, cozykey.SaveAndExit) {
+			m.SetContent(m.Model.Value())
+			m.Model.Blur()
+		}
+		if m.Model.Focused() {
+			m.Model, cmd = m.Model.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	}
+	m.CurrentField.Model, cmd = m.CurrentField.Model.Update(msg)
 	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
 
-func (m *Field) SetKeys(keys FieldItems) *Field {
-	m.Keys = keys
-	return m
-}
-
-func (m *Field) BuildModel() {
-	m.content = m.Render()
-	area := textarea.New()
-	area.SetValue(m.content)
-	m.Model = area
-}
-
-func (m Field) Render() string {
-	var kh []string
-	for _, k := range m.Keys {
-		kh = append(kh, k.String())
-	}
-	style := FrameStyle().Copy().Width(m.Width())
-	return style.Render(strings.Join(kh, "\n"))
+func (m Field) View() string {
+	return m.Model.View()
 }
 
 func (m *Field) SetWidth(w int) *Field {
@@ -101,23 +118,4 @@ func (m Field) Width() int {
 
 func (m Field) Height() int {
 	return lipgloss.Height(m.content)
-}
-
-type FieldItem struct {
-	Key key.Binding
-	Cmd MenuCmd
-}
-
-func NewFieldItem(k, h string, cmd MenuCmd) FieldItem {
-	return FieldItem{
-		Key: key.NewBinding(
-			key.WithKeys(k),
-			key.WithHelp(k, h),
-		),
-		Cmd: cmd,
-	}
-}
-
-func (i FieldItem) String() string {
-	return i.Key.Help().Key + ": " + i.Key.Help().Desc
 }
