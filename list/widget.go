@@ -13,4 +13,5 @@ type Widget interface {
 	Toggle() key.Binding
 	Update(*List, tea.Msg) tea.Cmd
 	View() string
+	SetContent(string)
 }

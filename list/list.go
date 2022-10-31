@@ -21,7 +21,6 @@ type List struct {
 	width            int
 	height           int
 	Widgets          map[string]Widget
-	CurrentWidget    Widget
 	focusWidget      bool
 	Menus            Menus
 	CurrentMenu      Menu
@@ -73,8 +72,6 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for label, widget := range m.Widgets {
 				if key.Matches(msg, widget.Toggle()) {
 					widget.Focus()
-					m.CurrentWidget = widget
-					//m.focusWidget = !m.focusWidget
 					m.ShowWidget()
 					cmds = append(cmds, SetFocusedViewCmd(label))
 				}
@@ -88,6 +85,9 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.SetItem(m.Model.Index(), cur)
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
+		if m.FocusedView == "list" && m.CurrentWidget() != nil {
+			m.HideWidget()
+		}
 	case UpdateVisibleItemsMsg:
 		switch string(msg) {
 		case "selected":
@@ -101,19 +101,16 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//items := m.DisplayItems(string(msg))
 		//m.Model.SetHeight(m.GetHeight(items))
 		//cmds = append(cmds, m.Model.SetItems(items))
-		case UpdateMenuContentMsg:
-			m.CurrentMenu.Model.SetContent(string(msg))
+		case UpdateWidgetContentMsg:
+			m.CurrentWidget().SetContent(string(msg))
 			m.HideWidget()
 		}
 
 		m.Model, cmd = m.Model.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
-		for label, _ := range m.Widgets {
-			if focus == label {
-				cmds = append(cmds, m.CurrentWidget.Update(&m, msg))
-				//cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
-			}
+		if m.CurrentWidget() != nil {
+			cmds = append(cmds, m.CurrentWidget().Update(&m, msg))
 		}
 	}
 
@@ -125,12 +122,27 @@ func (m *List) SetItem(modelIndex int, item Item) {
 	m.Items.All[item.Idx] = item
 }
 
+func (m List) CurrentWidget() Widget {
+	for _, w := range m.Widgets {
+		if w.Focused() {
+			return w
+		}
+	}
+	return nil
+}
+
 func (m *List) HideWidget() {
 	m.focusWidget = false
+	if m.CurrentWidget() != nil {
+		m.CurrentWidget().Blur()
+	}
 }
 
 func (m *List) ShowWidget() {
 	m.focusWidget = true
+	if m.CurrentWidget() != nil {
+		m.CurrentWidget().Focus()
+	}
 }
 
 func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
@@ -155,7 +167,7 @@ func (m List) View() string {
 
 	var menu string
 	if m.focusWidget {
-		menu = m.CurrentWidget.View()
+		menu = m.CurrentWidget().View()
 		availHeight -= lipgloss.Height(menu)
 	}
 

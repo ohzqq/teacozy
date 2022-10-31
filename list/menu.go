@@ -28,7 +28,6 @@ type Menu struct {
 	style     lipgloss.Style
 	IsFocused bool
 	Keys      MenuItems
-	//Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
 func (m Menu) Label() string {
@@ -51,13 +50,17 @@ func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		for _, item := range m.Keys {
-			if key.Matches(msg, item.Key) {
-				cmds = append(cmds, item.Cmd(list))
-				list.HideWidget()
+		switch {
+		case key.Matches(msg, m.Toggle()):
+			cmds = append(cmds, FocusListCmd())
+		default:
+			for _, item := range m.Keys {
+				if key.Matches(msg, item.Key) {
+					cmds = append(cmds, item.Cmd(list))
+					list.HideWidget()
+				}
 			}
-			list.HideWidget()
-			cmds = append(cmds, SetFocusedViewCmd("list"))
+			cmds = append(cmds, FocusListCmd())
 		}
 	}
 	m.Model, cmd = m.Model.Update(msg)
@@ -99,6 +102,11 @@ func (m *Menu) SetWidth(w int) *Menu {
 	return m
 }
 
+func (m *Menu) SetContent(content string) {
+	m.content = content
+	m.Model.SetContent(content)
+}
+
 func (m Menu) Width() int {
 	if m.width != 0 {
 		return m.width
@@ -110,7 +118,7 @@ func (m Menu) Height() int {
 	return lipgloss.Height(m.content)
 }
 
-func (m Menu) Focus() tea.Cmd {
+func (m *Menu) Focus() tea.Cmd {
 	m.focus = true
 	return nil
 }

@@ -30,6 +30,12 @@ func SetFocusedViewCmd(v string) tea.Cmd {
 	}
 }
 
+func FocusListCmd() tea.Cmd {
+	return func() tea.Msg {
+		return SetFocusedViewMsg("list")
+	}
+}
+
 func MultiSelectAction(m List) func(List) tea.Cmd {
 	fn := func(m List) tea.Cmd {
 		for _, item := range m.Items.All {
@@ -58,10 +64,10 @@ func SingleSelectAction(m List) func(List) tea.Cmd {
 	return fn
 }
 
-type UpdateMenuContentMsg string
+type UpdateWidgetContentMsg string
 
-func UpdateMenuContentCmd(s string) tea.Cmd {
+func UpdateWidgetContentCmd(s string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateMenuContentMsg(s)
+		return UpdateWidgetContentMsg(s)
 	}
 }
