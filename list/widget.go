@@ -11,6 +11,6 @@ type Widget interface {
 	Blur()
 	Label() string
 	Toggle() key.Binding
-	//Update(*List, tea.Msg) tea.Cmd
+	Update(*List, tea.Msg) tea.Cmd
 	View() string
 }

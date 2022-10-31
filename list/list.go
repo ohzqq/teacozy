@@ -20,10 +20,9 @@ type List struct {
 	IsMultiSelect    bool
 	width            int
 	height           int
-	ShowWidget       bool
 	Widgets          map[string]Widget
 	CurrentWidget    Widget
-	ShowMenu         bool
+	focusWidget      bool
 	Menus            Menus
 	CurrentMenu      Menu
 	Action           ListAction
@@ -71,14 +70,15 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
 		default:
-			//for label, menu := range m.Menus {
-			//  if key.Matches(msg, menu.Toggle()) {
-			//    m.CurrentMenu = menu
-			//    m.ShowMenu = !m.ShowMenu
-			//    cmds = append(cmds, SetFocusedViewCmd(label))
-			//  }
-			//}
-
+			for label, widget := range m.Widgets {
+				if key.Matches(msg, widget.Toggle()) {
+					widget.Focus()
+					m.CurrentWidget = widget
+					//m.focusWidget = !m.focusWidget
+					m.ShowWidget()
+					cmds = append(cmds, SetFocusedViewCmd(label))
+				}
+			}
 		}
 	case ToggleItemMsg:
 		cur := m.Model.SelectedItem().(Item)
@@ -103,54 +103,34 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, m.Model.SetItems(items))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
-			m.ShowMenu = false
+			m.HideWidget()
 		}
 
 		m.Model, cmd = m.Model.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
-		//for label, _ := range m.Menus {
-		//  if focus == label {
-		//    cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
-		//    //cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
-		//  }
-		//}
-
+		for label, _ := range m.Widgets {
+			if focus == label {
+				cmds = append(cmds, m.CurrentWidget.Update(&m, msg))
+				//cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
+			}
+		}
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func UpdateWidget(m *List, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.CurrentWidget.Toggle()):
-			m.ShowWidget = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, item := range m.CurrentMenu.Keys {
-				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(m))
-					m.ShowWidget = false
-				}
-			}
-			m.ShowWidget = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		}
-	}
-	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
-}
-
 func (m *List) SetItem(modelIndex int, item Item) {
 	m.Model.SetItem(modelIndex, item)
 	m.Items.All[item.Idx] = item
+}
+
+func (m *List) HideWidget() {
+	m.focusWidget = false
+}
+
+func (m *List) ShowWidget() {
+	m.focusWidget = true
 }
 
 func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
@@ -159,12 +139,12 @@ func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
 	cm.SetWidth(l.width)
 	cm.BuildModel()
 	l.Menus[label] = cm
-	//l.Widgets[label] = &cm
+	l.Widgets[label] = &cm
 	return cm
 }
 
 func (m List) Init() tea.Cmd {
-	return nil
+	return SetFocusedViewCmd("list")
 }
 
 func (m List) View() string {
@@ -174,8 +154,8 @@ func (m List) View() string {
 	)
 
 	var menu string
-	if m.ShowMenu {
-		menu = m.CurrentMenu.Model.View()
+	if m.focusWidget {
+		menu = m.CurrentWidget.View()
 		availHeight -= lipgloss.Height(menu)
 	}
 
@@ -183,7 +163,7 @@ func (m List) View() string {
 	content := m.Model.View()
 	sections = append(sections, content)
 
-	if m.ShowMenu {
+	if m.focusWidget {
 		sections = append(sections, menu)
 	}
 

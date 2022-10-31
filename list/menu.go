@@ -51,18 +51,12 @@ func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.Toggle()):
-			list.ShowMenu = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, item := range m.Keys {
-				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(list))
-					list.ShowMenu = false
-				}
+		for _, item := range m.Keys {
+			if key.Matches(msg, item.Key) {
+				cmds = append(cmds, item.Cmd(list))
+				list.HideWidget()
 			}
-			list.ShowMenu = false
+			list.HideWidget()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
@@ -77,33 +71,6 @@ func (m Menu) Toggle() key.Binding {
 
 func (m *Menu) Blur() {
 	m.focus = false
-}
-
-func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.CurrentMenu.Toggle()):
-			m.ShowMenu = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, item := range m.CurrentMenu.Keys {
-				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(m))
-					m.ShowMenu = false
-				}
-			}
-			m.ShowMenu = false
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		}
-	}
-	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
 }
 
 func (m *Menu) SetKeys(keys MenuItems) *Menu {
