@@ -10,9 +10,9 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Menus map[string]*Menu
+type Menus map[string]Menu
 
-func (m Menus) Get(key string) *Menu {
+func (m Menus) Get(key string) Menu {
 	return m[key]
 }
 
@@ -37,8 +37,8 @@ func (m Menu) Label() string {
 
 type MenuItems []MenuItem
 
-func NewMenu(l string, toggle key.Binding) *Menu {
-	return &Menu{
+func NewMenu(l string, toggle key.Binding) Menu {
+	return Menu{
 		label:  l,
 		toggle: toggle,
 	}

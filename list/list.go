@@ -25,7 +25,7 @@ type List struct {
 	CurrentWidget    Widget
 	ShowMenu         bool
 	Menus            Menus
-	CurrentMenu      *Menu
+	CurrentMenu      Menu
 	Action           ListAction
 }
 
@@ -150,8 +150,9 @@ func (m *List) SetItem(modelIndex int, item Item) {
 	m.Items.All[item.Idx] = item
 }
 
-func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) *Menu {
-	cm := NewMenu(label, t).SetKeys(keys)
+func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
+	cm := NewMenu(label, t)
+	cm.SetKeys(keys)
 	cm.SetWidth(l.width)
 	cm.BuildModel()
 	l.Menus[label] = cm
