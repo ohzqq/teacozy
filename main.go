@@ -52,9 +52,7 @@ func listModel() list.List {
 		key.WithHelp("a", "deselect all"),
 	)
 	m := items.NewList("test", false)
-	menu := list.NewMenu("test", t)
-	menu.SetKeys(testHelpKeys)
-	menu.BuildModel()
+	menu := list.NewMenu("test", t, testHelpKeys)
 	m.NewWidget(menu)
 	m.Action = list.SingleSelectAction(m)
 	//m.Action = list.MultiSelectAction(m)

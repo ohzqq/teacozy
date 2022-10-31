@@ -10,41 +10,33 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Fields map[string]*Field
-
-func (m Fields) Get(key string) *Field {
-	return m[key]
-}
-
 type Field struct {
 	Model   textarea.Model
 	width   int
 	height  int
-	title   string
+	label   string
 	toggle  key.Binding
 	content string
-	show    bool
 	focus   bool
 	style   lipgloss.Style
-	//Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
 func (f Field) Toggle() key.Binding { return f.toggle }
 func (f Field) Label() string       { return f.label }
-func (f Field) Focused() bool       { return f.focus }
+func (f Field) Focused() bool       { return f.Model.Focused() }
 
 func (f *Field) Focus() tea.Cmd {
-	f.focus = true
+	f.Model.Focus()
 	return nil
 }
 
 func (f *Field) Blur() {
-	f.focus = false
+	f.Model.Blur()
 }
 
 func NewField(title, content string) *Field {
 	field := Field{
-		title:   title,
+		label:   title,
 		content: content,
 		height:  lipgloss.Height(content),
 		width:   util.TermWidth() - 4,
@@ -73,9 +65,9 @@ func (m Field) Update(list *list.List, msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		if key.Matches(msg, cozykey.SaveAndExit) {
 			m.SetContent(m.Model.Value())
-			m.Model.Blur()
+			m.Blur()
 		}
-		if m.Model.Focused() {
+		if m.Focused() {
 			m.Model, cmd = m.Model.Update(msg)
 			cmds = append(cmds, cmd)
 		}

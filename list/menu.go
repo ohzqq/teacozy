@@ -10,12 +10,6 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Menus map[string]Menu
-
-func (m Menus) Get(key string) Menu {
-	return m[key]
-}
-
 type Menu struct {
 	Model   viewport.Model
 	width   int
@@ -26,20 +20,26 @@ type Menu struct {
 	show    bool
 	focus   bool
 	style   lipgloss.Style
-	Keys    MenuItems
+	Keys    []MenuItem
 }
 
 func (m Menu) Label() string {
 	return m.label
 }
 
-type MenuItems []MenuItem
-
-func NewMenu(l string, toggle key.Binding) *Menu {
-	return &Menu{
+func NewMenu(l string, toggle key.Binding, keys []MenuItem) *Menu {
+	m := Menu{
 		label:  l,
 		toggle: toggle,
+		Keys:   keys,
 	}
+
+	m.content = m.Render()
+	vp := viewport.New(m.Width(), m.Height())
+	vp.SetContent(m.content)
+	m.Model = vp
+
+	return &m
 }
 
 func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
@@ -75,25 +75,22 @@ func (m *Menu) Blur() {
 	m.focus = false
 }
 
-func (m *Menu) SetKeys(keys MenuItems) *Menu {
+func (m *Menu) SetKeys(keys []MenuItem) *Menu {
 	m.Keys = keys
 	return m
 }
 
-func (m *Menu) BuildModel() {
-	m.content = m.View()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.content)
-	m.Model = vp
-}
-
-func (m Menu) View() string {
+func (m Menu) Render() string {
 	var kh []string
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
 	}
+	return strings.Join(kh, "\n")
+}
+
+func (m Menu) View() string {
 	style := FrameStyle().Copy().Width(m.Width())
-	return style.Render(strings.Join(kh, "\n"))
+	return style.Render(m.Render())
 }
 
 func (m *Menu) SetWidth(w int) *Menu {
