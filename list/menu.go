@@ -49,13 +49,14 @@ func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
-	menu := list.CurrentWidget.(*Menu)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		//case key.Matches(msg, m.Toggle()):
+		case key.Matches(msg, m.Toggle()):
+			list.ShowMenu = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
-			for _, item := range menu.Keys {
+			for _, item := range m.Keys {
 				if key.Matches(msg, item.Key) {
 					cmds = append(cmds, item.Cmd(list))
 					list.ShowMenu = false
@@ -65,8 +66,7 @@ func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
-	menu.Model, cmd = menu.Model.Update(msg)
-	list.CurrentWidget = menu
+	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }

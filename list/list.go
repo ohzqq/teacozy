@@ -71,13 +71,14 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
 		default:
-			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle()) {
-					m.CurrentMenu = menu
-					m.ShowMenu = !m.ShowMenu
-					cmds = append(cmds, SetFocusedViewCmd(label))
-				}
-			}
+			//for label, menu := range m.Menus {
+			//  if key.Matches(msg, menu.Toggle()) {
+			//    m.CurrentMenu = menu
+			//    m.ShowMenu = !m.ShowMenu
+			//    cmds = append(cmds, SetFocusedViewCmd(label))
+			//  }
+			//}
+
 		}
 	case ToggleItemMsg:
 		cur := m.Model.SelectedItem().(Item)
@@ -108,11 +109,13 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Model, cmd = m.Model.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
-		for label, _ := range m.Menus {
-			if focus == label {
-				cmds = append(cmds, UpdateMenu(&m, msg))
-			}
-		}
+		//for label, _ := range m.Menus {
+		//  if focus == label {
+		//    cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
+		//    //cmds = append(cmds, m.CurrentMenu.Update(&m, msg))
+		//  }
+		//}
+
 	}
 
 	return m, tea.Batch(cmds...)
@@ -156,6 +159,7 @@ func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) Menu {
 	cm.SetWidth(l.width)
 	cm.BuildModel()
 	l.Menus[label] = cm
+	//l.Widgets[label] = &cm
 	return cm
 }
 
