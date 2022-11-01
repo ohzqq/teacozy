@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
 	cozykey "github.com/ohzqq/teacozy/key"
 )
 
@@ -101,7 +100,6 @@ func (s itemState) Prefix() string {
 }
 
 type Item struct {
-	input         textarea.Model
 	state         itemState
 	Idx           int
 	level         int
@@ -123,56 +121,25 @@ func NewItem(content string) Item {
 }
 
 func (i *Item) Edit() textarea.Model {
-	i.input = textarea.New()
-	i.input.SetValue(i.Content)
-	i.input.ShowLineNumbers = false
-	return i.input
-}
-
-func (m Item) Update(list *List, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if key.Matches(msg, cozykey.SaveAndExit) {
-			m.SetContent(m.input.Value())
-			m.Blur()
-		}
-		if m.Focused() {
-			m.input, cmd = m.input.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	}
-
-	return tea.Batch(cmds...)
+	input := textarea.New()
+	input.SetValue(i.Content)
+	input.ShowLineNumbers = false
+	return input
 }
 
 func (i Item) Toggle() key.Binding { return cozykey.EditField }
 func (i Item) Label() string       { return i.label }
-func (i Item) Focused() bool       { return i.input.Focused() }
 
 func (i Item) FilterValue() string {
 	return i.Content
 }
 
-func (i *Item) Focus() tea.Cmd {
-	i.input.Focus()
-	return nil
-}
-
-func (i *Item) Blur() {
-	i.input.Blur()
+func (i *Item) ToggleSelected() {
+	i.IsSelected = !i.IsSelected
 }
 
 func (i *Item) SetContent(content string) {
 	i.Content = content
-	//i.input.SetValue(content)
-}
-
-func (m Item) View() string {
-	return m.input.View()
 }
 
 func (i Item) HasList() bool {
@@ -181,11 +148,17 @@ func (i Item) HasList() bool {
 }
 
 func (i Item) Prefix() string {
-	var state itemState
-	if i.IsSelected {
-		return itemSelected.Prefix()
+	if i.HasList() {
+		if i.IsOpen {
+			return closeSub
+		}
+		return openSub
 	} else {
-		return itemNotSelected.Prefix()
+		if i.IsSelected {
+			return check
+		}
+		return uncheck
 	}
-	return state.Prefix()
+
+	return dash
 }
