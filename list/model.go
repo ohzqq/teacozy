@@ -26,6 +26,7 @@ type List struct {
 	AllItems         Items
 	Items            Items
 	Selections       Items
+	All              []list.Item
 	Keys             urkey.KeyMap
 	area             textarea.Model
 	Menus            Menus
@@ -53,6 +54,11 @@ func New(title string) *List {
 	}
 	l.frame = style.FrameStyle()
 	return l
+}
+
+func (l *List) AddItem(content string) {
+	i := newDefaultItem(content, content)
+	l.All = append(l.All, i)
 }
 
 func (l *List) BuildModel() list.Model {
