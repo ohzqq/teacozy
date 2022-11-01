@@ -65,8 +65,6 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				val := m.area.Value()
 				cur.SetContent(val)
 				m.SetItem(m.Model.Index(), cur)
-				test := m.Items.Get(cur.Idx)
-				cmds = append(cmds, m.Model.NewStatusMessage(test.Content))
 				m.area.Blur()
 			}
 			m.area, cmd = m.area.Update(msg)
