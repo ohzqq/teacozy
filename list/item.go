@@ -85,7 +85,7 @@ func (li Items) ToggleList(idx int) Item {
 	item := li.Get(idx)
 
 	var i Item
-	if item.HasList() {
+	if item.HasList {
 		i = li.OpenList(idx)
 		if item.ListIsOpen() {
 			i = li.CloseList(idx)
@@ -134,16 +134,17 @@ type Item struct {
 	data       list.Item
 	id         int
 	isSelected bool
-	hasList    bool
-	isSub      bool
+	HasList    bool
+	IsSub      bool
 	listOpen   bool
-	isVisible  bool
+	IsVisible  bool
+	IsHidden   bool
 	mark       string
-	isMulti    bool
+	IsMulti    bool
 	state      ItemState
-	level      int
-	items      Items
-	list       *List
+	Level      int
+	Items      Items
+	List       *List
 	Content    string
 }
 
@@ -193,7 +194,7 @@ func NewDefaultItem(title, fv string) Item {
 }
 
 func (i Item) State() ItemState {
-	if i.HasList() && i.state == ItemListClosed {
+	if i.HasList && i.state == ItemListClosed {
 		return ItemListClosed
 	}
 	return i.state
@@ -230,14 +231,6 @@ func (i Item) ListIsOpen() bool {
 	return i.state == ItemListOpen
 }
 
-func (i Item) IsSub() bool {
-	return i.isSub
-}
-
-func (i Item) HasList() bool {
-	return i.hasList
-}
-
 func (i *Item) Toggle() {
 	i.isSelected = !i.isSelected
 	switch i.IsSelected() {
@@ -249,16 +242,16 @@ func (i *Item) Toggle() {
 }
 
 func (i *Item) SetLevel(l int) *Item {
-	i.level = l
+	i.Level = l
 	return i
 }
 
 func (i *Item) SetIsSub() *Item {
-	i.isSub = true
+	i.IsSub = true
 	return i
 }
 
 func (i *Item) SetList(l *List) *Item {
-	i.list = l
+	i.List = l
 	return i
 }

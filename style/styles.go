@@ -1,16 +1,41 @@
 package style
 
 import (
-	"bytes"
-	"log"
-	"text/template"
-
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/urbooks-core/cfg"
 )
+
+type Style struct {
+	DefaultFg lipgloss.Color
+	DefaultBg lipgloss.Color
+	Black     lipgloss.Color
+	Blue      lipgloss.Color
+	Cyan      lipgloss.Color
+	Green     lipgloss.Color
+	Grey      lipgloss.Color
+	Pink      lipgloss.Color
+	Purple    lipgloss.Color
+	Red       lipgloss.Color
+	White     lipgloss.Color
+	Yellow    lipgloss.Color
+}
+
+func DefaultColors() Style {
+	return Style{
+		DefaultFg: lipgloss.Color("#FFBF00"),
+		DefaultBg: lipgloss.Color("#262626"),
+		Black:     lipgloss.Color("#262626"),
+		Blue:      lipgloss.Color("#5FAFFF"),
+		Cyan:      lipgloss.Color("#AFFFFF"),
+		Green:     lipgloss.Color("#AFFFAF"),
+		Grey:      lipgloss.Color("#626262"),
+		Pink:      lipgloss.Color("#FFAFFF"),
+		Purple:    lipgloss.Color("#AFAFFF"),
+		Red:       lipgloss.Color("#FF875F"),
+		White:     lipgloss.Color("#EEEEEE"),
+		Yellow:    lipgloss.Color("#FFFFAF"),
+	}
+}
 
 const (
 	Bullet   = "•"
@@ -25,10 +50,10 @@ type ItemStyle struct {
 }
 
 func ItemStyles() (s ItemStyle) {
-	s.NormalItem = lipgloss.NewStyle().Foreground(cfg.Tui().Colors().DefaultFg)
-	s.CurrentItem = lipgloss.NewStyle().Foreground(cfg.Tui().Colors().Green).Reverse(true)
-	s.SelectedItem = lipgloss.NewStyle().Foreground(cfg.Tui().Colors().Grey)
-	s.SubItem = lipgloss.NewStyle().Foreground(cfg.Tui().Colors().Purple)
+	s.NormalItem = lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg)
+	s.CurrentItem = lipgloss.NewStyle().Foreground(DefaultColors().Green).Reverse(true)
+	s.SelectedItem = lipgloss.NewStyle().Foreground(DefaultColors().Grey)
+	s.SubItem = lipgloss.NewStyle().Foreground(DefaultColors().Purple)
 	return s
 }
 
@@ -40,40 +65,40 @@ func FrameStyle() lipgloss.Style {
 }
 
 func ListStyles() (s list.Styles) {
-	verySubduedColor := cfg.Tui().Colors().Grey
-	subduedColor := cfg.Tui().Colors().White
+	verySubduedColor := DefaultColors().Grey
+	subduedColor := DefaultColors().White
 
 	s.TitleBar = lipgloss.NewStyle().Padding(0, 0, 0, 0)
 
 	s.Title = lipgloss.NewStyle().
-		Background(cfg.Tui().Colors().Purple).
-		Foreground(cfg.Tui().Colors().Black).
+		Background(DefaultColors().Purple).
+		Foreground(DefaultColors().Black).
 		Padding(0, 1)
 
 	s.Spinner = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Cyan)
+		Foreground(DefaultColors().Cyan)
 
 	s.FilterPrompt = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Pink)
+		Foreground(DefaultColors().Pink)
 
 	s.FilterCursor = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Yellow)
+		Foreground(DefaultColors().Yellow)
 
 	s.DefaultFilterCharacterMatch = lipgloss.NewStyle().Underline(true)
 
 	s.StatusBar = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Blue).
+		Foreground(DefaultColors().Blue).
 		Padding(0, 0, 1, 2)
 
 	s.StatusEmpty = lipgloss.NewStyle().Foreground(subduedColor)
 
 	s.StatusBarActiveFilter = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Purple)
+		Foreground(DefaultColors().Purple)
 
 	s.StatusBarFilterCount = lipgloss.NewStyle().Foreground(verySubduedColor)
 
 	s.NoItems = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Grey)
+		Foreground(DefaultColors().Grey)
 
 	s.ArabicPagination = lipgloss.NewStyle().Foreground(subduedColor)
 
@@ -82,7 +107,7 @@ func ListStyles() (s list.Styles) {
 	s.HelpStyle = lipgloss.NewStyle().Padding(1, 0, 0, 2)
 
 	s.ActivePaginationDot = lipgloss.NewStyle().
-		Foreground(cfg.Tui().Colors().Pink).
+		Foreground(DefaultColors().Pink).
 		SetString(Bullet)
 
 	s.InactivePaginationDot = lipgloss.NewStyle().
@@ -95,121 +120,3 @@ func ListStyles() (s list.Styles) {
 
 	return s
 }
-
-func helpStyles() help.Styles {
-	styles := help.Styles{}
-
-	keyStyle := lipgloss.NewStyle().PaddingRight(1).Foreground(cfg.Tui().Colors().Green)
-	descStyle := lipgloss.NewStyle().PaddingRight(1).Foreground(cfg.Tui().Colors().Blue)
-	sepStyle := lipgloss.NewStyle().Foreground(cfg.Tui().Colors().Pink)
-
-	styles.ShortKey = keyStyle
-	styles.ShortDesc = descStyle
-	styles.ShortSeparator = sepStyle
-	styles.FullKey = keyStyle.Copy()
-	styles.FullDesc = descStyle.Copy()
-	styles.FullSeparator = sepStyle.Copy()
-	styles.Ellipsis = sepStyle.Copy()
-
-	return styles
-}
-
-func RenderMarkdown(md string) string {
-	var (
-		metaStyle = template.Must(template.New("mdStyle").Parse(styleTmpl))
-		style     bytes.Buffer
-	)
-
-	err := metaStyle.Execute(&style, cfg.Tui().Colors())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	renderer, err := glamour.NewTermRenderer(
-		glamour.WithStylesFromJSONBytes(style.Bytes()),
-		glamour.WithPreservedNewLines(),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	str, err := renderer.Render(md)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return str
-}
-
-var styleTmpl = `
-{
-  "document": {
-    "block_prefix": "",
-    "block_suffix": "",
-    "color": "{{.DefaultFg}}",
-    "background_color": "{{.DefaultBg}}",
-    "margin": 0
-  },
-  "block_quote": {
-    "indent": 1,
-    "indent_token": "│ "
-  },
-  "paragraph": {
-    "block_suffix": ""
-  },
-  "list": {
-    "level_indent": 2
-  },
-  "heading": {
-    "block_suffix": "",
-    "color": "{{.Pink}}",
-    "bold": true
-  },
-  "h1": {
-    "prefix": " ",
-    "suffix": " ",
-    "color": "{{.DefaultBg}}",
-    "background_color": "{{.Blue}}",
-    "bold": true
-  },
-  "h2": {
-    "prefix": "## "
-  },
-  "h3": {
-    "prefix": "### "
-  },
-  "h4": {
-    "prefix": "#### "
-  },
-  "h5": {
-    "prefix": "##### "
-  },
-  "h6": {
-    "prefix": "###### ",
-    "bold": false
-  },
-  "text": {},
-  "strikethrough": {
-    "crossed_out": true
-  },
-  "emph": {
-    "italic": true
-  },
-  "strong": {
-    "color": "{{.Cyan}}",
-    "bold": true
-  },
-  "hr": {
-    "color": "{{.Pink}}",
-    "format": "\n--------\n"
-  },
-  "item": {
-    "block_prefix": "• "
-  },
-  "enumeration": {
-    "block_prefix": ". "
-  },
-  "html_block": {},
-  "html_span": {}
-}
-`

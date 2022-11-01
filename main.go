@@ -18,16 +18,16 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	m := listModel()
+	m := TestList()
 
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	for _, s := range m.Items.Selections() {
-		println(s.Prefix())
-		println(s.Content)
+	for _, s := range m.Items.GetSelected() {
+		item := s.(list.Item)
+		println(item.Title())
 	}
 }
 
@@ -57,22 +57,23 @@ func TestItems() list.Items {
 
 func itemWithList(t string) list.Item {
 	i := list.NewDefaultItem(t, t)
-	//i.hasList = true
-	l := New(t)
+	i.HasList = true
+	l := list.New(t)
 	for key, _ := range testSubList {
 		i := list.NewDefaultItem(key, key)
-		i.isSub = true
-		i.level = 1
+		i.IsSub = true
+		i.Level = 1
 		l.AppendItem(i)
-		i.items = append(i.items, list.NewListItem(i))
+		i.Items = append(i.Items, list.NewListItem(i))
 	}
+
 	l.Model = l.BuildModel()
-	i.list = l
-	i.items = i.list.Items
+	i.List = l
+	i.Items = i.List.Items
 	return i
 }
 
-func TestList() *List {
+func TestList() *list.List {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
 
@@ -99,14 +100,6 @@ func TestList() *List {
 	return l
 }
 
-func TestKeyAction(m *List) tea.Cmd {
-	var items Items
-	for key, _ := range testData {
-		i := list.NewDefaultItem(key, key)
-		items = append(items, i)
-	}
-	return list.UpdateItemsCmd(items)
-}
 func TestKeyAction(m *list.List) tea.Cmd {
 	return m.Model.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
 }

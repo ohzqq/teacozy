@@ -80,8 +80,8 @@ func (l List) GetAbsIndex(i list.Item) int {
 
 func (l List) GetSubList(i list.Item) Items {
 	item := i.(Item)
-	if item.HasList() {
-		t := len(item.items)
+	if item.HasList {
+		t := len(item.Items)
 		return l.AllItems[item.id+1 : item.id+t+1]
 	}
 	return Items{}
@@ -168,7 +168,7 @@ func (l *List) SetItems(items Items) *List {
 func (l *List) AppendItem(i ListItem) *List {
 	item := NewListItem(i)
 	if l.IsMulti() {
-		item.isMulti = true
+		item.IsMulti = true
 	}
 	l.Items = append(l.Items, item)
 	return l

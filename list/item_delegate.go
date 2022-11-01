@@ -70,7 +70,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditItemCmd())
 		case key.Matches(msg, d.keys.ToggleItem):
-			if curItem.HasList() {
+			if curItem.HasList {
 				return ToggleItemListCmd(curItem)
 				//return curItem.ShowListItemsCmd()
 			}
@@ -101,31 +101,31 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var (
 		isCurrent  = index == m.Index()
 		isSelected = curItem.IsSelected()
-		isSub      = curItem.IsSub()
+		isSub      = curItem.IsSub
 	)
 
 	render := iStyle.NormalItem.Render
 
 	mark := curItem.Mark()
-	if curItem.HasList() && !curItem.ListIsOpen() {
+	if curItem.HasList && !curItem.ListIsOpen() {
 		mark = ItemListClosed.Mark()
 	}
 
 	if isCurrent {
 		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
 		}
 	} else if isSelected {
 		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
 		}
 	} else if isSub {
 		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
 		}
 	} else {
 		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
+			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
 		}
 	}
 

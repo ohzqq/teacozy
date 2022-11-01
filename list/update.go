@@ -139,15 +139,15 @@ func (l *List) processAllItems() Items {
 		if l.IsMulti() {
 			item.state = ItemNotSelected
 		}
-		item.isVisible = true
+		item.IsVisible = true
 		item.SetId(idx)
 		items = append(items, item)
-		if item.HasList() {
-			for _, sub := range item.items {
+		if item.HasList {
+			for _, sub := range item.Items {
 				idx++
 				s := sub.(Item)
 				s.SetId(idx).SetIsSub()
-				s.isVisible = false
+				s.IsVisible = false
 				items = append(items, s)
 			}
 		}
@@ -167,10 +167,10 @@ func (l List) DisplayItems(opt string) Items {
 		level := 0
 		for _, item := range l.AllItems {
 			i := item.(Item)
-			if i.isVisible {
+			if i.IsVisible {
 				items = append(items, i)
 			}
-			if i.HasList() && i.ListIsOpen() {
+			if i.HasList && i.ListIsOpen() {
 				level++
 				for _, sub := range l.GetSubList(i) {
 					s := sub.(Item)
