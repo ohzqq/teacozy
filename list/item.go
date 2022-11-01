@@ -1,124 +1,202 @@
 package list
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
-	cozykey "github.com/ohzqq/teacozy/key"
 )
 
-type Items struct {
-	All           []list.Item
-	Selected      map[int]list.Item
-	Visible       []list.Item
-	IsMultiSelect bool
-}
+type ItemState int
 
-func NewItems() Items {
-	items := Items{
-		Selected: make(map[int]list.Item),
-	}
-	return items
-}
-
-func (i Items) Get(idx int) Item {
-	item := i.All[idx].(Item)
-	return item
-}
-
-func (i Items) NewList(title string, multi bool) List {
-	l := New(title, i, multi)
-	return l
-}
-
-func (i *Items) Add(item Item) {
-	i.appendItem(item)
-	if item.HasList() {
-		item.state = itemListClosed
-		for _, l := range item.Items.All {
-			li := l.(Item)
-			i.Add(li)
-		}
-	}
-}
-
-func (i *Items) appendItem(item Item) {
-	if i.IsMultiSelect {
-		item.state = itemNotSelected
-	}
-	item.Idx = len(i.All)
-	i.All = append(i.All, item)
-}
-
-func (i Items) HasSelections() bool {
-	return i.Selected != nil && len(i.Selected) > 0
-}
-
-func (i *Items) ToggleSelected(idx int) list.Item {
-	item := i.All[idx].(Item)
-	item.IsSelected = !item.IsSelected
-	i.All[idx] = item
-	return i.All[idx]
-}
-
-func (i Items) Selections() []Item {
-	var items []Item
-	for idx, _ := range i.Selected {
-		item := i.All[idx]
-		items = append(items, item.(Item))
-	}
-	return items
-}
-
-type itemState int
-
+//go:generate go run golang.org/x/tools/cmd/stringer -type=ItemState
 const (
-	itemNotSelected itemState = iota + 1
-	itemSelected
-	itemListOpen
-	itemListClosed
-	check    string = "[x] "
-	uncheck  string = "[ ] "
-	dash     string = "- "
-	openSub  string = `[+] `
-	closeSub string = `[-] `
+	ItemNotSelected ItemState = iota + 1
+	ItemSelected
+	ItemListOpen
+	ItemListClosed
 )
 
-func (s itemState) Prefix() string {
+func (s ItemState) Mark() string {
 	switch s {
-	case itemNotSelected:
+	case ItemNotSelected:
 		return uncheck
-	case itemSelected:
+	case ItemSelected:
 		return check
-	case itemListOpen:
+	case ItemListOpen:
 		return closeSub
-	case itemListClosed:
+	case ItemListClosed:
 		return openSub
 	default:
 		return dash
 	}
 }
 
-type Item struct {
-	state         itemState
-	Idx           int
-	level         int
-	label         string
-	Content       string
-	Items         Items
-	AllItems      []list.Item
-	IsHidden      bool
-	IsSelected    bool
-	IsOpen        bool
-	IsSub         bool
-	ListIsOpen    bool
-	IsMultiSelect bool
+type Items []list.Item
+
+func (li Items) Get(idx int) Item {
+	if idx < len(li) {
+		return li[idx].(Item)
+	}
+	return Item{}
 }
 
-func NewItem(content string) Item {
-	return Item{
-		Content: content,
+func (li Items) GetSelected() Items {
+	var items Items
+	for _, item := range li {
+		if i, ok := item.(Item); ok && i.IsSelected() {
+			items = append(items, i)
+		}
 	}
+	return items
+}
+
+func (li Items) SelectAll() Items {
+	var items Items
+	for _, i := range li {
+		item := i.(Item)
+		item.isSelected = true
+		items = append(items, item)
+	}
+	return items
+}
+
+func (li Items) SetSub(level int) Items {
+	var items Items
+	for _, i := range li {
+		item := i.(Item)
+		item.SetLevel(level)
+		items = append(items, item)
+	}
+	return items
+}
+
+func (li Items) OpenList(idx int) Item {
+	item := li.Get(idx)
+	item.state = ItemListOpen
+	return item
+}
+
+func (li Items) CloseList(idx int) Item {
+	item := li.Get(idx)
+	item.state = ItemListClosed
+	return item
+}
+
+func (li Items) ToggleList(idx int) Item {
+	item := li.Get(idx)
+
+	var i Item
+	if item.HasList() {
+		i = li.OpenList(idx)
+		if item.ListIsOpen() {
+			i = li.CloseList(idx)
+		}
+	}
+
+	li[idx] = i
+
+	return li.Get(idx)
+}
+
+func (li Items) Select(idx int) Item {
+	item := li.Get(idx)
+	item.state = ItemSelected
+	return item
+}
+
+func (li Items) Deselect(idx int) Item {
+	item := li.Get(idx)
+	item.state = ItemNotSelected
+	return item
+}
+
+func (li Items) Toggle(idx int) Item {
+	item := li.Get(idx)
+
+	i := li.Select(idx)
+
+	if item.IsSelected() {
+		i = li.Deselect(idx)
+	}
+
+	li[idx] = i
+
+	return li.Get(idx)
+}
+
+func (li Items) NewList(title string, state listType) *List {
+	l := New(title)
+	l.state = state
+	return l
+}
+
+type Item struct {
+	defaultItem
+	data       list.Item
+	id         int
+	isSelected bool
+	hasList    bool
+	isSub      bool
+	listOpen   bool
+	isVisible  bool
+	mark       string
+	isMulti    bool
+	state      ItemState
+	level      int
+	items      Items
+	list       *List
+	Content    string
+}
+
+func (i *Item) SetContent(content string) {
+	i.Content = content
+}
+
+type defaultItem struct {
+	title       string
+	filterValue string
+}
+
+func (i defaultItem) FilterValue() string {
+	return i.filterValue
+}
+
+func (i defaultItem) Title() string {
+	return i.title
+}
+
+type ListItem interface {
+	FilterValue() string
+	Title() string
+}
+
+func NewListItem(i ListItem) Item {
+	return Item{
+		data:        i,
+		Content:     i.FilterValue(),
+		defaultItem: newDefaultItem(i.Title(), i.FilterValue()),
+	}
+}
+
+func newDefaultItem(title, fv string) defaultItem {
+	return defaultItem{
+		title:       title,
+		filterValue: fv,
+	}
+}
+
+func NewDefaultItem(title, fv string) Item {
+	i := newDefaultItem(title, fv)
+	return Item{
+		data:        i,
+		defaultItem: i,
+	}
+}
+
+func (i Item) State() ItemState {
+	if i.HasList() && i.state == ItemListClosed {
+		return ItemListClosed
+	}
+	return i.state
 }
 
 func (i *Item) Edit() textarea.Model {
@@ -128,38 +206,59 @@ func (i *Item) Edit() textarea.Model {
 	return input
 }
 
-func (i Item) Toggle() key.Binding { return cozykey.EditField }
-func (i Item) Label() string       { return i.label }
-
-func (i Item) FilterValue() string {
-	return i.Content
+func (i Item) Mark() string {
+	return i.state.Mark()
 }
 
-func (i *Item) ToggleSelected() {
-	i.IsSelected = !i.IsSelected
+func (i *Item) SetId(id int) *Item {
+	i.id = id
+	return i
 }
 
-func (i *Item) SetContent(content string) {
-	i.Content = content
+func (i Item) Data() list.Item {
+	return i.data
+}
+
+func (i Item) IsSelected() bool {
+	if i.isSelected || i.state == ItemSelected {
+		return true
+	}
+	return false
+}
+
+func (i Item) ListIsOpen() bool {
+	return i.state == ItemListOpen
+}
+
+func (i Item) IsSub() bool {
+	return i.isSub
 }
 
 func (i Item) HasList() bool {
-	has := len(i.Items.All) > 0
-	return has
+	return i.hasList
 }
 
-func (i Item) Prefix() string {
-	if i.HasList() {
-		if i.IsOpen {
-			return closeSub
-		}
-		return openSub
-	} else {
-		if i.IsSelected {
-			return check
-		}
-		return uncheck
+func (i *Item) Toggle() {
+	i.isSelected = !i.isSelected
+	switch i.IsSelected() {
+	case true:
+		i.state = ItemNotSelected
+	case false:
+		i.state = ItemSelected
 	}
+}
 
-	return dash
+func (i *Item) SetLevel(l int) *Item {
+	i.level = l
+	return i
+}
+
+func (i *Item) SetIsSub() *Item {
+	i.isSub = true
+	return i
+}
+
+func (i *Item) SetList(l *List) *Item {
+	i.list = l
+	return i
 }

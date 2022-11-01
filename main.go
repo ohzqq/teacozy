@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -37,25 +38,26 @@ func listModel() list.List {
 	var testHelpKeys = []list.MenuItem{
 		list.NewMenuItem("t", "select item", TestKeyAction),
 	}
-	items := list.NewItems()
-	items.IsMultiSelect = false
-	items.Add(list.NewItem("poot"))
+	//items := list.NewItems()
+	l := list.NewMultiSelect("test")
+	l.Add(list.NewItem("poot"))
 	toot := list.NewItem("toot")
-	toot.Items = list.NewItems()
-	toot.Items.Add(list.NewItem("moot"))
-	items.Add(toot)
+	//toot.Items = list.NewItems()
+	//toot.AllItems = append(toot.AllItems, list.NewItem("moot"))
+	l.Add(toot)
 	t := key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "deselect all"),
 	)
-	m := items.NewList("test", false)
+	//m := items.NewList("test", true)
 	menu := list.NewMenu("test", t, testHelpKeys)
-	m.NewWidget(menu)
-	m.Action = list.SingleSelectAction(m)
+	l.NewWidget(menu)
+	l.Action = list.SingleSelectAction(l)
+	l.Build()
 	//m.Action = list.MultiSelectAction(m)
-	return m
+	return l
 }
 
 func TestKeyAction(m *list.List) tea.Cmd {
-	return m.Model.NewStatusMessage("poot")
+	return m.Model.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
 }

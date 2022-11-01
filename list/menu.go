@@ -7,42 +7,40 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/util"
+	"github.com/ohzqq/urbooks-core/bubbles/style"
+	"github.com/ohzqq/urbooks-core/bubbles/util"
 )
 
+type Menus map[string]*Menu
+
+func (m Menus) Get(key string) *Menu {
+	return m[key]
+}
+
 type Menu struct {
-	Model   viewport.Model
-	width   int
-	toggle  key.Binding
-	height  int
-	label   string
-	content string
-	show    bool
-	focus   bool
-	style   lipgloss.Style
-	Keys    []MenuItem
+	Model     viewport.Model
+	width     int
+	Toggle    key.Binding
+	height    int
+	Label     string
+	content   string
+	show      bool
+	style     lipgloss.Style
+	IsFocused bool
+	Keys      MenuItems
+	Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
-func (m Menu) Label() string {
-	return m.label
-}
+type MenuItems []MenuItem
 
-func NewMenu(l string, toggle key.Binding, keys []MenuItem) *Menu {
-	m := Menu{
-		label:  l,
-		toggle: toggle,
-		Keys:   keys,
+func NewMenu(l string, toggle key.Binding) *Menu {
+	return &Menu{
+		Label:  l,
+		Toggle: toggle,
 	}
-
-	m.content = m.Render()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.content)
-	m.Model = vp
-
-	return &m
 }
 
-func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
+func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -50,34 +48,35 @@ func (m Menu) Update(list *List, msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.Toggle()):
-			cmds = append(cmds, FocusListCmd())
+		case key.Matches(msg, m.CurrentMenu.Toggle):
+			m.ShowMenu = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
-			for _, item := range m.Keys {
+			for _, item := range m.CurrentMenu.Keys {
 				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(list))
-					list.HideWidget()
+					cmds = append(cmds, item.Cmd(m))
+					m.ShowMenu = false
 				}
 			}
-			cmds = append(cmds, FocusListCmd())
+			m.ShowMenu = false
+			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
-	m.Model, cmd = m.Model.Update(msg)
+	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
 	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
 
-func (m Menu) Toggle() key.Binding {
-	return m.toggle
-}
-
-func (m *Menu) Blur() {
-	m.focus = false
-}
-
-func (m *Menu) SetKeys(keys []MenuItem) *Menu {
+func (m *Menu) SetKeys(keys MenuItems) *Menu {
 	m.Keys = keys
 	return m
+}
+
+func (m *Menu) BuildModel() {
+	m.content = m.Render()
+	vp := viewport.New(m.Width(), m.Height())
+	vp.SetContent(m.content)
+	m.Model = vp
 }
 
 func (m Menu) Render() string {
@@ -85,22 +84,13 @@ func (m Menu) Render() string {
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
 	}
-	return strings.Join(kh, "\n")
-}
-
-func (m Menu) View() string {
-	style := FrameStyle().Copy().Width(m.Width())
-	return style.Render(m.Render())
+	style := style.FrameStyle().Copy().Width(m.Width())
+	return style.Render(strings.Join(kh, "\n"))
 }
 
 func (m *Menu) SetWidth(w int) *Menu {
 	m.width = w
 	return m
-}
-
-func (m *Menu) SetContent(content string) {
-	m.content = content
-	m.Model.SetContent(content)
 }
 
 func (m Menu) Width() int {
@@ -113,17 +103,6 @@ func (m Menu) Width() int {
 func (m Menu) Height() int {
 	return lipgloss.Height(m.content)
 }
-
-func (m *Menu) Focus() tea.Cmd {
-	m.focus = true
-	return nil
-}
-
-func (m Menu) Focused() bool {
-	return m.focus
-}
-
-type MenuCmd func(m *List) tea.Cmd
 
 type MenuItem struct {
 	Key key.Binding

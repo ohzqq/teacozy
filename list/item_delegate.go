@@ -3,27 +3,35 @@ package list
 import (
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
-	cozykey "github.com/ohzqq/teacozy/key"
+	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
+	"github.com/ohzqq/urbooks-core/bubbles/style"
+)
+
+const (
+	check    string = "[x] "
+	uncheck  string = "[ ] "
+	dash     string = "- "
+	openSub  string = `[+] `
+	closeSub string = `[-] `
 )
 
 type itemDelegate struct {
-	IsMultiSelect bool
-	keys          cozykey.KeyMap
-	styles        ItemStyle
+	MultiSelect bool
+	keys        urkey.KeyMap
+	styles      style.ItemStyle
 }
 
 func NewItemDelegate(multi bool) itemDelegate {
 	return itemDelegate{
-		IsMultiSelect: multi,
-		keys:          cozykey.DefaultKeys(),
-		styles:        ItemStyles(),
+		MultiSelect: multi,
+		styles:      style.ItemStyles(),
+		keys:        urkey.DefaultKeys(),
 	}
 }
 
@@ -47,29 +55,26 @@ func (d itemDelegate) FullHelp() [][]key.Binding {
 
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
-		cur  Item
-		cmds []tea.Cmd
+		curItem Item
+		cmds    []tea.Cmd
 	)
 
 	switch i := m.SelectedItem().(type) {
 	case Item:
-		cur = i
+		curItem = i
 	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, cozykey.EditField):
+		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditItemCmd())
 		case key.Matches(msg, d.keys.ToggleItem):
-			//if cur.HasList() {
-			//return ToggleItemListCmd(cur)
-			//return curItem.ShowListItemsCmd()
-			//}
-			//cur.state = itemSelected
-			msg := fmt.Sprintf("%v", cur.Content)
-			cmds = append(cmds, m.NewStatusMessage(msg))
-			cmds = append(cmds, ToggleItemCmd())
+			if curItem.HasList() {
+				return ToggleItemListCmd(curItem)
+				//return curItem.ShowListItemsCmd()
+			}
+			return toggleItemCmd(curItem)
 		}
 	}
 	return tea.Batch(cmds...)
@@ -85,46 +90,42 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		title = strconv.Itoa(i.Idx) + i.Content
+		title = i.FilterValue()
 	}
 
 	if m.Width() > 0 {
 		textwidth := uint(m.Width() - iStyle.CurrentItem.GetPaddingLeft() - iStyle.CurrentItem.GetPaddingRight())
-		title = padding.String(truncate.StringWithTail(title, textwidth, Ellipsis), textwidth)
+		title = padding.String(truncate.StringWithTail(title, textwidth, style.Ellipsis), textwidth)
 	}
 
 	var (
 		isCurrent  = index == m.Index()
-		isSelected = curItem.IsSelected
-		isSub      = curItem.IsSub
+		isSelected = curItem.IsSelected()
+		isSub      = curItem.IsSub()
 	)
 
 	render := iStyle.NormalItem.Render
 
-	prefix := curItem.Prefix()
-	//if curItem.HasList() && !curItem.ListIsOpen {
-	//  prefix = itemListClosed.Prefix()
-	//}
-
-	//if !d.IsMultiSelect {
-	//  prefix = dash
-	//}
+	mark := curItem.Mark()
+	if curItem.HasList() && !curItem.ListIsOpen() {
+		mark = ItemListClosed.Mark()
+	}
 
 	if isCurrent {
 		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
+			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
 		}
 	} else if isSelected {
 		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
+			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
 		}
 	} else if isSub {
 		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
+			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
 		}
 	} else {
 		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.level).Render(prefix + s)
+			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.level).Render(mark + s)
 		}
 	}
 

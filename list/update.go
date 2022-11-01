@@ -1,12 +1,17 @@
 package list
 
 import (
+	"bytes"
+	"fmt"
+	"log"
+
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	cozykey "github.com/ohzqq/teacozy/key"
+	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
 )
 
-func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -15,31 +20,51 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.area.Focused() {
-			if key.Matches(msg, cozykey.SaveAndExit) {
+			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.Model.SelectedItem().(Item)
 				val := m.area.Value()
 				cur.SetContent(val)
 				m.SetItem(m.Model.Index(), cur)
 				m.area.Blur()
+				cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 			}
 			m.area, cmd = m.area.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			if m.IsMultiSelect {
+			if m.IsMulti() {
+				switch {
+				case key.Matches(msg, m.Keys.Enter):
+					if m.ShowSelectedOnly {
+						cmds = append(cmds, ReturnSelectionsCmd())
+					}
+
+					m.ShowSelectedOnly = true
+					cmds = append(cmds, UpdateDisplayedItemsCmd("selected"))
+				case key.Matches(msg, m.Keys.SelectAll):
+					ToggleAllItemsCmd(m)
+					cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+				}
 			} else {
 				switch {
-				case key.Matches(msg, cozykey.Enter):
-					cmds = append(cmds, m.Action(m))
+				case key.Matches(msg, m.Keys.Enter):
+					m.ToggleItem(m.Model.SelectedItem())
+					cmds = append(cmds, ReturnSelectionsCmd())
 				}
 			}
+
 			switch {
 			case key.Matches(msg, m.Keys.ExitScreen):
 				cmds = append(cmds, tea.Quit)
+			case key.Matches(msg, m.Keys.Quit):
+				cmds = append(cmds, tea.Quit)
+			case key.Matches(msg, m.Keys.Prev):
+				m.ShowSelectedOnly = false
+				cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 			default:
-				for label, widget := range m.Widgets {
-					if key.Matches(msg, widget.Toggle()) {
-						widget.Focus()
-						m.ShowWidget()
+				for label, menu := range m.Menus {
+					if key.Matches(msg, menu.Toggle) {
+						m.CurrentMenu = menu
+						m.ShowMenu = !m.ShowMenu
 						cmds = append(cmds, SetFocusedViewCmd(label))
 					}
 				}
@@ -47,105 +72,125 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Model, cmd = m.Model.Update(msg)
 			cmds = append(cmds, cmd)
 		}
-	case ToggleItemMsg:
-		cur := m.Model.SelectedItem().(Item)
-		cur.ToggleSelected()
-		//if m.IsMultiSelect {
-		//  cur.IsSelected = !cur.IsSelected
-		//}
-		m.SetItem(m.Model.Index(), cur)
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
-		if m.FocusedView == "list" && m.CurrentWidget() != nil {
-			m.HideWidget()
-		}
 	case EditItemMsg:
 		cur := m.Model.SelectedItem().(Item)
 		m.area = cur.Edit()
 		m.area.Focus()
-	case UpdateVisibleItemsMsg:
-		switch string(msg) {
-		case "selected":
-		}
+	case ReturnSelectionsMsg:
+		m.Selections = m.AllItems.GetSelected()
+		cmds = append(cmds, tea.Quit)
 	}
 
 	switch focus := m.FocusedView; focus {
 	case "list":
 		switch msg := msg.(type) {
-		//case UpdateDisplayedItemsMsg:
-		//items := m.DisplayItems(string(msg))
-		//m.Model.SetHeight(m.GetHeight(items))
-		//cmds = append(cmds, m.Model.SetItems(items))
-		case UpdateWidgetContentMsg:
-			m.CurrentWidget().SetContent(string(msg))
-			m.HideWidget()
+		case UpdateDisplayedItemsMsg:
+			items := m.DisplayItems(string(msg))
+			m.Model.SetHeight(m.GetHeight(items))
+			cmds = append(cmds, m.Model.SetItems(items))
+		case ToggleItemListMsg:
+			m.ToggleSubList(m.Model.SelectedItem())
+			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+		case toggleItemMsg:
+			m.ToggleItem(m.Model.SelectedItem())
+			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+		case UpdateMenuContentMsg:
+			m.CurrentMenu.Model.SetContent(string(msg))
+			m.ShowMenu = false
+		case UpdateItemsMsg:
+			m.SetItems(Items(msg))
+			m.processAllItems()
+			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+			m.ShowMenu = false
+		case OSExecCmdMsg:
+			menuCmd := msg.cmd(m.AllItems.GetSelected())
+			var (
+				stderr bytes.Buffer
+				stdout bytes.Buffer
+			)
+			menuCmd.Stderr = &stderr
+			menuCmd.Stdout = &stdout
+			err := menuCmd.Run()
+			if err != nil {
+				fmt.Println(menuCmd.String())
+				fmt.Println(stderr.String())
+				log.Fatal(err)
+			}
 		}
 
-		//m.Model, cmd = m.Model.Update(msg)
-		//cmds = append(cmds, cmd)
 	default:
-		if m.CurrentWidget() != nil {
-			cmds = append(cmds, m.CurrentWidget().Update(&m, msg))
+		for label, _ := range m.Menus {
+			if focus == label {
+				cmds = append(cmds, UpdateMenu(m, msg))
+			}
 		}
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func MultiSelectAction(m List) func(List) tea.Cmd {
-	fn := func(m List) tea.Cmd {
-		for _, item := range m.Items.All {
+func (l *List) processAllItems() Items {
+	var items Items
+	idx := 0
+	for _, i := range l.Items {
+		item := i.(Item)
+		if l.IsMulti() {
+			item.state = ItemNotSelected
+		}
+		item.isVisible = true
+		item.SetId(idx)
+		items = append(items, item)
+		if item.HasList() {
+			for _, sub := range item.items {
+				idx++
+				s := sub.(Item)
+				s.SetId(idx).SetIsSub()
+				s.isVisible = false
+				items = append(items, s)
+			}
+		}
+		idx++
+	}
+
+	l.AllItems = items
+	return items
+}
+
+func (l List) DisplayItems(opt string) Items {
+	switch opt {
+	case "selected":
+		return l.AllItems.GetSelected()
+	default:
+		var items Items
+		level := 0
+		for _, item := range l.AllItems {
 			i := item.(Item)
-			m.Items.Selected[i.Idx] = item
+			if i.isVisible {
+				items = append(items, i)
+			}
+			if i.HasList() && i.ListIsOpen() {
+				level++
+				for _, sub := range l.GetSubList(i) {
+					s := sub.(Item)
+					s.SetIsSub().SetLevel(level)
+					items = append(items, s)
+				}
+			}
 		}
-		if m.Items.HasSelections() {
-			return tea.Quit
-		}
-		return nil
-	}
-	return fn
-}
-
-func SingleSelectAction(m List) func(List) tea.Cmd {
-	fn := func(m List) tea.Cmd {
-		cur := m.Model.SelectedItem()
-		curItem := cur.(Item)
-		curItem.IsSelected = true
-		m.Items.Selected[curItem.Idx] = cur
-		if m.Items.HasSelections() {
-			return tea.Quit
-		}
-		return nil
-	}
-	return fn
-}
-
-type UpdateWidgetContentMsg string
-
-func UpdateWidgetContentCmd(s string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateWidgetContentMsg(s)
-	}
-}
-func (m List) CurrentWidget() Widget {
-	for _, w := range m.Widgets {
-		if w.Focused() {
-			return w
-		}
-	}
-	return nil
-}
-
-func (m *List) HideWidget() {
-	m.focusWidget = false
-	if m.CurrentWidget() != nil {
-		m.CurrentWidget().Blur()
+		return items
 	}
 }
 
-func (m *List) ShowWidget() {
-	m.focusWidget = true
-	if m.CurrentWidget() != nil {
-		m.CurrentWidget().Focus()
-	}
+func (l *List) ToggleItem(i list.Item) Item {
+	return l.AllItems.Toggle(i.(Item).id)
 }
+
+func (l *List) ToggleSubList(i list.Item) Item {
+	return l.AllItems.ToggleList(i.(Item).id)
+}
+
+//func (l *List) SetItem(i list.Item) {
+//  l.AllItems[i.(Item).id] = i
+//}
