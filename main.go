@@ -38,7 +38,7 @@ func listModel() list.List {
 		list.NewMenuItem("t", "select item", TestKeyAction),
 	}
 	items := list.NewItems()
-	items.MultiSelect = false
+	items.MultiSelect = true
 	items.Add(list.NewItem("poot"))
 	toot := list.NewItem("toot")
 	toot.Items = list.NewItems()
@@ -51,8 +51,8 @@ func listModel() list.List {
 	m := items.NewList("test", false)
 	menu := list.NewMenu("test", t, testHelpKeys)
 	m.NewWidget(menu)
-	m.Action = list.SingleSelectAction(m)
-	//m.Action = list.MultiSelectAction(m)
+	//m.Action = list.SingleSelectAction(m)
+	m.Action = list.MultiSelectAction(m)
 	return m
 }
 
