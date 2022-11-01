@@ -36,6 +36,14 @@ func FocusListCmd() tea.Cmd {
 	}
 }
 
+type EditItemMsg string
+
+func EditItemCmd() tea.Cmd {
+	return func() tea.Msg {
+		return EditItemMsg("")
+	}
+}
+
 func MultiSelectAction(m List) func(List) tea.Cmd {
 	fn := func(m List) tea.Cmd {
 		for _, item := range m.Items.All {

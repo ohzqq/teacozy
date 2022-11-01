@@ -1,6 +1,12 @@
 package list
 
-import "github.com/charmbracelet/bubbles/list"
+import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
+	cozykey "github.com/ohzqq/teacozy/key"
+)
 
 type Items struct {
 	All         []list.Item
@@ -90,9 +96,11 @@ func (s itemState) Prefix() string {
 }
 
 type Item struct {
+	input         textarea.Model
 	state         itemState
 	Idx           int
 	level         int
+	label         string
 	Content       string
 	Items         Items
 	IsVisible     bool
@@ -109,8 +117,30 @@ func NewItem(content string) Item {
 	}
 }
 
+func (i Item) Toggle() key.Binding { return cozykey.EditField }
+func (i Item) Label() string       { return i.label }
+func (i Item) Focused() bool       { return i.input.Focused() }
+
 func (i Item) FilterValue() string {
 	return i.Content
+}
+
+func (i *Item) Focus() tea.Cmd {
+	i.input.Focus()
+	return nil
+}
+
+func (i *Item) Blur() {
+	i.input.Blur()
+}
+
+func (i *Item) SetContent(content string) {
+	i.Content = content
+	i.input.SetValue(content)
+}
+
+func (m Item) View() string {
+	return m.input.View()
 }
 
 func (i Item) HasList() bool {

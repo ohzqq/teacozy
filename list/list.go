@@ -85,6 +85,8 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.FocusedView == "list" && m.CurrentWidget() != nil {
 			m.HideWidget()
 		}
+	case EditItemMsg:
+		cmds = append(cmds, SetFocusedViewCmd("input"))
 	case UpdateVisibleItemsMsg:
 		switch string(msg) {
 		case "selected":
@@ -105,6 +107,8 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.Model, cmd = m.Model.Update(msg)
 		cmds = append(cmds, cmd)
+	case "input":
+		cmds = append(cmds, m.Model.NewStatusMessage("edit"))
 	default:
 		if m.CurrentWidget() != nil {
 			cmds = append(cmds, m.CurrentWidget().Update(&m, msg))

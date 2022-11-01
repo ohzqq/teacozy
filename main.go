@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -29,8 +28,6 @@ func main() {
 		println(s.Prefix())
 		println(s.Content)
 	}
-
-	fmt.Printf("%+V\n", m.Items.All)
 }
 
 func menuModel() {
