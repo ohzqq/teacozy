@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/urbooks-core/bubbles/style"
-	"github.com/ohzqq/urbooks-core/bubbles/util"
+	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Menus map[string]*Menu

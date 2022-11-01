@@ -1,7 +1,7 @@
 package multi
 
 import (
-	"github.com/ohzqq/urbooks-core/bubbles/list"
+	"github.com/ohzqq/teacozy/list"
 )
 
 type List struct {

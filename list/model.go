@@ -6,9 +6,9 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
-	"github.com/ohzqq/urbooks-core/bubbles/style"
-	"github.com/ohzqq/urbooks-core/bubbles/util"
+	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/exp/slices"
 )
 

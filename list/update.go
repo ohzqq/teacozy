@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
+	urkey "github.com/ohzqq/teacozy/key"
 )
 
 func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

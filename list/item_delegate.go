@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
-	urkey "github.com/ohzqq/urbooks-core/bubbles/key"
-	"github.com/ohzqq/urbooks-core/bubbles/style"
+	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/style"
 )
 
 const (

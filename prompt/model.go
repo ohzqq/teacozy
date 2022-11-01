@@ -4,7 +4,7 @@ import (
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/urbooks-core/bubbles/list"
+	"github.com/ohzqq/teacozy/list"
 )
 
 type Prompt struct {
