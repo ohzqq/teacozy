@@ -3,6 +3,8 @@ package list
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	cozykey "github.com/ohzqq/teacozy/key"
@@ -12,6 +14,8 @@ import (
 type List struct {
 	Model            list.Model
 	Items            Items
+	area             textarea.Model
+	input            textinput.Model
 	Selections       []Item
 	Keys             cozykey.KeyMap
 	Title            string
@@ -55,24 +59,34 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.IsMultiSelect {
-		} else {
-			switch {
-			case key.Matches(msg, cozykey.Enter):
-				cmds = append(cmds, m.Action(m))
+		if m.area.Focused() {
+			if key.Matches(msg, cozykey.SaveAndExit) {
+				m.area.Blur()
 			}
-		}
-		switch {
-		case key.Matches(msg, m.Keys.ExitScreen):
-			cmds = append(cmds, tea.Quit)
-		default:
-			for label, widget := range m.Widgets {
-				if key.Matches(msg, widget.Toggle()) {
-					widget.Focus()
-					m.ShowWidget()
-					cmds = append(cmds, SetFocusedViewCmd(label))
+			m.area, cmd = m.area.Update(msg)
+			cmds = append(cmds, cmd)
+		} else {
+			if m.IsMultiSelect {
+			} else {
+				switch {
+				case key.Matches(msg, cozykey.Enter):
+					cmds = append(cmds, m.Action(m))
 				}
 			}
+			switch {
+			case key.Matches(msg, m.Keys.ExitScreen):
+				cmds = append(cmds, tea.Quit)
+			default:
+				for label, widget := range m.Widgets {
+					if key.Matches(msg, widget.Toggle()) {
+						widget.Focus()
+						m.ShowWidget()
+						cmds = append(cmds, SetFocusedViewCmd(label))
+					}
+				}
+			}
+			m.Model, cmd = m.Model.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	case ToggleItemMsg:
 		cur := m.Model.SelectedItem().(Item)
@@ -86,7 +100,10 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.HideWidget()
 		}
 	case EditItemMsg:
-		cmds = append(cmds, SetFocusedViewCmd("input"))
+		cur := m.Model.SelectedItem().(Item)
+		m.area = cur.Edit()
+		m.area.Focus()
+		//cmds = append(cmds, SetFocusedViewCmd("input"))
 	case UpdateVisibleItemsMsg:
 		switch string(msg) {
 		case "selected":
@@ -105,10 +122,15 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.HideWidget()
 		}
 
-		m.Model, cmd = m.Model.Update(msg)
-		cmds = append(cmds, cmd)
+		//m.Model, cmd = m.Model.Update(msg)
+		//cmds = append(cmds, cmd)
 	case "input":
 		cmds = append(cmds, m.Model.NewStatusMessage("edit"))
+		cur := m.Model.SelectedItem().(Item)
+		cur.Edit()
+		cur.Focus()
+		m.Widgets["input"] = &cur
+		cmds = append(cmds, cmd)
 	default:
 		if m.CurrentWidget() != nil {
 			cmds = append(cmds, m.CurrentWidget().Update(&m, msg))
@@ -166,12 +188,22 @@ func (m List) View() string {
 		availHeight -= lipgloss.Height(menu)
 	}
 
+	var field string
+	if m.area.Focused() {
+		field = m.area.View()
+		availHeight -= lipgloss.Height(field)
+	}
+
 	m.Model.SetSize(m.width, availHeight)
 	content := m.Model.View()
 	sections = append(sections, content)
 
 	if m.focusWidget {
 		sections = append(sections, menu)
+	}
+
+	if m.area.Focused() {
+		sections = append(sections, field)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

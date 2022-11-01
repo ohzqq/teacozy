@@ -73,8 +73,8 @@ var (
 		key.WithHelp("ctrl+c", "quit"),
 	)
 	SaveAndExit = key.NewBinding(
-		key.WithKeys("ctrl+q"),
-		key.WithHelp("ctrl+q", "save and exit"),
+		key.WithKeys("ctrl+w"),
+		key.WithHelp("ctrl+w", "save and exit"),
 	)
 	Enter = key.NewBinding(
 		key.WithKeys("enter"),

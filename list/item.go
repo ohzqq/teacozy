@@ -117,6 +117,33 @@ func NewItem(content string) Item {
 	}
 }
 
+func (i *Item) Edit() textarea.Model {
+	i.input = textarea.New()
+	i.input.SetValue(i.Content)
+	i.input.ShowLineNumbers = false
+	return i.input
+}
+
+func (m Item) Update(list *List, msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if key.Matches(msg, cozykey.SaveAndExit) {
+			m.SetContent(m.input.Value())
+			m.Blur()
+		}
+		if m.Focused() {
+			m.input, cmd = m.input.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return tea.Batch(cmds...)
+}
+
 func (i Item) Toggle() key.Binding { return cozykey.EditField }
 func (i Item) Label() string       { return i.label }
 func (i Item) Focused() bool       { return i.input.Focused() }
