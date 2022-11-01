@@ -12,6 +12,9 @@ import (
 
 type List struct {
 	Model            list.Model
+	delegate         itemDelegate
+	AllItems         []list.Item
+	VisibleItems     []list.Item
 	Items            Items
 	area             textarea.Model
 	input            textinput.Model
@@ -40,6 +43,54 @@ func New(title string, items Items, multi bool) List {
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
 	return m
+}
+
+func NewSingleSelect(title string) List {
+	m := List{
+		IsMultiSelect: false,
+		delegate:      NewItemDelegate(false),
+		Items:         NewItems(),
+	}
+	m.Items.IsMultiSelect = false
+	return m
+}
+
+func NewMultiSelect(title string) List {
+	m := List{
+		IsMultiSelect: true,
+		delegate:      NewItemDelegate(true),
+		Items:         NewItems(),
+	}
+	m.Items.IsMultiSelect = true
+	return m
+}
+
+func (m *List) Build() {
+	m.Model = list.New(m.VisibleItems, m.delegate, m.Width(), m.Height())
+	m.Model.Title = m.Title
+	m.Model.Styles = ListStyles()
+	m.Model.SetShowStatusBar(false)
+	m.Model.SetShowHelp(false)
+}
+
+func (m *List) Add(i Item) {
+	m.appendItem(i)
+	if i.HasList() {
+		for _, item := range i.AllItems {
+			li := item.(Item)
+			li.IsHidden = true
+			m.Add(li)
+		}
+	}
+}
+
+func (l List) HasSelections() bool {
+	return len(l.Selections) > 0
+}
+
+func (l *List) appendItem(item Item) {
+	item.Idx = len(l.AllItems)
+	l.AllItems = append(l.AllItems, item)
 }
 
 func (l List) Width() int {

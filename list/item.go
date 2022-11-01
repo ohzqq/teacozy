@@ -8,10 +8,10 @@ import (
 )
 
 type Items struct {
-	All         []list.Item
-	Selected    map[int]list.Item
-	Visible     []list.Item
-	MultiSelect bool
+	All           []list.Item
+	Selected      map[int]list.Item
+	Visible       []list.Item
+	IsMultiSelect bool
 }
 
 func NewItems() Items {
@@ -43,7 +43,7 @@ func (i *Items) Add(item Item) {
 }
 
 func (i *Items) appendItem(item Item) {
-	if i.MultiSelect {
+	if i.IsMultiSelect {
 		item.state = itemNotSelected
 	}
 	item.Idx = len(i.All)
@@ -106,7 +106,8 @@ type Item struct {
 	label         string
 	Content       string
 	Items         Items
-	IsVisible     bool
+	AllItems      []list.Item
+	IsHidden      bool
 	IsSelected    bool
 	IsOpen        bool
 	IsSub         bool

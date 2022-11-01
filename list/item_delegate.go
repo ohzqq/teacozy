@@ -102,13 +102,13 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	render := iStyle.NormalItem.Render
 
 	prefix := curItem.Prefix()
-	if curItem.HasList() && !curItem.ListIsOpen {
-		prefix = itemListClosed.Prefix()
-	}
+	//if curItem.HasList() && !curItem.ListIsOpen {
+	//  prefix = itemListClosed.Prefix()
+	//}
 
-	if !d.IsMultiSelect {
-		prefix = dash
-	}
+	//if !d.IsMultiSelect {
+	//  prefix = dash
+	//}
 
 	if isCurrent {
 		render = func(s string) string {
