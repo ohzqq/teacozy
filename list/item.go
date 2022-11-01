@@ -22,6 +22,11 @@ func NewItems() Items {
 	return items
 }
 
+func (i Items) Get(idx int) Item {
+	item := i.All[idx].(Item)
+	return item
+}
+
 func (i Items) NewList(title string, multi bool) List {
 	l := New(title, i, multi)
 	return l
@@ -163,7 +168,7 @@ func (i *Item) Blur() {
 
 func (i *Item) SetContent(content string) {
 	i.Content = content
-	i.input.SetValue(content)
+	//i.input.SetValue(content)
 }
 
 func (m Item) View() string {

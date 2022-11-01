@@ -61,6 +61,12 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.area.Focused() {
 			if key.Matches(msg, cozykey.SaveAndExit) {
+				cur := m.Model.SelectedItem().(Item)
+				val := m.area.Value()
+				cur.SetContent(val)
+				m.SetItem(m.Model.Index(), cur)
+				test := m.Items.Get(cur.Idx)
+				cmds = append(cmds, m.Model.NewStatusMessage(test.Content))
 				m.area.Blur()
 			}
 			m.area, cmd = m.area.Update(msg)
