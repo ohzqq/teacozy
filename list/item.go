@@ -123,7 +123,7 @@ func (li Items) Toggle(idx int) Item {
 	return li.Get(idx)
 }
 
-func (li Items) NewList(title string, state listType) *List {
+func (li Items) NewList(title string, state listType) *Model {
 	l := New(title)
 	l.state = state
 	return l
@@ -144,7 +144,7 @@ type Item struct {
 	state      ItemState
 	Level      int
 	Items      Items
-	List       *List
+	List       *Model
 	Content    string
 }
 
@@ -262,7 +262,7 @@ func (i *Item) SetIsSub() *Item {
 	return i
 }
 
-func (i *Item) SetList(l *List) *Item {
+func (i *Item) SetList(l *Model) *Item {
 	i.List = l
 	return i
 }

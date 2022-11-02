@@ -73,7 +73,7 @@ func itemWithList(t string) list.Item {
 	return i
 }
 
-func TestList() *list.List {
+func TestList() *list.Model {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
 
@@ -100,6 +100,6 @@ func TestList() *list.List {
 	return l
 }
 
-func TestKeyAction(m *list.List) tea.Cmd {
+func TestKeyAction(m *list.Model) tea.Cmd {
 	return m.Model.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
 }

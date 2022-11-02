@@ -12,7 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -135,7 +135,7 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (l *List) processAllItems() Items {
+func (l *Model) processAllItems() Items {
 	var items Items
 	idx := 0
 	for _, i := range l.Items {
@@ -162,7 +162,7 @@ func (l *List) processAllItems() Items {
 	return items
 }
 
-func (l List) DisplayItems(opt string) Items {
+func (l Model) DisplayItems(opt string) Items {
 	switch opt {
 	case "selected":
 		return l.AllItems.GetSelected()
@@ -187,11 +187,11 @@ func (l List) DisplayItems(opt string) Items {
 	}
 }
 
-func (l *List) ToggleItem(i list.Item) Item {
+func (l *Model) ToggleItem(i list.Item) Item {
 	return l.AllItems.Toggle(i.(Item).id)
 }
 
-func (l *List) ToggleSubList(i list.Item) Item {
+func (l *Model) ToggleSubList(i list.Item) Item {
 	return l.AllItems.ToggleList(i.(Item).id)
 }
 

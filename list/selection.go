@@ -24,7 +24,7 @@ func (s Selections) Items() Items {
 	return items
 }
 
-func (l *List) CurrentlySelectedItems() ([]list.Item, []int) {
+func (l *Model) CurrentlySelectedItems() ([]list.Item, []int) {
 	var items []list.Item
 	var indices []int
 	for idx, i := range l.Model.Items() {
@@ -39,7 +39,7 @@ func (l *List) CurrentlySelectedItems() ([]list.Item, []int) {
 	return items, indices
 }
 
-func (l *List) SelectAll() {
+func (l *Model) SelectAll() {
 	for idx, it := range l.Model.Items() {
 		i := it.(Item)
 		i.Toggle()

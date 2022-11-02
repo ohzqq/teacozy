@@ -40,7 +40,7 @@ func NewMenu(l string, toggle key.Binding) *Menu {
 	}
 }
 
-func UpdateMenu(m *List, msg tea.Msg) tea.Cmd {
+func UpdateMenu(m *Model, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd

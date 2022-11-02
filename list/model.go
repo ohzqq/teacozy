@@ -21,7 +21,7 @@ const (
 	isSub
 )
 
-type List struct {
+type Model struct {
 	Model            list.Model
 	AllItems         Items
 	Items            Items
@@ -45,8 +45,8 @@ type List struct {
 	frame            lipgloss.Style
 }
 
-func New(title string) *List {
-	l := &List{
+func New(title string) *Model {
+	l := &Model{
 		Title:       title,
 		Keys:        urkey.DefaultKeys(),
 		Menus:       make(Menus),
@@ -56,14 +56,12 @@ func New(title string) *List {
 	return l
 }
 
-func (l *List) NewItem(content string) {
-	item := Item{Content: content}
-	i := NewItem(item)
-	//i := newDefaultItem(content, content)
-	l.All = append(l.All, i)
+func (l *Model) NewItem(content string) {
+	item := NewItem(Item{Content: content})
+	l.All = append(l.All, item)
 }
 
-func (l *List) BuildModel() list.Model {
+func (l *Model) BuildModel() list.Model {
 	l.processAllItems()
 	items := l.DisplayItems("all")
 	w := l.Width()
@@ -78,7 +76,7 @@ func (l *List) BuildModel() list.Model {
 	return model
 }
 
-func (l List) GetAbsIndex(i list.Item) int {
+func (l Model) GetAbsIndex(i list.Item) int {
 	id := i.(Item).id
 	fn := func(item list.Item) bool {
 		return id == item.(Item).id
@@ -86,7 +84,7 @@ func (l List) GetAbsIndex(i list.Item) int {
 	return slices.IndexFunc(l.AllItems, fn)
 }
 
-func (l List) GetSubList(i list.Item) Items {
+func (l Model) GetSubList(i list.Item) Items {
 	item := i.(Item)
 	if item.HasList {
 		t := len(item.Items)
@@ -95,8 +93,8 @@ func (l List) GetSubList(i list.Item) Items {
 	return Items{}
 }
 
-func (l *List) NewList(i Items) list.Model {
-	list := &List{
+func (l *Model) NewList(i Items) list.Model {
+	list := &Model{
 		Title:       l.Title,
 		Keys:        urkey.DefaultKeys(),
 		Menus:       l.Menus,
@@ -109,7 +107,7 @@ func (l *List) NewList(i Items) list.Model {
 	return list.BuildModel()
 }
 
-func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) *Menu {
+func (l *Model) NewMenu(label string, t key.Binding, keys []MenuItem) *Menu {
 	cm := NewMenu(label, t).SetKeys(keys)
 	cm.SetWidth(l.width)
 	cm.BuildModel()
@@ -117,13 +115,13 @@ func (l *List) NewMenu(label string, t key.Binding, keys []MenuItem) *Menu {
 	return cm
 }
 
-func (l *List) AddMenu(menu *Menu) {
+func (l *Model) AddMenu(menu *Menu) {
 	menu.SetWidth(l.width)
 	menu.BuildModel()
 	l.Menus[menu.Label] = menu
 }
 
-func (l List) GetHeight(items []list.Item) int {
+func (l Model) GetHeight(items []list.Item) int {
 	max := util.TermHeight()
 	total := len(items)
 	cur := l.Model.Height()
@@ -140,40 +138,40 @@ func (l List) GetHeight(items []list.Item) int {
 	}
 }
 
-func (l List) Width() int {
+func (l Model) Width() int {
 	return util.TermWidth()
 }
 
-func (l *List) SetMulti() *List {
+func (l *Model) SetMulti() *Model {
 	l.IsMultiSelect = true
 	return l
 }
 
-func (l *List) Prompt() *List {
+func (l *Model) Prompt() *Model {
 	l.ShowSelectedOnly = true
 	return l
 }
 
-func (m *List) SetItem(modelIndex int, item Item) {
+func (m *Model) SetItem(modelIndex int, item Item) {
 	m.Model.SetItem(modelIndex, item)
 	m.AllItems[item.id] = item
 }
 
-func (l *List) IsMulti() bool {
+func (l *Model) IsMulti() bool {
 	return l.IsMultiSelect
 }
 
-func (l *List) SetShowHelp() *List {
+func (l *Model) SetShowHelp() *Model {
 	l.ShowMenu = true
 	return l
 }
 
-func (l *List) SetItems(items Items) *List {
+func (l *Model) SetItems(items Items) *Model {
 	l.Items = items
 	return l
 }
 
-func (l *List) AppendItem(i ListItem) *List {
+func (l *Model) AppendItem(i ListItem) *Model {
 	item := NewListItem(i)
 	if l.IsMulti() {
 		item.IsMulti = true
@@ -182,7 +180,7 @@ func (l *List) AppendItem(i ListItem) *List {
 	return l
 }
 
-func (m List) View() string {
+func (m Model) View() string {
 	var (
 		sections    []string
 		availHeight = m.Model.Height()
@@ -215,6 +213,6 @@ func (m List) View() string {
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
 
-func (l *List) Init() tea.Cmd {
+func (l *Model) Init() tea.Cmd {
 	return UpdateDisplayedItemsCmd("all")
 }
