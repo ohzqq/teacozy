@@ -124,13 +124,11 @@ func (li Items) SetSub(level int) Items {
 
 func (li Items) OpenList(idx int) Item {
 	item := li.Get(idx)
-	item.state = ItemListOpen
 	return item
 }
 
 func (li Items) CloseList(idx int) Item {
 	item := li.Get(idx)
-	item.state = ItemListClosed
 	return item
 }
 
@@ -148,7 +146,6 @@ func (li Items) ToggleList(idx int) Item {
 
 func (li Items) Select(idx int) Item {
 	item := li.Get(idx)
-	item.state = ItemSelected
 	return item
 }
 
@@ -158,7 +155,6 @@ func (li Items) Set(i list.Item) {
 
 func (li Items) Deselect(idx int) Item {
 	item := li.Get(idx)
-	item.state = ItemNotSelected
 	return item
 }
 
@@ -178,10 +174,9 @@ type Item struct {
 	IsHidden   bool
 	mark       string
 	IsMulti    bool
-	state      ItemState
 	Level      int
 	Items      Items
-	List       *Model
+	list       *Model
 	Content    string
 }
 
@@ -200,13 +195,6 @@ func (i Item) FilterValue() string {
 	return i.Content
 }
 
-func (i Item) State() ItemState {
-	if i.HasList() && i.state == ItemListClosed {
-		return ItemListClosed
-	}
-	return i.state
-}
-
 func (i Item) HasList() bool {
 	has := len(i.Items) > 0
 	return has
@@ -218,10 +206,6 @@ func (i *Item) Edit() textarea.Model {
 	input.ShowLineNumbers = false
 	return input
 }
-
-//func (i Item) Prefix() string {
-//  return i.state.Prefix()
-//}
 
 func (i Item) Prefix() string {
 	if i.HasList() {
@@ -253,14 +237,10 @@ func (i Item) Data() list.Item {
 }
 
 func (i Item) IsSelected() bool {
-	if i.isSelected || i.state == ItemSelected {
+	if i.isSelected {
 		return true
 	}
 	return false
-}
-
-func (i Item) ListIsOpen() bool {
-	return i.state == ItemListOpen
 }
 
 func (i *Item) Toggle() Item {
@@ -278,6 +258,6 @@ func (i *Item) IsSub() bool {
 }
 
 func (i *Item) SetList(l *Model) *Item {
-	i.List = l
+	i.list = l
 	return i
 }

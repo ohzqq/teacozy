@@ -142,7 +142,7 @@ func (l *Model) processAllItems() Items {
 	for _, i := range l.Items {
 		item := i.(Item)
 		if l.IsMulti() {
-			item.state = ItemNotSelected
+			item.IsMulti = true
 		}
 		items = items.Add(item)
 	}
