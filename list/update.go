@@ -95,7 +95,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.List.SetHeight(util.TermHeight() - 2)
 			cmds = append(cmds, m.List.SetItems(items))
 		case ToggleItemListMsg:
-			m.ToggleSubList(m.List.SelectedItem())
+			cur := m.List.SelectedItem().(Item)
+			m.Items.ToggleList(cur.id)
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case toggleItemMsg:
 			m.ToggleItem(m.List.SelectedItem())

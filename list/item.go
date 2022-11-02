@@ -15,7 +15,7 @@ const (
 	ItemListClosed
 )
 
-func (s ItemState) Mark() string {
+func (s ItemState) Prefix() string {
 	switch s {
 	case ItemNotSelected:
 		return uncheck
@@ -229,8 +229,8 @@ func (i *Item) Edit() textarea.Model {
 	return input
 }
 
-func (i Item) Mark() string {
-	return i.state.Mark()
+func (i Item) Prefix() string {
+	return i.state.Prefix()
 }
 
 func (i *Item) SetId(id int) *Item {

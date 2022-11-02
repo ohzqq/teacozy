@@ -107,9 +107,9 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	render := iStyle.NormalItem.Render
 
-	prefix := curItem.Mark()
+	prefix := curItem.Prefix()
 	if curItem.HasList && !curItem.ListIsOpen() {
-		prefix = ItemListClosed.Mark()
+		prefix = ItemListClosed.Prefix()
 	}
 
 	if isCurrent {
