@@ -243,8 +243,13 @@ func (i Item) IsSelected() bool {
 	return false
 }
 
-func (i *Item) Toggle() Item {
+func (i *Item) ToggleSelected() Item {
 	i.isSelected = !i.isSelected
+	return *i
+}
+
+func (i *Item) ToggleList() Item {
+	i.listOpen = !i.listOpen
 	return *i
 }
 

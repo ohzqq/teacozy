@@ -42,7 +42,7 @@ func (l *Model) CurrentlySelectedItems() ([]list.Item, []int) {
 func (l *Model) SelectAll() {
 	for idx, it := range l.List.Items() {
 		i := it.(Item)
-		i.Toggle()
+		i.ToggleSelected()
 		l.List.SetItem(idx, i)
 	}
 }

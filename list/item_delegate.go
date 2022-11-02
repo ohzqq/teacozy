@@ -71,7 +71,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			cmds = append(cmds, EditItemCmd())
 		case key.Matches(msg, urkey.ToggleItem):
 			if curItem.HasList() {
-				return ToggleItemListCmd(curItem)
+				return ToggleItemListCmd(curItem.Index())
 			}
 			return ToggleSelectedItemCmd(curItem.Index())
 		}

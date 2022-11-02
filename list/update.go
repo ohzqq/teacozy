@@ -49,7 +49,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, m.Keys.Enter):
 					cur := m.List.SelectedItem().(Item)
-					m.Items.Set(cur.Toggle())
+					m.SetItem(m.List.Index(), cur.ToggleSelected())
 					cmds = append(cmds, ReturnSelectionsCmd())
 				}
 			}
@@ -96,12 +96,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.List.SetHeight(util.TermHeight() - 2)
 			cmds = append(cmds, m.List.SetItems(items))
 		case ToggleItemListMsg:
-			cur := m.List.SelectedItem().(Item)
-			m.Items.ToggleList(cur.id)
+			cur := m.Items.Get(int(msg))
+			m.SetItem(m.List.Index(), cur.ToggleList())
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 		case ToggleSelectedItemMsg:
 			cur := m.Items.Get(int(msg))
-			m.Items.Set(cur.Toggle())
+			m.SetItem(m.List.Index(), cur.ToggleSelected())
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
@@ -146,8 +146,6 @@ func (l *Model) processAllItems() Items {
 		}
 		items = items.Add(item)
 	}
-
-	//l.AllItems = items
 	l.Items = items
 	return items
 }
@@ -159,7 +157,3 @@ func (l Model) DisplayItems(opt string) Items {
 func (l *Model) ToggleSubList(i list.Item) Item {
 	return l.Items.ToggleList(i.(Item).id)
 }
-
-//func (l *List) SetItem(i list.Item) {
-//  l.AllItems[i.(Item).id] = i
-//}
