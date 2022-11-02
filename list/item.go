@@ -234,14 +234,6 @@ type ListItem interface {
 	Title() string
 }
 
-func NewListItem(i ListItem) Item {
-	return Item{
-		data:        i,
-		Content:     i.FilterValue(),
-		defaultItem: newDefaultItem(i.Title(), i.FilterValue()),
-	}
-}
-
 func newDefaultItem(title, fv string) defaultItem {
 	return defaultItem{
 		title:       title,

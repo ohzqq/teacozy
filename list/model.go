@@ -153,7 +153,7 @@ func (l *Model) Prompt() *Model {
 
 func (m *Model) SetItem(modelIndex int, item Item) {
 	m.List.SetItem(modelIndex, item)
-	m.AllItems[item.id] = item
+	m.Items[item.id] = item
 }
 
 func (l *Model) IsMulti() bool {

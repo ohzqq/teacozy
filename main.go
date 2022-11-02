@@ -28,10 +28,10 @@ func main() {
 
 	//fmt.Printf("%+V\n", m.AllItems)
 
-	for _, s := range m.Items {
-		item := s.(list.Item)
-		println(item.ID())
-	}
+	//for _, s := range m.Items {
+	//  item := s.(list.Item)
+	//  println(item.ID())
+	//}
 	for _, s := range m.Items.GetSelected() {
 		item := s.(list.Item)
 		println(item.Content)
@@ -47,26 +47,6 @@ var testData = map[string]string{
 var testSubList = map[string]string{
 	"sub1": "poot",
 	"sub2": "toot",
-}
-
-func newTestItems() []list.Item {
-	var items []list.Item
-	for key, _ := range testData {
-		i := list.Item{Content: key}
-		items = append(items, i)
-	}
-	return items
-}
-
-func TestItems() []list.Item {
-	var items []list.Item
-	for key, _ := range testData {
-		//i := list.NewDefaultItem(key, key)
-		//items = append(items, list.NewListItem(i))
-		i := list.Item{Content: key}
-		items = append(items, list.NewItem(i))
-	}
-	return items
 }
 
 func newItemWithList() list.Item {
