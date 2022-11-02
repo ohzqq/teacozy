@@ -26,7 +26,6 @@ type Model struct {
 	AllItems         Items
 	Items            Items
 	Selections       Items
-	All              []list.Item
 	Keys             urkey.KeyMap
 	area             textarea.Model
 	Menus            Menus
@@ -58,7 +57,7 @@ func New(title string) *Model {
 
 func (l *Model) NewItem(content string) {
 	item := NewItem(Item{Content: content})
-	l.All = append(l.All, item)
+	l.AllItems = append(l.AllItems, item)
 }
 
 func (l *Model) BuildModel() list.Model {

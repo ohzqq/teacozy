@@ -8,7 +8,7 @@ import (
 )
 
 type Prompt struct {
-	*list.List
+	*list.Model
 	data []string
 }
 
@@ -25,7 +25,7 @@ func New(title string, items []string, multi bool) *Prompt {
 		l.AppendItem(i)
 	}
 
-	l.Model = l.BuildModel()
+	l.List = l.BuildModel()
 
 	return &Prompt{
 		List: l,
