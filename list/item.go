@@ -39,6 +39,21 @@ func (li Items) Get(idx int) Item {
 	return Item{}
 }
 
+func (i Items) Add(item Item) {
+	i.appendItem(item)
+	if item.HasList {
+		for _, l := range item.Items {
+			li := l.(Item)
+			i.Add(li)
+		}
+	}
+}
+
+func (i Items) appendItem(item Item) {
+	item.id = len(i)
+	i = append(i, item)
+}
+
 func (li Items) GetSelected() Items {
 	var items Items
 	for _, item := range li {

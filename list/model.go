@@ -57,7 +57,8 @@ func New(title string) *Model {
 
 func (l *Model) NewItem(content string) {
 	item := NewItem(Item{Content: content})
-	l.AllItems = append(l.AllItems, item)
+	l.AllItems.Add(item)
+	//l.AllItems = append(l.AllItems, item)
 }
 
 func (l *Model) BuildModel() list.Model {
