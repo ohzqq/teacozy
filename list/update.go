@@ -81,7 +81,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.area = cur.Edit()
 		m.area.Focus()
 	case ReturnSelectionsMsg:
-		m.Selections = m.AllItems.GetSelected()
+		m.Selections = m.AllItems.Selected()
 		cmds = append(cmds, tea.Quit)
 	case tea.WindowSizeMsg:
 		m.List.SetSize(msg.Width-1, msg.Height-2)
@@ -112,7 +112,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			m.ShowMenu = false
 		case OSExecCmdMsg:
-			menuCmd := msg.cmd(m.Items.GetSelected())
+			menuCmd := msg.cmd(m.Items.Selected())
 			var (
 				stderr bytes.Buffer
 				stdout bytes.Buffer

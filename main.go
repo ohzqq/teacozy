@@ -32,7 +32,7 @@ func main() {
 	//  item := s.(list.Item)
 	//  println(item.ID())
 	//}
-	for _, s := range m.Items.GetSelected() {
+	for _, s := range m.Items.Selected() {
 		item := s.(list.Item)
 		println(item.Content)
 	}

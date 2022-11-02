@@ -42,7 +42,7 @@ func (li Items) Get(idx int) Item {
 func (li Items) Display(opt string) Items {
 	switch opt {
 	case "selected":
-		return li.GetSelected()
+		return li.Selected()
 	default:
 		return li.Visible()
 	}
@@ -97,7 +97,7 @@ func (i Items) appendItem(item Item) Items {
 	return i
 }
 
-func (li Items) GetSelected() Items {
+func (li Items) Selected() Items {
 	var items Items
 	for _, item := range li {
 		if i, ok := item.(Item); ok && i.IsSelected() {

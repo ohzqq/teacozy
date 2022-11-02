@@ -112,7 +112,7 @@ type SelectedItemsMsg Selections
 
 func GetSelectedItemsCmd(i Items) tea.Cmd {
 	return func() tea.Msg {
-		return SelectedItemsMsg{items: i.GetSelected()}
+		return SelectedItemsMsg{items: i.Selected()}
 	}
 }
 
