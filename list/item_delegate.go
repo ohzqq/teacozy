@@ -73,7 +73,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			if curItem.HasList() {
 				return ToggleItemListCmd(curItem)
 			}
-			return toggleItemCmd(curItem)
+			return ToggleSelectedItemCmd(curItem.Index())
 		}
 	}
 	return tea.Batch(cmds...)

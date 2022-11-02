@@ -137,13 +137,8 @@ func (li Items) CloseList(idx int) Item {
 func (li Items) ToggleList(idx int) Item {
 	item := li.Get(idx)
 
-	//var i Item
 	if item.HasList() {
 		item.listOpen = !item.listOpen
-		//i = li.OpenList(idx)
-		//if item.ListIsOpen() {
-		//  i = li.CloseList(idx)
-		//}
 	}
 
 	li[idx] = item
@@ -157,18 +152,13 @@ func (li Items) Select(idx int) Item {
 	return item
 }
 
+func (li Items) Set(i list.Item) {
+	li[i.(Item).Index()] = i
+}
+
 func (li Items) Deselect(idx int) Item {
 	item := li.Get(idx)
 	item.state = ItemNotSelected
-	return item
-}
-
-func (li Items) ToggleSelected(idx int) Item {
-	item := li.Get(idx)
-	item.isSelected = !item.isSelected
-
-	li[idx] = item
-
 	return item
 }
 
@@ -254,7 +244,7 @@ func (i *Item) SetId(id int) *Item {
 	return i
 }
 
-func (i Item) ID() int {
+func (i Item) Index() int {
 	return i.id
 }
 
@@ -273,14 +263,9 @@ func (i Item) ListIsOpen() bool {
 	return i.state == ItemListOpen
 }
 
-func (i *Item) Toggle() {
+func (i *Item) Toggle() Item {
 	i.isSelected = !i.isSelected
-	switch i.IsSelected() {
-	case true:
-		i.state = ItemNotSelected
-	case false:
-		i.state = ItemSelected
-	}
+	return *i
 }
 
 func (i *Item) SetLevel(l int) *Item {
@@ -289,7 +274,6 @@ func (i *Item) SetLevel(l int) *Item {
 }
 
 func (i *Item) IsSub() bool {
-	//i.IsSub = true
 	return i.Level != 0
 }
 

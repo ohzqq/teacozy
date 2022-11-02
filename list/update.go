@@ -27,7 +27,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cur.SetContent(val)
 				m.SetItem(m.List.Index(), cur)
 				m.area.Blur()
-				cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+				cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			}
 			m.area, cmd = m.area.Update(msg)
 			cmds = append(cmds, cmd)
@@ -40,15 +40,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 					m.ShowSelectedOnly = true
-					cmds = append(cmds, UpdateDisplayedItemsCmd("selected"))
+					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 				case key.Matches(msg, m.Keys.SelectAll):
 					ToggleAllItemsCmd(m)
-					cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+					cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 				}
 			} else {
 				switch {
 				case key.Matches(msg, m.Keys.Enter):
-					m.ToggleItem(m.List.SelectedItem())
+					cur := m.List.SelectedItem().(Item)
+					m.Items.Set(cur.Toggle())
 					cmds = append(cmds, ReturnSelectionsCmd())
 				}
 			}
@@ -60,7 +61,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, tea.Quit)
 			case key.Matches(msg, m.Keys.Prev):
 				m.ShowSelectedOnly = false
-				cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+				cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			default:
 				for label, menu := range m.Menus {
 					if key.Matches(msg, menu.Toggle) {
@@ -89,7 +90,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch focus := m.FocusedView; focus {
 	case "list":
 		switch msg := msg.(type) {
-		case UpdateDisplayedItemsMsg:
+		case UpdateVisibleItemsMsg:
 			items := m.DisplayItems(string(msg))
 			//m.Model.SetHeight(m.GetHeight(items))
 			m.List.SetHeight(util.TermHeight() - 2)
@@ -97,18 +98,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case ToggleItemListMsg:
 			cur := m.List.SelectedItem().(Item)
 			m.Items.ToggleList(cur.id)
-			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
-		case toggleItemMsg:
-			cur := m.List.SelectedItem().(Item)
-			m.Items.ToggleSelected(cur.id)
-			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+		case ToggleSelectedItemMsg:
+			cur := m.Items.Get(int(msg))
+			m.Items.Set(cur.Toggle())
+			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
 			m.ShowMenu = false
 		case UpdateItemsMsg:
 			m.SetItems(Items(msg))
 			m.processAllItems()
-			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
+			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			m.ShowMenu = false
 		case OSExecCmdMsg:
 			menuCmd := msg.cmd(m.AllItems.GetSelected())
@@ -153,10 +154,6 @@ func (l *Model) processAllItems() Items {
 
 func (l Model) DisplayItems(opt string) Items {
 	return l.Items.Display(opt)
-}
-
-func (l *Model) ToggleItem(i list.Item) Item {
-	return l.Items.ToggleSelected(i.(Item).id)
 }
 
 func (l *Model) ToggleSubList(i list.Item) Item {

@@ -66,18 +66,19 @@ func ToggleItemListCmd(i Item) tea.Cmd {
 	}
 }
 
-type toggleItemMsg Item
+type ToggleSelectedItemMsg int
 
-func toggleItemCmd(idx Item) tea.Cmd {
+func ToggleSelectedItemCmd(idx int) tea.Cmd {
 	return func() tea.Msg {
-		return toggleItemMsg(idx)
+		return ToggleSelectedItemMsg(idx)
 	}
 }
 
 func ToggleAllItemsCmd(l *Model) {
-	for _, it := range l.List.Items() {
+	for _, it := range l.Items {
 		i := it.(Item)
-		l.AllItems.ToggleSelected(i.id)
+		i.Toggle()
+		//l.Items.ToggleSelected(i.id)
 	}
 }
 
@@ -115,11 +116,11 @@ func GetSelectedItemsCmd(i Items) tea.Cmd {
 	}
 }
 
-type UpdateDisplayedItemsMsg string
+type UpdateVisibleItemsMsg string
 
-func UpdateDisplayedItemsCmd(opt string) tea.Cmd {
+func UpdateVisibleItemsCmd(opt string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateDisplayedItemsMsg(opt)
+		return UpdateVisibleItemsMsg(opt)
 	}
 }
 
