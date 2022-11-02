@@ -44,24 +44,29 @@ func (li Items) Display(opt string) Items {
 	case "selected":
 		return li.GetSelected()
 	default:
-		var items Items
-		level := 0
-		for _, item := range li {
-			i := item.(Item)
-			if !i.IsHidden {
-				items = append(items, i)
-			}
-			if i.HasList() && i.listOpen {
-				level++
-				for _, sub := range li.GetSubList(i) {
-					s := sub.(Item)
-					s.SetLevel(level)
-					items = append(items, s)
-				}
+		return li.Visible()
+	}
+}
+
+func (li Items) Visible() Items {
+	var items Items
+	level := 0
+	for _, item := range li {
+		i := item.(Item)
+		if !i.IsHidden {
+			items = append(items, i)
+		}
+		if i.HasList() && i.listOpen {
+			level++
+			for _, sub := range li.GetSubList(i) {
+				s := sub.(Item)
+				s.IsHidden = false
+				s.SetLevel(level)
+				items = append(items, s)
 			}
 		}
-		return items
 	}
+	return items
 }
 
 func (li Items) GetSubList(i list.Item) Items {

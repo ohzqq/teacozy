@@ -112,7 +112,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			m.ShowMenu = false
 		case OSExecCmdMsg:
-			menuCmd := msg.cmd(m.AllItems.GetSelected())
+			menuCmd := msg.cmd(m.Items.GetSelected())
 			var (
 				stderr bytes.Buffer
 				stdout bytes.Buffer
