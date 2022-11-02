@@ -82,25 +82,6 @@ func newItemWithList() list.Item {
 	return item
 }
 
-func itemWithList(t string) list.Item {
-	i := list.NewDefaultItem(t, t)
-	i.HasList = true
-	l := list.New(t)
-	for key, _ := range testSubList {
-		i := list.NewDefaultItem(key, key)
-		i.IsSub = true
-		i.Level = 1
-		l.AppendItem(i)
-		l.NewItem(key)
-		i.Items = append(i.Items, list.NewListItem(i))
-	}
-
-	l.List = l.BuildModel()
-	i.List = l
-	i.Items = i.List.Items
-	return i
-}
-
 func TestList() *list.Model {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
@@ -120,7 +101,6 @@ func TestList() *list.Model {
 		//l.AppendItem(i)
 		l.NewItem(key)
 	}
-	l.Items = append(l.Items, itemWithList("another sub list"))
 
 	l.List = l.BuildModel()
 
