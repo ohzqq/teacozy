@@ -85,8 +85,10 @@ func newTestList() *list.Model {
 func TestItems() []list.Item {
 	var items []list.Item
 	for key, _ := range testData {
-		i := list.NewDefaultItem(key, key)
-		items = append(items, list.NewListItem(i))
+		//i := list.NewDefaultItem(key, key)
+		//items = append(items, list.NewListItem(i))
+		i := list.Item{Content: key}
+		items = append(items, list.NewItem(i))
 	}
 	return items
 }
@@ -120,8 +122,11 @@ func TestList() *list.Model {
 
 	il := itemWithList("test sub list")
 	l.Items = append(l.Items, il)
-	for _, i := range TestItems() {
-		l.AppendItem(i)
+	//for _, i := range TestItems() {
+	for key, _ := range testData {
+		//i := list.Item{Content: key}
+		//l.AppendItem(i)
+		l.NewItem(key)
 	}
 	l.Items = append(l.Items, itemWithList("another sub list"))
 

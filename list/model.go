@@ -57,8 +57,16 @@ func New(title string) *Model {
 
 func (l *Model) NewItem(content string) {
 	item := NewItem(Item{Content: content})
-	//l.AllItems.Add(item)
-	l.AllItems = append(l.AllItems, item)
+	l.AppendItem(item)
+}
+
+func (l *Model) AppendItem(i list.Item) *Model {
+	item := NewItem(i)
+	if l.IsMulti() {
+		item.IsMulti = true
+	}
+	l.Items = l.Items.Add(item)
+	return l
 }
 
 func (l *Model) BuildModel() list.Model {
@@ -159,16 +167,6 @@ func (l *Model) SetShowHelp() *Model {
 
 func (l *Model) SetItems(items Items) *Model {
 	l.Items = items
-	return l
-}
-
-func (l *Model) AppendItem(i list.Item) *Model {
-	item := NewItem(i)
-	if l.IsMulti() {
-		item.IsMulti = true
-	}
-	l.Items = append(l.Items, item)
-	l.AllItems = append(l.AllItems, item)
 	return l
 }
 

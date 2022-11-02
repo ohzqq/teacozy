@@ -83,19 +83,19 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	var (
 		iStyle  = &d.styles
-		title   string
+		content string
 		curItem Item
 	)
 
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		title = i.FilterValue()
+		content = i.FilterValue()
 	}
 
 	if m.Width() > 0 {
 		textwidth := uint(m.Width() - iStyle.CurrentItem.GetPaddingLeft() - iStyle.CurrentItem.GetPaddingRight())
-		title = padding.String(truncate.StringWithTail(title, textwidth, style.Ellipsis), textwidth)
+		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
 	}
 
 	var (
@@ -106,29 +106,29 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	render := iStyle.NormalItem.Render
 
-	mark := curItem.Mark()
+	prefix := curItem.Mark()
 	if curItem.HasList && !curItem.ListIsOpen() {
-		mark = ItemListClosed.Mark()
+		prefix = ItemListClosed.Mark()
 	}
 
 	if isCurrent {
 		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
+			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
 		}
 	} else if isSelected {
 		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
+			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
 		}
 	} else if isSub {
 		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
+			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
 		}
 	} else {
 		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(mark + s)
+			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
 		}
 	}
 
-	fmt.Fprintf(w, render(title))
+	fmt.Fprintf(w, render(content))
 	//fmt.Fprintf(w, "%d: %s", curItem.id, render(title))
 }
