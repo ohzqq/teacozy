@@ -99,7 +99,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Items.ToggleList(cur.id)
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case toggleItemMsg:
-			m.ToggleItem(m.List.SelectedItem())
+			cur := m.List.SelectedItem().(Item)
+			m.Items.Toggle(cur.id)
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
@@ -124,7 +125,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				log.Fatal(err)
 			}
 		}
-
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
