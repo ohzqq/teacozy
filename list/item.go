@@ -73,19 +73,23 @@ func (li Items) GetSubList(i list.Item) Items {
 	return Items{}
 }
 
-func (i Items) Add(item Item) {
-	i.appendItem(item)
+func (i Items) Add(item Item) Items {
+	i = i.appendItem(item)
 	if item.HasList {
 		for _, l := range item.Items {
 			li := l.(Item)
-			i.Add(li)
+			li.IsHidden = true
+			i = i.Add(li)
 		}
 	}
+	return i
 }
 
-func (i Items) appendItem(item Item) {
-	item.id = len(i)
+func (i Items) appendItem(item Item) Items {
+	item.SetId(len(i))
+	//item.id = len(i)
 	i = append(i, item)
+	return i
 }
 
 func (li Items) GetSelected() Items {

@@ -26,9 +26,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, s := range m.AllItems.GetSelected() {
+	//fmt.Printf("%+V\n", m.AllItems)
+
+	for _, s := range m.Items.GetSelected() {
 		item := s.(list.Item)
-		println(item.Title())
+		println(item.Content)
 	}
 }
 
@@ -98,6 +100,7 @@ func itemWithList(t string) list.Item {
 		i.IsSub = true
 		i.Level = 1
 		l.AppendItem(i)
+		l.NewItem(key)
 		i.Items = append(i.Items, list.NewListItem(i))
 	}
 

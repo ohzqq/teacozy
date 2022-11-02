@@ -137,40 +137,29 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (l *Model) processAllItems() Items {
 	var items Items
-	idx := 0
 	for _, i := range l.Items {
 		item := i.(Item)
 		if l.IsMulti() {
 			item.state = ItemNotSelected
 		}
-		item.SetId(idx)
-		items = append(items, item)
-		if item.HasList {
-			for _, sub := range item.Items {
-				idx++
-				s := sub.(Item)
-				s.SetId(idx).SetIsSub()
-				s.IsHidden = true
-				items = append(items, s)
-			}
-		}
-		idx++
+		items = items.Add(item)
 	}
 
-	l.AllItems = items
+	//l.AllItems = items
+	l.Items = items
 	return items
 }
 
 func (l Model) DisplayItems(opt string) Items {
-	return l.AllItems.Display(opt)
+	return l.Items.Display(opt)
 }
 
 func (l *Model) ToggleItem(i list.Item) Item {
-	return l.AllItems.Toggle(i.(Item).id)
+	return l.Items.Toggle(i.(Item).id)
 }
 
 func (l *Model) ToggleSubList(i list.Item) Item {
-	return l.AllItems.ToggleList(i.(Item).id)
+	return l.Items.ToggleList(i.(Item).id)
 }
 
 //func (l *List) SetItem(i list.Item) {
