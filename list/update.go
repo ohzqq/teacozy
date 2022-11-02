@@ -100,7 +100,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case toggleItemMsg:
 			cur := m.List.SelectedItem().(Item)
-			m.Items.Toggle(cur.id)
+			m.Items.ToggleSelected(cur.id)
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
@@ -156,7 +156,7 @@ func (l Model) DisplayItems(opt string) Items {
 }
 
 func (l *Model) ToggleItem(i list.Item) Item {
-	return l.Items.Toggle(i.(Item).id)
+	return l.Items.ToggleSelected(i.(Item).id)
 }
 
 func (l *Model) ToggleSubList(i list.Item) Item {

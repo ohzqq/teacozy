@@ -77,7 +77,7 @@ func toggleItemCmd(idx Item) tea.Cmd {
 func ToggleAllItemsCmd(l *Model) {
 	for _, it := range l.List.Items() {
 		i := it.(Item)
-		l.AllItems.Toggle(i.id)
+		l.AllItems.ToggleSelected(i.id)
 	}
 }
 

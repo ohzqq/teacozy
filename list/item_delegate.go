@@ -69,10 +69,9 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		switch {
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditItemCmd())
-		case key.Matches(msg, d.keys.ToggleItem):
-			if curItem.HasList {
+		case key.Matches(msg, urkey.ToggleItem):
+			if curItem.HasList() {
 				return ToggleItemListCmd(curItem)
-				//return curItem.ShowListItemsCmd()
 			}
 			return toggleItemCmd(curItem)
 		}
@@ -108,7 +107,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	render := iStyle.NormalItem.Render
 
 	prefix := curItem.Prefix()
-	if curItem.HasList && !curItem.ListIsOpen() {
+	if curItem.HasList() && !curItem.ListIsOpen() {
 		prefix = ItemListClosed.Prefix()
 	}
 

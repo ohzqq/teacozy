@@ -51,7 +51,7 @@ func (li Items) Display(opt string) Items {
 			if !i.IsHidden {
 				items = append(items, i)
 			}
-			if i.HasList && i.ListIsOpen() {
+			if i.HasList() && i.ListIsOpen() {
 				level++
 				for _, sub := range li.GetSubList(i) {
 					s := sub.(Item)
@@ -66,7 +66,7 @@ func (li Items) Display(opt string) Items {
 
 func (li Items) GetSubList(i list.Item) Items {
 	item := i.(Item)
-	if item.HasList {
+	if item.HasList() {
 		t := len(item.Items)
 		return li[item.id+1 : item.id+t+1]
 	}
@@ -75,7 +75,7 @@ func (li Items) GetSubList(i list.Item) Items {
 
 func (i Items) Add(item Item) Items {
 	i = i.appendItem(item)
-	if item.HasList {
+	if item.HasList() {
 		for _, l := range item.Items {
 			li := l.(Item)
 			li.IsHidden = true
@@ -138,7 +138,7 @@ func (li Items) ToggleList(idx int) Item {
 	item := li.Get(idx)
 
 	var i Item
-	if item.HasList {
+	if item.HasList() {
 		i = li.OpenList(idx)
 		if item.ListIsOpen() {
 			i = li.CloseList(idx)
@@ -162,7 +162,7 @@ func (li Items) Deselect(idx int) Item {
 	return item
 }
 
-func (li Items) Toggle(idx int) Item {
+func (li Items) ToggleSelected(idx int) Item {
 	item := li.Get(idx)
 
 	i := li.Select(idx)
@@ -186,7 +186,7 @@ type Item struct {
 	data       list.Item
 	id         int
 	isSelected bool
-	HasList    bool
+	hasList    bool
 	IsSub      bool
 	listOpen   bool
 	IsVisible  bool
@@ -216,10 +216,15 @@ func (i Item) FilterValue() string {
 }
 
 func (i Item) State() ItemState {
-	if i.HasList && i.state == ItemListClosed {
+	if i.HasList() && i.state == ItemListClosed {
 		return ItemListClosed
 	}
 	return i.state
+}
+
+func (i Item) HasList() bool {
+	has := len(i.Items) > 0
+	return has
 }
 
 func (i *Item) Edit() textarea.Model {
@@ -229,8 +234,24 @@ func (i *Item) Edit() textarea.Model {
 	return input
 }
 
+//func (i Item) Prefix() string {
+//  return i.state.Prefix()
+//}
+
 func (i Item) Prefix() string {
-	return i.state.Prefix()
+	if i.HasList() {
+		if i.listOpen {
+			return closeSub
+		}
+		return openSub
+	} else {
+		if i.IsSelected() {
+			return check
+		}
+		return uncheck
+	}
+
+	return dash
 }
 
 func (i *Item) SetId(id int) *Item {

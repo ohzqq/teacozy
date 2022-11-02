@@ -51,7 +51,6 @@ var testSubList = map[string]string{
 
 func newItemWithList() list.Item {
 	item := list.NewItem(list.Item{Content: "sub3"})
-	item.HasList = true
 	for key, _ := range testSubList {
 		i := list.NewItem(list.Item{Content: key})
 		i.IsSub = true
@@ -67,12 +66,11 @@ func TestList() *list.Model {
 	//l.isPrompt = true
 
 	l.AddMenu(testMenu())
-	l.SetMulti()
+	//l.SetMulti()
 	//l.showMenu = true
 
 	//il := itemWithList("test sub list")
 	il := newItemWithList()
-	il.HasList = true
 	l.AppendItem(il)
 	//l.Items = append(l.Items, il)
 	//for _, i := range TestItems() {
