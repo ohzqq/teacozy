@@ -51,11 +51,11 @@ func (li Items) Display(opt string) Items {
 			if !i.IsHidden {
 				items = append(items, i)
 			}
-			if i.HasList() && i.ListIsOpen() {
+			if i.HasList() && i.listOpen {
 				level++
 				for _, sub := range li.GetSubList(i) {
 					s := sub.(Item)
-					s.SetIsSub().SetLevel(level)
+					s.SetLevel(level)
 					items = append(items, s)
 				}
 			}
@@ -137,15 +137,16 @@ func (li Items) CloseList(idx int) Item {
 func (li Items) ToggleList(idx int) Item {
 	item := li.Get(idx)
 
-	var i Item
+	//var i Item
 	if item.HasList() {
-		i = li.OpenList(idx)
-		if item.ListIsOpen() {
-			i = li.CloseList(idx)
-		}
+		item.listOpen = !item.listOpen
+		//i = li.OpenList(idx)
+		//if item.ListIsOpen() {
+		//  i = li.CloseList(idx)
+		//}
 	}
 
-	li[idx] = i
+	li[idx] = item
 
 	return li.Get(idx)
 }
@@ -164,16 +165,11 @@ func (li Items) Deselect(idx int) Item {
 
 func (li Items) ToggleSelected(idx int) Item {
 	item := li.Get(idx)
+	item.isSelected = !item.isSelected
 
-	i := li.Select(idx)
+	li[idx] = item
 
-	if item.IsSelected() {
-		i = li.Deselect(idx)
-	}
-
-	li[idx] = i
-
-	return li.Get(idx)
+	return item
 }
 
 func (li Items) NewList(title string, state listType) *Model {
@@ -187,7 +183,6 @@ type Item struct {
 	id         int
 	isSelected bool
 	hasList    bool
-	IsSub      bool
 	listOpen   bool
 	IsVisible  bool
 	IsHidden   bool
@@ -293,9 +288,9 @@ func (i *Item) SetLevel(l int) *Item {
 	return i
 }
 
-func (i *Item) SetIsSub() *Item {
-	i.IsSub = true
-	return i
+func (i *Item) IsSub() bool {
+	//i.IsSub = true
+	return i.Level != 0
 }
 
 func (i *Item) SetList(l *Model) *Item {

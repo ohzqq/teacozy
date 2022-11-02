@@ -101,15 +101,15 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var (
 		isCurrent  = index == m.Index()
 		isSelected = curItem.IsSelected()
-		isSub      = curItem.IsSub
+		isSub      = curItem.IsSub()
 	)
 
 	render := iStyle.NormalItem.Render
 
 	prefix := curItem.Prefix()
-	if curItem.HasList() && !curItem.ListIsOpen() {
-		prefix = ItemListClosed.Prefix()
-	}
+	//if curItem.HasList() && !curItem.ListIsOpen() {
+	//  prefix = ItemListClosed.Prefix()
+	//}
 
 	if isCurrent {
 		render = func(s string) string {

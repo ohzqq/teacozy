@@ -53,8 +53,7 @@ func newItemWithList() list.Item {
 	item := list.NewItem(list.Item{Content: "sub3"})
 	for key, _ := range testSubList {
 		i := list.NewItem(list.Item{Content: key})
-		i.IsSub = true
-		i.Level = 1
+		i.SetLevel(1)
 		item.Items = item.Items.Add(i)
 		//item.Items = append(item.Items, i)
 	}
