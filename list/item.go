@@ -183,7 +183,6 @@ func (li Items) NewList(title string, state listType) *Model {
 }
 
 type Item struct {
-	defaultItem
 	data       list.Item
 	id         int
 	isSelected bool
@@ -214,39 +213,6 @@ func (i *Item) SetContent(content string) {
 
 func (i Item) FilterValue() string {
 	return i.Content
-}
-
-type defaultItem struct {
-	title       string
-	filterValue string
-}
-
-func (i defaultItem) FilterValue() string {
-	return i.filterValue
-}
-
-func (i defaultItem) Title() string {
-	return i.title
-}
-
-type ListItem interface {
-	FilterValue() string
-	Title() string
-}
-
-func newDefaultItem(title, fv string) defaultItem {
-	return defaultItem{
-		title:       title,
-		filterValue: fv,
-	}
-}
-
-func NewDefaultItem(title, fv string) Item {
-	i := newDefaultItem(title, fv)
-	return Item{
-		data:        i,
-		defaultItem: i,
-	}
 }
 
 func (i Item) State() ItemState {
