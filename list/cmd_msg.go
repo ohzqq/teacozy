@@ -75,7 +75,7 @@ func toggleItemCmd(idx Item) tea.Cmd {
 }
 
 func ToggleAllItemsCmd(l *Model) {
-	for _, it := range l.Model.Items() {
+	for _, it := range l.List.Items() {
 		i := it.(Item)
 		l.AllItems.Toggle(i.id)
 	}
@@ -92,18 +92,18 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 type MenuCmd func(m *Model) tea.Cmd
 
 func DeselectAllItemsCmd(l *Model) {
-	for idx, it := range l.Model.Items() {
+	for idx, it := range l.List.Items() {
 		i := it.(Item)
 		i.isSelected = false
-		l.Model.SetItem(idx, i)
+		l.List.SetItem(idx, i)
 	}
 }
 
 func SelectAllItemsCmd(l *Model) {
-	for idx, it := range l.Model.Items() {
+	for idx, it := range l.List.Items() {
 		i := it.(Item)
 		i.isSelected = true
-		l.Model.SetItem(idx, i)
+		l.List.SetItem(idx, i)
 	}
 }
 

@@ -67,7 +67,7 @@ func itemWithList(t string) list.Item {
 		i.Items = append(i.Items, list.NewListItem(i))
 	}
 
-	l.Model = l.BuildModel()
+	l.List = l.BuildModel()
 	i.List = l
 	i.Items = i.List.Items
 	return i
@@ -95,11 +95,11 @@ func TestList() *list.Model {
 	}
 	l.Items = append(l.Items, itemWithList("another sub list"))
 
-	l.Model = l.BuildModel()
+	l.List = l.BuildModel()
 
 	return l
 }
 
 func TestKeyAction(m *list.Model) tea.Cmd {
-	return m.Model.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
+	return m.List.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
 }

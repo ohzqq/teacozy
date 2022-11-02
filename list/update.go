@@ -22,10 +22,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.area.Focused() {
 			if key.Matches(msg, urkey.SaveAndExit) {
-				cur := m.Model.SelectedItem().(Item)
+				cur := m.List.SelectedItem().(Item)
 				val := m.area.Value()
 				cur.SetContent(val)
-				m.SetItem(m.Model.Index(), cur)
+				m.SetItem(m.List.Index(), cur)
 				m.area.Blur()
 				cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 			}
@@ -48,7 +48,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				switch {
 				case key.Matches(msg, m.Keys.Enter):
-					m.ToggleItem(m.Model.SelectedItem())
+					m.ToggleItem(m.List.SelectedItem())
 					cmds = append(cmds, ReturnSelectionsCmd())
 				}
 			}
@@ -70,20 +70,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-			m.Model, cmd = m.Model.Update(msg)
+			m.List, cmd = m.List.Update(msg)
 			cmds = append(cmds, cmd)
 		}
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case EditItemMsg:
-		cur := m.Model.SelectedItem().(Item)
+		cur := m.List.SelectedItem().(Item)
 		m.area = cur.Edit()
 		m.area.Focus()
 	case ReturnSelectionsMsg:
 		m.Selections = m.AllItems.GetSelected()
 		cmds = append(cmds, tea.Quit)
 	case tea.WindowSizeMsg:
-		m.Model.SetSize(msg.Width-1, msg.Height-2)
+		m.List.SetSize(msg.Width-1, msg.Height-2)
 	}
 
 	switch focus := m.FocusedView; focus {
@@ -92,13 +92,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case UpdateDisplayedItemsMsg:
 			items := m.DisplayItems(string(msg))
 			//m.Model.SetHeight(m.GetHeight(items))
-			m.Model.SetHeight(util.TermHeight() - 2)
-			cmds = append(cmds, m.Model.SetItems(items))
+			m.List.SetHeight(util.TermHeight() - 2)
+			cmds = append(cmds, m.List.SetItems(items))
 		case ToggleItemListMsg:
-			m.ToggleSubList(m.Model.SelectedItem())
+			m.ToggleSubList(m.List.SelectedItem())
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case toggleItemMsg:
-			m.ToggleItem(m.Model.SelectedItem())
+			m.ToggleItem(m.List.SelectedItem())
 			cmds = append(cmds, UpdateDisplayedItemsCmd("all"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))

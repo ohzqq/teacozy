@@ -22,7 +22,7 @@ const (
 )
 
 type Model struct {
-	Model            list.Model
+	List             list.Model
 	AllItems         Items
 	Items            Items
 	Selections       Items
@@ -124,7 +124,7 @@ func (l *Model) AddMenu(menu *Menu) {
 func (l Model) GetHeight(items []list.Item) int {
 	max := util.TermHeight()
 	total := len(items)
-	cur := l.Model.Height()
+	cur := l.List.Height()
 
 	switch {
 	case l.isFullScreen:
@@ -153,7 +153,7 @@ func (l *Model) Prompt() *Model {
 }
 
 func (m *Model) SetItem(modelIndex int, item Item) {
-	m.Model.SetItem(modelIndex, item)
+	m.List.SetItem(modelIndex, item)
 	m.AllItems[item.id] = item
 }
 
@@ -183,7 +183,7 @@ func (l *Model) AppendItem(i ListItem) *Model {
 func (m Model) View() string {
 	var (
 		sections    []string
-		availHeight = m.Model.Height()
+		availHeight = m.List.Height()
 	)
 
 	var menu string
@@ -198,8 +198,8 @@ func (m Model) View() string {
 		availHeight -= lipgloss.Height(field)
 	}
 
-	m.Model.SetSize(m.width, availHeight)
-	content := m.Model.View()
+	m.List.SetSize(m.width, availHeight)
+	content := m.List.View()
 	sections = append(sections, content)
 
 	if m.ShowMenu {

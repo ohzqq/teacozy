@@ -27,7 +27,7 @@ func (s Selections) Items() Items {
 func (l *Model) CurrentlySelectedItems() ([]list.Item, []int) {
 	var items []list.Item
 	var indices []int
-	for idx, i := range l.Model.Items() {
+	for idx, i := range l.List.Items() {
 		switch li := i.(type) {
 		case Item:
 			if li.IsSelected() {
@@ -40,9 +40,9 @@ func (l *Model) CurrentlySelectedItems() ([]list.Item, []int) {
 }
 
 func (l *Model) SelectAll() {
-	for idx, it := range l.Model.Items() {
+	for idx, it := range l.List.Items() {
 		i := it.(Item)
 		i.Toggle()
-		l.Model.SetItem(idx, i)
+		l.List.SetItem(idx, i)
 	}
 }
