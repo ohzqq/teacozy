@@ -143,7 +143,6 @@ func (l *Model) processAllItems() Items {
 		if l.IsMulti() {
 			item.state = ItemNotSelected
 		}
-		item.IsVisible = true
 		item.SetId(idx)
 		items = append(items, item)
 		if item.HasList {
@@ -151,7 +150,6 @@ func (l *Model) processAllItems() Items {
 				idx++
 				s := sub.(Item)
 				s.SetId(idx).SetIsSub()
-				s.IsVisible = false
 				s.IsHidden = true
 				items = append(items, s)
 			}
