@@ -25,7 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, s := range m.Items.GetSelected() {
+	for _, s := range m.AllItems.GetSelected() {
 		item := s.(list.Item)
 		println(item.Title())
 	}

@@ -56,8 +56,10 @@ func New(title string) *List {
 	return l
 }
 
-func (l *List) AddItem(content string) {
-	i := newDefaultItem(content, content)
+func (l *List) NewItem(content string) {
+	item := Item{Content: content}
+	i := NewItem(item)
+	//i := newDefaultItem(content, content)
 	l.All = append(l.All, i)
 }
 

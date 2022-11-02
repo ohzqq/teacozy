@@ -148,8 +148,19 @@ type Item struct {
 	Content    string
 }
 
+func NewItem(item list.Item) Item {
+	return Item{
+		data:    item,
+		Content: item.FilterValue(),
+	}
+}
+
 func (i *Item) SetContent(content string) {
 	i.Content = content
+}
+
+func (i Item) FilterValue() string {
+	return i.Content
 }
 
 type defaultItem struct {

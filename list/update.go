@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/util"
 )
 
 func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -81,6 +82,8 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ReturnSelectionsMsg:
 		m.Selections = m.AllItems.GetSelected()
 		cmds = append(cmds, tea.Quit)
+	case tea.WindowSizeMsg:
+		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	}
 
 	switch focus := m.FocusedView; focus {
@@ -88,7 +91,8 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case UpdateDisplayedItemsMsg:
 			items := m.DisplayItems(string(msg))
-			m.Model.SetHeight(m.GetHeight(items))
+			//m.Model.SetHeight(m.GetHeight(items))
+			m.Model.SetHeight(util.TermHeight() - 2)
 			cmds = append(cmds, m.Model.SetItems(items))
 		case ToggleItemListMsg:
 			m.ToggleSubList(m.Model.SelectedItem())
