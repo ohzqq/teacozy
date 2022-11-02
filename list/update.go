@@ -152,6 +152,7 @@ func (l *Model) processAllItems() Items {
 				s := sub.(Item)
 				s.SetId(idx).SetIsSub()
 				s.IsVisible = false
+				s.IsHidden = true
 				items = append(items, s)
 			}
 		}

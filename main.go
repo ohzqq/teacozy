@@ -19,6 +19,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	m := TestList()
+	//m := newTestList()
 
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
@@ -29,10 +30,6 @@ func main() {
 		item := s.(list.Item)
 		println(item.Title())
 	}
-}
-
-var testHelpKeys = []list.MenuItem{
-	list.NewMenuItem("t", "select item", TestKeyAction),
 }
 
 var testData = map[string]string{
@@ -46,8 +43,45 @@ var testSubList = map[string]string{
 	"sub2": "toot",
 }
 
-func TestItems() list.Items {
-	var items list.Items
+func newTestItems() []list.Item {
+	var items []list.Item
+	for key, _ := range testData {
+		i := list.Item{Content: key}
+		items = append(items, i)
+	}
+	return items
+}
+
+func newItemWithList() list.Item {
+	item := list.NewItem(list.Item{Content: "sub3"})
+	for key, _ := range testSubList {
+		i := list.NewItem(list.Item{Content: key})
+		i.IsSub = true
+		i.Level = 1
+		item.Items = append(item.Items, i)
+	}
+	return item
+}
+
+func newTestList() *list.Model {
+	l := list.New("test poot toot")
+	//l.isPrompt = true
+
+	l.AddMenu(testMenu())
+	l.SetMulti()
+
+	il := newItemWithList()
+	l.AllItems.Add(il)
+	for _, i := range newTestItems() {
+		l.AllItems.Add(i)
+	}
+
+	l.List = l.BuildModel()
+
+	return l
+}
+func TestItems() []list.Item {
+	var items []list.Item
 	for key, _ := range testData {
 		i := list.NewDefaultItem(key, key)
 		items = append(items, list.NewListItem(i))
@@ -77,27 +111,34 @@ func TestList() *list.Model {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
 
-	t := key.NewBinding(
-		key.WithKeys("a"),
-		key.WithHelp("a", "deselect all"),
-	)
-	l.NewMenu("test", t, testHelpKeys)
+	l.AddMenu(testMenu())
 	l.SetMulti()
 	//l.showMenu = true
 
 	il := itemWithList("test sub list")
 	l.Items = append(l.Items, il)
-	var items []list.Item
-	for key, _ := range testData {
-		i := list.NewDefaultItem(key, key)
+	for _, i := range TestItems() {
 		l.AppendItem(i)
-		items = append(items, i)
 	}
 	l.Items = append(l.Items, itemWithList("another sub list"))
 
 	l.List = l.BuildModel()
 
 	return l
+}
+
+func testMenu() *list.Menu {
+	t := key.NewBinding(
+		key.WithKeys("a"),
+		key.WithHelp("a", "deselect all"),
+	)
+	m := list.NewMenu("test", t)
+	m.SetKeys(testHelpKeys)
+	return m
+}
+
+var testHelpKeys = []list.MenuItem{
+	list.NewMenuItem("t", "select item", TestKeyAction),
 }
 
 func TestKeyAction(m *list.Model) tea.Cmd {
