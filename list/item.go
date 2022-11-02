@@ -39,6 +39,40 @@ func (li Items) Get(idx int) Item {
 	return Item{}
 }
 
+func (li Items) Display(opt string) Items {
+	switch opt {
+	case "selected":
+		return li.GetSelected()
+	default:
+		var items Items
+		level := 0
+		for _, item := range li {
+			i := item.(Item)
+			if !i.IsHidden {
+				items = append(items, i)
+			}
+			if i.HasList && i.ListIsOpen() {
+				level++
+				for _, sub := range li.GetSubList(i) {
+					s := sub.(Item)
+					s.SetIsSub().SetLevel(level)
+					items = append(items, s)
+				}
+			}
+		}
+		return items
+	}
+}
+
+func (li Items) GetSubList(i list.Item) Items {
+	item := i.(Item)
+	if item.HasList {
+		t := len(item.Items)
+		return li[item.id+1 : item.id+t+1]
+	}
+	return Items{}
+}
+
 func (i Items) Add(item Item) {
 	i.appendItem(item)
 	if item.HasList {

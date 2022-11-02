@@ -164,28 +164,7 @@ func (l *Model) processAllItems() Items {
 }
 
 func (l Model) DisplayItems(opt string) Items {
-	switch opt {
-	case "selected":
-		return l.AllItems.GetSelected()
-	default:
-		var items Items
-		level := 0
-		for _, item := range l.AllItems {
-			i := item.(Item)
-			if i.IsVisible {
-				items = append(items, i)
-			}
-			if i.HasList && i.ListIsOpen() {
-				level++
-				for _, sub := range l.GetSubList(i) {
-					s := sub.(Item)
-					s.SetIsSub().SetLevel(level)
-					items = append(items, s)
-				}
-			}
-		}
-		return items
-	}
+	return l.AllItems.Display(opt)
 }
 
 func (l *Model) ToggleItem(i list.Item) Item {

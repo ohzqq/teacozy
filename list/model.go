@@ -84,15 +84,6 @@ func (l Model) GetAbsIndex(i list.Item) int {
 	return slices.IndexFunc(l.AllItems, fn)
 }
 
-func (l Model) GetSubList(i list.Item) Items {
-	item := i.(Item)
-	if item.HasList {
-		t := len(item.Items)
-		return l.AllItems[item.id+1 : item.id+t+1]
-	}
-	return Items{}
-}
-
 func (l *Model) NewList(i Items) list.Model {
 	list := &Model{
 		Title:       l.Title,
