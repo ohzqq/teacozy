@@ -280,6 +280,10 @@ func (i *Item) SetId(id int) *Item {
 	return i
 }
 
+func (i Item) ID() int {
+	return i.id
+}
+
 func (i Item) Data() list.Item {
 	return i.data
 }

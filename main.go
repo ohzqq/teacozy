@@ -28,6 +28,10 @@ func main() {
 
 	//fmt.Printf("%+V\n", m.AllItems)
 
+	for _, s := range m.Items {
+		item := s.(list.Item)
+		println(item.ID())
+	}
 	for _, s := range m.Items.GetSelected() {
 		item := s.(list.Item)
 		println(item.Content)
@@ -54,34 +58,6 @@ func newTestItems() []list.Item {
 	return items
 }
 
-func newItemWithList() list.Item {
-	item := list.NewItem(list.Item{Content: "sub3"})
-	for key, _ := range testSubList {
-		i := list.NewItem(list.Item{Content: key})
-		i.IsSub = true
-		i.Level = 1
-		item.Items = append(item.Items, i)
-	}
-	return item
-}
-
-func newTestList() *list.Model {
-	l := list.New("test poot toot")
-	//l.isPrompt = true
-
-	l.AddMenu(testMenu())
-	l.SetMulti()
-
-	il := newItemWithList()
-	l.AllItems.Add(il)
-	for _, i := range newTestItems() {
-		l.AllItems.Add(i)
-	}
-
-	l.List = l.BuildModel()
-
-	return l
-}
 func TestItems() []list.Item {
 	var items []list.Item
 	for key, _ := range testData {
@@ -91,6 +67,19 @@ func TestItems() []list.Item {
 		items = append(items, list.NewItem(i))
 	}
 	return items
+}
+
+func newItemWithList() list.Item {
+	item := list.NewItem(list.Item{Content: "sub3"})
+	item.HasList = true
+	for key, _ := range testSubList {
+		i := list.NewItem(list.Item{Content: key})
+		i.IsSub = true
+		i.Level = 1
+		item.Items = item.Items.Add(i)
+		//item.Items = append(item.Items, i)
+	}
+	return item
 }
 
 func itemWithList(t string) list.Item {
@@ -120,8 +109,11 @@ func TestList() *list.Model {
 	l.SetMulti()
 	//l.showMenu = true
 
-	il := itemWithList("test sub list")
-	l.Items = append(l.Items, il)
+	//il := itemWithList("test sub list")
+	il := newItemWithList()
+	il.HasList = true
+	l.AppendItem(il)
+	//l.Items = append(l.Items, il)
 	//for _, i := range TestItems() {
 	for key, _ := range testData {
 		//i := list.Item{Content: key}

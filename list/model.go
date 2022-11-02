@@ -60,8 +60,8 @@ func (l *Model) NewItem(content string) {
 	l.AppendItem(item)
 }
 
-func (l *Model) AppendItem(i list.Item) *Model {
-	item := NewItem(i)
+func (l *Model) AppendItem(item Item) *Model {
+	//item := NewItem(i)
 	if l.IsMulti() {
 		item.IsMulti = true
 	}

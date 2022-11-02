@@ -90,7 +90,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		content = i.FilterValue()
+		c := fmt.Sprintf("%d: %s %v", i.id, i.FilterValue(), i.HasList)
+		content = c
 	}
 
 	if m.Width() > 0 {
