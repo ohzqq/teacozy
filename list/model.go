@@ -192,6 +192,12 @@ func (m Model) View() string {
 		availHeight -= lipgloss.Height(menu)
 	}
 
+	var info string
+	if m.ShowInfo {
+		info = m.info.View()
+		availHeight -= lipgloss.Height(info)
+	}
+
 	var field string
 	if m.area.Focused() {
 		field = m.area.View()
@@ -204,6 +210,10 @@ func (m Model) View() string {
 
 	if m.ShowMenu {
 		sections = append(sections, menu)
+	}
+
+	if m.ShowInfo {
+		sections = append(sections, info)
 	}
 
 	if m.area.Focused() {

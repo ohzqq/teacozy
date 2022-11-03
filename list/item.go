@@ -182,7 +182,7 @@ type Item struct {
 	Items      Items
 	list       *Model
 	Content    string
-	Info       Info
+	Info       *InfoWidget
 }
 
 func NewItem(item list.Item) Item {

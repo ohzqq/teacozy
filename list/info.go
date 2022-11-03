@@ -8,37 +8,47 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type Info struct {
+type infoStr string
+
+func (i infoStr) String() string {
+	return string(i)
+}
+
+type InfoWidget struct {
 	content    []map[fmt.Stringer]fmt.Stringer
 	HideKeys   bool
 	KeyStyle   lipgloss.Style
 	ValueStyle lipgloss.Style
 }
 
-func NewInfo() *Info {
-	return &Info{
+func NewInfoWidget() *InfoWidget {
+	return &InfoWidget{
 		KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 		ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 	}
 }
 
-func (i *Info) NoKeys() *Info {
+func (i *InfoWidget) NoKeys() *InfoWidget {
 	i.HideKeys = true
 	return i
 }
 
-func (i *Info) Add(key, val fmt.Stringer) {
+func (i *InfoWidget) AddString(key, val string) {
+	i.Add(infoStr(key), infoStr(val))
+}
+
+func (i *InfoWidget) Add(key, val fmt.Stringer) {
 	content := make(map[fmt.Stringer]fmt.Stringer)
 	content[key] = val
 	i.content = append(i.content, content)
 }
 
-func (i *Info) Set(content ...map[fmt.Stringer]fmt.Stringer) *Info {
+func (i *InfoWidget) Set(content ...map[fmt.Stringer]fmt.Stringer) *InfoWidget {
 	i.content = content
 	return i
 }
 
-func (i Info) String() string {
+func (i InfoWidget) String() string {
 	var info []string
 	for _, pair := range i.content {
 		var line []string

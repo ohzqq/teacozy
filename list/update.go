@@ -15,8 +15,9 @@ import (
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
+		cmd   tea.Cmd
+		cmds  []tea.Cmd
+		focus = m.FocusedView
 	)
 
 	switch msg := msg.(type) {
@@ -59,7 +60,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, tea.Quit)
 			case key.Matches(msg, m.Keys.Quit):
 				cmds = append(cmds, tea.Quit)
-			case key.Matches(msg, urkey.Info):
 			case key.Matches(msg, m.Keys.Prev):
 				m.ShowSelectedOnly = false
 				cmds = append(cmds, UpdateVisibleItemsCmd("all"))
@@ -89,7 +89,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info = viewport.New(msg.Width-2, msg.Height/3)
 	}
 
-	switch focus := m.FocusedView; focus {
+	switch focus {
+	case "info":
 	case "list":
 		switch msg := msg.(type) {
 		case UpdateStatusMsg:
@@ -108,6 +109,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.SetItem(m.List.Index(), cur.ToggleSelected())
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 		case UpdateInfoContentMsg:
+			m.ToggleInfo()
 			m.info.SetContent(string(msg))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))

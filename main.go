@@ -70,6 +70,7 @@ func TestList() *list.Model {
 
 	//il := itemWithList("test sub list")
 	il := newItemWithList()
+	il.Info = infoWidget()
 	l.AppendItem(il)
 	//l.Items = append(l.Items, il)
 	//for _, i := range TestItems() {
@@ -92,6 +93,13 @@ func testMenu() *list.Menu {
 	m := list.NewMenu("test", t)
 	m.SetKeys(testHelpKeys)
 	return m
+}
+
+func infoWidget() *list.InfoWidget {
+	info := list.NewInfoWidget()
+	info.AddString("poot", "toot")
+	info.AddString("newt", "root")
+	return info
 }
 
 var testHelpKeys = []list.MenuItem{
