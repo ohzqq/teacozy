@@ -6,14 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type EnterKeyMsg string
-
-func EnterKeyCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ""
-	}
-}
-
 type EditItemMsg string
 
 func EditItemCmd() tea.Cmd {
@@ -50,11 +42,11 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
-type UpdateItemsMsg Items
+type SetItemsMsg Items
 
-func UpdateItemsCmd(i Items) tea.Cmd {
+func SetItemsCmd(i Items) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateItemsMsg(i)
+		return SetItemsMsg(i)
 	}
 }
 
@@ -74,14 +66,6 @@ func ToggleSelectedItemCmd(idx int) tea.Cmd {
 	}
 }
 
-func ToggleAllItemsCmd(l *Model) {
-	for _, it := range l.Items {
-		i := it.(Item)
-		i.ToggleSelected()
-		//l.Items.ToggleSelected(i.id)
-	}
-}
-
 type UpdateMenuContentMsg string
 
 func UpdateMenuContentCmd(s string) tea.Cmd {
@@ -92,27 +76,11 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 
 type MenuCmd func(m *Model) tea.Cmd
 
-func DeselectAllItemsCmd(l *Model) {
-	for idx, it := range l.List.Items() {
+func ToggleAllItemsCmd(l *Model) {
+	for _, it := range l.Items {
 		i := it.(Item)
-		i.isSelected = false
-		l.List.SetItem(idx, i)
-	}
-}
-
-func SelectAllItemsCmd(l *Model) {
-	for idx, it := range l.List.Items() {
-		i := it.(Item)
-		i.isSelected = true
-		l.List.SetItem(idx, i)
-	}
-}
-
-type SelectedItemsMsg Selections
-
-func GetSelectedItemsCmd(i Items) tea.Cmd {
-	return func() tea.Msg {
-		return SelectedItemsMsg{items: i.Selected()}
+		i.ToggleSelected()
+		//l.Items.ToggleSelected(i.id)
 	}
 }
 

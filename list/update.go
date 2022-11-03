@@ -38,7 +38,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.ShowSelectedOnly {
 						cmds = append(cmds, ReturnSelectionsCmd())
 					}
-
 					m.ShowSelectedOnly = true
 					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 				case key.Matches(msg, m.Keys.SelectAll):
@@ -106,7 +105,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
 			m.ShowMenu = false
-		case UpdateItemsMsg:
+		case SetItemsMsg:
 			m.SetItems(Items(msg))
 			m.processAllItems()
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
