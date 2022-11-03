@@ -99,6 +99,12 @@ func infoWidget() *list.InfoWidget {
 	info := list.NewInfoWidget()
 	info.AddString("poot", "toot")
 	info.AddString("newt", "root")
+	for key, val := range testSubList {
+		info.AddString(key, val)
+	}
+	for key, val := range testData {
+		info.AddString(key, val)
+	}
 	return info
 }
 

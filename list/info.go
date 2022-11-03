@@ -77,7 +77,7 @@ func (i InfoWidget) String() string {
 	return strings.Join(info, "\n")
 }
 
-func (m *Model) UpdateInfoWidget(msg tea.Msg) tea.Cmd {
+func UpdateInfoWidget(m *Model, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -86,8 +86,13 @@ func (m *Model) UpdateInfoWidget(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, urkey.ExitScreen):
+			m.HideInfo()
+			cmds = append(cmds, SetFocusedViewCmd("list"))
+		case key.Matches(msg, urkey.Quit):
+			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, urkey.Info):
-			m.ToggleInfo()
+			m.HideInfo()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}

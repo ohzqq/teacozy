@@ -39,8 +39,9 @@ type Model struct {
 	FocusedView      string
 	width            int
 	height           int
+	ShowWidget       bool
 	ShowMenu         bool
-	ShowInfo         bool
+	showInfo         bool
 	isFullScreen     bool
 	CurrentMenu      *Menu
 	frame            lipgloss.Style
@@ -144,7 +145,15 @@ func (l *Model) ToggleMenu() {
 }
 
 func (l *Model) ToggleInfo() {
-	l.ShowInfo = !l.ShowInfo
+	l.showInfo = !l.showInfo
+}
+
+func (l *Model) ShowInfo() {
+	l.showInfo = true
+}
+
+func (l *Model) HideInfo() {
+	l.showInfo = false
 }
 
 func (l Model) Width() int {
@@ -193,7 +202,7 @@ func (m Model) View() string {
 	}
 
 	var info string
-	if m.ShowInfo {
+	if m.showInfo {
 		info = m.info.View()
 		availHeight -= lipgloss.Height(info)
 	}
@@ -212,7 +221,7 @@ func (m Model) View() string {
 		sections = append(sections, menu)
 	}
 
-	if m.ShowInfo {
+	if m.showInfo {
 		sections = append(sections, info)
 	}
 
