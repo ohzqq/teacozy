@@ -71,7 +71,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					for label, menu := range m.Menus {
 						if key.Matches(msg, menu.Toggle) {
 							m.CurrentMenu = menu
-							m.ToggleMenu()
+							m.ShowMenu()
 							cmds = append(cmds, SetFocusedViewCmd(label))
 						}
 					}
@@ -87,13 +87,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.area = cur.Edit()
 		m.area.Focus()
 	case ReturnSelectionsMsg:
-		m.Selections = m.AllItems.Selected()
+		m.Selections = m.Items.Selected()
 		cmds = append(cmds, tea.Quit)
 	case tea.WindowSizeMsg:
 		m.List.SetSize(msg.Width-1, msg.Height-2)
 		m.info = viewport.New(msg.Width-2, msg.Height/3)
 	case UpdateInfoContentMsg:
-		m.ToggleInfo()
+		m.ShowInfo()
 		m.info.SetContent(string(msg))
 		cmds = append(cmds, SetFocusedViewCmd("info"))
 	case UpdateMenuContentMsg:

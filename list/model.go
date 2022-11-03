@@ -26,7 +26,6 @@ type Model struct {
 	List             list.Model
 	area             textarea.Model
 	info             viewport.Model
-	AllItems         Items
 	Items            Items
 	Selections       Items
 	Keys             urkey.KeyMap
@@ -92,7 +91,7 @@ func (l Model) GetAbsIndex(i list.Item) int {
 	fn := func(item list.Item) bool {
 		return id == item.(Item).id
 	}
-	return slices.IndexFunc(l.AllItems, fn)
+	return slices.IndexFunc(l.Items, fn)
 }
 
 func (l *Model) NewList(i Items) list.Model {
@@ -138,14 +137,6 @@ func (l Model) GetHeight(items []list.Item) int {
 	default:
 		return max
 	}
-}
-
-func (l *Model) ToggleMenu() {
-	l.showMenu = !l.showMenu
-}
-
-func (l *Model) ToggleInfo() {
-	l.showInfo = !l.showInfo
 }
 
 func (l *Model) ShowMenu() {
