@@ -89,8 +89,6 @@ func UpdateInfoWidget(m *Model, msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, urkey.ExitScreen):
 			m.HideInfo()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
-		case key.Matches(msg, urkey.Quit):
-			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, urkey.Info):
 			m.HideInfo()
 			cmds = append(cmds, SetFocusedViewCmd("list"))

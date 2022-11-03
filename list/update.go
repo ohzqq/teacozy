@@ -22,6 +22,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if key.Matches(msg, m.Keys.Quit) {
+			cmds = append(cmds, tea.Quit)
+		}
 		if m.area.Focused() {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.List.SelectedItem().(Item)
@@ -38,46 +41,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "info":
 				cmds = append(cmds, UpdateInfoWidget(m, msg))
 			case "list":
-				if m.IsMulti() {
-					switch {
-					case key.Matches(msg, m.Keys.Enter):
-						if m.ShowSelectedOnly {
-							cmds = append(cmds, ReturnSelectionsCmd())
-						}
-						m.ShowSelectedOnly = true
-						cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-					case key.Matches(msg, m.Keys.SelectAll):
-						ToggleAllItemsCmd(m)
-						cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-					}
-				} else {
-					switch {
-					case key.Matches(msg, m.Keys.Enter):
-						cur := m.List.SelectedItem().(Item)
-						m.SetItem(m.List.Index(), cur.ToggleSelected())
-						cmds = append(cmds, ReturnSelectionsCmd())
-					}
-				}
-
-				switch {
-				case key.Matches(msg, m.Keys.ExitScreen):
-					cmds = append(cmds, tea.Quit)
-				case key.Matches(msg, m.Keys.Quit):
-					cmds = append(cmds, tea.Quit)
-				case key.Matches(msg, m.Keys.Prev):
-					m.ShowSelectedOnly = false
-					cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-				default:
-					for label, menu := range m.Menus {
-						if key.Matches(msg, menu.Toggle) {
-							m.CurrentMenu = menu
-							m.ShowMenu()
-							cmds = append(cmds, SetFocusedViewCmd(label))
-						}
-					}
-				}
-				m.List, cmd = m.List.Update(msg)
-				cmds = append(cmds, cmd)
+				cmds = append(cmds, UpdateList(m, msg))
 			}
 		}
 	case SetFocusedViewMsg:
