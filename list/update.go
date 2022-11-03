@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/util"
@@ -85,6 +86,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, tea.Quit)
 	case tea.WindowSizeMsg:
 		m.List.SetSize(msg.Width-1, msg.Height-2)
+		m.info = viewport.New(msg.Width-2, msg.Height/3)
 	}
 
 	switch focus := m.FocusedView; focus {
