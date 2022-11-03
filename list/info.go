@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -22,10 +25,14 @@ type InfoWidget struct {
 }
 
 func NewInfoWidget() *InfoWidget {
-	return &InfoWidget{
+	w := InfoWidget{
 		KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 		ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 	}
+
+	w.AddString("", "")
+
+	return &w
 }
 
 func (i *InfoWidget) NoKeys() *InfoWidget {
@@ -54,14 +61,38 @@ func (i InfoWidget) String() string {
 		var line []string
 		for key, val := range pair {
 			if !i.HideKeys {
-				k := i.KeyStyle.Render(key.String())
-				line = append(line, k)
+				if str := key.String(); str != "" {
+					k := i.KeyStyle.Render(str)
+					line = append(line, k, ": ")
+				}
 			}
-			v := i.ValueStyle.Render(val.String())
-			line = append(line, v)
+			if str := val.String(); str != "" {
+				v := i.KeyStyle.Render(str)
+				line = append(line, v)
+			}
 		}
-		l := strings.Join(line, ": ")
+		l := strings.Join(line, "")
 		info = append(info, l)
 	}
 	return strings.Join(info, "\n")
+}
+
+func (m *Model) UpdateInfoWidget(msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, urkey.Info):
+			m.ToggleInfo()
+			cmds = append(cmds, SetFocusedViewCmd("list"))
+		}
+	}
+
+	m.info, cmd = m.info.Update(msg)
+	cmds = append(cmds, cmd)
+	return tea.Batch(cmds...)
 }

@@ -91,6 +91,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
+		cmds = append(cmds, m.List.NewStatusMessage("info"))
+		cmds = append(cmds, m.UpdateInfoWidget(msg))
 	case "list":
 		switch msg := msg.(type) {
 		case UpdateStatusMsg:
@@ -111,6 +113,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case UpdateInfoContentMsg:
 			m.ToggleInfo()
 			m.info.SetContent(string(msg))
+			cmds = append(cmds, SetFocusedViewCmd("info"))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
 			m.ToggleMenu()

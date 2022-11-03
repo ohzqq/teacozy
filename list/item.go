@@ -188,6 +188,7 @@ type Item struct {
 func NewItem(item list.Item) Item {
 	return Item{
 		Content: item.FilterValue(),
+		Info:    NewInfoWidget(),
 	}
 }
 
