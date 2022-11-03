@@ -170,7 +170,6 @@ func (li Items) NewList(title string, state listType) *Model {
 }
 
 type Item struct {
-	data       list.Item
 	id         int
 	isSelected bool
 	hasList    bool
@@ -183,13 +182,17 @@ type Item struct {
 	Items      Items
 	list       *Model
 	Content    string
+	Info       Info
 }
 
 func NewItem(item list.Item) Item {
 	return Item{
-		data:    item,
 		Content: item.FilterValue(),
 	}
+}
+
+func (i Item) DisplayInfo() string {
+	return i.Info.String()
 }
 
 func (i *Item) SetContent(content string) {
@@ -235,10 +238,6 @@ func (i *Item) SetId(id int) *Item {
 
 func (i Item) Index() int {
 	return i.id
-}
-
-func (i Item) Data() list.Item {
-	return i.data
 }
 
 func (i Item) IsSelected() bool {
