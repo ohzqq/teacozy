@@ -209,5 +209,6 @@ func (m Model) View() string {
 }
 
 func (l *Model) Init() tea.Cmd {
-	return UpdateVisibleItemsCmd("all")
+	return nil
+	//return SetItemsCmd(l.Items)
 }

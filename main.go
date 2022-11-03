@@ -18,24 +18,41 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	m := TestList()
+	//m := TestList()
 	//m := newTestList()
 
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
+	//p := tea.NewProgram(m)
+	//if err := p.Start(); err != nil {
+	//log.Fatal(err)
+	//}
 
 	//fmt.Printf("%+V\n", m.AllItems)
 
 	//for _, s := range m.Items {
 	//  item := s.(list.Item)
-	//  println(item.ID())
+	//  println(item.Content)
 	//}
-	for _, s := range m.Items.Selected() {
-		item := s.(list.Item)
-		println(item.Content)
+	//for _, s := range m.Items.Selected() {
+	//  item := s.(list.Item)
+	//  println(item.Content)
+	//}
+
+	//items := testItems()
+	//fmt.Printf("%+V\n", testItems())
+	items := testItems().Flatten()
+
+	//for _, i := range items {
+	//  item := i.(list.Item)
+	//if item.HasList() {
+	//items = list.Flatten(item.Items)
+	//items = append(items, list.Flatten(item.Items)...)
+	//}
+	//}
+	for _, i := range items {
+		item := i.(list.Item)
+		fmt.Printf("%+V\n", item.Content)
 	}
+	//fmt.Println(len(items))
 }
 
 var testData = map[string]string{
@@ -60,12 +77,24 @@ func newItemWithList() list.Item {
 	return item
 }
 
+func testItems() list.Items {
+	var items list.Items
+	il := newItemWithList()
+	il.Info = infoWidget()
+	items = append(items, il)
+	for key, _ := range testData {
+		i := list.Item{Content: key}
+		items = append(items, i)
+	}
+	return items
+}
+
 func TestList() *list.Model {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
 
 	l.AddMenu(testMenu())
-	//l.SetMulti()
+	l.SetMulti()
 	//l.showMenu = true
 
 	//il := itemWithList("test sub list")

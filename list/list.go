@@ -15,6 +15,8 @@ import (
 type List struct {
 	Model            list.Model
 	Items            Items
+	items            []Item
+	all              []list.Item
 	Keys             urkey.KeyMap
 	IsPrompt         bool
 	IsMultiSelect    bool
@@ -28,8 +30,21 @@ func NewList() List {
 }
 
 func (l *List) NewItem(content string) {
-	item := NewItem(Item{Content: content})
+	i := Item{Content: content}
+	item := NewItem(i)
+	l.items = append(l.items, i)
 	l.AppendItem(item)
+}
+
+func (l *List) ProcessItems() *List {
+	l.all = FlattenItems(l.items)
+	for idx, item := range l.items {
+		if l.IsMulti() {
+			item.IsMulti = true
+		}
+		item.id = idx
+	}
+	return l
 }
 
 func (l *List) AppendItem(item Item) *List {
@@ -120,7 +135,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (l List) Init() tea.Cmd {
-	return nil
+	return SetItemsCmd(l.Items)
 }
 
 func (l List) View() string {

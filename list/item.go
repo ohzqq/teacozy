@@ -39,6 +39,29 @@ func (li Items) Get(idx int) Item {
 	return Item{}
 }
 
+func (li Items) Flatten() Items {
+	var items Items
+	for _, item := range li {
+		i := item.(Item)
+		items = append(items, i)
+		if i.HasList() {
+			items = append(items, i.Items.Flatten()...)
+		}
+	}
+	return items
+}
+
+func FlattenItems(li []Item) []list.Item {
+	var items []list.Item
+	for _, item := range li {
+		items = append(items, item)
+		if item.HasList() {
+			items = append(items, FlattenItems(item.items)...)
+		}
+	}
+	return items
+}
+
 func (li Items) Display(opt string) Items {
 	switch opt {
 	case "selected":
@@ -84,7 +107,7 @@ func (i Items) Add(item Item) Items {
 		for _, l := range item.Items {
 			li := l.(Item)
 			li.IsHidden = true
-			i = i.Add(li)
+			i = i.appendItem(li)
 		}
 	}
 	return i
@@ -179,8 +202,8 @@ type Item struct {
 	mark       string
 	IsMulti    bool
 	Level      int
+	items      []Item
 	Items      Items
-	list       *Model
 	Content    string
 	Info       *InfoWidget
 }
@@ -265,9 +288,4 @@ func (i *Item) SetLevel(l int) *Item {
 
 func (i *Item) IsSub() bool {
 	return i.Level != 0
-}
-
-func (i *Item) SetList(l *Model) *Item {
-	i.list = l
-	return i
 }
