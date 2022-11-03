@@ -10,13 +10,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/slices"
 )
 
 type List struct {
 	Model            list.Model
 	Items            Items
 	items            []Item
-	all              []list.Item
+	all              Items
 	Keys             urkey.KeyMap
 	IsPrompt         bool
 	IsMultiSelect    bool
@@ -35,30 +36,38 @@ func (l *List) NewItem(content string) Item {
 	return i
 }
 
-func (l *List) ProcessItems() *List {
-	l.all = FlattenItems(l.items)
-	for idx, item := range l.all {
-		i := item.(Item)
-		if l.IsMulti() {
-			i.IsMulti = true
-		}
-		i.id = idx
-		l.all[idx] = i
+func (l *List) GetAbsIndex(i list.Item) int {
+	content := i.(Item).Content
+	fn := func(item list.Item) bool {
+		c := item.(Item).Content
+		return content == c
 	}
-	return l
+	return slices.IndexFunc(l.all, fn)
 }
 
-func (l List) AllItems() []list.Item {
+func (l List) AllItems() Items {
+	l.all = FlattenItems(l.items)
 	l.ProcessItems()
 	return l.all
 }
 
+func (l *List) ProcessItems() *List {
+	for _, item := range l.all {
+		i := item.(Item)
+		if l.IsMulti() {
+			i.IsMulti = true
+		}
+		i.id = l.GetAbsIndex(item)
+		l.all[i.id] = i
+	}
+	return l
+}
+
 func (l *List) AppendItem(item Item) *List {
-	//item := NewItem(i)
 	if l.IsMulti() {
 		item.IsMulti = true
 	}
-	l.Items = l.Items.Add(item)
+	l.items = append(l.items, item)
 	return l
 }
 

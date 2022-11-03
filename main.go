@@ -39,6 +39,7 @@ func main() {
 
 	l := testList()
 	for _, item := range l.AllItems() {
+		fmt.Printf("%+V\n", item.(list.Item).Content)
 		fmt.Printf("%+V\n", item.(list.Item).Index())
 	}
 	//items := testItems().Flatten()
