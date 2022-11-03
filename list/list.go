@@ -79,7 +79,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(string(msg)))
 	case UpdateVisibleItemsMsg:
-		items := m.DisplayItems(string(msg))
+		items := m.Items.Display(string(msg))
 		//m.Model.SetHeight(m.GetHeight(items))
 		m.Model.SetHeight(util.TermHeight() - 2)
 		cmds = append(cmds, m.Model.SetItems(items))
@@ -152,10 +152,6 @@ func (l *List) processAllItems() Items {
 	}
 	l.Items = items
 	return items
-}
-
-func (l List) DisplayItems(opt string) Items {
-	return l.Items.Display(opt)
 }
 
 func (l *List) ToggleSubList(i list.Item) Item {
