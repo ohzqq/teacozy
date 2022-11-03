@@ -45,14 +45,6 @@ func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, m.Keys.Prev):
 			m.ShowSelectedOnly = false
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-		default:
-			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle) {
-					m.CurrentMenu = menu
-					m.ShowMenu()
-					cmds = append(cmds, SetFocusedViewCmd(label))
-				}
-			}
 		}
 	}
 	m.List, cmd = m.List.Update(msg)

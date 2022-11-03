@@ -10,7 +10,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/util"
 )
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -43,6 +42,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "list":
 				cmds = append(cmds, UpdateList(m, msg))
 			}
+			for label, menu := range m.Menus {
+				if key.Matches(msg, menu.Toggle) {
+					m.CurrentMenu = menu
+					m.ShowMenu()
+					cmds = append(cmds, SetFocusedViewCmd(label))
+				}
+			}
 		}
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
@@ -70,25 +76,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, UpdateInfoWidget(m, msg))
 	case "list":
 		switch msg := msg.(type) {
-		case UpdateStatusMsg:
-			cmds = append(cmds, m.List.NewStatusMessage(string(msg)))
-		case UpdateVisibleItemsMsg:
-			items := m.DisplayItems(string(msg))
-			//m.Model.SetHeight(m.GetHeight(items))
-			m.List.SetHeight(util.TermHeight() - 2)
-			cmds = append(cmds, m.List.SetItems(items))
-		case ToggleItemListMsg:
-			cur := m.Items.Get(int(msg))
-			m.SetItem(m.List.Index(), cur.ToggleList())
-			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-		case ToggleSelectedItemMsg:
-			cur := m.Items.Get(int(msg))
-			m.SetItem(m.List.Index(), cur.ToggleSelected())
-			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-		case SetSizeMsg:
-			if size := []int(msg); len(size) == 2 {
-				m.List.SetSize(size[0], size[1])
-			}
 		case SetItemsMsg:
 			m.SetItems(Items(msg))
 			m.processAllItems()
