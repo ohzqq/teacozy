@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	urkey "github.com/ohzqq/teacozy/key"
@@ -23,11 +24,12 @@ const (
 
 type Model struct {
 	List             list.Model
+	area             textarea.Model
+	info             viewport.Model
 	AllItems         Items
 	Items            Items
 	Selections       Items
 	Keys             urkey.KeyMap
-	area             textarea.Model
 	Menus            Menus
 	state            listType
 	Title            string
@@ -38,8 +40,8 @@ type Model struct {
 	width            int
 	height           int
 	ShowMenu         bool
+	ShowInfo         bool
 	isFullScreen     bool
-	showHelp         bool
 	CurrentMenu      *Menu
 	frame            lipgloss.Style
 }
@@ -135,6 +137,10 @@ func (l Model) GetHeight(items []list.Item) int {
 	default:
 		return max
 	}
+}
+
+func (l *Model) ToggleMenu() {
+	l.ShowMenu = !l.ShowMenu
 }
 
 func (l Model) Width() int {

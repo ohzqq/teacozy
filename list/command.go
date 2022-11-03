@@ -92,4 +92,26 @@ func UpdateVisibleItemsCmd(opt string) tea.Cmd {
 	}
 }
 
-//type ShowNestedListMsg Items
+type UpdateStatusMsg string
+
+func UpdateStatusCmd(status string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateStatusMsg(status)
+	}
+}
+
+type SetSizeMsg []int
+
+func SetSizeCmd(size []int) tea.Cmd {
+	return func() tea.Msg {
+		return SetSizeMsg(size)
+	}
+}
+
+type UpdateInfoContentMsg string
+
+func UpdateInfoContentCmd(content string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateInfoContentMsg(content)
+	}
+}

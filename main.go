@@ -99,5 +99,5 @@ var testHelpKeys = []list.MenuItem{
 }
 
 func TestKeyAction(m *list.Model) tea.Cmd {
-	return m.List.NewStatusMessage(fmt.Sprintf("%v", m.IsMultiSelect))
+	return list.UpdateStatusCmd(fmt.Sprintf("%v", m.IsMultiSelect))
 }

@@ -65,7 +65,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for label, menu := range m.Menus {
 					if key.Matches(msg, menu.Toggle) {
 						m.CurrentMenu = menu
-						m.ShowMenu = !m.ShowMenu
+						m.ToggleMenu()
 						cmds = append(cmds, SetFocusedViewCmd(label))
 					}
 				}
@@ -89,6 +89,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch focus := m.FocusedView; focus {
 	case "list":
 		switch msg := msg.(type) {
+		case UpdateStatusMsg:
+			cmds = append(cmds, m.List.NewStatusMessage(string(msg)))
 		case UpdateVisibleItemsMsg:
 			items := m.DisplayItems(string(msg))
 			//m.Model.SetHeight(m.GetHeight(items))
@@ -102,9 +104,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cur := m.Items.Get(int(msg))
 			m.SetItem(m.List.Index(), cur.ToggleSelected())
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+		case UpdateInfoContentMsg:
+			m.info.SetContent(string(msg))
 		case UpdateMenuContentMsg:
 			m.CurrentMenu.Model.SetContent(string(msg))
-			m.ShowMenu = false
+			m.ToggleMenu()
+			//m.ShowMenu = false
+		case SetSizeMsg:
+			if size := []int(msg); len(size) == 2 {
+				m.List.SetSize(size[0], size[1])
+			}
 		case SetItemsMsg:
 			m.SetItems(Items(msg))
 			m.processAllItems()
