@@ -80,7 +80,7 @@ func TestList() *list.Model {
 		l.NewItem(key)
 	}
 
-	l.List = l.BuildModel()
+	l.List.Model = l.BuildModel()
 
 	return l
 }

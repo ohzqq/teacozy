@@ -23,10 +23,10 @@ const (
 )
 
 type Model struct {
-	List             list.Model
+	List
+	//List             list.Model
 	area             textarea.Model
 	info             viewport.Model
-	Items            Items
 	Selections       Items
 	Keys             urkey.KeyMap
 	Menus            Menus
@@ -54,20 +54,6 @@ func New(title string) *Model {
 		FocusedView: "list",
 	}
 	l.frame = style.FrameStyle()
-	return l
-}
-
-func (l *Model) NewItem(content string) {
-	item := NewItem(Item{Content: content})
-	l.AppendItem(item)
-}
-
-func (l *Model) AppendItem(item Item) *Model {
-	//item := NewItem(i)
-	if l.IsMulti() {
-		item.IsMulti = true
-	}
-	l.Items = l.Items.Add(item)
 	return l
 }
 
@@ -125,7 +111,7 @@ func (l *Model) AddMenu(menu *Menu) {
 func (l Model) GetHeight(items []list.Item) int {
 	max := util.TermHeight()
 	total := len(items)
-	cur := l.List.Height()
+	cur := l.List.Model.Height()
 
 	switch {
 	case l.isFullScreen:
@@ -169,15 +155,6 @@ func (l *Model) Prompt() *Model {
 	return l
 }
 
-func (m *Model) SetItem(modelIndex int, item Item) {
-	m.List.SetItem(modelIndex, item)
-	m.Items.Set(item)
-}
-
-func (l *Model) IsMulti() bool {
-	return l.IsMultiSelect
-}
-
 func (l *Model) SetShowHelp() *Model {
 	l.showMenu = true
 	return l
@@ -191,7 +168,7 @@ func (l *Model) SetItems(items Items) *Model {
 func (m Model) View() string {
 	var (
 		sections    []string
-		availHeight = m.List.Height()
+		availHeight = m.List.Model.Height()
 	)
 
 	var menu string
@@ -212,8 +189,8 @@ func (m Model) View() string {
 		availHeight -= lipgloss.Height(field)
 	}
 
-	m.List.SetSize(m.width, availHeight)
-	content := m.List.View()
+	m.List.Model.SetSize(m.width, availHeight)
+	content := m.List.Model.View()
 	sections = append(sections, content)
 
 	if m.showMenu {

@@ -6,17 +6,42 @@ import (
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/util"
 )
 
 type List struct {
-	Items         Items
-	IsPrompt      bool
-	IsMultiSelect bool
+	Model            list.Model
+	Items            Items
+	Keys             urkey.KeyMap
+	IsPrompt         bool
+	IsMultiSelect    bool
+	ShowSelectedOnly bool
 }
 
-func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
+func NewList() List {
+	return List{
+		Keys: urkey.DefaultKeys(),
+	}
+}
+
+func (l *List) NewItem(content string) {
+	item := NewItem(Item{Content: content})
+	l.AppendItem(item)
+}
+
+func (l *List) AppendItem(item Item) *List {
+	//item := NewItem(i)
+	if l.IsMulti() {
+		item.IsMulti = true
+	}
+	l.Items = l.Items.Add(item)
+	return l
+}
+
+func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -32,14 +57,14 @@ func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
 				m.ShowSelectedOnly = true
 				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 			case key.Matches(msg, m.Keys.SelectAll):
-				ToggleAllItemsCmd(m)
+				//ToggleAllItemsCmd(m)
 				cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			}
 		} else {
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
-				cur := m.List.SelectedItem().(Item)
-				m.SetItem(m.List.Index(), cur.ToggleSelected())
+				cur := m.Model.SelectedItem().(Item)
+				m.SetItem(m.Model.Index(), cur.ToggleSelected())
 				cmds = append(cmds, ReturnSelectionsCmd())
 			}
 		}
@@ -52,29 +77,28 @@ func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 		}
 	case UpdateStatusMsg:
-		cmds = append(cmds, m.List.NewStatusMessage(string(msg)))
+		cmds = append(cmds, m.Model.NewStatusMessage(string(msg)))
 	case UpdateVisibleItemsMsg:
 		items := m.DisplayItems(string(msg))
 		//m.Model.SetHeight(m.GetHeight(items))
-		m.List.SetHeight(util.TermHeight() - 2)
-		cmds = append(cmds, m.List.SetItems(items))
+		m.Model.SetHeight(util.TermHeight() - 2)
+		cmds = append(cmds, m.Model.SetItems(items))
 	case ToggleItemListMsg:
 		cur := m.Items.Get(int(msg))
-		m.SetItem(m.List.Index(), cur.ToggleList())
+		m.SetItem(m.Model.Index(), cur.ToggleList())
 		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 	case ToggleSelectedItemMsg:
 		cur := m.Items.Get(int(msg))
-		m.SetItem(m.List.Index(), cur.ToggleSelected())
+		m.SetItem(m.Model.Index(), cur.ToggleSelected())
 		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 	case SetSizeMsg:
 		if size := []int(msg); len(size) == 2 {
-			m.List.SetSize(size[0], size[1])
+			m.Model.SetSize(size[0], size[1])
 		}
 	case SetItemsMsg:
 		m.SetItems(Items(msg))
 		m.processAllItems()
 		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-		m.showMenu = false
 	case OSExecCmdMsg:
 		menuCmd := msg.cmd(m.Items.Selected())
 		var (
@@ -90,7 +114,50 @@ func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
 			log.Fatal(err)
 		}
 	}
-	m.List, cmd = m.List.Update(msg)
+	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
+}
+
+func (l List) Init() tea.Cmd {
+	return nil
+}
+
+func (l List) View() string {
+	return l.Model.View()
+}
+
+func (l List) IsMulti() bool {
+	return l.IsMultiSelect
+}
+
+func (l *List) SetItems(items Items) *List {
+	l.Items = items
+	return l
+}
+
+func (m *List) SetItem(modelIndex int, item Item) {
+	m.Model.SetItem(modelIndex, item)
+	m.Items.Set(item)
+}
+
+func (l *List) processAllItems() Items {
+	var items Items
+	for _, i := range l.Items {
+		item := i.(Item)
+		if l.IsMulti() {
+			item.IsMulti = true
+		}
+		items = items.Add(item)
+	}
+	l.Items = items
+	return items
+}
+
+func (l List) DisplayItems(opt string) Items {
+	return l.Items.Display(opt)
+}
+
+func (l *List) ToggleSubList(i list.Item) Item {
+	return l.Items.ToggleList(i.(Item).id)
 }

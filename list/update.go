@@ -22,10 +22,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.area.Focused() {
 			if key.Matches(msg, urkey.SaveAndExit) {
-				cur := m.List.SelectedItem().(Item)
+				cur := m.List.Model.SelectedItem().(Item)
 				val := m.area.Value()
 				cur.SetContent(val)
-				m.SetItem(m.List.Index(), cur)
+				m.SetItem(m.List.Model.Index(), cur)
 				m.area.Blur()
 				cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			}
@@ -43,14 +43,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case EditItemMsg:
-		cur := m.List.SelectedItem().(Item)
+		cur := m.List.Model.SelectedItem().(Item)
 		m.area = cur.Edit()
 		m.area.Focus()
 	case ReturnSelectionsMsg:
 		m.Selections = m.Items.Selected()
 		cmds = append(cmds, tea.Quit)
 	case tea.WindowSizeMsg:
-		m.List.SetSize(msg.Width-1, msg.Height-2)
+		m.List.Model.SetSize(msg.Width-1, msg.Height-2)
 		m.info = viewport.New(msg.Width-2, msg.Height/3)
 	case UpdateInfoContentMsg:
 		m.ShowInfo()
@@ -65,7 +65,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "info":
 		cmds = append(cmds, UpdateInfoWidget(m, msg))
 	case "list":
-		cmds = append(cmds, UpdateList(m, msg))
+		l, cmd := m.List.Update(msg)
+		m.List = l.(List)
+		cmds = append(cmds, cmd)
+		//cmds = append(cmds, UpdateList(m, msg))
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
