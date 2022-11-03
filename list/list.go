@@ -1,8 +1,13 @@
 package list
 
 import (
+	"bytes"
+	"fmt"
+	"log"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type List struct {
@@ -45,6 +50,44 @@ func UpdateList(m *Model, msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, m.Keys.Prev):
 			m.ShowSelectedOnly = false
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+		}
+	case UpdateStatusMsg:
+		cmds = append(cmds, m.List.NewStatusMessage(string(msg)))
+	case UpdateVisibleItemsMsg:
+		items := m.DisplayItems(string(msg))
+		//m.Model.SetHeight(m.GetHeight(items))
+		m.List.SetHeight(util.TermHeight() - 2)
+		cmds = append(cmds, m.List.SetItems(items))
+	case ToggleItemListMsg:
+		cur := m.Items.Get(int(msg))
+		m.SetItem(m.List.Index(), cur.ToggleList())
+		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+	case ToggleSelectedItemMsg:
+		cur := m.Items.Get(int(msg))
+		m.SetItem(m.List.Index(), cur.ToggleSelected())
+		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+	case SetSizeMsg:
+		if size := []int(msg); len(size) == 2 {
+			m.List.SetSize(size[0], size[1])
+		}
+	case SetItemsMsg:
+		m.SetItems(Items(msg))
+		m.processAllItems()
+		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+		m.showMenu = false
+	case OSExecCmdMsg:
+		menuCmd := msg.cmd(m.Items.Selected())
+		var (
+			stderr bytes.Buffer
+			stdout bytes.Buffer
+		)
+		menuCmd.Stderr = &stderr
+		menuCmd.Stdout = &stdout
+		err := menuCmd.Run()
+		if err != nil {
+			fmt.Println(menuCmd.String())
+			fmt.Println(stderr.String())
+			log.Fatal(err)
 		}
 	}
 	m.List, cmd = m.List.Update(msg)

@@ -1,10 +1,6 @@
 package list
 
 import (
-	"bytes"
-	"fmt"
-	"log"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -36,12 +32,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.area, cmd = m.area.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			switch focus {
-			case "info":
-				cmds = append(cmds, UpdateInfoWidget(m, msg))
-			case "list":
-				cmds = append(cmds, UpdateList(m, msg))
-			}
 			for label, menu := range m.Menus {
 				if key.Matches(msg, menu.Toggle) {
 					m.CurrentMenu = menu
@@ -73,29 +63,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
-		//cmds = append(cmds, UpdateInfoWidget(m, msg))
+		cmds = append(cmds, UpdateInfoWidget(m, msg))
 	case "list":
-		switch msg := msg.(type) {
-		case SetItemsMsg:
-			m.SetItems(Items(msg))
-			m.processAllItems()
-			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-			m.showMenu = false
-		case OSExecCmdMsg:
-			menuCmd := msg.cmd(m.Items.Selected())
-			var (
-				stderr bytes.Buffer
-				stdout bytes.Buffer
-			)
-			menuCmd.Stderr = &stderr
-			menuCmd.Stdout = &stdout
-			err := menuCmd.Run()
-			if err != nil {
-				fmt.Println(menuCmd.String())
-				fmt.Println(stderr.String())
-				log.Fatal(err)
-			}
-		}
+		cmds = append(cmds, UpdateList(m, msg))
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
