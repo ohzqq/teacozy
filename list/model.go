@@ -143,6 +143,10 @@ func (l *Model) ToggleMenu() {
 	l.ShowMenu = !l.ShowMenu
 }
 
+func (l *Model) ToggleInfo() {
+	l.ShowInfo = !l.ShowInfo
+}
+
 func (l Model) Width() int {
 	return util.TermWidth()
 }

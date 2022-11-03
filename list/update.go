@@ -58,6 +58,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, tea.Quit)
 			case key.Matches(msg, m.Keys.Quit):
 				cmds = append(cmds, tea.Quit)
+			case key.Matches(msg, urkey.Info):
 			case key.Matches(msg, m.Keys.Prev):
 				m.ShowSelectedOnly = false
 				cmds = append(cmds, UpdateVisibleItemsCmd("all"))

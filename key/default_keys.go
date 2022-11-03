@@ -120,9 +120,9 @@ var (
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit meta"),
 	)
-	MetaViewer = key.NewBinding(
-		key.WithKeys("m"),
-		key.WithHelp("m", "view book metadata"),
+	Info = key.NewBinding(
+		key.WithKeys("i"),
+		key.WithHelp("i", "view item info"),
 	)
 	CategoryList = key.NewBinding(
 		key.WithKeys("c", "tab"),
