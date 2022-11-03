@@ -49,16 +49,16 @@ func UpdateMenu(m *Model, msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.CurrentMenu.Toggle):
-			m.ShowMenu = false
+			m.HideMenu()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
 			for _, item := range m.CurrentMenu.Keys {
 				if key.Matches(msg, item.Key) {
 					cmds = append(cmds, item.Cmd(m))
-					m.ShowMenu = false
+					m.HideMenu()
 				}
 			}
-			m.ShowMenu = false
+			m.HideMenu()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}

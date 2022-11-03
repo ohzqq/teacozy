@@ -92,12 +92,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.List.SetSize(msg.Width-1, msg.Height-2)
 		m.info = viewport.New(msg.Width-2, msg.Height/3)
+	case UpdateInfoContentMsg:
+		m.ToggleInfo()
+		m.info.SetContent(string(msg))
+		cmds = append(cmds, SetFocusedViewCmd("info"))
+	case UpdateMenuContentMsg:
+		m.CurrentMenu.Model.SetContent(string(msg))
+		m.HideMenu()
 	}
 
 	switch focus {
 	case "info":
-		cmds = append(cmds, m.List.NewStatusMessage("info"))
-		cmds = append(cmds, m.UpdateInfoWidget(msg))
+		//cmds = append(cmds, UpdateInfoWidget(m, msg))
 	case "list":
 		switch msg := msg.(type) {
 		case UpdateStatusMsg:
@@ -115,14 +121,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cur := m.Items.Get(int(msg))
 			m.SetItem(m.List.Index(), cur.ToggleSelected())
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-		case UpdateInfoContentMsg:
-			m.ToggleInfo()
-			m.info.SetContent(string(msg))
-			cmds = append(cmds, SetFocusedViewCmd("info"))
-		case UpdateMenuContentMsg:
-			m.CurrentMenu.Model.SetContent(string(msg))
-			m.ToggleMenu()
-			//m.ShowMenu = false
 		case SetSizeMsg:
 			if size := []int(msg); len(size) == 2 {
 				m.List.SetSize(size[0], size[1])
@@ -131,7 +129,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.SetItems(Items(msg))
 			m.processAllItems()
 			cmds = append(cmds, UpdateVisibleItemsCmd("all"))
-			m.ShowMenu = false
+			m.showMenu = false
 		case OSExecCmdMsg:
 			menuCmd := msg.cmd(m.Items.Selected())
 			var (

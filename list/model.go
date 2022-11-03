@@ -40,7 +40,7 @@ type Model struct {
 	width            int
 	height           int
 	ShowWidget       bool
-	ShowMenu         bool
+	showMenu         bool
 	showInfo         bool
 	isFullScreen     bool
 	CurrentMenu      *Menu
@@ -141,11 +141,19 @@ func (l Model) GetHeight(items []list.Item) int {
 }
 
 func (l *Model) ToggleMenu() {
-	l.ShowMenu = !l.ShowMenu
+	l.showMenu = !l.showMenu
 }
 
 func (l *Model) ToggleInfo() {
 	l.showInfo = !l.showInfo
+}
+
+func (l *Model) ShowMenu() {
+	l.showMenu = true
+}
+
+func (l *Model) HideMenu() {
+	l.showMenu = false
 }
 
 func (l *Model) ShowInfo() {
@@ -180,7 +188,7 @@ func (l *Model) IsMulti() bool {
 }
 
 func (l *Model) SetShowHelp() *Model {
-	l.ShowMenu = true
+	l.showMenu = true
 	return l
 }
 
@@ -196,7 +204,7 @@ func (m Model) View() string {
 	)
 
 	var menu string
-	if m.ShowMenu {
+	if m.showMenu {
 		menu = m.CurrentMenu.Model.View()
 		availHeight -= lipgloss.Height(menu)
 	}
@@ -217,7 +225,7 @@ func (m Model) View() string {
 	content := m.List.View()
 	sections = append(sections, content)
 
-	if m.ShowMenu {
+	if m.showMenu {
 		sections = append(sections, menu)
 	}
 
