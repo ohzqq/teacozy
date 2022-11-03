@@ -37,9 +37,11 @@ func main() {
 	//  println(item.Content)
 	//}
 
-	//items := testItems()
-	//fmt.Printf("%+V\n", testItems())
-	items := testItems().Flatten()
+	l := testList()
+	for _, item := range l.AllItems() {
+		fmt.Printf("%+V\n", item.FilterValue())
+	}
+	//items := testItems().Flatten()
 
 	//for _, i := range items {
 	//  item := i.(list.Item)
@@ -48,10 +50,10 @@ func main() {
 	//items = append(items, list.Flatten(item.Items)...)
 	//}
 	//}
-	for _, i := range items {
-		item := i.(list.Item)
-		fmt.Printf("%+V\n", item.Content)
-	}
+	//for _, i := range items {
+	//  item := i.(list.Item)
+	//  fmt.Printf("%+V\n", item.Content)
+	//}
 	//fmt.Println(len(items))
 }
 
@@ -64,6 +66,22 @@ var testData = map[string]string{
 var testSubList = map[string]string{
 	"sub1": "poot",
 	"sub2": "toot",
+}
+
+func testList() list.List {
+	l := list.NewList()
+	sub3 := l.NewItem("sub3")
+	sub3.Info = infoWidget()
+	for key, _ := range testSubList {
+		i := l.NewItem(key)
+		i.SetLevel(1)
+		sub3.Li = append(sub3.Li, i)
+	}
+	for key, _ := range testData {
+		l.NewItem(key)
+	}
+
+	return l
 }
 
 func newItemWithList() list.Item {

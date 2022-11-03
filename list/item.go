@@ -56,7 +56,7 @@ func FlattenItems(li []Item) []list.Item {
 	for _, item := range li {
 		items = append(items, item)
 		if item.HasList() {
-			items = append(items, FlattenItems(item.items)...)
+			items = append(items, FlattenItems(item.Li)...)
 		}
 	}
 	return items
@@ -202,7 +202,7 @@ type Item struct {
 	mark       string
 	IsMulti    bool
 	Level      int
-	items      []Item
+	Li         []Item
 	Items      Items
 	Content    string
 	Info       *InfoWidget

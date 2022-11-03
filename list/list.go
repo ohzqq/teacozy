@@ -29,11 +29,12 @@ func NewList() List {
 	}
 }
 
-func (l *List) NewItem(content string) {
+func (l *List) NewItem(content string) Item {
 	i := Item{Content: content}
 	item := NewItem(i)
 	l.items = append(l.items, i)
 	l.AppendItem(item)
+	return i
 }
 
 func (l *List) ProcessItems() *List {
@@ -45,6 +46,11 @@ func (l *List) ProcessItems() *List {
 		item.id = idx
 	}
 	return l
+}
+
+func (l List) AllItems() []list.Item {
+	l.ProcessItems()
+	return l.all
 }
 
 func (l *List) AppendItem(item Item) *List {
