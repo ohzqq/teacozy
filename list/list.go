@@ -31,19 +31,19 @@ func NewList() List {
 
 func (l *List) NewItem(content string) Item {
 	i := Item{Content: content}
-	item := NewItem(i)
 	l.items = append(l.items, i)
-	l.AppendItem(item)
 	return i
 }
 
 func (l *List) ProcessItems() *List {
 	l.all = FlattenItems(l.items)
-	for idx, item := range l.items {
+	for idx, item := range l.all {
+		i := item.(Item)
 		if l.IsMulti() {
-			item.IsMulti = true
+			i.IsMulti = true
 		}
-		item.id = idx
+		i.id = idx
+		l.all[idx] = i
 	}
 	return l
 }
