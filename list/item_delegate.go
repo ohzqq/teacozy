@@ -70,6 +70,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditItemCmd())
 		case key.Matches(msg, urkey.ToggleItem):
+			m.CursorDown()
 			if curItem.HasList() {
 				return ToggleItemListCmd(curItem.Index())
 			}
