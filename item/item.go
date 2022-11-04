@@ -14,17 +14,17 @@ const (
 )
 
 type Item struct {
-	idx        int
-	data       list.Item
-	IsSelected bool
-	hasList    bool
-	ListOpen   bool
-	IsHidden   bool
-	IsMulti    bool
-	Level      int
-	List       Items
-	Label      string
-	Content    string
+	idx         int
+	data        list.Item
+	IsSelected  bool
+	hasList     bool
+	ListOpen    bool
+	IsHidden    bool
+	MultiSelect bool
+	Level       int
+	List        Items
+	Label       string
+	Content     string
 	//Info       *list.InfoWidget
 }
 
@@ -52,6 +52,9 @@ func (i Item) Flatten() []Item {
 	var items []Item
 	if i.HasList() {
 		for _, item := range i.List.all {
+			if i.MultiSelect {
+				item.MultiSelect = true
+			}
 			item.IsHidden = true
 			items = append(items, item)
 			if item.HasList() {
@@ -92,7 +95,9 @@ func (i Item) Prefix() string {
 			return closeSub
 		}
 		return openSub
-	} else {
+	}
+
+	if i.MultiSelect {
 		if i.IsSelected {
 			return check
 		}
