@@ -51,7 +51,7 @@ func (i *Item) SetLabel(label string) {
 func (i Item) Flatten() []*Item {
 	var items []*Item
 	if i.HasList() {
-		for _, item := range i.List.AllItems {
+		for _, item := range i.List.all {
 			if i.MultiSelect {
 				item.MultiSelect = true
 			}
@@ -82,7 +82,7 @@ func (i Item) FilterValue() string {
 }
 
 func (i Item) HasList() bool {
-	has := len(i.List.AllItems) > 0
+	has := len(i.List.all) > 0
 	return has
 }
 
