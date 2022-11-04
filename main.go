@@ -47,11 +47,12 @@ func newItems() {
 		i.SetLabel(c)
 		items.Add(i)
 	}
-	items.Process()
+	//items.Process()
+	ll := items.List()
 	//first := all[0]
 	//items.OpenItemList(first)
-	items.OpenAllItemLists()
-	for _, li := range items.Display("selected") {
+	//items.OpenAllItemLists()
+	for _, li := range ll.Items() {
 		i := li.(*item.Item)
 		//idx := items.GetItemIndex(li)
 		fmt.Printf("%s%d-%d: %s hidden:%v selected:%v open:%v\n", i.Prefix(), i.Level, i.Index(), i.Content, i.IsHidden, i.IsSelected, i.ListOpen)

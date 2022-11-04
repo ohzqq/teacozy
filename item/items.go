@@ -2,6 +2,7 @@ package item
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Items struct {
@@ -11,6 +12,19 @@ type Items struct {
 
 func NewItems() Items {
 	return Items{}
+}
+
+func (i *Items) SetMultiSelect() *Items {
+	i.MultiSelect = true
+	return i
+}
+
+func (i Items) List() list.Model {
+	i.Process()
+	del := list.NewDefaultDelegate()
+	w, h := util.TermSize()
+	l := list.New(i.Visible(), del, w, h)
+	return l
 }
 
 func (i *Items) Add(item *Item) *Items {
