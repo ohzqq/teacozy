@@ -43,6 +43,7 @@ func newItems() {
 	items.Add(sub3)
 	for l, c := range testData {
 		i := item.NewDefaultItem(l)
+		//i.ToggleSelected()
 		i.SetLabel(c)
 		items.Add(i)
 	}
@@ -50,7 +51,7 @@ func newItems() {
 	//first := all[0]
 	//items.OpenItemList(first)
 	items.OpenAllItemLists()
-	for _, li := range items.Visible() {
+	for _, li := range items.Display("selected") {
 		i := li.(*item.Item)
 		//idx := items.GetItemIndex(li)
 		fmt.Printf("%s%d-%d: %s hidden:%v selected:%v open:%v\n", i.Prefix(), i.Level, i.Index(), i.Content, i.IsHidden, i.IsSelected, i.ListOpen)

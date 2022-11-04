@@ -2,7 +2,6 @@ package item
 
 import (
 	"github.com/charmbracelet/bubbles/list"
-	"golang.org/x/exp/slices"
 )
 
 type Items struct {
@@ -50,6 +49,19 @@ func (i *Items) All() []list.Item {
 	return li
 }
 
+func (i Items) Display(opt string) []list.Item {
+	var items []list.Item
+	switch opt {
+	case "selected":
+		for _, item := range i.Selections() {
+			items = append(items, item)
+		}
+	default:
+		items = i.Visible()
+	}
+	return items
+}
+
 func (i Items) Visible() []list.Item {
 	var items []list.Item
 	level := 0
@@ -69,8 +81,8 @@ func (i Items) Visible() []list.Item {
 	return items
 }
 
-func (i Items) Selected() []list.Item {
-	var items []list.Item
+func (i Items) Selections() []*Item {
+	var items []*Item
 	for _, item := range i.all {
 		if item.IsSelected {
 			items = append(items, item)
@@ -79,17 +91,8 @@ func (i Items) Selected() []list.Item {
 	return items
 }
 
-func (items *Items) GetItemIndex(i list.Item) int {
-	content := i.FilterValue()
-	fn := func(item list.Item) bool {
-		c := item.FilterValue()
-		return content == c
-	}
-	return slices.IndexFunc(items.All(), fn)
-}
-
 func (i Items) GetItem(item list.Item) *Item {
-	idx := i.GetItemIndex(item)
+	idx := item.(*Item).Index()
 	return i.all[idx]
 }
 
