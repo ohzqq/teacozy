@@ -51,7 +51,7 @@ func (i *Item) SetLabel(label string) {
 func (i Item) Flatten() []*Item {
 	var items []*Item
 	if i.HasList() {
-		for _, item := range i.List.all {
+		for _, item := range i.List.AllItems {
 			if i.MultiSelect {
 				item.MultiSelect = true
 			}
@@ -82,7 +82,7 @@ func (i Item) FilterValue() string {
 }
 
 func (i Item) HasList() bool {
-	has := len(i.List.all) > 0
+	has := len(i.List.AllItems) > 0
 	return has
 }
 
@@ -111,14 +111,34 @@ func (i Item) Prefix() string {
 	return dash
 }
 
-func (i *Item) ToggleSelected() Item {
+func (i *Item) ToggleSelected() *Item {
 	i.IsSelected = !i.IsSelected
-	return *i
+	return i
 }
 
-func (i *Item) ToggleList() Item {
+func (i *Item) ToggleList() *Item {
 	i.ListOpen = !i.ListOpen
-	return *i
+	return i
+}
+
+func (i *Item) Show() *Item {
+	i.IsHidden = false
+	return i
+}
+
+func (i *Item) Hide() *Item {
+	i.IsHidden = true
+	return i
+}
+
+func (i *Item) Open() *Item {
+	i.ListOpen = true
+	return i
+}
+
+func (i *Item) Close() *Item {
+	i.ListOpen = false
+	return i
 }
 
 func (i *Item) SetLevel(l int) *Item {
