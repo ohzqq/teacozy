@@ -1,6 +1,8 @@
 package list
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
@@ -55,6 +57,15 @@ func New(title string) *Model {
 	}
 	l.frame = style.FrameStyle()
 	return l
+}
+
+func (m *Model) Start() *Model {
+	m.List.SetModel()
+	p := tea.NewProgram(m)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
+	return m
 }
 
 func (l *Model) BuildModel() list.Model {
@@ -160,10 +171,10 @@ func (l *Model) SetShowHelp() *Model {
 	return l
 }
 
-func (l *Model) SetItems(items Items) *Model {
-	l.Items = items
-	return l
-}
+//func (l *Model) SetItems(items Items) *Model {
+//  l.Items = items
+//  return l
+//}
 
 func (m Model) View() string {
 	var (
@@ -208,7 +219,9 @@ func (m Model) View() string {
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
 
-func (l *Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
+	m.List.SetModel()
+	//m.List.Model = l.Model
 	return nil
 	//return SetItemsCmd(l.Items)
 }

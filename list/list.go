@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/exp/slices"
 )
@@ -17,17 +18,30 @@ type List struct {
 	Model            list.Model
 	Items            Items
 	items            []Item
-	all              Items
+	Title            string
 	Keys             urkey.KeyMap
 	IsPrompt         bool
 	IsMultiSelect    bool
 	ShowSelectedOnly bool
 }
 
-func NewList() List {
+func NewList(title string) List {
 	return List{
-		Keys: urkey.DefaultKeys(),
+		Keys:  urkey.DefaultKeys(),
+		Title: title,
 	}
+}
+
+func (l *List) SetModel() {
+	w := util.TermWidth()
+	h := util.TermHeight()
+	del := NewItemDelegate(l.IsMulti())
+	l.AllItems()
+	l.Model = list.New(l.Items, del, w, h)
+	l.Model.Title = l.Title
+	l.Model.Styles = style.ListStyles()
+	l.Model.SetShowStatusBar(false)
+	l.Model.SetShowHelp(false)
 }
 
 func (l *List) NewItem(content string) Item {
@@ -36,31 +50,44 @@ func (l *List) NewItem(content string) Item {
 	return i
 }
 
-func (l *List) GetAbsIndex(i list.Item) int {
+func (l *List) GetItemIndex(i list.Item) int {
 	content := i.(Item).Content
 	fn := func(item list.Item) bool {
 		c := item.(Item).Content
 		return content == c
 	}
-	return slices.IndexFunc(l.all, fn)
+	return slices.IndexFunc(l.Items, fn)
 }
 
-func (l List) AllItems() Items {
-	l.all = FlattenItems(l.items)
-	l.ProcessItems()
-	return l.all
+func (l *List) AllItems() Items {
+	l.Items = FlattenItems(l.items)
+	l.Items = l.ProcessItems()
+	return l.Items
 }
 
-func (l *List) ProcessItems() *List {
-	for _, item := range l.all {
+func FlattenItems(li []Item) []list.Item {
+	var items []list.Item
+	for _, item := range li {
+		items = append(items, item)
+		if item.HasList() {
+			items = append(items, FlattenItems(item.Li)...)
+		}
+	}
+	return items
+}
+
+func (l *List) ProcessItems() Items {
+	var items Items
+	for _, item := range l.Items {
 		i := item.(Item)
 		if l.IsMulti() {
 			i.IsMulti = true
 		}
-		i.id = l.GetAbsIndex(item)
-		l.all[i.id] = i
+		i.id = l.GetItemIndex(item)
+		items = append(items, i)
+		//l.Items[i.id] = i
 	}
-	return l
+	return items
 }
 
 func (l *List) AppendItem(item Item) *List {
@@ -69,6 +96,72 @@ func (l *List) AppendItem(item Item) *List {
 	}
 	l.items = append(l.items, item)
 	return l
+}
+
+func (l List) Get(idx int) Item {
+	if idx < len(l.Items) {
+		return l.Items[idx].(Item)
+	}
+	return Item{}
+}
+
+func (l List) DisplayItems(opt string) Items {
+	switch opt {
+	case "selected":
+		return l.Items.Selected()
+	default:
+		return l.Items.Visible()
+	}
+}
+
+func (l List) VisibleItems() Items {
+	var items Items
+	level := 0
+	for _, item := range l.Items {
+		i := item.(Item)
+		if !i.IsHidden {
+			items = append(items, i)
+		}
+		if i.HasList() && i.listOpen {
+			level++
+			for _, sub := range l.GetItemSubList(i) {
+				s := sub.(Item)
+				s.IsHidden = false
+				s.SetLevel(level)
+				items = append(items, s)
+			}
+		}
+	}
+	return items
+}
+
+func (l List) SelectedItems() Items {
+	var items Items
+	for _, item := range l.Items {
+		if i, ok := item.(Item); ok && i.IsSelected() {
+			items = append(items, i)
+		}
+	}
+	return items
+}
+
+func (l List) SelectAllItems() Items {
+	var items Items
+	for _, i := range l.Items {
+		item := i.(Item)
+		item.isSelected = true
+		items = append(items, item)
+	}
+	return items
+}
+
+func (l List) GetItemSubList(i list.Item) Items {
+	item := i.(Item)
+	if item.HasList() {
+		t := len(item.Items)
+		return l.Items[item.id+1 : item.id+t+1]
+	}
+	return Items{}
 }
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -127,7 +220,8 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case SetItemsMsg:
 		m.SetItems(Items(msg))
-		m.processAllItems()
+		//m.processAllItems()
+		cmds = append(cmds, m.Model.NewStatusMessage("set items"))
 		cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 	case OSExecCmdMsg:
 		menuCmd := msg.cmd(m.Items.Selected())
@@ -150,7 +244,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (l List) Init() tea.Cmd {
-	return SetItemsCmd(l.Items)
+	return SetItemsCmd(l.AllItems())
 }
 
 func (l List) View() string {

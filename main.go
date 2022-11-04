@@ -18,27 +18,14 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	//m := TestList()
-	//m := newTestList()
+	m := TestList()
+	//m.AllItems()
+	m.Start()
 
-	//p := tea.NewProgram(m)
-	//if err := p.Start(); err != nil {
-	//log.Fatal(err)
-	//}
+	//TestList().Start()
 
-	//fmt.Printf("%+V\n", m.AllItems)
-
-	//for _, s := range m.Items {
-	//  item := s.(list.Item)
-	//  println(item.Content)
-	//}
-	//for _, s := range m.Items.Selected() {
-	//  item := s.(list.Item)
-	//  println(item.Content)
-	//}
-
-	l := testList()
-	for _, item := range l.AllItems() {
+	//l := testList()
+	for _, item := range m.Items {
 		fmt.Printf("%+V\n", item.(list.Item).Content)
 		fmt.Printf("%+V\n", item.(list.Item).Index())
 	}
@@ -70,7 +57,7 @@ var testSubList = map[string]string{
 }
 
 func testList() list.List {
-	l := list.NewList()
+	l := list.NewList("test")
 	sub3 := l.NewItem("sub3")
 	sub3.Info = infoWidget()
 	for key, _ := range testSubList {
@@ -81,6 +68,7 @@ func testList() list.List {
 	for key, _ := range testData {
 		l.NewItem(key)
 	}
+	l.SetModel()
 
 	return l
 }
@@ -114,21 +102,22 @@ func TestList() *list.Model {
 
 	l.AddMenu(testMenu())
 	l.SetMulti()
+	l.List = testList()
 	//l.showMenu = true
 
 	//il := itemWithList("test sub list")
-	il := newItemWithList()
-	il.Info = infoWidget()
-	l.AppendItem(il)
+	//il := newItemWithList()
+	//il.Info = infoWidget()
+	//l.AppendItem(il)
 	//l.Items = append(l.Items, il)
 	//for _, i := range TestItems() {
-	for key, _ := range testData {
-		//i := list.Item{Content: key}
-		//l.AppendItem(i)
-		l.NewItem(key)
-	}
+	//for key, _ := range testData {
+	//i := list.Item{Content: key}
+	//l.AppendItem(i)
+	//l.NewItem(key)
+	//}
 
-	l.List.Model = l.BuildModel()
+	//l.List.Model = l.BuildModel()
 
 	return l
 }

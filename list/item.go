@@ -51,17 +51,6 @@ func (li Items) Flatten() Items {
 	return items
 }
 
-func FlattenItems(li []Item) []list.Item {
-	var items []list.Item
-	for _, item := range li {
-		items = append(items, item)
-		if item.HasList() {
-			items = append(items, FlattenItems(item.Li)...)
-		}
-	}
-	return items
-}
-
 func (li Items) Display(opt string) Items {
 	switch opt {
 	case "selected":
