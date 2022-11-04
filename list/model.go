@@ -12,7 +12,6 @@ import (
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/slices"
 )
 
 type listType int
@@ -60,7 +59,6 @@ func New(title string) *Model {
 }
 
 func (m *Model) Start() *Model {
-	m.List.SetModel()
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -81,14 +79,6 @@ func (l *Model) BuildModel() list.Model {
 	model.SetShowHelp(false)
 
 	return model
-}
-
-func (l Model) GetAbsIndex(i list.Item) int {
-	id := i.(Item).id
-	fn := func(item list.Item) bool {
-		return id == item.(Item).id
-	}
-	return slices.IndexFunc(l.Items, fn)
 }
 
 func (l *Model) NewList(i Items) list.Model {
@@ -171,11 +161,6 @@ func (l *Model) SetShowHelp() *Model {
 	return l
 }
 
-//func (l *Model) SetItems(items Items) *Model {
-//  l.Items = items
-//  return l
-//}
-
 func (m Model) View() string {
 	var (
 		sections    []string
@@ -221,7 +206,5 @@ func (m Model) View() string {
 
 func (m *Model) Init() tea.Cmd {
 	m.List.SetModel()
-	//m.List.Model = l.Model
 	return nil
-	//return SetItemsCmd(l.Items)
 }

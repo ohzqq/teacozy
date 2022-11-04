@@ -37,7 +37,7 @@ func (l *List) SetModel() {
 	h := util.TermHeight()
 	del := NewItemDelegate(l.IsMulti())
 	l.AllItems()
-	l.Model = list.New(l.Items, del, w, h)
+	l.Model = list.New(l.VisibleItems(), del, w, h)
 	l.Model.Title = l.Title
 	l.Model.Styles = style.ListStyles()
 	l.Model.SetShowStatusBar(false)
@@ -61,7 +61,7 @@ func (l *List) GetItemIndex(i list.Item) int {
 
 func (l *List) AllItems() Items {
 	l.Items = FlattenItems(l.items)
-	l.Items = l.ProcessItems()
+	l.ProcessItems()
 	return l.Items
 }
 
@@ -70,24 +70,26 @@ func FlattenItems(li []Item) []list.Item {
 	for _, item := range li {
 		items = append(items, item)
 		if item.HasList() {
-			items = append(items, FlattenItems(item.Li)...)
+			subList := FlattenItems(item.Li)
+			for _, i := range subList {
+				sub := i.(Item)
+				sub.IsHidden = true
+				items = append(items, i)
+			}
 		}
 	}
 	return items
 }
 
-func (l *List) ProcessItems() Items {
-	var items Items
+func (l *List) ProcessItems() {
 	for _, item := range l.Items {
 		i := item.(Item)
 		if l.IsMulti() {
 			i.IsMulti = true
 		}
 		i.id = l.GetItemIndex(item)
-		items = append(items, i)
-		//l.Items[i.id] = i
+		l.Items[i.id] = i
 	}
-	return items
 }
 
 func (l *List) AppendItem(item Item) *List {
