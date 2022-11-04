@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -18,33 +19,45 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	//m.AllItems()
+	//m := TestList()
 	//m.Start()
-	//l := testList()
-	m := TestList()
-	sub := m.OGitems[0]
-	fmt.Printf("%+V\n", sub.Li)
 
-	//TestList().Start()
+	//for _, item := range m.Items {
+	//  fmt.Printf("%+V\n", item.(list.Item).HasList())
+	//  fmt.Printf("%+V\n", item.(list.Item).Index())
+	//}
 
-	for _, item := range m.Items {
-		fmt.Printf("%+V\n", item.(list.Item).HasList())
-		fmt.Printf("%+V\n", item.(list.Item).Index())
-	}
 	//items := testItems().Flatten()
 
-	//for _, i := range items {
-	//  item := i.(list.Item)
-	//if item.HasList() {
-	//items = list.Flatten(item.Items)
-	//items = append(items, list.Flatten(item.Items)...)
-	//}
-	//}
-	//for _, i := range items {
-	//  item := i.(list.Item)
-	//  fmt.Printf("%+V\n", item.Content)
-	//}
-	//fmt.Println(len(items))
+	newItems()
+}
+
+func newItems() {
+	items := item.NewItems()
+	sub3 := item.NewDefaultItem("sub3")
+	sub3.List = subList()
+	subsub3 := item.NewDefaultItem("subsub3")
+	subsub3.List = subList()
+	sub3.List.Add(subsub3)
+	items.Add(sub3)
+	for l, c := range testData {
+		i := item.NewDefaultItem(l)
+		i.SetLabel(c)
+		items.Add(i)
+	}
+	for _, i := range items.All() {
+		fmt.Printf("%d: %s hidden? %v\n", i.Index(), i.Content, i.IsHidden)
+	}
+}
+
+func subList() item.Items {
+	var items item.Items
+	for key, _ := range testSubList {
+		i := item.NewDefaultItem(key)
+		i.SetLevel(1)
+		items.Add(i)
+	}
+	return items
 }
 
 var testData = map[string]string{
