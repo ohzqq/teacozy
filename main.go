@@ -34,7 +34,7 @@ func main() {
 
 func newItems() {
 	items := item.NewItems()
-	//items.MultiSelect = true
+	items.MultiSelect = true
 	sub3 := item.NewDefaultItem("sub3")
 	sub3.List = subList()
 	subsub3 := item.NewDefaultItem("subsub3")
@@ -43,13 +43,14 @@ func newItems() {
 	items.Add(sub3)
 	for l, c := range testData {
 		i := item.NewDefaultItem(l)
+		i.ToggleSelected()
 		i.SetLabel(c)
 		items.Add(i)
 	}
 	for _, li := range items.All() {
-		i := li
-		//i := li.(item.Item)
-		fmt.Printf("%s%d: %s hidden? %v\n", i.Prefix(), i.Index(), i.Content, i.IsHidden)
+		i := li.(*item.Item)
+		idx := items.GetItemIndex(li)
+		fmt.Printf("%s%d: %s hidden:%v selected:%v open:%v\n", i.Prefix(), idx, i.Content, i.IsHidden, i.IsSelected, i.ListOpen)
 	}
 }
 
