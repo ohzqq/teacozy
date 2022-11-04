@@ -18,15 +18,17 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	m := TestList()
 	//m.AllItems()
-	m.Start()
+	//m.Start()
+	//l := testList()
+	m := TestList()
+	sub := m.OGitems[0]
+	fmt.Printf("%+V\n", sub.Li)
 
 	//TestList().Start()
 
-	//l := testList()
 	for _, item := range m.Items {
-		fmt.Printf("%+V\n", item.(list.Item).Content)
+		fmt.Printf("%+V\n", item.(list.Item).HasList())
 		fmt.Printf("%+V\n", item.(list.Item).Index())
 	}
 	//items := testItems().Flatten()
@@ -68,8 +70,6 @@ func testList() list.List {
 	for key, _ := range testData {
 		l.NewItem(key)
 	}
-	l.SetModel()
-
 	return l
 }
 

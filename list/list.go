@@ -17,7 +17,7 @@ import (
 type List struct {
 	Model            list.Model
 	Items            Items
-	items            []Item
+	OGitems          []Item
 	Title            string
 	Keys             urkey.KeyMap
 	IsPrompt         bool
@@ -46,7 +46,7 @@ func (l *List) SetModel() {
 
 func (l *List) NewItem(content string) Item {
 	i := Item{Content: content}
-	l.items = append(l.items, i)
+	l.OGitems = append(l.OGitems, i)
 	return i
 }
 
@@ -60,13 +60,23 @@ func (l *List) GetItemIndex(i list.Item) int {
 }
 
 func (l *List) AllItems() Items {
-	l.Items = FlattenItems(l.items)
+	l.Items = FlattenItems(l.OGitems)
+	//l.items = l.FlatItems()
 	l.ProcessItems()
 	return l.Items
 }
 
-func FlattenItems(li []Item) []list.Item {
-	var items []list.Item
+func (l *List) FlatItems() []Item {
+	var items []Item
+	for _, item := range l.OGitems {
+		sub := item.Flatten()
+		items = append(items, sub...)
+	}
+	return items
+}
+
+func FlattenItems(li []Item) Items {
+	var items Items
 	for _, item := range li {
 		items = append(items, item)
 		if item.HasList() {
@@ -74,7 +84,7 @@ func FlattenItems(li []Item) []list.Item {
 			for _, i := range subList {
 				sub := i.(Item)
 				sub.IsHidden = true
-				items = append(items, i)
+				items = append(items, sub)
 			}
 		}
 	}
@@ -96,7 +106,7 @@ func (l *List) AppendItem(item Item) *List {
 	if l.IsMulti() {
 		item.IsMulti = true
 	}
-	l.items = append(l.items, item)
+	l.OGitems = append(l.OGitems, item)
 	return l
 }
 

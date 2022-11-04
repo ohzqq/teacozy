@@ -204,6 +204,24 @@ func NewItem(item list.Item) Item {
 	}
 }
 
+func (i Item) Flatten() []Item {
+	var items []Item
+	var is Items
+	if i.HasList() {
+		for _, item := range i.Li {
+			if item.HasList() {
+				subList := item.Flatten()
+				for _, sub := range subList {
+					sub.IsHidden = true
+					items = append(items, sub)
+					is = append(is, sub)
+				}
+			}
+		}
+	}
+	return items
+}
+
 func (i Item) DisplayInfo() string {
 	return i.Info.String()
 }
