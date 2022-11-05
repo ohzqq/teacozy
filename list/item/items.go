@@ -1,8 +1,6 @@
 package item
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -28,7 +26,6 @@ func (i *Items) SetMultiSelect() *Items {
 
 func (i *Items) List() list.Model {
 	i.Process()
-	fmt.Printf("mutli %v\n", i.MultiSelect)
 	del := NewItemDelegate(i.MultiSelect)
 	w, h := util.TermSize()
 	l := list.New(i.Visible(), del, w, h)

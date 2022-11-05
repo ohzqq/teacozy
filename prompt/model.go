@@ -11,7 +11,7 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Prompt struct {
+type Model struct {
 	List             list.Model
 	Title            string
 	MultiSelect      bool
@@ -23,9 +23,9 @@ type Prompt struct {
 	Style            list.Styles
 }
 
-func New() Prompt {
+func New() Model {
 	w, h := util.TermSize()
-	p := Prompt{
+	p := Model{
 		Items:  item.NewItems(),
 		width:  w,
 		height: h,
@@ -34,7 +34,7 @@ func New() Prompt {
 	return p
 }
 
-func (m *Prompt) Start() *Prompt {
+func (m *Model) Start() *Model {
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -42,24 +42,24 @@ func (m *Prompt) Start() *Prompt {
 	return m
 }
 
-func (m *Prompt) SetItems(items item.Items) *Prompt {
+func (m *Model) SetItems(items item.Items) *Model {
 	m.Items = items
 	return m
 }
 
-func (m *Prompt) SetMultiSelect() *Prompt {
+func (m *Model) SetMultiSelect() *Model {
 	m.MultiSelect = true
 	m.Items.SetMultiSelect()
 	return m
 }
 
-func (m *Prompt) SetSize(w, h int) *Prompt {
+func (m *Model) SetSize(w, h int) *Model {
 	m.width = w
 	m.height = h
 	return m
 }
 
-func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -81,9 +81,9 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.ShowSelectedOnly = true
 				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-				//case key.Matches(msg, m.Keys.SelectAll):
-				//  ToggleAllItemsCmd(m)
-				//  cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+			case key.Matches(msg, m.Keys.SelectAll):
+				m.Items.ToggleAllSelectedItems()
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 		} else {
 			switch {
@@ -120,7 +120,7 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Prompt) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	l := m.Items.List()
 	l.SetSize(m.width, m.height)
 	l.SetShowStatusBar(false)
@@ -135,7 +135,7 @@ func (m *Prompt) Init() tea.Cmd {
 	return nil
 }
 
-func (m Prompt) View() string {
+func (m Model) View() string {
 	return m.List.View()
 }
 

@@ -12,7 +12,7 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
-func ToggleAllItemsCmd(l *Prompt) {
+func ToggleAllItemsCmd(l *Model) {
 	l.Items.ToggleAllSelectedItems()
 }
 
