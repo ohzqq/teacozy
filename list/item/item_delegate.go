@@ -58,7 +58,9 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			if curItem.HasList() {
 				return ToggleListCmd(curItem)
 			}
-			return ToggleSelectedCmd(curItem)
+			if d.MultiSelect {
+				return ToggleSelectedCmd(curItem)
+			}
 		}
 	}
 	return tea.Batch(cmds...)

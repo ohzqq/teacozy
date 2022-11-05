@@ -44,6 +44,11 @@ func NewDefaultItem(content string) *Item {
 	}
 }
 
+func (i *Item) SetMultiSelect() *Item {
+	i.MultiSelect = true
+	return i
+}
+
 func (i *Item) SetLabel(label string) {
 	i.Label = label
 }
@@ -70,7 +75,7 @@ func (i Item) Flatten() []*Item {
 	if i.HasList() {
 		for _, item := range i.List.all {
 			if i.MultiSelect {
-				item.MultiSelect = true
+				item.SetMultiSelect()
 			}
 			item.IsHidden = true
 			items = append(items, item)

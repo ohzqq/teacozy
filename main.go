@@ -25,15 +25,18 @@ func main() {
 
 	items := newItems()
 	m := prompt.New()
-	m.SetItems(items).SetMultiSelect()
+	//m.MultiSelect = false
+	m.SetItems(items)
+	m.SetMultiSelect()
 	m.Start()
-	fmt.Printf("depth %v\n", m.Items.All()[1].ListDepth())
-	fmt.Printf("total items %v\n", m.Items.All()[1].ListLength())
+
+	for _, i := range m.Items.All() {
+		fmt.Printf("%v\n", i.MultiSelect)
+	}
 }
 
 func newItems() item.Items {
 	items := item.NewItems()
-	items.MultiSelect = true
 	sub3 := item.NewDefaultItem("sub3")
 	sub3.List = subList()
 	subsub3 := item.NewDefaultItem("subsub3")
@@ -42,7 +45,7 @@ func newItems() item.Items {
 	items.Add(sub3)
 	for l, c := range testData {
 		i := item.NewDefaultItem(l)
-		i.ToggleSelected()
+		//i.ToggleSelected()
 		i.SetLabel(c)
 		items.Add(i)
 	}

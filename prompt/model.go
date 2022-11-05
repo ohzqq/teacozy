@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -48,6 +49,7 @@ func (m *Prompt) SetItems(items item.Items) *Prompt {
 
 func (m *Prompt) SetMultiSelect() *Prompt {
 	m.MultiSelect = true
+	m.Items.SetMultiSelect()
 	return m
 }
 
@@ -72,8 +74,9 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.MultiSelect {
 			switch {
-			case key.Matches(msg, m.Keys.Enter):
-				cmds = append(cmds, UpdateStatusCmd("multi"))
+			case key.Matches(msg, urkey.Enter):
+				t := fmt.Sprintf("%v", m.MultiSelect)
+				cmds = append(cmds, UpdateStatusCmd(t))
 				//if m.ShowSelectedOnly {
 				//  cmds = append(cmds, ReturnSelectionsCmd())
 				//}
@@ -86,7 +89,8 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
-				cmds = append(cmds, UpdateStatusCmd("single"))
+				t := fmt.Sprintf("%v", m.MultiSelect)
+				cmds = append(cmds, UpdateStatusCmd(t))
 				//cur := m.Model.SelectedItem().(Item)
 				//m.SetItem(m.Model.Index(), cur.ToggleSelected())
 				//cmds = append(cmds, ReturnSelectionsCmd())
@@ -99,7 +103,6 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateVisibleItemsMsg:
 		items := m.Items.Display(string(msg))
 		m.List.SetItems(items)
-		//cmds = append(cmds, m.Model.SetItems(items))
 	case item.ToggleSelectedMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case item.ToggleListMsg:
@@ -123,9 +126,11 @@ func (m *Prompt) Init() tea.Cmd {
 	l.SetSize(m.width, m.height)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
+	l.KeyMap = ListKeyMap()
 
 	if m.Title == "" {
-		l.SetShowTitle(false)
+		l.Title = ""
+		//l.SetShowTitle(true)
 	}
 	m.List = l
 	return nil
@@ -133,4 +138,17 @@ func (m *Prompt) Init() tea.Cmd {
 
 func (m Prompt) View() string {
 	return m.List.View()
+}
+
+func ListKeyMap() list.KeyMap {
+	km := list.DefaultKeyMap()
+	km.NextPage = key.NewBinding(
+		key.WithKeys("right", "l", "pgdown"),
+		key.WithHelp("l/pgdn", "next page"),
+	)
+	km.Quit = key.NewBinding(
+		key.WithKeys("ctrl+c", "esc"),
+		key.WithHelp("ctrl+c", "quit"),
+	)
+	return km
 }
