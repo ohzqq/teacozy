@@ -25,8 +25,9 @@ func main() {
 
 	items := newItems()
 	m := prompt.New("test")
-	m.SetItems(items)
+	m.SetItems(items).SetMultiSelect()
 	m.Start()
+	fmt.Printf("%v\n", len(m.Items.All()))
 }
 
 func newItems() item.Items {

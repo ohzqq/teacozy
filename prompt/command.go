@@ -12,12 +12,8 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
-func ToggleAllItemsCmd(l *Model) {
-	for _, it := range l.Items {
-		i := it.(Item)
-		i.ToggleSelected()
-		//l.Items.ToggleSelected(i.id)
-	}
+func ToggleAllItemsCmd(l *Prompt) {
+	l.Items.ToggleAllSelectedItems()
 }
 
 type UpdateVisibleItemsMsg string

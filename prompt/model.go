@@ -47,6 +47,11 @@ func (m *Prompt) SetItems(items item.Items) *Prompt {
 	return m
 }
 
+func (m *Prompt) SetMultiSelect() *Prompt {
+	m.MultiSelect = true
+	return m
+}
+
 func (m *Prompt) SetSize(w, h int) *Prompt {
 	m.width = w
 	m.height = h
@@ -90,6 +95,10 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.List.NewStatusMessage(msg.Msg))
+	case tea.WindowSizeMsg:
+		m.List.SetSize(msg.Width-1, msg.Height-2)
+	case item.ToggleSelectedMsg:
+		m.Items.ToggleSelectedItem(msg.Index())
 	}
 
 	m.List, cmd = m.List.Update(msg)

@@ -35,11 +35,10 @@ func NewItem(item list.Item) *Item {
 }
 
 func NewDefaultItem(content string) *Item {
-	item := Item{
+	return &Item{
 		Content: content,
+		Info:    NewInfo(),
 	}
-	i := NewItem(item)
-	return i
 }
 
 func (i *Item) SetLabel(label string) {

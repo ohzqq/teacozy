@@ -19,7 +19,7 @@ func (i *Items) SetMultiSelect() *Items {
 	return i
 }
 
-func (i Items) List() list.Model {
+func (i *Items) List() list.Model {
 	i.Process()
 	del := NewItemDelegate(i.MultiSelect)
 	w, h := util.TermSize()
@@ -118,8 +118,9 @@ func (i Items) GetItemByIndex(idx int) *Item {
 	return item
 }
 
-func (i *Items) ToggleSelectedItem(item list.Item) {
-	li := item.(*Item).ToggleSelected()
+func (i *Items) ToggleSelectedItem(idx int) {
+	li := i.GetItemByIndex(idx).ToggleSelected()
+	//li := item.(*Item).ToggleSelected()
 	i.all[li.Index()] = li
 }
 

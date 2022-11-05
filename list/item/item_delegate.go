@@ -68,11 +68,11 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var (
 		iStyle  = &d.styles
 		content string
-		curItem Item
+		curItem *Item
 	)
 
 	switch i := listItem.(type) {
-	case Item:
+	case *Item:
 		curItem = i
 		c := fmt.Sprintf("%d: %s", i.idx, i.FilterValue())
 		content = c
