@@ -15,7 +15,6 @@ import (
 
 type itemDelegate struct {
 	MultiSelect bool
-	keys        urkey.KeyMap
 	styles      style.ItemStyle
 }
 
@@ -23,7 +22,6 @@ func NewItemDelegate(multi bool) itemDelegate {
 	return itemDelegate{
 		MultiSelect: multi,
 		styles:      style.ItemStyles(),
-		keys:        urkey.DefaultKeys(),
 	}
 }
 
@@ -33,16 +31,6 @@ func (d itemDelegate) Height() int {
 
 func (d itemDelegate) Spacing() int {
 	return 0
-}
-
-func (d itemDelegate) ShortHelp() []key.Binding {
-	return d.keys.ShortHelp()
-}
-
-func (d itemDelegate) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{d.keys.Enter},
-	}
 }
 
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
@@ -104,9 +92,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	render := iStyle.NormalItem.Render
 
 	prefix := curItem.Prefix()
-	//if curItem.HasList() && !curItem.ListIsOpen() {
-	//  prefix = ItemListClosed.Prefix()
-	//}
 
 	if isCurrent {
 		render = func(s string) string {
