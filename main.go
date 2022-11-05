@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
+	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -22,14 +23,10 @@ func main() {
 	//m := TestList()
 	//m.Start()
 
-	//for _, item := range m.Items {
-	//  fmt.Printf("%+V\n", item.(list.Item).HasList())
-	//  fmt.Printf("%+V\n", item.(list.Item).Index())
-	//}
-
-	//items := testItems().Flatten()
-
-	newItems()
+	items := newItems()
+	m := prompt.New("test")
+	m.SetItems(items)
+	m.Start()
 }
 
 func newItems() item.Items {
