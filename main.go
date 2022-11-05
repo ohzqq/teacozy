@@ -6,8 +6,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/list"
+	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -32,7 +32,7 @@ func main() {
 	newItems()
 }
 
-func newItems() {
+func newItems() item.Items {
 	items := item.NewItems()
 	items.MultiSelect = true
 	sub3 := item.NewDefaultItem("sub3")
@@ -47,16 +47,7 @@ func newItems() {
 		i.SetLabel(c)
 		items.Add(i)
 	}
-	//items.Process()
-	//first := all[0]
-	//items.OpenItemList(first)
-	//items.OpenAllItemLists()
-	//for _, li := range ll.Items() {
-	for _, i := range items.Selections() {
-		//i := li.(*item.Item)
-		//idx := items.GetItemIndex(li)
-		fmt.Printf("%s%d-%d: %s hidden:%v selected:%v open:%v\n", i.Prefix(), i.Level, i.Index(), i.Content, i.IsHidden, i.IsSelected, i.ListOpen)
-	}
+	return items
 }
 
 func subList() item.Items {
