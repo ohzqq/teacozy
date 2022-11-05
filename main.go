@@ -24,7 +24,7 @@ func main() {
 	//m.Start()
 
 	items := newItems()
-	m := prompt.New()
+	m := prompt.NewPrompt()
 	//m.MultiSelect = false
 	m.SetItems(items)
 	m.SetMultiSelect()

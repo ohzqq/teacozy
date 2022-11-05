@@ -1,8 +1,6 @@
 package prompt
 
 import (
-	"log"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,14 +32,6 @@ func New() Model {
 	return p
 }
 
-func (m *Model) Start() *Model {
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
-	return m
-}
-
 func (m *Model) SetItems(items item.Items) *Model {
 	m.Items = items
 	return m
@@ -59,7 +49,7 @@ func (m *Model) SetSize(w, h int) *Model {
 	return m
 }
 
-func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -67,6 +57,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.Keys.Quit):
+			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, m.Keys.Prev):
