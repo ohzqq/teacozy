@@ -13,14 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-const (
-	check    string = "[x] "
-	uncheck  string = "[ ] "
-	dash     string = "- "
-	openSub  string = `[+] `
-	closeSub string = `[-] `
-)
-
 type itemDelegate struct {
 	MultiSelect bool
 	keys        urkey.KeyMap
@@ -68,9 +60,9 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, urkey.Info):
-			if info := curItem.Info; info.String() != "" {
-				cmds = append(cmds, UpdateInfoContentCmd(info.String()))
-			}
+			//if info := curItem.Info; info.String() != "" {
+			//  cmds = append(cmds, UpdateInfoContentCmd(info.String()))
+			//}
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditItemCmd())
 		case key.Matches(msg, urkey.ToggleItem):
@@ -94,7 +86,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case Item:
 		curItem = i
-		c := fmt.Sprintf("%d: %s", i.id, i.FilterValue())
+		c := fmt.Sprintf("%d: %s", i.idx, i.FilterValue())
 		content = c
 	}
 
@@ -105,7 +97,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	var (
 		isCurrent  = index == m.Index()
-		isSelected = curItem.IsSelected()
+		isSelected = curItem.IsSelected
 		isSub      = curItem.IsSub()
 	)
 
