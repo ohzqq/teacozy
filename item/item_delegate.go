@@ -47,12 +47,12 @@ func (d itemDelegate) FullHelp() [][]key.Binding {
 
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
-		curItem Item
+		curItem *Item
 		cmds    []tea.Cmd
 	)
 
 	switch i := m.SelectedItem().(type) {
-	case Item:
+	case *Item:
 		curItem = i
 	}
 
@@ -61,16 +61,16 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		switch {
 		case key.Matches(msg, urkey.Info):
 			if info := curItem.Info; info.String() != "" {
-				cmds = append(cmds, UpdateItemInfoCmd(info.String()))
+				cmds = append(cmds, UpdateInfoCmd(info.String()))
 			}
 		case key.Matches(msg, urkey.EditField):
-			cmds = append(cmds, EditItemCmd(curItem.Index()))
+			cmds = append(cmds, EditContentCmd(curItem))
 		case key.Matches(msg, urkey.ToggleItem):
 			m.CursorDown()
 			if curItem.HasList() {
-				return ToggleItemListCmd(curItem.Index())
+				return ToggleListCmd(curItem)
 			}
-			return ToggleSelectedItemCmd(curItem.Index())
+			return ToggleSelectedCmd(curItem)
 		}
 	}
 	return tea.Batch(cmds...)

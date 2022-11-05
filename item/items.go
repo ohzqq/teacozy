@@ -21,7 +21,7 @@ func (i *Items) SetMultiSelect() *Items {
 
 func (i Items) List() list.Model {
 	i.Process()
-	del := list.NewDefaultDelegate()
+	del := NewItemDelegate(i.MultiSelect)
 	w, h := util.TermSize()
 	l := list.New(i.Visible(), del, w, h)
 	return l

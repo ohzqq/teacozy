@@ -6,40 +6,34 @@ type itemIndexMsg struct {
 	Index int
 }
 
-type ToggleItemListMsg struct{ itemIndexMsg }
+type ToggleListMsg struct{ *Item }
 
-func ToggleItemListCmd(idx int) tea.Cmd {
+func ToggleListCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleItemListMsg{
-			itemIndexMsg: itemIndexMsg{Index: idx},
-		}
+		return ToggleListMsg{Item: item}
 	}
 }
 
-type ToggleSelectedItemMsg struct{ itemIndexMsg }
+type ToggleSelectedMsg struct{ *Item }
 
-func ToggleSelectedItemCmd(idx int) tea.Cmd {
+func ToggleSelectedCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleSelectedItemMsg{
-			itemIndexMsg: itemIndexMsg{Index: idx},
-		}
+		return ToggleSelectedMsg{Item: item}
 	}
 }
 
-type UpdateItemInfoMsg struct{ Info string }
+type UpdateInfoMsg struct{ Info string }
 
-func UpdateItemInfoCmd(content string) tea.Cmd {
+func UpdateInfoCmd(content string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateItemInfoMsg{Info: content}
+		return UpdateInfoMsg{Info: content}
 	}
 }
 
-type EditItemMsg struct{ itemIndexMsg }
+type EditContentMsg struct{ *Item }
 
-func EditItemCmd(idx int) tea.Cmd {
+func EditContentCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return EditItemMsg{
-			itemIndexMsg: itemIndexMsg{Index: idx},
-		}
+		return EditContentMsg{Item: item}
 	}
 }
