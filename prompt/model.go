@@ -22,10 +22,9 @@ type Prompt struct {
 	Style       list.Styles
 }
 
-func New(title string) Prompt {
+func New() Prompt {
 	w, h := util.TermSize()
 	p := Prompt{
-		Title:  title,
 		Items:  item.NewItems(),
 		width:  w,
 		height: h,
@@ -122,6 +121,12 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Prompt) Init() tea.Cmd {
 	l := m.Items.List()
 	l.SetSize(m.width, m.height)
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+
+	if m.Title == "" {
+		l.SetShowTitle(false)
+	}
 	m.List = l
 	return nil
 }
