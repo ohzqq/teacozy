@@ -97,8 +97,20 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.List.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
 		m.List.SetSize(msg.Width-1, msg.Height-2)
+	case UpdateVisibleItemsMsg:
+		items := m.Items.Display(string(msg))
+		m.List.SetItems(items)
+		//cmds = append(cmds, m.Model.SetItems(items))
 	case item.ToggleSelectedMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
+	case item.ToggleListMsg:
+		switch msg.ListOpen {
+		case true:
+			m.Items.CloseItemList(msg.Index())
+		default:
+			m.Items.OpenItemList(msg.Index())
+		}
+		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	}
 
 	m.List, cmd = m.List.Update(msg)

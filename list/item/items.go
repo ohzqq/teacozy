@@ -86,7 +86,7 @@ func (i Items) Visible() []list.Item {
 		if item.HasList() && item.ListOpen {
 			level++
 			for _, sub := range i.GetItemList(item) {
-				sub.IsHidden = false
+				sub.Hide()
 				sub.SetLevel(level)
 				items = append(items, sub)
 			}
@@ -120,7 +120,6 @@ func (i Items) GetItemByIndex(idx int) *Item {
 
 func (i *Items) ToggleSelectedItem(idx int) {
 	li := i.GetItemByIndex(idx).ToggleSelected()
-	//li := item.(*Item).ToggleSelected()
 	i.all[li.Index()] = li
 }
 
@@ -134,18 +133,29 @@ func (i *Items) OpenAllItemLists() {
 	for _, item := range i.All() {
 		li := item.(*Item)
 		if li.HasList() {
-			i.OpenItemList(item)
+			i.OpenItemList(li.Index())
 		}
 	}
 }
 
-func (i *Items) OpenItemList(item list.Item) {
-	li := item.(*Item)
+func (i *Items) OpenItemList(idx int) {
+	li := i.GetItemByIndex(idx)
 	li.ListOpen = true
 	i.Set(li.Index(), li)
 
-	for _, sub := range i.GetItemList(item) {
+	for _, sub := range i.GetItemList(li) {
 		sub.Show()
+		i.Set(sub.Index(), sub)
+	}
+}
+
+func (i *Items) CloseItemList(idx int) {
+	li := i.GetItemByIndex(idx)
+	li.ListOpen = false
+	i.Set(li.Index(), li)
+
+	for _, sub := range i.GetItemList(li) {
+		sub.Hide()
 		i.Set(sub.Index(), sub)
 	}
 }
