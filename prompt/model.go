@@ -1,7 +1,6 @@
 package prompt
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -13,14 +12,15 @@ import (
 )
 
 type Prompt struct {
-	List        list.Model
-	Title       string
-	MultiSelect bool
-	Keys        urkey.KeyMap
-	Items       item.Items
-	width       int
-	height      int
-	Style       list.Styles
+	List             list.Model
+	Title            string
+	MultiSelect      bool
+	ShowSelectedOnly bool
+	Keys             urkey.KeyMap
+	Items            item.Items
+	width            int
+	height           int
+	Style            list.Styles
 }
 
 func New() Prompt {
@@ -56,9 +56,6 @@ func (m *Prompt) SetMultiSelect() *Prompt {
 func (m *Prompt) SetSize(w, h int) *Prompt {
 	m.width = w
 	m.height = h
-	//if m.List != nil {
-	//  m.List.SetSize(w, h)
-	//}
 	return m
 }
 
@@ -69,31 +66,31 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if key.Matches(msg, m.Keys.Quit) {
+		switch {
+		case key.Matches(msg, m.Keys.ExitScreen):
 			cmds = append(cmds, tea.Quit)
+		case key.Matches(msg, m.Keys.Prev):
+			m.ShowSelectedOnly = false
+			cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 		}
 		if m.MultiSelect {
 			switch {
 			case key.Matches(msg, urkey.Enter):
-				t := fmt.Sprintf("%v", m.MultiSelect)
-				cmds = append(cmds, UpdateStatusCmd(t))
-				//if m.ShowSelectedOnly {
-				//  cmds = append(cmds, ReturnSelectionsCmd())
-				//}
-				//m.ShowSelectedOnly = true
-				//cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
+				if m.ShowSelectedOnly {
+					cmds = append(cmds, ReturnSelectionsCmd())
+				}
+				m.ShowSelectedOnly = true
+				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 				//case key.Matches(msg, m.Keys.SelectAll):
-				//ToggleAllItemsCmd(m)
-				//cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+				//  ToggleAllItemsCmd(m)
+				//  cmds = append(cmds, UpdateVisibleItemsCmd("all"))
 			}
 		} else {
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
-				t := fmt.Sprintf("%v", m.MultiSelect)
-				cmds = append(cmds, UpdateStatusCmd(t))
-				//cur := m.Model.SelectedItem().(Item)
-				//m.SetItem(m.Model.Index(), cur.ToggleSelected())
-				//cmds = append(cmds, ReturnSelectionsCmd())
+				cur := m.List.SelectedItem().(*item.Item)
+				m.Items.ToggleSelectedItem(cur.Index())
+				cmds = append(cmds, ReturnSelectionsCmd())
 			}
 		}
 	case UpdateStatusMsg:
@@ -105,6 +102,8 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.List.SetItems(items)
 	case item.ToggleSelectedMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
+	case ReturnSelectionsMsg:
+		cmds = append(cmds, tea.Quit)
 	case item.ToggleListMsg:
 		switch msg.ListOpen {
 		case true:

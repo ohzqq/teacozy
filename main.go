@@ -30,8 +30,8 @@ func main() {
 	m.SetMultiSelect()
 	m.Start()
 
-	for _, i := range m.Items.All() {
-		fmt.Printf("%v\n", i.MultiSelect)
+	for _, i := range m.Items.Selections() {
+		fmt.Printf("%v\n", i.Content)
 	}
 }
 
