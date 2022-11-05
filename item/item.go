@@ -11,6 +11,7 @@ const (
 	dash     string = "- "
 	openSub  string = `[+] `
 	closeSub string = `[-] `
+	none     string = ``
 )
 
 type Item struct {
