@@ -15,9 +15,7 @@ const (
 
 type Item struct {
 	idx         int
-	data        list.Item
 	IsSelected  bool
-	hasList     bool
 	ListOpen    bool
 	IsHidden    bool
 	MultiSelect bool
@@ -30,7 +28,6 @@ type Item struct {
 
 func NewItem(item list.Item) *Item {
 	return &Item{
-		data:    item,
 		Content: item.FilterValue(),
 		Info:    NewInfo(),
 	}
