@@ -14,6 +14,11 @@ func NewItems() Items {
 	return Items{}
 }
 
+func (i *Items) SetItems(items ...*Item) *Items {
+	i.all = items
+	return i
+}
+
 func (i *Items) SetMultiSelect() *Items {
 	i.MultiSelect = true
 	return i
@@ -55,7 +60,11 @@ func (i *Items) Process() {
 	i.all = items
 }
 
-func (i *Items) All() []list.Item {
+func (i Items) All() []*Item {
+	return i.all
+}
+
+func (i *Items) AllItems() []list.Item {
 	var li []list.Item
 	for _, item := range i.all {
 		li = append(li, item)
@@ -70,6 +79,8 @@ func (i Items) Display(opt string) []list.Item {
 		for _, item := range i.Selections() {
 			items = append(items, item)
 		}
+	case "all":
+		items = i.AllItems()
 	default:
 		items = i.Visible()
 	}
@@ -130,7 +141,7 @@ func (i *Items) ToggleAllSelectedItems() {
 }
 
 func (i *Items) OpenAllItemLists() {
-	for _, item := range i.All() {
+	for _, item := range i.AllItems() {
 		li := item.(*Item)
 		if li.HasList() {
 			i.OpenItemList(li.Index())
@@ -157,6 +168,9 @@ func (i *Items) CloseItemList(idx int) {
 	for _, sub := range i.GetItemList(li) {
 		sub.Hide()
 		i.Set(sub.Index(), sub)
+		if sub.HasList() {
+			i.CloseItemList(sub.Index())
+		}
 	}
 }
 

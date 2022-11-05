@@ -15,23 +15,26 @@ const (
 )
 
 type Item struct {
-	idx         int
-	IsSelected  bool
-	ListOpen    bool
-	IsHidden    bool
-	MultiSelect bool
-	Level       int
-	List        Items
-	Label       string
-	Content     string
-	Info        *Info
+	idx               int
+	IsSelected        bool
+	ListOpen          bool
+	IsHidden          bool
+	MultiSelect       bool
+	Level             int
+	List              Items
+	TotalSubListItems int
+	Label             string
+	Content           string
+	Info              *Info
 }
 
 func NewItem(item list.Item) *Item {
-	return &Item{
+	i := Item{
 		Content: item.FilterValue(),
 		Info:    NewInfo(),
 	}
+
+	return &i
 }
 
 func NewDefaultItem(content string) *Item {
@@ -43,6 +46,23 @@ func NewDefaultItem(content string) *Item {
 
 func (i *Item) SetLabel(label string) {
 	i.Label = label
+}
+
+func (i Item) ListDepth() int {
+	depth := 0
+	if i.HasList() {
+		depth++
+		for _, item := range i.List.all {
+			if item.HasList() {
+				depth++
+			}
+		}
+	}
+	return depth
+}
+
+func (i Item) ListLength() int {
+	return len(i.Flatten())
 }
 
 func (i Item) Flatten() []*Item {
