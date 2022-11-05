@@ -25,14 +25,14 @@ type Item struct {
 	List        Items
 	Label       string
 	Content     string
-	//Info       *list.InfoWidget
+	Info        *Info
 }
 
 func NewItem(item list.Item) *Item {
 	return &Item{
 		data:    item,
 		Content: item.FilterValue(),
-		//Info:    list.NewInfoWidget(),
+		Info:    NewInfo(),
 	}
 }
 
@@ -65,9 +65,9 @@ func (i Item) Flatten() []*Item {
 	return items
 }
 
-//func (i Item) DisplayInfo() string {
-//  return i.Info.String()
-//}
+func (i Item) DisplayInfo() string {
+	return i.Info.String()
+}
 
 func (i Item) Index() int {
 	return i.idx

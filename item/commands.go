@@ -2,34 +2,44 @@ package item
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type ToggleItemListMsg int
+type itemIndexMsg struct {
+	Index int
+}
+
+type ToggleItemListMsg struct{ itemIndexMsg }
 
 func ToggleItemListCmd(idx int) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleItemListMsg(idx)
+		return ToggleItemListMsg{
+			itemIndexMsg: itemIndexMsg{Index: idx},
+		}
 	}
 }
 
-type ToggleSelectedItemMsg int
+type ToggleSelectedItemMsg struct{ itemIndexMsg }
 
 func ToggleSelectedItemCmd(idx int) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleSelectedItemMsg(idx)
+		return ToggleSelectedItemMsg{
+			itemIndexMsg: itemIndexMsg{Index: idx},
+		}
 	}
 }
 
-type UpdateInfoContentMsg string
+type UpdateItemInfoMsg struct{ Info string }
 
-func UpdateInfoContentCmd(content string) tea.Cmd {
+func UpdateItemInfoCmd(content string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateInfoContentMsg(content)
+		return UpdateItemInfoMsg{Info: content}
 	}
 }
 
-type EditItemMsg string
+type EditItemMsg struct{ itemIndexMsg }
 
-func EditItemCmd() tea.Cmd {
+func EditItemCmd(idx int) tea.Cmd {
 	return func() tea.Msg {
-		return EditItemMsg("")
+		return EditItemMsg{
+			itemIndexMsg: itemIndexMsg{Index: idx},
+		}
 	}
 }

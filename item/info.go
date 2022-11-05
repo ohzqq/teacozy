@@ -1,13 +1,10 @@
-package list
+package item
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -17,15 +14,15 @@ func (i infoStr) String() string {
 	return string(i)
 }
 
-type InfoWidget struct {
+type Info struct {
 	content    []map[fmt.Stringer]fmt.Stringer
 	HideKeys   bool
 	KeyStyle   lipgloss.Style
 	ValueStyle lipgloss.Style
 }
 
-func NewInfoWidget() *InfoWidget {
-	w := InfoWidget{
+func NewInfo() *Info {
+	w := Info{
 		KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 		ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
 	}
@@ -35,27 +32,27 @@ func NewInfoWidget() *InfoWidget {
 	return &w
 }
 
-func (i *InfoWidget) NoKeys() *InfoWidget {
+func (i *Info) NoKeys() *Info {
 	i.HideKeys = true
 	return i
 }
 
-func (i *InfoWidget) AddString(key, val string) {
+func (i *Info) AddString(key, val string) {
 	i.Add(infoStr(key), infoStr(val))
 }
 
-func (i *InfoWidget) Add(key, val fmt.Stringer) {
+func (i *Info) Add(key, val fmt.Stringer) {
 	content := make(map[fmt.Stringer]fmt.Stringer)
 	content[key] = val
 	i.content = append(i.content, content)
 }
 
-func (i *InfoWidget) Set(content ...map[fmt.Stringer]fmt.Stringer) *InfoWidget {
+func (i *Info) Set(content ...map[fmt.Stringer]fmt.Stringer) *Info {
 	i.content = content
 	return i
 }
 
-func (i InfoWidget) String() string {
+func (i Info) String() string {
 	var info []string
 	for _, pair := range i.content {
 		var line []string
@@ -75,27 +72,4 @@ func (i InfoWidget) String() string {
 		info = append(info, l)
 	}
 	return strings.Join(info, "\n")
-}
-
-func UpdateInfoWidget(m *Model, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, urkey.ExitScreen):
-			m.HideInfo()
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		case key.Matches(msg, urkey.Info):
-			m.HideInfo()
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		}
-	}
-
-	m.info, cmd = m.info.Update(msg)
-	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
 }
