@@ -2,10 +2,6 @@ package item
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type itemIndexMsg struct {
-	Index int
-}
-
 type ToggleListMsg struct{ *Item }
 
 func ToggleListCmd(item *Item) tea.Cmd {
