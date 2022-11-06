@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/list"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -33,19 +33,27 @@ type Menu struct {
 type MenuItems []Item
 
 func NewMenu(l string, toggle key.Binding) *Menu {
-	return &Menu{
+	m := Menu{
 		Label:  l,
 		Toggle: toggle,
 		Style:  style.FrameStyle(),
 	}
+	m.Model = viewport.New(m.Width(), m.Height())
+	return &m
 }
 
-func (m Menu) Init() tea.Cmd { return nil }
-func (m Menu) View() string {
-	return m.Style.Render(m.Model.View())
+func (m *Menu) Init() tea.Cmd {
+	m.Show()
+	return UpdateMenuContentCmd(m.Render())
+}
+func (m *Menu) View() string {
+	if m.isVisible {
+		return m.Style.Render(m.Model.View())
+	}
+	return ""
 }
 
-func (m Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -53,9 +61,12 @@ func (m Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, urkey.Quit):
+			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, m.Toggle):
-			m.Hide()
-			cmds = append(cmds, list.SetFocusedViewCmd("list"))
+			m.isVisible = !m.isVisible
+			//m.Hide()
+			//cmds = append(cmds, list.SetFocusedViewCmd("list"))
 		default:
 			for _, item := range m.Keys {
 				if key.Matches(msg, item.Key) {
@@ -64,12 +75,15 @@ func (m Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.Hide()
-			cmds = append(cmds, list.SetFocusedViewCmd("list"))
+			//cmds = append(cmds, list.SetFocusedViewCmd("list"))
 		}
+	case UpdateMenuContentMsg:
+		m.Content = msg.Content
+		m.Model.SetContent(m.Content)
 	}
 	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
 func (m *Menu) SetKeys(keys MenuItems) *Menu {
@@ -85,20 +99,13 @@ func (m *Menu) Show() {
 	m.isVisible = true
 }
 
-func (m *Menu) BuildModel() {
-	m.Content = m.Render()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.Content)
-	m.Model = vp
-}
-
 func (m Menu) Render() string {
 	var kh []string
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
 	}
-	style := style.FrameStyle().Copy().Width(m.Width())
-	return style.Render(strings.Join(kh, "\n"))
+	//style := style.FrameStyle().Copy().Width(m.Width())
+	return strings.Join(kh, "\n")
 }
 
 func (m *Menu) SetWidth(w int) *Menu {
@@ -119,12 +126,10 @@ func (m Menu) Height() int {
 
 type Item struct {
 	Key key.Binding
-	Cmd MenuCmd
+	Cmd CmdFunc
 }
 
-type MenuCmd func(model tea.Mode) tea.Cmd
-
-func NewItem(k, h string, cmd MenuCmd) Item {
+func NewItem(k, h string, cmd CmdFunc) Item {
 	return Item{
 		Key: key.NewBinding(
 			key.WithKeys(k),
@@ -134,7 +139,7 @@ func NewItem(k, h string, cmd MenuCmd) Item {
 	}
 }
 
-func (i *Item) SetCmd(cmd MenuCmd) *Item {
+func (i *Item) SetCmd(cmd CmdFunc) *Item {
 	i.Cmd = cmd
 	return i
 }

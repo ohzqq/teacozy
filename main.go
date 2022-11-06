@@ -21,9 +21,15 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	//m := TestList()
-	//m.Start()
+	m := testMenu()
+	p := tea.NewProgram(m)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
 
+}
+
+func testPrompt() {
 	items := newItems()
 	m := prompt.NewPrompt()
 	//m.MultiSelect = false
@@ -116,7 +122,7 @@ func TestList() *list.Model {
 	l := list.New("test poot toot")
 	//l.isPrompt = true
 
-	l.AddMenu(testMenu())
+	//l.AddMenu(testMenu())
 	l.SetMulti()
 	l.List = testList()
 	//l.showMenu = true
@@ -139,15 +145,15 @@ func TestList() *list.Model {
 }
 
 func testMenu() *menu.Menu {
-	var testHelpKeys = []menu.Item{
-		menu.NewItem("t", "select item", TestKeyAction),
-	}
 
 	t := key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "deselect all"),
 	)
 	m := menu.NewMenu("test", t)
+	testHelpKeys := []menu.Item{
+		menu.NewItem("t", "select item", TestKeyAction),
+	}
 	m.SetKeys(testHelpKeys)
 	return m
 }
@@ -166,5 +172,6 @@ func infoWidget() *list.InfoWidget {
 }
 
 func TestKeyAction() tea.Cmd {
-	return list.UpdateStatusCmd(fmt.Sprintf("%v", m.IsMultiSelect))
+	//return list.UpdateStatusCmd(fmt.Sprintf("%v", m.IsMultiSelect))
+	return menu.UpdateMenuContentCmd("update")
 }
