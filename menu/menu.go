@@ -52,8 +52,8 @@ func (m *Menu) View() string {
 	return ""
 }
 
-//func (m *Menu) Update(msg tea.Msg) (*Menu, tea.Cmd) {
-func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Menu) Update(msg tea.Msg) (*Menu, tea.Cmd) {
+	//func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
