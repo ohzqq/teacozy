@@ -47,6 +47,7 @@ func (m *Menu) Init() tea.Cmd {
 	return UpdateMenuContentCmd(m.Render())
 }
 func (m *Menu) View() string {
+	m.Model.SetContent(m.Content)
 	if m.isVisible {
 		return m.Style.Render(m.Model.View())
 	}
@@ -64,9 +65,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, urkey.Quit):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, m.Toggle):
-			m.isVisible = !m.isVisible
-			//m.Hide()
-			//cmds = append(cmds, list.SetFocusedViewCmd("list"))
+			m.Hide()
 		default:
 			for _, item := range m.Keys {
 				if key.Matches(msg, item.Key) {
@@ -75,11 +74,9 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.Hide()
-			//cmds = append(cmds, list.SetFocusedViewCmd("list"))
 		}
 	case UpdateMenuContentMsg:
 		m.Content = msg.Content
-		m.Model.SetContent(m.Content)
 	}
 	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
@@ -104,7 +101,6 @@ func (m Menu) Render() string {
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
 	}
-	//style := style.FrameStyle().Copy().Width(m.Width())
 	return strings.Join(kh, "\n")
 }
 
