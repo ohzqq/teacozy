@@ -29,18 +29,19 @@ type Menu struct {
 	width     int
 }
 
-func NewMenu(l string, toggle key.Binding) *Menu {
+func NewMenu(l string, toggle key.Binding, keys ...Item) *Menu {
 	m := Menu{
 		Label:  l,
 		Toggle: toggle,
 		Style:  style.FrameStyle(),
+		Keys:   keys,
 	}
+	m.Content = m.Render()
 	m.Model = viewport.New(m.Width(), m.Height())
 	return &m
 }
 
 func (m *Menu) Init() tea.Cmd {
-	m.Show()
 	return UpdateMenuContentCmd(m.Render())
 }
 func (m *Menu) View() string {
