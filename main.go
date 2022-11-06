@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/menu"
@@ -21,12 +22,22 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	m := testMenu()
+	//m := testMenu()
+	m := testForm()
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
 
+}
+
+func testForm() form.Form {
+	fields := []form.Field{
+		form.NewField("poot", "poot begins"),
+		form.NewField("toot", "toot begins"),
+	}
+	f := form.New("test form", fields...)
+	return f
 }
 
 func testPrompt() {
@@ -145,7 +156,6 @@ func TestList() *list.Model {
 }
 
 func testMenu() *menu.Menu {
-
 	t := key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "deselect all"),
