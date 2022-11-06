@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -61,9 +60,10 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, urkey.Quit):
+		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
+		}
+		switch {
 		case key.Matches(msg, m.Toggle):
 			m.Hide()
 		default:
