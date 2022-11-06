@@ -151,9 +151,7 @@ func testMenu() *menu.Menu {
 		key.WithHelp("a", "deselect all"),
 	)
 	m := menu.NewMenu("test", t)
-	testHelpKeys := []menu.Item{
-		menu.NewItem("t", "select item", TestKeyAction),
-	}
+	testHelpKeys := menu.NewItem("t", "select item", TestKeyAction)
 	m.SetKeys(testHelpKeys)
 	return m
 }

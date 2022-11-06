@@ -21,15 +21,13 @@ type Menu struct {
 	Model     viewport.Model
 	Toggle    key.Binding
 	Style     lipgloss.Style
-	Keys      MenuItems
+	Keys      []Item
 	Label     string
 	Content   string
 	isVisible bool
 	height    int
 	width     int
 }
-
-type MenuItems []Item
 
 func NewMenu(l string, toggle key.Binding) *Menu {
 	m := Menu{
@@ -53,6 +51,7 @@ func (m *Menu) View() string {
 	return ""
 }
 
+//func (m *Menu) Update(msg tea.Msg) (*Menu, tea.Cmd) {
 func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -65,7 +64,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, m.Toggle):
-			m.Hide()
+			m.ToggleVisibility()
 		default:
 			for _, item := range m.Keys {
 				if key.Matches(msg, item.Key) {
@@ -83,9 +82,13 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Menu) SetKeys(keys MenuItems) *Menu {
+func (m *Menu) SetKeys(keys ...Item) *Menu {
 	m.Keys = keys
 	return m
+}
+
+func (m *Menu) ToggleVisibility() {
+	m.isVisible = !m.isVisible
 }
 
 func (m *Menu) Hide() {
