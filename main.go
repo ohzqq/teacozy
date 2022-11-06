@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
+	"github.com/ohzqq/teacozy/menu"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -137,12 +138,16 @@ func TestList() *list.Model {
 	return l
 }
 
-func testMenu() *list.Menu {
+func testMenu() *menu.Menu {
+	var testHelpKeys = []menu.Item{
+		menu.NewItem("t", "select item", TestKeyAction),
+	}
+
 	t := key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "deselect all"),
 	)
-	m := list.NewMenu("test", t)
+	m := menu.NewMenu("test", t)
 	m.SetKeys(testHelpKeys)
 	return m
 }
@@ -160,10 +165,6 @@ func infoWidget() *list.InfoWidget {
 	return info
 }
 
-var testHelpKeys = []list.MenuItem{
-	list.NewMenuItem("t", "select item", TestKeyAction),
-}
-
-func TestKeyAction(m *list.Model) tea.Cmd {
+func TestKeyAction() tea.Cmd {
 	return list.UpdateStatusCmd(fmt.Sprintf("%v", m.IsMultiSelect))
 }
