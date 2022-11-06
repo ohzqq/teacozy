@@ -1,10 +1,14 @@
-package form
+package info
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/viewport"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -14,22 +18,77 @@ func (i infoStr) String() string {
 	return string(i)
 }
 
-type Info struct {
-	content    []map[fmt.Stringer]fmt.Stringer
-	HideKeys   bool
-	KeyStyle   lipgloss.Style
-	ValueStyle lipgloss.Style
+type Model struct {
+	view viewport.Model
+	*Info
 }
 
-func NewInfo() *Info {
-	w := Info{
-		KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
-		ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
+func New() *Model {
+	return &Model{
+		view: viewport.New(1, 1),
+		Info: &Info{
+			KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
+			ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
+		},
 	}
+}
 
-	w.AddString("", "")
+type FormData interface {
+	Get(string) string
+	Set(string, string)
+	Keys() []string
+}
 
-	return &w
+type Info struct {
+	KeyStyle   lipgloss.Style
+	ValueStyle lipgloss.Style
+	content    []map[fmt.Stringer]fmt.Stringer
+	HideKeys   bool
+}
+
+func (m *Model) Init() tea.Cmd {
+	m.view.SetContent(m.String())
+	//return UpdateContentCmd(m.String())
+	return nil
+}
+
+func (m *Model) View() string {
+	return m.view.View()
+}
+
+type UpdateContentMsg struct {
+	Content string
+}
+
+func UpdateContentCmd(content string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateContentMsg{Content: content}
+	}
+}
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.String() == tea.KeyCtrlC.String() {
+			cmds = append(cmds, tea.Quit)
+		}
+		switch {
+		case key.Matches(msg, urkey.EditField):
+			cmds = append(cmds, UpdateContentCmd("edit"))
+		}
+	case UpdateContentMsg:
+		m.view.SetContent(msg.Content)
+	case tea.WindowSizeMsg:
+		m.view = viewport.New(msg.Width-2, msg.Height-2)
+	}
+	m.view, cmd = m.view.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (i *Info) NoKeys() *Info {

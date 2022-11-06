@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/menu"
@@ -23,12 +24,28 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	//m := testMenu()
-	m := testForm()
+	m := testInfo()
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
 
+}
+
+func testInfo() *info.Model {
+	i := info.New()
+	i.AddString("one", "poot")
+	i.AddString("tow", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("kjl", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("kjl", "toot")
+	i.AddString("tow", "toot")
+	i.AddString("tow", "toot")
+	return i
 }
 
 func testForm() form.Form {
