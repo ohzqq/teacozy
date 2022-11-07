@@ -16,8 +16,8 @@ type Model struct {
 	ShowSelectedOnly bool
 	Keys             urkey.KeyMap
 	Items            item.Items
-	width            int
-	height           int
+	Width            int
+	Height           int
 	Style            list.Styles
 }
 
@@ -25,8 +25,8 @@ func New() Model {
 	w, h := util.TermSize()
 	p := Model{
 		Items:  item.NewItems(),
-		width:  w,
-		height: h,
+		Width:  w,
+		Height: h,
 		Keys:   urkey.DefaultKeys(),
 	}
 	return p
@@ -34,7 +34,7 @@ func New() Model {
 
 func (m *Model) MakeList() list.Model {
 	l := m.Items.List()
-	l.SetSize(m.width, m.height)
+	l.SetSize(m.Width, m.Height)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
@@ -60,8 +60,8 @@ func (m *Model) SetMultiSelect() *Model {
 }
 
 func (m *Model) SetSize(w, h int) *Model {
-	m.width = w
-	m.height = h
+	m.Width = w
+	m.Height = h
 	return m
 }
 
@@ -76,8 +76,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, m.Keys.ExitScreen):
-			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, m.Keys.Prev):
 			m.ShowSelectedOnly = false
 			cmds = append(cmds, UpdateVisibleItemsCmd("visible"))

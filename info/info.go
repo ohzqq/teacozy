@@ -52,7 +52,7 @@ func New(data FormData) *Model {
 	height := lipgloss.Height(m.String())
 	m.view = viewport.New(util.TermWidth(), height)
 	m.view.SetContent(m.String())
-	m.form = m.Edit()
+	//m.form = m.Edit()
 	return &m
 }
 
@@ -129,13 +129,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.edit.Focused() {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.form.List.SelectedItem()
-				field := m.form.Items.Get(cur).Data.(Field)
+				i := m.form.Items.Get(cur)
+				field := i.Data.(Field)
 				val := m.edit.Value()
 				m.Data.Set(field.Key, val)
-				//cur.SetContent(val)
+				_, f := m.Data.GetField(field.Key)
+				m.form.Items.Set(i.Index(), item.NewItem(f))
 				//m.SetItem(m.List.Model.Index(), cur)
 				m.edit.Blur()
-				//cmds = append(cmds, UpdateVisibleItemsCmd("all"))
+				m.form = m.Edit()
+				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
 			}
 			m.edit, cmd = m.edit.Update(msg)
 			cmds = append(cmds, cmd)
@@ -152,20 +155,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, urkey.EditField):
 					cmds = append(cmds, prompt.UpdateStatusCmd("edit field"))
+				case key.Matches(msg, urkey.ExitScreen):
+					m.state = view
 				}
 				m.form, cmd = m.form.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 		}
 	case EditInfoMsg:
-		//m.form = m.Edit()
+		m.form = m.Edit()
 		m.state = form
 	case EditItemMsg:
 		m.edit = textarea.New()
 		m.edit.SetValue(msg.Value)
 		m.edit.ShowLineNumbers = false
 		m.edit.Focus()
-		//cmds = append(cmds, prompt.UpdateStatusCmd("edit"))
 	case UpdateContentMsg:
 		m.Data.Set(msg.Key, msg.Value)
 	case tea.WindowSizeMsg:
@@ -188,13 +192,32 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	var v string
+	var (
+		sections []string
+		//availHeight = m.form.List.Height()
+		availHeight = util.TermHeight()
+	)
+
+	var field string
+	if m.edit.Focused() {
+		field = m.edit.View()
+		availHeight -= lipgloss.Height(field)
+	}
+
 	switch m.state {
 	case view:
 		m.view.SetContent(m.String())
-		v = m.view.View()
+		v := m.view.View()
+		sections = append(sections, v)
 	case form:
-		v = m.form.View()
+		m.form.List.SetSize(m.form.Width, availHeight)
+		v := m.form.View()
+		sections = append(sections, v)
 	}
-	return v
+
+	if m.edit.Focused() {
+		sections = append(sections, field)
+	}
+
+	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
