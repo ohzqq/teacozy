@@ -7,49 +7,48 @@ import (
 )
 
 type FormData interface {
-	Get(string) FormField
+	Get(string) Field
 	Set(string, string)
 	Keys() []string
 }
 
-type FormField interface {
+type Field interface {
 	FilterValue() string
 	Value() string
 	Key() string
 	Set(string)
 }
 
-type Field struct {
-	idx   int
+type DefaultField struct {
 	key   string
 	value string
 }
 
-func NewField(key, val string) Field {
-	return Field{
+func NewDefaultField(key, val string) *DefaultField {
+	return &DefaultField{
 		key:   key,
 		value: val,
 	}
 }
 
-func (f Field) FilterValue() string {
+func (f DefaultField) FilterValue() string {
 	return f.value
 }
 
-func (f Field) Value() string {
+func (f DefaultField) Value() string {
 	return f.value
 }
 
-func (f *Field) Set(val string) {
+func (f *DefaultField) Set(val string) {
 	f.value = val
 }
 
-func (f Field) Key() string {
+func (f DefaultField) Key() string {
 	return f.key
 }
 
 type Fields struct {
-	fields []FormField
+	data []Field
 }
 
 func NewFields() *Fields {
@@ -58,19 +57,19 @@ func NewFields() *Fields {
 
 func (f *Fields) SetData(data FormData) *Fields {
 	for _, key := range data.Keys() {
-		val := data.Get(key)
-		f.Add(key, val.Value())
+		field := data.Get(key)
+		f.Add(field.Key(), field.Value())
 	}
 	return f
 }
 
-func (f Fields) Get(key string) FormField {
-	for _, field := range f.fields {
+func (f Fields) Get(key string) Field {
+	for _, field := range f.data {
 		if field.Key() == key {
 			return field
 		}
 	}
-	return &Field{}
+	return &DefaultField{}
 }
 
 func (f *Fields) Set(key, val string) {
@@ -84,7 +83,7 @@ func (f *Fields) Set(key, val string) {
 
 func (f Fields) Keys() []string {
 	var keys []string
-	for _, field := range f.fields {
+	for _, field := range f.data {
 		keys = append(keys, field.Key())
 	}
 	return keys
@@ -98,7 +97,7 @@ func (f *Fields) Add(key, val string) error {
 	if f.Has(key) {
 		return fmt.Errorf("keys must be unique")
 	}
-	field := NewField(key, val)
-	f.fields = append(f.fields, &field)
+	field := NewDefaultField(key, val)
+	f.data = append(f.data, field)
 	return nil
 }

@@ -55,6 +55,7 @@ func New(data FormData) *Model {
 }
 
 type Info struct {
+	Model    viewport.Model
 	Fields   *Fields
 	HideKeys bool
 }
@@ -65,6 +66,12 @@ func (i *Info) Display() viewport.Model {
 	vp := viewport.New(util.TermWidth(), height)
 	vp.SetContent(content)
 	return vp
+}
+
+type Form struct {
+	Model  prompt.Model
+	Input  textarea.Model
+	Fields *Fields
 }
 
 func (i *Info) Edit() prompt.Model {
@@ -119,7 +126,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.form.List.SelectedItem()
 				i := m.form.Items.Get(cur)
-				field := i.Data.(FormField)
+				field := i.Data.(Field)
 				val := m.edit.Value()
 				field.Set(val)
 				m.form.Items.Set(i.Index(), item.NewItem(field))
@@ -142,7 +149,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, urkey.EditField):
 					cur := m.form.List.SelectedItem()
-					field := m.form.Items.Get(cur).Data.(FormField)
+					field := m.form.Items.Get(cur).Data.(Field)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = view
@@ -165,9 +172,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.view = viewport.New(msg.Width-2, msg.Height-2)
 		m.form.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
-		var field FormField
+		var field Field
 		if items := m.form.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(FormField)
+			field = items[0].Data.(Field)
 		}
 		cmds = append(cmds, EditItemCmd(field))
 	case prompt.UpdateStatusMsg:
