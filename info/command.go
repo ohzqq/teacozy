@@ -11,10 +11,11 @@ func UpdateInfoCmd() tea.Cmd {
 }
 
 type EditItemMsg struct {
-	*Field
+	//*Field
+	Field FormField
 }
 
-func EditItemCmd(field *Field) tea.Cmd {
+func EditItemCmd(field FormField) tea.Cmd {
 	return func() tea.Msg {
 		return EditItemMsg{Field: field}
 	}

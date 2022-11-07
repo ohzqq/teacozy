@@ -70,7 +70,7 @@ func (i *Info) Display() viewport.Model {
 func (i *Info) Edit() prompt.Model {
 	items := item.NewItems()
 	for _, key := range i.Fields.Keys() {
-		_, f := i.Fields.GetField(key)
+		f := i.Fields.Get(key)
 		item := item.NewItem(f)
 		items.Add(item)
 	}
@@ -89,13 +89,13 @@ func (i Info) String() string {
 	var info []string
 	for _, key := range i.Fields.Keys() {
 		var line []string
+		field := i.Fields.Get(key)
 		if !i.HideKeys {
-			k := fieldStyle.KeyStyle.Render(key)
+			k := fieldStyle.KeyStyle.Render(field.Key())
 			line = append(line, k, ": ")
 		}
 
-		val := i.Fields.Get(key)
-		v := fieldStyle.ValueStyle.Render(val)
+		v := fieldStyle.ValueStyle.Render(field.Value())
 		line = append(line, v)
 
 		l := strings.Join(line, "")
@@ -130,11 +130,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.form.List.SelectedItem()
 				i := m.form.Items.Get(cur)
-				field := i.Data.(Field)
+				field := i.Data.(FormField)
 				val := m.edit.Value()
-				m.Fields.Set(field.Key, val)
-				_, f := m.Fields.GetField(field.Key)
-				m.form.Items.Set(i.Index(), item.NewItem(f))
+				field.Set(val)
+				m.form.Items.Set(i.Index(), item.NewItem(field))
 				m.edit.Blur()
 				m.form = m.Edit()
 				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
@@ -154,8 +153,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, urkey.EditField):
 					cur := m.form.List.SelectedItem()
-					field := m.form.Items.Get(cur).Data.(Field)
-					cmds = append(cmds, EditItemCmd(&field))
+					field := m.form.Items.Get(cur).Data.(*Field)
+					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = view
 				}
@@ -168,20 +167,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = form
 	case EditItemMsg:
 		m.edit = textarea.New()
-		m.edit.SetValue(msg.Value)
+		m.edit.SetValue(msg.Field.Value())
 		m.edit.ShowLineNumbers = false
 		m.edit.Focus()
 	case UpdateContentMsg:
-		m.Fields.Set(msg.Key, msg.Value)
+		m.Fields.Set(msg.key, msg.Field.Value())
 	case tea.WindowSizeMsg:
 		m.view = viewport.New(msg.Width-2, msg.Height-2)
 		m.form.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
-		var field Field
+		var field FormField
 		if items := m.form.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(Field)
+			field = items[0].Data.(FormField)
 		}
-		cmds = append(cmds, EditItemCmd(&field))
+		cmds = append(cmds, EditItemCmd(field))
 	case prompt.UpdateStatusMsg:
 		m.form, cmd = m.form.Update(msg)
 		cmds = append(cmds, cmd)
