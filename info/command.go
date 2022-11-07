@@ -4,7 +4,7 @@ import tea "github.com/charmbracelet/bubbletea"
 
 type EditInfoMsg struct{}
 
-func UpdateInfoCmd() tea.Cmd {
+func EditInfoCmd() tea.Cmd {
 	return func() tea.Msg {
 		return EditInfoMsg{}
 	}
