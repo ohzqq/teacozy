@@ -4,12 +4,10 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -116,30 +114,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, urkey.ExitScreen):
 				m.state = view
 			}
-			m.Form, cmd = m.Form.Update(msg)
-			cmds = append(cmds, cmd)
 		}
 	case EditInfoMsg:
 		m.Edit()
 		m.state = form
-	case EditItemMsg:
-		m.Input = textarea.New()
-		m.Input.SetValue(msg.Value())
-		m.Input.ShowLineNumbers = false
-		m.Input.Focus()
-	case UpdateContentMsg:
-		m.Form.Fields.Set(msg.Key(), msg.Value())
 	case tea.WindowSizeMsg:
 		m.Info.Model = viewport.New(msg.Width-2, msg.Height-2)
-		m.Form.Model.List.SetSize(msg.Width-2, msg.Height-2)
-	case prompt.ReturnSelectionsMsg:
-		var field Field
-		if items := m.Form.Model.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(Field)
-		}
-		cmds = append(cmds, EditItemCmd(field))
-	case prompt.UpdateStatusMsg:
-		m.Form.Model, cmd = m.Form.Model.Update(msg)
+	}
+
+	switch m.state {
+	case view:
+	case form:
+		m.Form, cmd = m.Form.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 	return m, tea.Batch(cmds...)
@@ -156,25 +142,14 @@ func (m *Model) View() string {
 		availHeight = util.TermHeight()
 	)
 
-	var field string
-	if m.Input.Focused() {
-		field = m.Input.View()
-		availHeight -= lipgloss.Height(field)
-	}
-
 	switch m.state {
 	case view:
 		m.Info.Model.SetContent(m.String())
 		v := m.Info.Model.View()
 		sections = append(sections, v)
 	case form:
-		m.Form.Model.List.SetSize(m.Form.Model.Width, availHeight)
-		v := m.Form.Model.View()
+		v := m.Form.View()
 		sections = append(sections, v)
-	}
-
-	if m.Input.Focused() {
-		sections = append(sections, field)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

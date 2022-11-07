@@ -4,9 +4,11 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/prompt"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Form struct {
@@ -61,8 +63,6 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				field := m.Model.Items.Get(cur).Data.(Field)
 				cmds = append(cmds, EditItemCmd(field))
 			}
-			m.Model, cmd = m.Model.Update(msg)
-			cmds = append(cmds, cmd)
 		}
 	case EditItemMsg:
 		m.Input = textarea.New()
@@ -87,8 +87,27 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (f *Form) View() string {
-	return f.Model.View()
+func (m *Form) View() string {
+	var (
+		sections []string
+		//availHeight = m.form.List.Height()
+		availHeight = util.TermHeight()
+	)
+	var field string
+	if m.Input.Focused() {
+		field = m.Input.View()
+		availHeight -= lipgloss.Height(field)
+	}
+
+	m.Model.List.SetSize(m.Model.Width, availHeight)
+	v := m.Model.View()
+	sections = append(sections, v)
+
+	if m.Input.Focused() {
+		sections = append(sections, field)
+	}
+
+	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
 
 func (f *Form) Init() tea.Cmd {
