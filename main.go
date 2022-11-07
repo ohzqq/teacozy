@@ -33,18 +33,20 @@ func main() {
 }
 
 func testInfo() *info.Model {
-	i := info.New()
-	i.AddString("one", "poot")
-	i.AddString("tow", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("kjl", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("kjl", "toot")
-	i.AddString("tow", "toot")
-	i.AddString("tow", "toot")
+	f := info.NewFields()
+	f.Add("one", "poot")
+	f.Add("tow", "toot")
+	f.Add("tow", "toot")
+	f.Add("tow", "toot")
+	f.Add("tow", "toot")
+	f.Add("kjl", "toot")
+	f.Add("tow", "toot")
+	f.Add("tow", "toot")
+	f.Add("kjl", "toot")
+	f.Add("tow", "toot")
+	f.Add("tow", "toot")
+	i := info.New(f)
+	//fmt.Println(i.String())
 	return i
 }
 
