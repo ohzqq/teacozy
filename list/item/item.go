@@ -15,6 +15,7 @@ const (
 )
 
 type Item struct {
+	Data              list.Item
 	idx               int
 	IsSelected        bool
 	ListOpen          bool
@@ -30,6 +31,7 @@ type Item struct {
 
 func NewItem(item list.Item) *Item {
 	i := Item{
+		Data:    item,
 		Content: item.FilterValue(),
 		Info:    NewInfo(),
 	}
@@ -38,10 +40,12 @@ func NewItem(item list.Item) *Item {
 }
 
 func NewDefaultItem(content string) *Item {
-	return &Item{
+	item := Item{
 		Content: content,
 		Info:    NewInfo(),
 	}
+	item.Data = item
+	return &item
 }
 
 func (i *Item) SetMultiSelect() *Item {

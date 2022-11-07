@@ -116,7 +116,7 @@ func (i Items) Selections() []*Item {
 	return items
 }
 
-func (i Items) GetItem(item list.Item) *Item {
+func (i Items) Get(item list.Item) *Item {
 	idx := item.(*Item).Index()
 	return i.all[idx]
 }

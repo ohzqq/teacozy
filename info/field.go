@@ -2,10 +2,6 @@ package info
 
 import "golang.org/x/exp/slices"
 
-type Fields struct {
-	data []Field
-}
-
 type Field struct {
 	Key   string
 	Value string
@@ -16,6 +12,14 @@ func NewField(key, val string) Field {
 		Key:   key,
 		Value: val,
 	}
+}
+
+func (f Field) FilterValue() string {
+	return f.Value
+}
+
+type Fields struct {
+	data []Field
 }
 
 func NewFields() *Fields {

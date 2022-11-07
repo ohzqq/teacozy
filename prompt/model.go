@@ -32,6 +32,22 @@ func New() Model {
 	return p
 }
 
+func (m *Model) MakeList() list.Model {
+	l := m.Items.List()
+	l.SetSize(m.width, m.height)
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+	l.KeyMap = ListKeyMap()
+	l.Title = m.Title
+
+	if m.Title == "" {
+		l.Title = ""
+		//l.SetShowTitle(true)
+	}
+	m.List = l
+	return l
+}
+
 func (m *Model) SetItems(items item.Items) *Model {
 	m.Items = items
 	return m
@@ -114,17 +130,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	l := m.Items.List()
-	l.SetSize(m.width, m.height)
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.KeyMap = ListKeyMap()
-
-	if m.Title == "" {
-		l.Title = ""
-		//l.SetShowTitle(true)
-	}
-	m.List = l
+	m.List = m.MakeList()
 	return nil
 }
 
