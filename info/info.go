@@ -53,6 +53,30 @@ type Info struct {
 	HideKeys bool
 }
 
+func (i *Info) NoKeys() *Info {
+	i.HideKeys = true
+	return i
+}
+
+func (i Info) String() string {
+	var info []string
+	for _, key := range i.Data.Keys() {
+		var line []string
+		if !i.HideKeys {
+			k := fieldStyle.KeyStyle.Render(key)
+			line = append(line, k, ": ")
+		}
+
+		val := i.Data.Get(key)
+		v := fieldStyle.ValueStyle.Render(val)
+		line = append(line, v)
+
+		l := strings.Join(line, "")
+		info = append(info, l)
+	}
+	return strings.Join(info, "\n")
+}
+
 type Fields struct {
 	data []Field
 }
@@ -140,6 +164,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, UpdateContentCmd("one", "edit"))
 		}
+	case EditInfoMsg:
 	case UpdateContentMsg:
 		m.Data.Set(msg.Key, msg.Value)
 	case tea.WindowSizeMsg:
@@ -150,10 +175,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (i *Info) NoKeys() *Info {
-	i.HideKeys = true
-	return i
-}
+type EditInfoMsg struct{}
 
 func NewField(key, val string) Field {
 	return Field{
@@ -176,25 +198,6 @@ func (i *Info) Set(f ...map[string]string) *Info {
 	}
 	i.Data = &fields
 	return i
-}
-
-func (i Info) String() string {
-	var info []string
-	for _, key := range i.Data.Keys() {
-		var line []string
-		if !i.HideKeys {
-			k := fieldStyle.KeyStyle.Render(key)
-			line = append(line, k, ": ")
-		}
-
-		val := i.Data.Get(key)
-		v := fieldStyle.ValueStyle.Render(val)
-		line = append(line, v)
-
-		l := strings.Join(line, "")
-		info = append(info, l)
-	}
-	return strings.Join(info, "\n")
 }
 
 func (m *Model) Init() tea.Cmd {
