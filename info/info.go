@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 var fieldStyle = Style{
@@ -20,36 +19,12 @@ type Style struct {
 	Value lipgloss.Style
 }
 
-type Info struct {
-	Model    viewport.Model
-	Fields   *Fields
-	HideKeys bool
-	Style    Style
-}
-
-func NewInfo(data FormData) *Info {
-	fields := NewFields().SetData(data)
-	info := Info{
-		Style:  fieldStyle,
-		Fields: fields,
-	}
-	return &info
-}
-
 func SetKeyStyle(s lipgloss.Style) {
 	fieldStyle.Key = s
 }
 
 func SetValueStyle(s lipgloss.Style) {
 	fieldStyle.Value = s
-}
-
-func (i *Info) Display() *Info {
-	content := "toot"
-	height := lipgloss.Height(content)
-	i.Model = viewport.New(util.TermWidth(), height)
-	i.Model.SetContent(content)
-	return i
 }
 
 func (i *Fields) NoKeys() *Fields {

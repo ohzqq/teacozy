@@ -15,6 +15,7 @@ type Form struct {
 	Model  prompt.Model
 	Input  textarea.Model
 	Fields *Fields
+	state  state
 }
 
 func (f *Form) Edit() *Form {
@@ -31,7 +32,8 @@ func (f *Form) Edit() *Form {
 	return f
 }
 
-func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
+//func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
+func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -57,13 +59,26 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			switch {
-			case key.Matches(msg, urkey.EditField):
-				cur := m.Model.List.SelectedItem()
-				field := m.Model.Items.Get(cur).Data.(Field)
-				cmds = append(cmds, EditItemCmd(field))
+			switch m.state {
+			case view:
+				switch {
+				case key.Matches(msg, urkey.EditField):
+					cmds = append(cmds, EditInfoCmd())
+				}
+			case form:
+				switch {
+				case key.Matches(msg, urkey.EditField):
+					cur := m.Model.List.SelectedItem()
+					field := m.Model.Items.Get(cur).Data.(Field)
+					cmds = append(cmds, EditItemCmd(field))
+				case key.Matches(msg, urkey.ExitScreen):
+					m.state = view
+				}
 			}
 		}
+	case EditInfoMsg:
+		m.Edit()
+		m.state = form
 	case EditItemMsg:
 		m.Input = textarea.New()
 		m.Input.SetValue(msg.Value())
@@ -82,8 +97,15 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	case prompt.UpdateStatusMsg:
 	}
 
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
+	switch m.state {
+	case view:
+		m.Fields, cmd = m.Fields.Update(msg)
+		cmds = append(cmds, cmd)
+	case form:
+		m.Model.List, cmd = m.Model.List.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -99,9 +121,15 @@ func (m *Form) View() string {
 		availHeight -= lipgloss.Height(field)
 	}
 
-	m.Model.List.SetSize(m.Model.Width, availHeight)
-	v := m.Model.View()
-	sections = append(sections, v)
+	switch m.state {
+	case view:
+		v := m.Fields.View()
+		sections = append(sections, v)
+	case form:
+		m.Model.List.SetSize(m.Model.Width, availHeight)
+		v := m.Model.View()
+		sections = append(sections, v)
+	}
 
 	if m.Input.Focused() {
 		sections = append(sections, field)

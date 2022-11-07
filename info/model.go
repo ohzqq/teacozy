@@ -11,8 +11,8 @@ import (
 type state int
 
 const (
-	view state = iota
-	form
+	form state = iota
+	view
 	edit
 )
 
@@ -22,15 +22,15 @@ type Model struct {
 	*Form
 }
 
-func New(data FormData) *Model {
+func New(data FormData) *Form {
 	fields := NewFields().SetData(data)
-	m := Model{
+	m := Form{
 		Fields: fields,
-		Form: &Form{
-			Fields: fields,
-		},
+		//Form: &Form{
+		//  Fields: fields,
+		//},
 	}
-	m.Render()
+	m.Fields.Render()
 	m.Edit()
 	return &m
 }
@@ -68,8 +68,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Fields, cmd = m.Fields.Update(msg)
 		cmds = append(cmds, cmd)
 	case form:
-		m.Form, cmd = m.Form.Update(msg)
-		cmds = append(cmds, cmd)
+		//m.Form, cmd = m.Form.Update(msg)
+		//cmds = append(cmds, cmd)
 	}
 	return m, tea.Batch(cmds...)
 }

@@ -32,7 +32,7 @@ func main() {
 
 }
 
-func testInfo() *info.Model {
+func testInfo() *info.Form {
 	f := info.NewFields()
 	f.Add("one", "poot")
 	f.Add("tow", "toot")
