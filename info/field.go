@@ -49,7 +49,6 @@ func (f Field) Key() string {
 }
 
 type Fields struct {
-	data   []Field
 	fields []FormField
 }
 
@@ -74,29 +73,19 @@ func (f Fields) Get(key string) FormField {
 	return &Field{}
 }
 
-func (f Fields) GetField(key string) (int, Field) {
-	for idx, field := range f.data {
-		if field.key == key {
-			return idx, field
-		}
-	}
-	return -1, Field{}
-}
-
 func (f *Fields) Set(key, val string) {
 	if f.Has(key) {
 		ff := f.Get(key)
 		ff.Set(val)
 	} else {
-		field := NewField(key, val)
-		f.data = append(f.data, field)
+		f.Add(key, val)
 	}
 }
 
 func (f Fields) Keys() []string {
 	var keys []string
-	for _, field := range f.data {
-		keys = append(keys, field.key)
+	for _, field := range f.fields {
+		keys = append(keys, field.Key())
 	}
 	return keys
 }
@@ -110,7 +99,6 @@ func (f *Fields) Add(key, val string) error {
 		return fmt.Errorf("keys must be unique")
 	}
 	field := NewField(key, val)
-	f.data = append(f.data, field)
 	f.fields = append(f.fields, &field)
 	return nil
 }

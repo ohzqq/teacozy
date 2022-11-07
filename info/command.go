@@ -11,13 +11,12 @@ func UpdateInfoCmd() tea.Cmd {
 }
 
 type EditItemMsg struct {
-	//*Field
-	Field FormField
+	FormField
 }
 
 func EditItemCmd(field FormField) tea.Cmd {
 	return func() tea.Msg {
-		return EditItemMsg{Field: field}
+		return EditItemMsg{FormField: field}
 	}
 }
 

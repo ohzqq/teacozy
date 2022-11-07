@@ -104,17 +104,6 @@ func (i Info) String() string {
 	return strings.Join(info, "\n")
 }
 
-func (i *Info) Set(f ...map[string]string) *Info {
-	var fields Fields
-	for _, field := range f {
-		for k, v := range field {
-			fields.data = append(fields.data, NewField(k, v))
-		}
-	}
-	i.Fields = &fields
-	return i
-}
-
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -153,7 +142,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, urkey.EditField):
 					cur := m.form.List.SelectedItem()
-					field := m.form.Items.Get(cur).Data.(*Field)
+					field := m.form.Items.Get(cur).Data.(FormField)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = view
@@ -167,11 +156,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = form
 	case EditItemMsg:
 		m.edit = textarea.New()
-		m.edit.SetValue(msg.Field.Value())
+		m.edit.SetValue(msg.Value())
 		m.edit.ShowLineNumbers = false
 		m.edit.Focus()
 	case UpdateContentMsg:
-		m.Fields.Set(msg.key, msg.Field.Value())
+		m.Fields.Set(msg.Key(), msg.Value())
 	case tea.WindowSizeMsg:
 		m.view = viewport.New(msg.Width-2, msg.Height-2)
 		m.form.List.SetSize(msg.Width-2, msg.Height-2)
