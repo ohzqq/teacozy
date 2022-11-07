@@ -10,44 +10,54 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-var fieldStyle Style
+var fieldStyle = Style{
+	Key:   lipgloss.NewStyle().Foreground(style.DefaultColors().Blue),
+	Value: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
+}
 
 type Style struct {
-	KeyStyle   lipgloss.Style
-	ValueStyle lipgloss.Style
+	Key   lipgloss.Style
+	Value lipgloss.Style
 }
 
 type Info struct {
 	Model    viewport.Model
 	Fields   *Fields
 	HideKeys bool
+	Style    Style
 }
 
 func NewInfo(data FormData) *Info {
-	fieldStyle = Style{
-		KeyStyle:   lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
-		ValueStyle: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
-	}
-
 	fields := NewFields().SetData(data)
-	info := Info{Fields: fields}
+	info := Info{
+		Style:  fieldStyle,
+		Fields: fields,
+	}
 	return &info
 }
 
+func SetKeyStyle(s lipgloss.Style) {
+	fieldStyle.Key = s
+}
+
+func SetValueStyle(s lipgloss.Style) {
+	fieldStyle.Value = s
+}
+
 func (i *Info) Display() *Info {
-	content := i.String()
+	content := "toot"
 	height := lipgloss.Height(content)
 	i.Model = viewport.New(util.TermWidth(), height)
 	i.Model.SetContent(content)
 	return i
 }
 
-func (i *Info) NoKeys() *Info {
+func (i *Fields) NoKeys() *Fields {
 	i.HideKeys = true
 	return i
 }
 
-func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
+func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -67,17 +77,17 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (i Info) String() string {
+func (i Fields) String() string {
 	var info []string
-	for _, key := range i.Fields.Keys() {
+	for _, key := range i.Keys() {
 		var line []string
-		field := i.Fields.Get(key)
+		field := i.Get(key)
 		if !i.HideKeys {
-			k := fieldStyle.KeyStyle.Render(field.Key())
+			k := i.Style.Key.Render(field.Key())
 			line = append(line, k, ": ")
 		}
 
-		v := fieldStyle.ValueStyle.Render(field.Value())
+		v := i.Style.Value.Render(field.Value())
 		line = append(line, v)
 
 		l := strings.Join(line, "")
@@ -86,11 +96,11 @@ func (i Info) String() string {
 	return strings.Join(info, "\n")
 }
 
-func (m *Info) View() string {
+func (m *Fields) View() string {
 	m.Model.SetContent(m.String())
 	return m.Model.View()
 }
 
-func (i *Info) Init() tea.Cmd {
+func (i *Fields) Init() tea.Cmd {
 	return nil
 }

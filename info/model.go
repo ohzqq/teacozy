@@ -18,21 +18,19 @@ const (
 
 type Model struct {
 	state state
-	*Info
+	*Fields
 	*Form
 }
 
 func New(data FormData) *Model {
 	fields := NewFields().SetData(data)
 	m := Model{
-		Info: &Info{
-			Fields: fields,
-		},
+		Fields: fields,
 		Form: &Form{
 			Fields: fields,
 		},
 	}
-	m.Display()
+	m.Render()
 	m.Edit()
 	return &m
 }
@@ -67,7 +65,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch m.state {
 	case view:
-		m.Info, cmd = m.Info.Update(msg)
+		m.Fields, cmd = m.Fields.Update(msg)
 		cmds = append(cmds, cmd)
 	case form:
 		m.Form, cmd = m.Form.Update(msg)
@@ -89,7 +87,7 @@ func (m *Model) View() string {
 
 	switch m.state {
 	case view:
-		v := m.Info.View()
+		v := m.Fields.View()
 		sections = append(sections, v)
 	case form:
 		v := m.Form.View()

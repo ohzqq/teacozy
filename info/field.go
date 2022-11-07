@@ -3,6 +3,9 @@ package info
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/exp/slices"
 )
 
@@ -48,11 +51,25 @@ func (f DefaultField) Key() string {
 }
 
 type Fields struct {
-	data []Field
+	Model    viewport.Model
+	Fields   *Fields
+	HideKeys bool
+	Style    Style
+	data     []Field
 }
 
 func NewFields() *Fields {
-	return &Fields{}
+	return &Fields{
+		Style: fieldStyle,
+	}
+}
+
+func (f *Fields) Render() *Fields {
+	content := f.String()
+	height := lipgloss.Height(content)
+	f.Model = viewport.New(util.TermWidth(), height)
+	f.Model.SetContent(content)
+	return f
 }
 
 func (f *Fields) SetData(data FormData) *Fields {
