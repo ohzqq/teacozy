@@ -11,6 +11,14 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
+type state int
+
+const (
+	form state = iota
+	view
+	edit
+)
+
 type Form struct {
 	Model  prompt.Model
 	Input  textarea.Model
@@ -18,10 +26,20 @@ type Form struct {
 	state  state
 }
 
+func New(data FormData) *Form {
+	fields := NewFields().SetData(data)
+	m := Form{
+		Fields: fields,
+	}
+	m.Fields.Render()
+	m.Edit()
+	return &m
+}
+
 func (f *Form) Edit() *Form {
 	items := item.NewItems()
-	for _, key := range f.Fields.Keys() {
-		field := f.Fields.Get(key)
+	for _, key := range f.Fields.Data.Keys() {
+		field := f.Fields.Data.Get(key)
 		item := item.NewItem(field)
 		items.Add(item)
 	}
@@ -32,8 +50,7 @@ func (f *Form) Edit() *Form {
 	return f
 }
 
-//func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
-func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -62,6 +79,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.state {
 			case view:
 				switch {
+				case key.Matches(msg, urkey.SaveAndExit):
 				case key.Matches(msg, urkey.EditField):
 					cmds = append(cmds, EditInfoCmd())
 				}
@@ -85,7 +103,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
 	case UpdateContentMsg:
-		m.Fields.Set(msg.Key(), msg.Value())
+		m.Fields.Data.Set(msg.Key(), msg.Value())
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
@@ -136,8 +154,4 @@ func (m *Form) View() string {
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
-}
-
-func (f *Form) Init() tea.Cmd {
-	return nil
 }

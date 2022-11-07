@@ -32,8 +32,9 @@ func main() {
 
 }
 
-func testInfo() *info.Form {
-	f := info.NewFields()
+func testInfo() *info.Model {
+	f := &info.DefaultFields{}
+	//f := info.NewFields()
 	f.Add("one", "poot")
 	f.Add("tow", "toot")
 	f.Add("tow", "toot")
@@ -45,7 +46,7 @@ func testInfo() *info.Form {
 	f.Add("kjl", "toot")
 	f.Add("tow", "toot")
 	f.Add("tow", "toot")
-	i := info.New(f)
+	i := info.NewForm(f)
 	//i.Info.NoKeys()
 	//fmt.Println(i.String())
 	return i
