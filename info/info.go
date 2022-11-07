@@ -46,31 +46,31 @@ func New(data FormData) *Model {
 	fields := NewFields().SetData(data)
 	m := Model{
 		Info: &Info{
-			Data: fields,
+			Fields: fields,
 		},
 	}
-	height := lipgloss.Height(m.String())
-	m.view = viewport.New(util.TermWidth(), height)
-	m.view.SetContent(m.String())
-	//m.form = m.Edit()
+	m.view = m.Display()
+	m.form = m.Edit()
 	return &m
 }
 
-type FormData interface {
-	Get(string) string
-	Set(string, string)
-	Keys() []string
+type Info struct {
+	Fields   *Fields
+	HideKeys bool
 }
 
-type Info struct {
-	Data     *Fields
-	HideKeys bool
+func (i *Info) Display() viewport.Model {
+	content := i.String()
+	height := lipgloss.Height(content)
+	vp := viewport.New(util.TermWidth(), height)
+	vp.SetContent(content)
+	return vp
 }
 
 func (i *Info) Edit() prompt.Model {
 	items := item.NewItems()
-	for _, key := range i.Data.Keys() {
-		_, f := i.Data.GetField(key)
+	for _, key := range i.Fields.Keys() {
+		_, f := i.Fields.GetField(key)
 		item := item.NewItem(f)
 		items.Add(item)
 	}
@@ -87,14 +87,14 @@ func (i *Info) NoKeys() *Info {
 
 func (i Info) String() string {
 	var info []string
-	for _, key := range i.Data.Keys() {
+	for _, key := range i.Fields.Keys() {
 		var line []string
 		if !i.HideKeys {
 			k := fieldStyle.KeyStyle.Render(key)
 			line = append(line, k, ": ")
 		}
 
-		val := i.Data.Get(key)
+		val := i.Fields.Get(key)
 		v := fieldStyle.ValueStyle.Render(val)
 		line = append(line, v)
 
@@ -111,7 +111,7 @@ func (i *Info) Set(f ...map[string]string) *Info {
 			fields.data = append(fields.data, NewField(k, v))
 		}
 	}
-	i.Data = &fields
+	i.Fields = &fields
 	return i
 }
 
@@ -132,10 +132,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				i := m.form.Items.Get(cur)
 				field := i.Data.(Field)
 				val := m.edit.Value()
-				m.Data.Set(field.Key, val)
-				_, f := m.Data.GetField(field.Key)
+				m.Fields.Set(field.Key, val)
+				_, f := m.Fields.GetField(field.Key)
 				m.form.Items.Set(i.Index(), item.NewItem(f))
-				//m.SetItem(m.List.Model.Index(), cur)
 				m.edit.Blur()
 				m.form = m.Edit()
 				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
@@ -154,7 +153,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case form:
 				switch {
 				case key.Matches(msg, urkey.EditField):
-					cmds = append(cmds, prompt.UpdateStatusCmd("edit field"))
+					cur := m.form.List.SelectedItem()
+					field := m.form.Items.Get(cur).Data.(Field)
+					cmds = append(cmds, EditItemCmd(&field))
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = view
 				}
@@ -171,9 +172,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.edit.ShowLineNumbers = false
 		m.edit.Focus()
 	case UpdateContentMsg:
-		m.Data.Set(msg.Key, msg.Value)
+		m.Fields.Set(msg.Key, msg.Value)
 	case tea.WindowSizeMsg:
 		m.view = viewport.New(msg.Width-2, msg.Height-2)
+		m.form.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
 		var field Field
 		if items := m.form.Items.Selections(); len(items) > 0 {

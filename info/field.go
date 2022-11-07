@@ -1,8 +1,19 @@
 package info
 
-import "golang.org/x/exp/slices"
+import (
+	"fmt"
+
+	"golang.org/x/exp/slices"
+)
+
+type FormData interface {
+	Get(string) string
+	Set(string, string)
+	Keys() []string
+}
 
 type Field struct {
+	idx   int
 	Key   string
 	Value string
 }
@@ -75,7 +86,12 @@ func (f Fields) Has(key string) bool {
 	return slices.Contains(f.Keys(), key)
 }
 
-func (f *Fields) Add(key, val string) {
+func (f *Fields) Add(key, val string) error {
+	if f.Has(key) {
+		return fmt.Errorf("keys must be unique")
+	}
 	field := NewField(key, val)
+	field.idx = len(f.data)
 	f.data = append(f.data, field)
+	return nil
 }
