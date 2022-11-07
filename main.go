@@ -46,6 +46,7 @@ func testInfo() *info.Model {
 	f.Add("tow", "toot")
 	f.Add("tow", "toot")
 	i := info.New(f)
+	//i.Info.NoKeys()
 	//fmt.Println(i.String())
 	return i
 }

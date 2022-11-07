@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -31,11 +30,9 @@ type Style struct {
 }
 
 type Model struct {
-	form  prompt.Model
-	view  viewport.Model
-	edit  textarea.Model
 	state state
 	*Info
+	*Form
 }
 
 func New(data FormData) *Model {
@@ -48,9 +45,12 @@ func New(data FormData) *Model {
 		Info: &Info{
 			Fields: fields,
 		},
+		Form: &Form{
+			Fields: fields,
+		},
 	}
-	m.view = m.Display()
-	m.form = m.Edit()
+	m.Display()
+	m.Edit()
 	return &m
 }
 
@@ -60,31 +60,12 @@ type Info struct {
 	HideKeys bool
 }
 
-func (i *Info) Display() viewport.Model {
+func (i *Info) Display() *Info {
 	content := i.String()
 	height := lipgloss.Height(content)
-	vp := viewport.New(util.TermWidth(), height)
-	vp.SetContent(content)
-	return vp
-}
-
-type Form struct {
-	Model  prompt.Model
-	Input  textarea.Model
-	Fields *Fields
-}
-
-func (i *Info) Edit() prompt.Model {
-	items := item.NewItems()
-	for _, key := range i.Fields.Keys() {
-		f := i.Fields.Get(key)
-		item := item.NewItem(f)
-		items.Add(item)
-	}
-	m := prompt.New()
-	m.Title = "Edit..."
-	m.SetItems(items).MakeList()
-	return m
+	i.Model = viewport.New(util.TermWidth(), height)
+	i.Model.SetContent(content)
+	return i
 }
 
 func (i *Info) NoKeys() *Info {
@@ -122,63 +103,43 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		if m.edit.Focused() {
-			if key.Matches(msg, urkey.SaveAndExit) {
-				cur := m.form.List.SelectedItem()
-				i := m.form.Items.Get(cur)
-				field := i.Data.(Field)
-				val := m.edit.Value()
-				field.Set(val)
-				m.form.Items.Set(i.Index(), item.NewItem(field))
-				m.edit.Blur()
-				m.form = m.Edit()
-				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
+		switch m.state {
+		case view:
+			switch {
+			case key.Matches(msg, urkey.EditField):
+				cmds = append(cmds, UpdateInfoCmd())
 			}
-			m.edit, cmd = m.edit.Update(msg)
+			m.Info.Model, cmd = m.Info.Model.Update(msg)
 			cmds = append(cmds, cmd)
-		} else {
-			switch m.state {
-			case view:
-				switch {
-				case key.Matches(msg, urkey.EditField):
-					cmds = append(cmds, UpdateInfoCmd())
-				}
-				m.view, cmd = m.view.Update(msg)
-				cmds = append(cmds, cmd)
-			case form:
-				switch {
-				case key.Matches(msg, urkey.EditField):
-					cur := m.form.List.SelectedItem()
-					field := m.form.Items.Get(cur).Data.(Field)
-					cmds = append(cmds, EditItemCmd(field))
-				case key.Matches(msg, urkey.ExitScreen):
-					m.state = view
-				}
-				m.form, cmd = m.form.Update(msg)
-				cmds = append(cmds, cmd)
+		case form:
+			switch {
+			case key.Matches(msg, urkey.ExitScreen):
+				m.state = view
 			}
+			m.Form, cmd = m.Form.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	case EditInfoMsg:
-		m.form = m.Edit()
+		m.Edit()
 		m.state = form
 	case EditItemMsg:
-		m.edit = textarea.New()
-		m.edit.SetValue(msg.Value())
-		m.edit.ShowLineNumbers = false
-		m.edit.Focus()
+		m.Input = textarea.New()
+		m.Input.SetValue(msg.Value())
+		m.Input.ShowLineNumbers = false
+		m.Input.Focus()
 	case UpdateContentMsg:
-		m.Fields.Set(msg.Key(), msg.Value())
+		m.Form.Fields.Set(msg.Key(), msg.Value())
 	case tea.WindowSizeMsg:
-		m.view = viewport.New(msg.Width-2, msg.Height-2)
-		m.form.List.SetSize(msg.Width-2, msg.Height-2)
+		m.Info.Model = viewport.New(msg.Width-2, msg.Height-2)
+		m.Form.Model.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
 		var field Field
-		if items := m.form.Items.Selections(); len(items) > 0 {
+		if items := m.Form.Model.Items.Selections(); len(items) > 0 {
 			field = items[0].Data.(Field)
 		}
 		cmds = append(cmds, EditItemCmd(field))
 	case prompt.UpdateStatusMsg:
-		m.form, cmd = m.form.Update(msg)
+		m.Form.Model, cmd = m.Form.Model.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 	return m, tea.Batch(cmds...)
@@ -196,23 +157,23 @@ func (m *Model) View() string {
 	)
 
 	var field string
-	if m.edit.Focused() {
-		field = m.edit.View()
+	if m.Input.Focused() {
+		field = m.Input.View()
 		availHeight -= lipgloss.Height(field)
 	}
 
 	switch m.state {
 	case view:
-		m.view.SetContent(m.String())
-		v := m.view.View()
+		m.Info.Model.SetContent(m.String())
+		v := m.Info.Model.View()
 		sections = append(sections, v)
 	case form:
-		m.form.List.SetSize(m.form.Width, availHeight)
-		v := m.form.View()
+		m.Form.Model.List.SetSize(m.Form.Model.Width, availHeight)
+		v := m.Form.Model.View()
 		sections = append(sections, v)
 	}
 
-	if m.edit.Focused() {
+	if m.Input.Focused() {
 		sections = append(sections, field)
 	}
 
