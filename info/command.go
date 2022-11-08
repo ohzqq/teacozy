@@ -1,6 +1,8 @@
 package info
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type EditInfoMsg struct{}
 

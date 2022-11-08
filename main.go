@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
@@ -36,29 +35,12 @@ func testInfo() *info.Model {
 	f := &info.DefaultFields{}
 	//f := info.NewFields()
 	f.Add("one", "poot")
-	f.Add("tow", "toot")
-	f.Add("tow", "toot")
-	f.Add("tow", "toot")
-	f.Add("tow", "toot")
 	f.Add("kjl", "toot")
-	f.Add("tow", "toot")
-	f.Add("tow", "toot")
 	f.Add("kjl", "toot")
-	f.Add("tow", "toot")
-	f.Add("tow", "toot")
 	i := info.NewForm(f)
 	//i.Info.NoKeys()
 	//fmt.Println(i.String())
 	return i
-}
-
-func testForm() form.Form {
-	fields := []form.Field{
-		form.NewField("poot", "poot begins"),
-		form.NewField("toot", "toot begins"),
-	}
-	f := form.New("test form", fields...)
-	return f
 }
 
 func testPrompt() {
