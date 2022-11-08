@@ -1,15 +1,15 @@
 package form
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/slices"
 )
 
 var fieldStyle = Style{
@@ -45,6 +45,10 @@ func NewFields() *Fields {
 	return &Fields{
 		Style: fieldStyle,
 	}
+}
+
+func (f *Fields) Edit() *Model {
+	return NewForm(f.Data)
 }
 
 func (f *Fields) Render() *Fields {
@@ -85,8 +89,16 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
+		switch {
+		case key.Matches(msg, urkey.SaveAndExit):
+			cmds = append(cmds, SaveAsHashCmd())
+		case key.Matches(msg, urkey.EditField):
+			cmds = append(cmds, EditInfoCmd())
+		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
+	case EditInfoMsg:
+		m.Render()
 	}
 
 	m.Model, cmd = m.Model.Update(msg)
@@ -119,74 +131,6 @@ func (m *Fields) View() string {
 
 func (i *Fields) Init() tea.Cmd {
 	return nil
-}
-
-type FieldData string
-
-func (f FieldData) String() string {
-	return string(f)
-}
-
-type DefaultFields struct {
-	data []Field
-}
-
-func (f DefaultFields) Get(key string) Field {
-	for _, field := range f.data {
-		if field.Key() == key {
-			return field
-		}
-	}
-	return &DefaultField{}
-}
-
-func (f DefaultFields) Keys() []string {
-	var keys []string
-	for _, field := range f.data {
-		keys = append(keys, field.Key())
-	}
-	return keys
-}
-
-func (f DefaultFields) Has(key string) bool {
-	return slices.Contains(f.Keys(), key)
-}
-
-func (f *DefaultFields) Add(key, val string) error {
-	if f.Has(key) {
-		return fmt.Errorf("keys must be unique")
-	}
-	field := NewDefaultField(key, val)
-	f.data = append(f.data, field)
-	return nil
-}
-
-type DefaultField struct {
-	key   string
-	value string
-}
-
-func NewDefaultField(key, val string) *DefaultField {
-	return &DefaultField{
-		key:   key,
-		value: val,
-	}
-}
-
-func (f DefaultField) FilterValue() string {
-	return f.value
-}
-
-func (f DefaultField) Value() string {
-	return f.value
-}
-
-func (f *DefaultField) Set(val string) {
-	f.value = val
-}
-
-func (f DefaultField) Key() string {
-	return f.key
 }
 
 func SetKeyStyle(s lipgloss.Style) {

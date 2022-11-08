@@ -1,6 +1,8 @@
 package form
 
 import (
+	"log"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -10,6 +12,21 @@ type Model struct {
 
 func NewForm(data FormData) *Model {
 	return &Model{Form: New(data)}
+}
+
+func NewInfo(data FormData) *Model {
+	form := New(data)
+	form.state = view
+	return &Model{
+		Form: form,
+	}
+}
+
+func (m *Model) Start() {
+	p := tea.NewProgram(m)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

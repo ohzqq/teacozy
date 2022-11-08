@@ -80,10 +80,6 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			switch m.state {
 			case view:
 				switch {
-				case key.Matches(msg, urkey.SaveAndExit):
-					cmds = append(cmds, SaveAsHashCmd())
-				case key.Matches(msg, urkey.EditField):
-					cmds = append(cmds, EditInfoCmd())
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = form
 				}

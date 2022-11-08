@@ -24,10 +24,11 @@ func main() {
 
 	//m := testMenu()
 	m := testInfo()
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
+	m.Start()
+	//p := tea.NewProgram(m)
+	//if err := p.Start(); err != nil {
+	//  log.Fatal(err)
+	//}
 
 	fmt.Printf("%+V\n", m.Hash)
 }
@@ -38,7 +39,7 @@ func testInfo() *form.Model {
 	f.Add("one", "poot")
 	f.Add("kjl", "toot")
 	f.Add("kjl", "toot")
-	i := form.NewForm(f)
+	i := form.NewInfo(f)
 	//i.Info.NoKeys()
 	//fmt.Println(i.String())
 	return i
