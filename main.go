@@ -23,14 +23,16 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	//m := testMenu()
-	m := testInfo()
-	m.Start()
+	//m := testInfo()
+
+	//m.Start()
 	//p := tea.NewProgram(m)
 	//if err := p.Start(); err != nil {
-	//  log.Fatal(err)
+	//log.Fatal(err)
 	//}
 
-	fmt.Printf("%+V\n", m.Hash)
+	//fmt.Printf("%+V\n", m.Hash)
+	testPrompt()
 }
 
 func testInfo() *form.Model {
