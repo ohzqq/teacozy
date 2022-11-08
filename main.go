@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/info"
+	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/menu"
@@ -29,15 +29,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("%+V\n", m.Hash)
 }
 
-func testInfo() *info.Model {
-	f := &info.DefaultFields{}
+func testInfo() *form.Model {
+	f := &form.DefaultFields{}
 	//f := info.NewFields()
 	f.Add("one", "poot")
 	f.Add("kjl", "toot")
 	f.Add("kjl", "toot")
-	i := info.NewForm(f)
+	i := form.NewForm(f)
 	//i.Info.NoKeys()
 	//fmt.Println(i.String())
 	return i

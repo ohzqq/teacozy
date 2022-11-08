@@ -1,4 +1,4 @@
-package info
+package form
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

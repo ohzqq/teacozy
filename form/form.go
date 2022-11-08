@@ -23,6 +23,7 @@ type Form struct {
 	Model  prompt.Model
 	Input  textarea.Model
 	Fields *Fields
+	Hash   map[string]string
 	state  state
 }
 
@@ -80,20 +81,40 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			case view:
 				switch {
 				case key.Matches(msg, urkey.SaveAndExit):
+					cmds = append(cmds, SaveAsHashCmd())
 				case key.Matches(msg, urkey.EditField):
 					cmds = append(cmds, EditInfoCmd())
+				case key.Matches(msg, urkey.ExitScreen):
+					m.state = form
 				}
 			case form:
 				switch {
+				case key.Matches(msg, urkey.SaveAndExit):
+					m.state = view
 				case key.Matches(msg, urkey.EditField):
 					cur := m.Model.List.SelectedItem()
 					field := m.Model.Items.Get(cur).Data.(Field)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
-					m.state = view
+					cmds = append(cmds, tea.Quit)
 				}
 			}
+			switch m.state {
+			case view:
+				m.Fields, cmd = m.Fields.Update(msg)
+				cmds = append(cmds, cmd)
+			case form:
+				m.Model.List, cmd = m.Model.List.Update(msg)
+				cmds = append(cmds, cmd)
+			}
+
 		}
+	case SaveAsHashMsg:
+		m.Hash = make(map[string]string)
+		for _, field := range m.Fields.AllFields() {
+			m.Hash[field.Key()] = field.Value()
+		}
+		cmds = append(cmds, tea.Quit)
 	case EditInfoMsg:
 		m.Edit()
 		m.state = form
@@ -113,15 +134,6 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		}
 		cmds = append(cmds, EditItemCmd(field))
 	case prompt.UpdateStatusMsg:
-	}
-
-	switch m.state {
-	case view:
-		m.Fields, cmd = m.Fields.Update(msg)
-		cmds = append(cmds, cmd)
-	case form:
-		m.Model.List, cmd = m.Model.List.Update(msg)
-		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)

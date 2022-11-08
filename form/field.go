@@ -65,6 +65,15 @@ func (f *Fields) SetData(data FormData) *Fields {
 	return f
 }
 
+func (f Fields) AllFields() []Field {
+	var fields []Field
+	for _, key := range f.Data.Keys() {
+		field := f.Data.Get(key)
+		fields = append(fields, field)
+	}
+	return fields
+}
+
 func (f DefaultFields) Get(key string) Field {
 	for _, field := range f.data {
 		if field.Key() == key {
@@ -131,9 +140,8 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 
 func (i Fields) String() string {
 	var info []string
-	for _, key := range i.Data.Keys() {
+	for _, field := range i.AllFields() {
 		var line []string
-		field := i.Data.Get(key)
 		if !i.HideKeys {
 			k := i.Style.Key.Render(field.Key())
 			line = append(line, k, ": ")

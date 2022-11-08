@@ -1,8 +1,16 @@
-package info
+package form
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type SaveAsHashMsg struct{}
+
+func SaveAsHashCmd() tea.Cmd {
+	return func() tea.Msg {
+		return SaveAsHashMsg{}
+	}
+}
 
 type EditInfoMsg struct{}
 
