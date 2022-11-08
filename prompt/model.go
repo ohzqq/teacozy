@@ -4,8 +4,8 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/util"
 )
 

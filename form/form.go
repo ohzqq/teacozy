@@ -5,8 +5,8 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/list/item"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/util"
 )
