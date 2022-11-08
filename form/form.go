@@ -33,11 +33,11 @@ func New(data FormData) *Form {
 		Fields: fields,
 	}
 	m.Fields.Render()
-	m.Edit()
+	m.Render()
 	return &m
 }
 
-func (f *Form) Edit() *Form {
+func (f *Form) Render() *Form {
 	items := item.NewItems()
 	for _, key := range f.Fields.Data.Keys() {
 		field := f.Fields.Data.Get(key)
@@ -71,7 +71,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				field.Set(val)
 				m.Model.Items.Set(i.Index(), item.NewItem(field))
 				m.Input.Blur()
-				m.Edit()
+				m.Render()
 				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
 			}
 			m.Input, cmd = m.Input.Update(msg)
@@ -111,7 +111,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		}
 		cmds = append(cmds, tea.Quit)
 	case EditInfoMsg:
-		m.Edit()
+		m.Render()
 		m.state = form
 	case EditItemMsg:
 		m.Input = textarea.New()
@@ -119,7 +119,8 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
 	case UpdateContentMsg:
-		m.Fields.Data.Set(msg.Key(), msg.Value())
+		field := m.Fields.Data.Get(msg.Key())
+		field.Set(msg.Value())
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:

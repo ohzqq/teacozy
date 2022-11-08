@@ -24,7 +24,6 @@ type Style struct {
 
 type FormData interface {
 	Get(string) Field
-	Set(string, string)
 	Keys() []string
 }
 
@@ -40,10 +39,6 @@ type Fields struct {
 	HideKeys bool
 	Style    Style
 	Data     FormData
-}
-
-type DefaultFields struct {
-	data []Field
 }
 
 func NewFields() *Fields {
@@ -72,45 +67,6 @@ func (f Fields) AllFields() []Field {
 		fields = append(fields, field)
 	}
 	return fields
-}
-
-func (f DefaultFields) Get(key string) Field {
-	for _, field := range f.data {
-		if field.Key() == key {
-			return field
-		}
-	}
-	return &DefaultField{}
-}
-
-func (f *DefaultFields) Set(key, val string) {
-	if f.Has(key) {
-		ff := f.Get(key)
-		ff.Set(val)
-	} else {
-		f.Add(key, val)
-	}
-}
-
-func (f DefaultFields) Keys() []string {
-	var keys []string
-	for _, field := range f.data {
-		keys = append(keys, field.Key())
-	}
-	return keys
-}
-
-func (f DefaultFields) Has(key string) bool {
-	return slices.Contains(f.Keys(), key)
-}
-
-func (f *DefaultFields) Add(key, val string) error {
-	if f.Has(key) {
-		return fmt.Errorf("keys must be unique")
-	}
-	field := NewDefaultField(key, val)
-	f.data = append(f.data, field)
-	return nil
 }
 
 func (f *Fields) NoKeys() *Fields {
@@ -162,6 +118,46 @@ func (m *Fields) View() string {
 }
 
 func (i *Fields) Init() tea.Cmd {
+	return nil
+}
+
+type FieldData string
+
+func (f FieldData) String() string {
+	return string(f)
+}
+
+type DefaultFields struct {
+	data []Field
+}
+
+func (f DefaultFields) Get(key string) Field {
+	for _, field := range f.data {
+		if field.Key() == key {
+			return field
+		}
+	}
+	return &DefaultField{}
+}
+
+func (f DefaultFields) Keys() []string {
+	var keys []string
+	for _, field := range f.data {
+		keys = append(keys, field.Key())
+	}
+	return keys
+}
+
+func (f DefaultFields) Has(key string) bool {
+	return slices.Contains(f.Keys(), key)
+}
+
+func (f *DefaultFields) Add(key, val string) error {
+	if f.Has(key) {
+		return fmt.Errorf("keys must be unique")
+	}
+	field := NewDefaultField(key, val)
+	f.data = append(f.data, field)
 	return nil
 }
 
