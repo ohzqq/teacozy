@@ -87,6 +87,8 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = form
 				}
+				m.Fields, cmd = m.Fields.Update(msg)
+				cmds = append(cmds, cmd)
 			case form:
 				switch {
 				case key.Matches(msg, urkey.SaveAndExit):
@@ -98,16 +100,9 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				case key.Matches(msg, urkey.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
-			}
-			switch m.state {
-			case view:
-				m.Fields, cmd = m.Fields.Update(msg)
-				cmds = append(cmds, cmd)
-			case form:
 				m.Model.List, cmd = m.Model.List.Update(msg)
 				cmds = append(cmds, cmd)
 			}
-
 		}
 	case SaveAsHashMsg:
 		m.Hash = make(map[string]string)
