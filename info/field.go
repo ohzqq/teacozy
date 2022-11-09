@@ -53,10 +53,6 @@ func NewFields() *Fields {
 	}
 }
 
-//func (f *Fields) Edit() *Model {
-//  return NewForm(f.Data)
-//}
-
 func (f *Fields) Render() *Fields {
 	content := f.String()
 	height := lipgloss.Height(content)
