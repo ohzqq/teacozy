@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/prompt"
@@ -20,15 +21,15 @@ const (
 )
 
 type Form struct {
-	Model  prompt.Model
+	Model  *prompt.Model
 	Input  textarea.Model
-	Fields *Fields
+	Fields *info.Fields
 	Hash   map[string]string
 	state  state
 }
 
-func New(data FormData) *Form {
-	fields := NewFields().SetData(data)
+func New(data info.FormData) *Form {
+	fields := info.NewFields().SetData(data)
 	m := Form{
 		Fields: fields,
 	}
@@ -66,7 +67,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.Model.List.SelectedItem()
 				i := m.Model.Items.Get(cur)
-				field := i.Data.(Field)
+				field := i.Data.(info.Field)
 				val := m.Input.Value()
 				field.Set(val)
 				m.Model.Items.Set(i.Index(), item.NewItem(field))
@@ -80,6 +81,10 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			switch m.state {
 			case view:
 				switch {
+				case key.Matches(msg, urkey.SaveAndExit):
+					cmds = append(cmds, SaveAsHashCmd())
+				case key.Matches(msg, urkey.EditField):
+					cmds = append(cmds, EditInfoCmd())
 				case key.Matches(msg, urkey.ExitScreen):
 					m.state = form
 				}
@@ -91,7 +96,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 					m.state = view
 				case key.Matches(msg, urkey.EditField):
 					cur := m.Model.List.SelectedItem()
-					field := m.Model.Items.Get(cur).Data.(Field)
+					field := m.Model.Items.Get(cur).Data.(info.Field)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
 					cmds = append(cmds, tea.Quit)
@@ -120,9 +125,9 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
 	case prompt.ReturnSelectionsMsg:
-		var field Field
+		var field info.Field
 		if items := m.Model.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(Field)
+			field = items[0].Data.(info.Field)
 		}
 		cmds = append(cmds, EditItemCmd(field))
 	case prompt.UpdateStatusMsg:

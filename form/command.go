@@ -2,6 +2,7 @@ package form
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/info"
 )
 
 type SaveAsHashMsg struct{}
@@ -21,21 +22,21 @@ func EditInfoCmd() tea.Cmd {
 }
 
 type EditItemMsg struct {
-	Field
+	info.Field
 }
 
-func EditItemCmd(field Field) tea.Cmd {
+func EditItemCmd(field info.Field) tea.Cmd {
 	return func() tea.Msg {
 		return EditItemMsg{Field: field}
 	}
 }
 
 type UpdateContentMsg struct {
-	Field
+	info.Field
 }
 
 func UpdateContentCmd(key, val string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateContentMsg{Field: NewDefaultField(key, val)}
+		return UpdateContentMsg{Field: info.NewDefaultField(key, val)}
 	}
 }

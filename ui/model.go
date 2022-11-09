@@ -6,14 +6,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/info"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/prompt"
 )
 
 type UI struct {
-	prompt.Model
-	info             *form.Fields
+	*prompt.Model
+	info             *info.Fields
 	Keys             urkey.KeyMap
 	Title            string
 	IsMultiSelect    bool
@@ -49,11 +49,11 @@ func (l *UI) HideMenu() {
 	l.showMenu = false
 }
 
-func (l *Model) ShowInfo() {
+func (l *UI) ShowInfo() {
 	l.showInfo = true
 }
 
-func (l *Model) HideInfo() {
+func (l *UI) HideInfo() {
 	l.showInfo = false
 }
 

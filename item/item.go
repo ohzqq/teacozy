@@ -3,7 +3,7 @@ package item
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/info"
 )
 
 const (
@@ -28,14 +28,14 @@ type Item struct {
 	Label             string
 	Content           string
 	//Info              *Info
-	Info *form.Fields
+	Info *info.Fields
 }
 
 func NewItem(item list.Item) *Item {
 	i := Item{
 		Data:    item,
 		Content: item.FilterValue(),
-		Info:    NewInfo(),
+		Info:    info.NewFields(),
 	}
 
 	return &i
@@ -44,7 +44,7 @@ func NewItem(item list.Item) *Item {
 func NewDefaultItem(content string) *Item {
 	item := Item{
 		Content: content,
-		Info:    NewInfo(),
+		Info:    info.NewFields(),
 	}
 	item.Data = item
 	return &item

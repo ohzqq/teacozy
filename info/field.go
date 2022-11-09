@@ -3,11 +3,9 @@ package info
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -47,9 +45,9 @@ func NewFields() *Fields {
 	}
 }
 
-func (f *Fields) Edit() *Model {
-	return NewForm(f.Data)
-}
+//func (f *Fields) Edit() *Model {
+//  return NewForm(f.Data)
+//}
 
 func (f *Fields) Render() *Fields {
 	content := f.String()
@@ -89,16 +87,8 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		switch {
-		case key.Matches(msg, urkey.SaveAndExit):
-			cmds = append(cmds, SaveAsHashCmd())
-		case key.Matches(msg, urkey.EditField):
-			cmds = append(cmds, EditInfoCmd())
-		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
-	case EditInfoMsg:
-		m.Render()
 	}
 
 	m.Model, cmd = m.Model.Update(msg)

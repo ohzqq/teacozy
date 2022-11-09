@@ -21,7 +21,7 @@ type Model struct {
 	Style            list.Styles
 }
 
-func New() Model {
+func New() *Model {
 	w, h := util.TermSize()
 	p := Model{
 		Items:  item.NewItems(),
@@ -29,7 +29,7 @@ func New() Model {
 		Height: h,
 		Keys:   urkey.DefaultKeys(),
 	}
-	return p
+	return &p
 }
 
 func (m *Model) MakeList() list.Model {
@@ -66,7 +66,7 @@ func (m *Model) SetSize(w, h int) *Model {
 	return m
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd

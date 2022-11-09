@@ -4,17 +4,18 @@ import (
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/info"
 )
 
 type Model struct {
 	*Form
 }
 
-func NewForm(data FormData) *Model {
+func NewForm(data info.FormData) *Model {
 	return &Model{Form: New(data)}
 }
 
-func NewInfo(data FormData) *Model {
+func NewInfo(data info.FormData) *Model {
 	form := New(data)
 	form.state = view
 	return &Model{

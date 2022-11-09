@@ -9,7 +9,7 @@ import (
 )
 
 type Prompt struct {
-	Model
+	*Model
 }
 
 func NewPrompt() Prompt {

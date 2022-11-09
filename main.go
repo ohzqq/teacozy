@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/menu"
@@ -64,7 +65,7 @@ func testUIMenu() *ui.Menu {
 	return m
 }
 func testInfo() *form.Model {
-	f := &form.DefaultFields{}
+	f := &info.DefaultFields{}
 	//f := info.NewFields()
 	f.Add("one", "poot")
 	f.Add("kjl", "toot")
