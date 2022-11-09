@@ -9,7 +9,6 @@ import (
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
-	"github.com/ohzqq/teacozy/menu"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/ui"
 	"github.com/ohzqq/teacozy/util"
@@ -23,16 +22,6 @@ var (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	//m := testMenu()
-	//m := testInfo()
-
-	//m.Start()
-	//p := tea.NewProgram(m)
-	//if err := p.Start(); err != nil {
-	//log.Fatal(err)
-	//}
-
-	//fmt.Printf("%+V\n", m.Hash)
 	testUI()
 	//testPrompt()
 }
@@ -139,23 +128,6 @@ var testSubList = map[string]string{
 	"sub2": "toot",
 }
 
-func testMenu() *menu.Menu {
-	t := key.NewBinding(
-		key.WithKeys("a"),
-		key.WithHelp("a", "deselect all"),
-	)
-	testHelpKeys := []menu.Item{
-		menu.NewItem("t", "select item", TestKeyAction),
-		menu.NewItem("o", "deselect item", TestKeyAction),
-	}
-	m := menu.NewMenu("test", t, testHelpKeys...)
-	return m
-}
-
 func UiTestKeyAction(m *ui.UI) tea.Cmd {
 	return prompt.UpdateStatusCmd(fmt.Sprintf("%v", "poot"))
-}
-
-func TestKeyAction() tea.Cmd {
-	return menu.UpdateMenuContentCmd("update")
 }
