@@ -39,19 +39,30 @@ func main() {
 
 func testUI() {
 	items := newItems()
-	m := prompt.New()
+	m := ui.NewUI("test")
 	//m.MultiSelect = false
 	m.SetItems(items)
+	m.AddMenu(testUIMenu())
 	m.SetMultiSelect()
-	var tui ui.UI
-	tui.Model = m
-	tui.Start()
+	m.Start()
 
-	for _, i := range tui.Items.Selections() {
+	for _, i := range m.Items.Selections() {
 		fmt.Printf("%v\n", i.Content)
 	}
 }
 
+func testUIMenu() *ui.Menu {
+	t := key.NewBinding(
+		key.WithKeys("a"),
+		key.WithHelp("a", "deselect all"),
+	)
+	testHelpKeys := []ui.MenuItem{
+		ui.NewMenuItem("t", "select item", UiTestKeyAction),
+		ui.NewMenuItem("o", "deselect item", UiTestKeyAction),
+	}
+	m := ui.NewMenu("test", t, testHelpKeys...)
+	return m
+}
 func testInfo() *form.Model {
 	f := &form.DefaultFields{}
 	//f := info.NewFields()
@@ -205,7 +216,10 @@ func infoWidget() *list.InfoWidget {
 	return info
 }
 
+func UiTestKeyAction(m *ui.UI) tea.Cmd {
+	return prompt.UpdateStatusCmd(fmt.Sprintf("%v", "poot"))
+}
+
 func TestKeyAction() tea.Cmd {
-	//return list.UpdateStatusCmd(fmt.Sprintf("%v", m.IsMultiSelect))
 	return menu.UpdateMenuContentCmd("update")
 }

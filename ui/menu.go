@@ -1,4 +1,4 @@
-package list
+package ui
 
 import (
 	"strings"
@@ -27,20 +27,24 @@ type Menu struct {
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Keys      MenuItems
+	Keys      []MenuItem
 	Update    func(tea.Model, tea.Msg) tea.Cmd
 }
 
 type MenuItems []MenuItem
 
-func NewMenu(l string, toggle key.Binding) *Menu {
-	return &Menu{
+func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
+	m := Menu{
 		Label:  l,
 		Toggle: toggle,
+		Keys:   items,
 	}
+	m.BuildModel()
+
+	return &m
 }
 
-func UpdateMenu(m *Model, msg tea.Msg) tea.Cmd {
+func UpdateMenu(m *UI, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
