@@ -9,6 +9,7 @@ import (
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/ui"
 	"github.com/ohzqq/teacozy/util"
@@ -129,5 +130,5 @@ var testSubList = map[string]string{
 }
 
 func UiTestKeyAction(m *ui.UI) tea.Cmd {
-	return prompt.UpdateStatusCmd(fmt.Sprintf("%v", "poot"))
+	return list.UpdateStatusCmd(fmt.Sprintf("%v", "poot"))
 }

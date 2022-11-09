@@ -10,11 +10,11 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/prompt"
+	"github.com/ohzqq/teacozy/list"
 )
 
 type UI struct {
-	*prompt.Model
+	*list.Model
 	info             *info.Fields
 	Keys             urkey.KeyMap
 	Title            string
@@ -32,7 +32,7 @@ type UI struct {
 
 func NewUI(title string) UI {
 	return UI{
-		Model:       prompt.New(),
+		Model:       list.New(),
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",

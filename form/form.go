@@ -9,7 +9,6 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -74,7 +73,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				m.Model.Items.Set(i.Index(), item.NewItem(field))
 				m.Input.Blur()
 				m.Render()
-				cmds = append(cmds, prompt.UpdateVisibleItemsCmd("visible"))
+				cmds = append(cmds, list.UpdateVisibleItemsCmd("visible"))
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
@@ -125,13 +124,12 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		field.Set(msg.Value())
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
-	case prompt.ReturnSelectionsMsg:
+	case list.ReturnSelectionsMsg:
 		var field info.Field
 		if items := m.Model.Items.Selections(); len(items) > 0 {
 			field = items[0].Data.(info.Field)
 		}
 		cmds = append(cmds, EditItemCmd(field))
-	case prompt.UpdateStatusMsg:
 	}
 
 	return m, tea.Batch(cmds...)
@@ -139,8 +137,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 
 func (m *Form) View() string {
 	var (
-		sections []string
-		//availHeight = m.form.List.Height()
+		sections    []string
 		availHeight = util.TermHeight()
 	)
 	var field string
