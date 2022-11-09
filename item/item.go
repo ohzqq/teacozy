@@ -3,6 +3,7 @@ package item
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/ohzqq/teacozy/form"
 )
 
 const (
@@ -26,7 +27,8 @@ type Item struct {
 	TotalSubListItems int
 	Label             string
 	Content           string
-	Info              *Info
+	//Info              *Info
+	Info *form.Fields
 }
 
 func NewItem(item list.Item) *Item {

@@ -6,12 +6,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/form"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/prompt"
 )
 
 type UI struct {
 	prompt.Model
+	info             *form.Fields
 	Keys             urkey.KeyMap
 	Title            string
 	IsMultiSelect    bool
@@ -45,6 +47,14 @@ func (l *UI) ShowMenu() {
 
 func (l *UI) HideMenu() {
 	l.showMenu = false
+}
+
+func (l *Model) ShowInfo() {
+	l.showInfo = true
+}
+
+func (l *Model) HideInfo() {
+	l.showInfo = false
 }
 
 func (m *UI) Start() *UI {
@@ -115,12 +125,22 @@ func (m *UI) View() string {
 		availHeight -= lipgloss.Height(menu)
 	}
 
+	var info string
+	if m.showInfo {
+		info = m.info.View()
+		availHeight -= lipgloss.Height(info)
+	}
+
 	m.Model.SetSize(m.width, availHeight)
 	content := m.Model.List.View()
 	sections = append(sections, content)
 
 	if m.showMenu {
 		sections = append(sections, menu)
+	}
+
+	if m.showInfo {
+		sections = append(sections, info)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

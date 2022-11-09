@@ -62,6 +62,7 @@ func (m *Model) SetMultiSelect() *Model {
 func (m *Model) SetSize(w, h int) *Model {
 	m.Width = w
 	m.Height = h
+	m.List.SetSize(w, h)
 	return m
 }
 
