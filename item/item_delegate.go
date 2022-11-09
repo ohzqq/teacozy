@@ -49,7 +49,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		switch {
 		case key.Matches(msg, urkey.Info):
 			if info := curItem.Info; info.String() != "" {
-				cmds = append(cmds, UpdateInfoCmd(info.String()))
+				cmds = append(cmds, ShowInfoCmd(curItem))
 			}
 		case key.Matches(msg, urkey.EditField):
 			cmds = append(cmds, EditContentCmd(curItem))

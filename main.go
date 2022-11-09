@@ -40,8 +40,12 @@ func main() {
 
 func testUI() {
 	items := newItems()
+	f := testInfo()
+	for idx, i := range items.All() {
+		i.Info = f.Fields
+		items.Set(idx, i)
+	}
 	m := ui.NewUI("test")
-	//m.MultiSelect = false
 	m.SetItems(items)
 	m.AddMenu(testUIMenu())
 	m.SetMultiSelect()
@@ -125,70 +129,6 @@ var testData = map[string]string{
 var testSubList = map[string]string{
 	"sub1": "poot",
 	"sub2": "toot",
-}
-
-func testList() list.List {
-	l := list.NewList("test")
-	sub3 := l.NewItem("sub3")
-	sub3.Info = infoWidget()
-	for key, _ := range testSubList {
-		i := l.NewItem(key)
-		i.SetLevel(1)
-		sub3.Li = append(sub3.Li, i)
-	}
-	for key, _ := range testData {
-		l.NewItem(key)
-	}
-	return l
-}
-
-func newItemWithList() list.Item {
-	item := list.NewItem(list.Item{Content: "sub3"})
-	for key, _ := range testSubList {
-		i := list.NewItem(list.Item{Content: key})
-		i.SetLevel(1)
-		item.Items = item.Items.Add(i)
-		//item.Items = append(item.Items, i)
-	}
-	return item
-}
-
-func testItems() list.Items {
-	var items list.Items
-	il := newItemWithList()
-	il.Info = infoWidget()
-	items = append(items, il)
-	for key, _ := range testData {
-		i := list.Item{Content: key}
-		items = append(items, i)
-	}
-	return items
-}
-
-func TestList() *list.Model {
-	l := list.New("test poot toot")
-	//l.isPrompt = true
-
-	//l.AddMenu(testMenu())
-	l.SetMulti()
-	l.List = testList()
-	//l.showMenu = true
-
-	//il := itemWithList("test sub list")
-	//il := newItemWithList()
-	//il.Info = infoWidget()
-	//l.AppendItem(il)
-	//l.Items = append(l.Items, il)
-	//for _, i := range TestItems() {
-	//for key, _ := range testData {
-	//i := list.Item{Content: key}
-	//l.AppendItem(i)
-	//l.NewItem(key)
-	//}
-
-	//l.List.Model = l.BuildModel()
-
-	return l
 }
 
 func testMenu() *menu.Menu {

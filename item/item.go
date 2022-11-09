@@ -27,8 +27,7 @@ type Item struct {
 	TotalSubListItems int
 	Label             string
 	Content           string
-	//Info              *Info
-	Info *info.Fields
+	Info              *info.Fields
 }
 
 func NewItem(item list.Item) *Item {

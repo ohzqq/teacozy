@@ -18,11 +18,11 @@ func ToggleSelectedCmd(item *Item) tea.Cmd {
 	}
 }
 
-type UpdateInfoMsg struct{ Info string }
+type ShowInfoMsg struct{ *Item }
 
-func UpdateInfoCmd(content string) tea.Cmd {
+func ShowInfoCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateInfoMsg{Info: content}
+		return ShowInfoMsg{Item: item}
 	}
 }
 

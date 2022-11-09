@@ -64,6 +64,9 @@ func (f *Fields) SetData(data FormData) *Fields {
 
 func (f Fields) AllFields() []Field {
 	var fields []Field
+	if f.Data == nil {
+		return fields
+	}
 	for _, key := range f.Data.Keys() {
 		field := f.Data.Get(key)
 		fields = append(fields, field)

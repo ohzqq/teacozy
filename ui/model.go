@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/info"
+	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/prompt"
 )
@@ -77,6 +78,13 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
+		switch focus {
+		case "info":
+			if key.Matches(msg, urkey.Quit) {
+				m.HideInfo()
+				cmds = append(cmds, SetFocusedViewCmd("list"))
+			}
+		}
 		switch {
 		case key.Matches(msg, urkey.Quit):
 			cmds = append(cmds, tea.Quit)
@@ -91,11 +99,16 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
+	case item.ShowInfoMsg:
+		m.info = msg.Info
+		m.ShowInfo()
+		cmds = append(cmds, SetFocusedViewCmd("info"))
 	}
 
 	switch focus {
 	case "info":
-		//cmds = append(cmds, UpdateInfoWidget(m, msg))
+		m.info, cmd = m.info.Update(msg)
+		cmds = append(cmds, cmd)
 	case "list":
 		//l, cmd := m.List.Update(msg)
 		//m.List = l.(List)
