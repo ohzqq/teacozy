@@ -8,6 +8,7 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -21,7 +22,7 @@ const (
 )
 
 type Form struct {
-	Model  *prompt.Model
+	Model  *list.Model
 	Input  textarea.Model
 	Fields *info.Fields
 	Hash   map[string]string
@@ -45,9 +46,9 @@ func (f *Form) Render() *Form {
 		item := item.NewItem(field)
 		items.Add(item)
 	}
-	m := prompt.New()
+	m := list.New()
 	m.Title = "Edit..."
-	m.SetItems(items).MakeList()
+	m.SetItems(items).InitList()
 	f.Model = m
 	return f
 }

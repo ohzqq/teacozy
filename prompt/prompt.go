@@ -6,15 +6,16 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	urkey "github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/list"
 )
 
 type Prompt struct {
-	*Model
+	*list.Model
 }
 
 func NewPrompt() Prompt {
 	return Prompt{
-		Model: New(),
+		Model: list.New(),
 	}
 }
 

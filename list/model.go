@@ -1,4 +1,4 @@
-package prompt
+package list
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -32,7 +32,7 @@ func New() *Model {
 	return &p
 }
 
-func (m *Model) MakeList() list.Model {
+func (m *Model) InitList() list.Model {
 	l := m.Items.List()
 	l.SetSize(m.Width, m.Height)
 	l.SetShowStatusBar(false)
@@ -128,7 +128,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	m.List = m.MakeList()
+	m.List = m.InitList()
 	return nil
 }
 
