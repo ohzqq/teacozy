@@ -9,7 +9,6 @@ import (
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
-	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/menu"
 	"github.com/ohzqq/teacozy/prompt"
 	"github.com/ohzqq/teacozy/ui"
@@ -151,19 +150,6 @@ func testMenu() *menu.Menu {
 	}
 	m := menu.NewMenu("test", t, testHelpKeys...)
 	return m
-}
-
-func infoWidget() *list.InfoWidget {
-	info := list.NewInfoWidget()
-	info.AddString("poot", "toot")
-	info.AddString("newt", "root")
-	for key, val := range testSubList {
-		info.AddString(key, val)
-	}
-	for key, val := range testData {
-		info.AddString(key, val)
-	}
-	return info
 }
 
 func UiTestKeyAction(m *ui.UI) tea.Cmd {
