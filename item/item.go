@@ -49,6 +49,10 @@ func NewDefaultItem(content string) *Item {
 	return &item
 }
 
+func (i *Item) SetInfo(f *info.Fields) {
+	i.Info = f
+}
+
 func (i *Item) SetMultiSelect() *Item {
 	i.MultiSelect = true
 	return i

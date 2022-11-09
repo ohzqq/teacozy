@@ -23,11 +23,12 @@ func NewInfo(data info.FormData) *Model {
 	}
 }
 
-func (m *Model) Start() {
+func (m *Model) Start() *info.Fields {
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
+	return m.Fields
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

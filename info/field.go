@@ -3,9 +3,11 @@ package info
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -33,10 +35,16 @@ type Field interface {
 }
 
 type Fields struct {
-	Model    viewport.Model
-	HideKeys bool
-	Style    Style
-	Data     FormData
+	Model     viewport.Model
+	HideKeys  bool
+	IsVisible bool
+	Style     Style
+	Data      FormData
+}
+
+func New(data FormData) *Fields {
+	f := NewFields().SetData(data)
+	return f
 }
 
 func NewFields() *Fields {
@@ -89,6 +97,12 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 	case tea.KeyMsg:
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
+		}
+		switch {
+		case key.Matches(msg, urkey.ExitScreen):
+			cmds = append(cmds, HideCmd())
+		case key.Matches(msg, urkey.EditField):
+			cmds = append(cmds, EditCmd(m))
 		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)

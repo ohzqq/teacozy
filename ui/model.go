@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
@@ -78,13 +79,6 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		switch focus {
-		case "info":
-			if key.Matches(msg, urkey.Quit) {
-				m.HideInfo()
-				cmds = append(cmds, SetFocusedViewCmd("list"))
-			}
-		}
 		switch {
 		case key.Matches(msg, urkey.Quit):
 			cmds = append(cmds, tea.Quit)
@@ -93,15 +87,25 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if key.Matches(msg, menu.Toggle) {
 					m.CurrentMenu = menu
 					m.ShowMenu()
+					m.HideInfo()
 					cmds = append(cmds, SetFocusedViewCmd(label))
 				}
 			}
 		}
+	case info.EditMsg:
+		cur := m.Items.Get(m.Model.List.SelectedItem())
+		f := form.NewForm(cur.Info.Data)
+		fields := f.Start()
+		cur.SetInfo(fields)
+	case info.HideMsg:
+		m.HideInfo()
+		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case item.ShowInfoMsg:
 		m.info = msg.Info
 		m.ShowInfo()
+		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
 	}
 
@@ -110,12 +114,8 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		//l, cmd := m.List.Update(msg)
-		//m.List = l.(List)
-		//cmds = append(cmds, cmd)
 		m.Model, cmd = m.Model.Update(msg)
 		cmds = append(cmds, cmd)
-		//cmds = append(cmds, UpdateList(m, msg))
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
@@ -123,6 +123,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
+
 	return m, tea.Batch(cmds...)
 }
 

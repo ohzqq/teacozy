@@ -45,6 +45,9 @@ func testUI() {
 		i.Info = f.Fields
 		items.Set(idx, i)
 	}
+	other := item.NewDefaultItem("OTHER")
+	other.SetInfo(otherInfo())
+	items.Add(other)
 	m := ui.NewUI("test")
 	m.SetItems(items)
 	m.AddMenu(testUIMenu())
@@ -68,11 +71,17 @@ func testUIMenu() *ui.Menu {
 	m := ui.NewMenu("test", t, testHelpKeys...)
 	return m
 }
+
+func otherInfo() *info.Fields {
+	f := &info.DefaultFields{}
+	f.Add("two", "poot")
+	f.Add("three", "toot")
+	return form.NewInfo(f).Fields
+}
+
 func testInfo() *form.Model {
 	f := &info.DefaultFields{}
-	//f := info.NewFields()
 	f.Add("one", "poot")
-	f.Add("kjl", "toot")
 	f.Add("kjl", "toot")
 	i := form.NewInfo(f)
 	//i.Info.NoKeys()
