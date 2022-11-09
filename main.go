@@ -11,6 +11,7 @@ import (
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/menu"
 	"github.com/ohzqq/teacozy/prompt"
+	"github.com/ohzqq/teacozy/ui"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -32,7 +33,23 @@ func main() {
 	//}
 
 	//fmt.Printf("%+V\n", m.Hash)
-	testPrompt()
+	testUI()
+	//testPrompt()
+}
+
+func testUI() {
+	items := newItems()
+	m := prompt.New()
+	//m.MultiSelect = false
+	m.SetItems(items)
+	m.SetMultiSelect()
+	var tui ui.UI
+	tui.Model = m
+	tui.Start()
+
+	for _, i := range tui.Items.Selections() {
+		fmt.Printf("%v\n", i.Content)
+	}
 }
 
 func testInfo() *form.Model {
