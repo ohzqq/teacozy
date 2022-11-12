@@ -59,12 +59,23 @@ func (f *Fields) Render() *Fields {
 	return f
 }
 
+func (f *Fields) Edit() *List {
+	items := NewItems()
+	if f.Data != nil {
+		for _, field := range f.All() {
+			items.Add(NewItem(field))
+		}
+	}
+	form := NewList("Edit...", items)
+	return form
+}
+
 func (f *Fields) SetData(data FormData) *Fields {
 	f.Data = data
 	return f
 }
 
-func (f Fields) AllFields() []FieldData {
+func (f Fields) All() []FieldData {
 	var fields []FieldData
 	if f.Data == nil {
 		return fields
@@ -109,7 +120,7 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 
 func (i Fields) String() string {
 	var info []string
-	for _, field := range i.AllFields() {
+	for _, field := range i.All() {
 		var line []string
 		if !i.HideKeys {
 			k := i.Style.Key.Render(field.Key())

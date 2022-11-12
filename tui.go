@@ -4,39 +4,33 @@ import (
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type TUI struct {
 	*List
-	info             *Fields
-	Keys             KeyMap
-	Title            string
-	ShowSelectedOnly bool
-	FocusedView      string
-	ShowWidget       bool
-	showMenu         bool
-	showInfo         bool
-	width            int
-	height           int
-	Menus            Menus
-	CurrentMenu      *Menu
+	Input       textarea.Model
+	view        viewport.Model
+	form        *Form
+	info        *Fields
+	Title       string
+	FocusedView string
+	ShowWidget  bool
+	showMenu    bool
+	showInfo    bool
+	width       int
+	height      int
+	Hash        map[string]string
+	Menus       Menus
+	CurrentMenu *Menu
 }
 
 func New(title string, items Items) TUI {
 	return TUI{
 		List:        NewList(title, items),
-		Title:       title,
-		Menus:       make(Menus),
-		FocusedView: "list",
-	}
-}
-
-func NewUI(title string) TUI {
-	l := NewList(title, NewItems()).SetMultiSelect()
-	return TUI{
-		List:        l,
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
@@ -97,17 +91,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case EditInfoMsg:
-		//cur := m.Items.Get(m.List.List.SelectedItem())
-		//f := NewForm(cur.Info.Data)
-		//fields := f.Start()
-		//cur.SetInfo(fields)
+		cur := m.Items.Get(m.List.List.SelectedItem())
+		f := NewInfo(cur.Fields.Data)
+		fields := f.Start()
+		cur.SetFields(fields)
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case ShowItemInfoMsg:
-		m.info = msg.Info
+		m.info = msg.Fields
 		m.HideMenu()
 		m.ShowInfo()
 		cmds = append(cmds, SetFocusedViewCmd("info"))

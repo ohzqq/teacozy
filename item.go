@@ -26,14 +26,14 @@ type Item struct {
 	TotalSubListItems int
 	key               string
 	value             string
-	Info              *Fields
+	Fields            *Fields
 }
 
 func NewItem(item list.Item) *Item {
 	i := Item{
-		Data:  item,
-		value: item.FilterValue(),
-		Info:  NewFields(),
+		Data:   item,
+		value:  item.FilterValue(),
+		Fields: NewFields(),
 	}
 
 	return &i
@@ -41,23 +41,27 @@ func NewItem(item list.Item) *Item {
 
 func NewDefaultItem(content string) *Item {
 	item := Item{
-		value: content,
-		Info:  NewFields(),
+		value:  content,
+		Fields: NewFields(),
 	}
 	item.Data = item
 	return &item
 }
 
-func (i *Item) SetInfo(f *Fields) {
-	i.Info = f
+// item info
+func (i Item) DisplayFields() string {
+	return i.Fields.String()
 }
 
-func (i *Item) EditInfo() {
-	if i.Info.Data != nil {
-		for _, field := range i.Info.AllFields() {
-			i.List.Add(NewItem(field))
-		}
+func (i *Item) SetFields(f *Fields) {
+	i.Fields = f
+}
+
+func (i *Item) EditFields() *List {
+	if i.Fields.Data != nil {
+		return i.Fields.Edit()
 	}
+	return &List{}
 }
 
 func (i Item) Value() string {
@@ -106,10 +110,6 @@ func (i Item) Flatten() []*Item {
 		}
 	}
 	return items
-}
-
-func (i Item) DisplayInfo() string {
-	return i.Info.String()
 }
 
 func (i Item) Index() int {

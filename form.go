@@ -101,7 +101,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		}
 	case SaveFormAsHashMsg:
 		m.Hash = make(map[string]string)
-		for _, field := range m.Fields.AllFields() {
+		for _, field := range m.Fields.All() {
 			m.Hash[field.Key()] = field.Value()
 		}
 		cmds = append(cmds, tea.Quit)
