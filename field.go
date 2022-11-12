@@ -3,9 +3,7 @@ package teacozy
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -59,6 +57,16 @@ func (f *Fields) Render() *Fields {
 	return f
 }
 
+func (f *Fields) Info() *Info {
+	return NewInfo(f.Data)
+}
+
+func (f *Fields) Display() viewport.Model {
+	content := f.String()
+	height := lipgloss.Height(content)
+	return viewport.New(TermWidth(), height)
+}
+
 func (f *Fields) Edit() *List {
 	items := NewItems()
 	if f.Data != nil {
@@ -92,32 +100,6 @@ func (f *Fields) NoKeys() *Fields {
 	return f
 }
 
-func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == tea.KeyCtrlC.String() {
-			cmds = append(cmds, tea.Quit)
-		}
-		switch {
-		case key.Matches(msg, Keys.ExitScreen):
-			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, Keys.EditField):
-			cmds = append(cmds, EditInfoCmd(m))
-		}
-	case tea.WindowSizeMsg:
-		m.Model = viewport.New(msg.Width-2, msg.Height-2)
-	}
-
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return m, tea.Batch(cmds...)
-}
-
 func (i Fields) String() string {
 	var info []string
 	for _, field := range i.All() {
@@ -134,15 +116,6 @@ func (i Fields) String() string {
 		info = append(info, l)
 	}
 	return strings.Join(info, "\n")
-}
-
-func (m *Fields) View() string {
-	m.Model.SetContent(m.String())
-	return m.Model.View()
-}
-
-func (i *Fields) Init() tea.Cmd {
-	return nil
 }
 
 func SetKeyStyle(s lipgloss.Style) {

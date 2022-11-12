@@ -3,6 +3,7 @@ package teacozy
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -32,6 +33,7 @@ func (s state) String() string {
 type Form struct {
 	Model  *List
 	Input  textarea.Model
+	view   viewport.Model
 	Fields *Fields
 	Hash   map[string]string
 	state  state
@@ -41,9 +43,9 @@ func NewForm(data FormData) *Form {
 	fields := NewFields().SetData(data)
 	m := Form{
 		Fields: fields,
+		view:   fields.Display(),
+		Model:  fields.Edit(),
 	}
-	m.Fields.Render()
-	m.Render()
 	return &m
 }
 
@@ -96,7 +98,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				case key.Matches(msg, Keys.ExitScreen):
 					m.state = form
 				}
-				m.Fields, cmd = m.Fields.Update(msg)
+				m.view, cmd = m.view.Update(msg)
 				cmds = append(cmds, cmd)
 			case form:
 				switch {
@@ -156,7 +158,7 @@ func (m *Form) View() string {
 
 	switch m.state {
 	case view:
-		v := m.Fields.View()
+		v := m.view.View()
 		sections = append(sections, v)
 	case form:
 		m.Model.List.SetSize(m.Model.Width, availHeight)

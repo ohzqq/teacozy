@@ -1,32 +1,30 @@
 package teacozy
 
 import (
-	"log"
-
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Info struct {
-	*Form
+	Model     viewport.Model
+	HideKeys  bool
+	IsVisible bool
+	Style     FieldStyle
+	Data      FormData
+	Fields    *Fields
 }
 
 func NewInfo(data FormData) *Info {
-	form := NewForm(data)
-	form.state = view
+	fields := NewFields().SetData(data)
 	return &Info{
-		Form: form,
+		Data:   data,
+		Model:  fields.Display(),
+		Fields: fields,
 	}
 }
 
-func (m *Info) Start() *Fields {
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
-	return m.Fields
-}
-
-func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -37,9 +35,17 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
+		switch {
+		case key.Matches(msg, Keys.ExitScreen):
+			cmds = append(cmds, HideInfoCmd())
+		case key.Matches(msg, Keys.EditField):
+			cmds = append(cmds, EditInfoCmd(m.Fields))
+		}
+	case tea.WindowSizeMsg:
+		m.Model = viewport.New(msg.Width-2, msg.Height-2)
 	}
 
-	m.Form, cmd = m.Form.Update(msg)
+	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
@@ -49,5 +55,6 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	return m.Form.View()
+	m.Model.SetContent(m.Fields.String())
+	return m.Model.View()
 }

@@ -15,7 +15,7 @@ type TUI struct {
 	Input       textarea.Model
 	view        viewport.Model
 	form        *List
-	info        *Fields
+	info        *Info
 	Title       string
 	FocusedView string
 	ShowWidget  bool
@@ -93,16 +93,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case EditInfoMsg:
 		cur := m.Items.Get(m.List.List.SelectedItem())
-		f := NewInfo(cur.Fields.Data)
-		fields := f.Start()
-		cur.SetFields(fields)
+		m.form = cur.Fields.Edit()
+		//fields := f.Start()
+		//cur.SetFields(fields)
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case ShowItemInfoMsg:
-		m.info = msg.Fields
+		m.view = msg.Fields.Display()
+		m.info = msg.Fields.Info()
 		m.HideMenu()
 		m.ShowInfo()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
@@ -140,7 +141,7 @@ func (m *TUI) View() string {
 
 	var info string
 	if m.showInfo {
-		m.info.Render()
+		//m.info.Render()
 		info = m.info.View()
 		availHeight -= lipgloss.Height(info)
 	}
