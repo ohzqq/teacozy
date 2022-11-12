@@ -2,7 +2,6 @@ package teacozy
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/info"
 )
 
 // ui commands
@@ -52,7 +51,7 @@ func EditItemCmd(field Field) tea.Cmd {
 }
 
 type UpdateContentMsg struct {
-	info.Field
+	Field
 }
 
 func UpdateContentCmd(key, val string) tea.Cmd {

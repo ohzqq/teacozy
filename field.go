@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/util"
 )
 
 var fieldStyle = FieldStyle{
@@ -54,7 +53,7 @@ func NewFields() *Fields {
 func (f *Fields) Render() *Fields {
 	content := f.String()
 	height := lipgloss.Height(content)
-	f.Model = viewport.New(util.TermWidth(), height)
+	f.Model = viewport.New(TermWidth(), height)
 	f.Model.SetContent(content)
 	return f
 }

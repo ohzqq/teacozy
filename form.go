@@ -23,7 +23,7 @@ type Form struct {
 	state  state
 }
 
-func New(data FormData) *Form {
+func NewForm(data FormData) *Form {
 	fields := NewFields().SetData(data)
 	m := Form{
 		Fields: fields,

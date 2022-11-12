@@ -10,12 +10,8 @@ type Info struct {
 	*Form
 }
 
-func NewForm(data FormData) *Info {
-	return &Info{Form: New(data)}
-}
-
 func NewInfo(data FormData) *Info {
-	form := New(data)
+	form := NewForm(data)
 	form.state = view
 	return &Info{
 		Form: form,

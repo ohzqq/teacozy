@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type itemDelegate struct {
@@ -92,7 +91,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	if m.Width() > 0 {
 		textwidth := uint(m.Width() - iStyle.CurrentItem.GetPaddingLeft() - iStyle.CurrentItem.GetPaddingRight())
-		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
+		content = padding.String(truncate.StringWithTail(content, textwidth, Ellipsis), textwidth)
 	}
 
 	var (

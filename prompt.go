@@ -1,21 +1,19 @@
-package prompt
+package teacozy
 
 import (
 	"log"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/list"
 )
 
 type Prompt struct {
-	*list.Model
+	*List
 }
 
 func NewPrompt() Prompt {
 	return Prompt{
-		Model: list.New(),
+		List: NewList(),
 	}
 }
 
@@ -35,11 +33,11 @@ func (m *Prompt) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, urkey.Quit):
+		case key.Matches(msg, Keys.Quit):
 			cmds = append(cmds, tea.Quit)
 		}
 	}
-	m.Model, cmd = m.Model.Update(msg)
+	m.List, cmd = m.List.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }

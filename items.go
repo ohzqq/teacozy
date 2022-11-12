@@ -2,7 +2,6 @@ package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Items struct {
@@ -39,7 +38,7 @@ func (i *Items) List() list.Model {
 	if i.MultiSelect {
 		del.MultiSelect()
 	}
-	w, h := util.TermSize()
+	w, h := TermSize()
 	l := list.New(i.Visible(), del, w, h)
 	return l
 }
