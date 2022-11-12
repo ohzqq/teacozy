@@ -11,9 +11,9 @@ type Prompt struct {
 	*List
 }
 
-func NewPrompt() Prompt {
+func NewPrompt(title string, items Items) Prompt {
 	return Prompt{
-		List: NewList(),
+		List: NewList(title, items),
 	}
 }
 

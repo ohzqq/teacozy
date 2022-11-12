@@ -19,10 +19,17 @@ type List struct {
 	Style            list.Styles
 }
 
-func NewList() *List {
+func NewList(title string, items Items) *List {
 	w, h := TermSize()
+	l := items.List()
+	l.SetSize(w, h)
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+	l.KeyMap = ListKeyMap()
+	l.Title = title
 	p := List{
-		Items:  NewItems(),
+		List:   l,
+		Items:  items,
 		Width:  w,
 		Height: h,
 		Keys:   DefaultKeys(),

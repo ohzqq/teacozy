@@ -24,8 +24,17 @@ type TUI struct {
 	CurrentMenu      *Menu
 }
 
+func New(title string, items Items) TUI {
+	return TUI{
+		List:        NewList(title, items),
+		Title:       title,
+		Menus:       make(Menus),
+		FocusedView: "list",
+	}
+}
+
 func NewUI(title string) TUI {
-	l := NewList().SetMultiSelect()
+	l := NewList(title, NewItems()).SetMultiSelect()
 	return TUI{
 		List:        l,
 		Title:       title,

@@ -40,9 +40,8 @@ func (f *Form) Render() *Form {
 		item := NewItem(field)
 		items.Add(item)
 	}
-	m := NewList()
-	m.Title = "Edit..."
-	m.SetItems(items).InitList()
+	m := NewList("Edit...", items)
+	m.InitList()
 	f.Model = m
 	return f
 }
