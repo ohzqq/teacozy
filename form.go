@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/item"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -63,7 +62,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		if m.Input.Focused() {
-			if key.Matches(msg, urkey.SaveAndExit) {
+			if key.Matches(msg, Keys.SaveAndExit) {
 				cur := m.Model.List.SelectedItem()
 				i := m.Model.Items.Get(cur)
 				field := i.Data.(Field)
@@ -80,24 +79,24 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			switch m.state {
 			case view:
 				switch {
-				case key.Matches(msg, urkey.SaveAndExit):
+				case key.Matches(msg, Keys.SaveAndExit):
 					cmds = append(cmds, SaveAsHashCmd())
-				case key.Matches(msg, urkey.EditField):
+				case key.Matches(msg, Keys.EditField):
 					cmds = append(cmds, EditInfoCmd())
-				case key.Matches(msg, urkey.ExitScreen):
+				case key.Matches(msg, Keys.ExitScreen):
 					m.state = form
 				}
 				m.Fields, cmd = m.Fields.Update(msg)
 				cmds = append(cmds, cmd)
 			case form:
 				switch {
-				case key.Matches(msg, urkey.SaveAndExit):
+				case key.Matches(msg, Keys.SaveAndExit):
 					m.state = view
-				case key.Matches(msg, urkey.EditField):
+				case key.Matches(msg, Keys.EditField):
 					cur := m.Model.List.SelectedItem()
 					field := m.Model.Items.Get(cur).Data.(Field)
 					cmds = append(cmds, EditItemCmd(field))
-				case key.Matches(msg, urkey.ExitScreen):
+				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
 				m.Model.List, cmd = m.Model.List.Update(msg)

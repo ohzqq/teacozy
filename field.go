@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -95,9 +94,9 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, urkey.ExitScreen):
+		case key.Matches(msg, Keys.ExitScreen):
 			cmds = append(cmds, HideCmd())
-		case key.Matches(msg, urkey.EditField):
+		case key.Matches(msg, Keys.EditField):
 			cmds = append(cmds, EditCmd(m))
 		}
 	case tea.WindowSizeMsg:

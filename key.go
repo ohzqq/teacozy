@@ -1,4 +1,4 @@
-package key
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -67,7 +67,71 @@ func ListKeyMap() list.KeyMap {
 	return km
 }
 
+type keys struct {
+	DeselectAll key.Binding
+	EditField   key.Binding
+	Enter       key.Binding
+	ExitScreen  key.Binding
+	FullScreen  key.Binding
+	Help        key.Binding
+	Info        key.Binding
+	PrevScreen  key.Binding
+	Quit        key.Binding
+	SaveAndExit key.Binding
+	SelectAll   key.Binding
+	SortList    key.Binding
+	ToggleItem  key.Binding
+}
+
+var Keys = keys{
+	DeselectAll: DeleselectAll,
+	EditField:   EditField,
+	Enter:       Enter,
+	ExitScreen:  ExitScreen,
+	FullScreen:  FullScreen,
+	Help:        Help,
+	Info:        Info,
+	PrevScreen:  PrevScreen,
+	Quit:        Quit,
+	SaveAndExit: SaveAndExit,
+	SelectAll:   SelectAll,
+	SortList:    SortList,
+	ToggleItem:  ToggleItem,
+}
+
 var (
+	DeselectAll = key.NewBinding(
+		key.WithKeys("V"),
+		key.WithHelp("V", "deselect all"),
+	)
+	EditField = key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit meta"),
+	)
+	Enter = key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "select item"),
+	)
+	ExitScreen = key.NewBinding(
+		key.WithKeys("q"),
+		key.WithHelp("q", "exit screen"),
+	)
+	FullScreen = key.NewBinding(
+		key.WithKeys("f"),
+		key.WithHelp("f", "full screen"),
+	)
+	Help = key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "full help"),
+	)
+	Info = key.NewBinding(
+		key.WithKeys("i"),
+		key.WithHelp("i", "view item info"),
+	)
+	PrevScreen = key.NewBinding(
+		key.WithKeys("p"),
+		key.WithHelp("p", "prev menu"),
+	)
 	Quit = key.NewBinding(
 		key.WithKeys("ctrl+c", "esc"),
 		key.WithHelp("ctrl+c", "quit"),
@@ -76,56 +140,16 @@ var (
 		key.WithKeys("ctrl+w"),
 		key.WithHelp("ctrl+w", "save and exit"),
 	)
-	Enter = key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "select item"),
-	)
-	FullHelp = key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "full help"),
-	)
-	ToggleItem = key.NewBinding(
-		key.WithKeys(" "),
-		key.WithHelp("space", "select item"),
-	)
-	PrevMenu = key.NewBinding(
-		key.WithKeys("p"),
-		key.WithHelp("p", "prev menu"),
-	)
-	ExitScreen = key.NewBinding(
-		key.WithKeys("q"),
-		key.WithHelp("q", "exit screen"),
-	)
-	DeselectAll = key.NewBinding(
-		key.WithKeys("V"),
-		key.WithHelp("V", "deselect all"),
-	)
 	SelectAll = key.NewBinding(
 		key.WithKeys("v"),
 		key.WithHelp("v", "select all"),
 	)
-	ChangeLibrary = key.NewBinding(
-		key.WithKeys("L"),
-		key.WithHelp("L", "change library"),
-	)
-	FullScreen = key.NewBinding(
-		key.WithKeys("f"),
-		key.WithHelp("f", "full screen"),
-	)
-	SortBy = key.NewBinding(
+	SortList = key.NewBinding(
 		key.WithKeys("o"),
 		key.WithHelp("o", "sort options"),
 	)
-	EditField = key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit meta"),
-	)
-	Info = key.NewBinding(
-		key.WithKeys("i"),
-		key.WithHelp("i", "view item info"),
-	)
-	CategoryList = key.NewBinding(
-		key.WithKeys("c", "tab"),
-		key.WithHelp("c", "Browse Categories"),
+	ToggleItem = key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("space", "select item"),
 	)
 )
