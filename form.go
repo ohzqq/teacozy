@@ -1,11 +1,10 @@
-package form
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
@@ -23,13 +22,13 @@ const (
 type Form struct {
 	Model  *list.Model
 	Input  textarea.Model
-	Fields *info.Fields
+	Fields *Fields
 	Hash   map[string]string
 	state  state
 }
 
-func New(data info.FormData) *Form {
-	fields := info.NewFields().SetData(data)
+func New(data FormData) *Form {
+	fields := NewFields().SetData(data)
 	m := Form{
 		Fields: fields,
 	}
@@ -67,7 +66,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			if key.Matches(msg, urkey.SaveAndExit) {
 				cur := m.Model.List.SelectedItem()
 				i := m.Model.Items.Get(cur)
-				field := i.Data.(info.Field)
+				field := i.Data.(Field)
 				val := m.Input.Value()
 				field.Set(val)
 				m.Model.Items.Set(i.Index(), item.NewItem(field))
@@ -96,7 +95,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 					m.state = view
 				case key.Matches(msg, urkey.EditField):
 					cur := m.Model.List.SelectedItem()
-					field := m.Model.Items.Get(cur).Data.(info.Field)
+					field := m.Model.Items.Get(cur).Data.(Field)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, urkey.ExitScreen):
 					cmds = append(cmds, tea.Quit)
@@ -124,10 +123,10 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		field.Set(msg.Value())
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
-	case list.ReturnSelectionsMsg:
-		var field info.Field
+	case ReturnSelectionsMsg:
+		var field Field
 		if items := m.Model.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(info.Field)
+			field = items[0].Data.(Field)
 		}
 		cmds = append(cmds, EditItemCmd(field))
 	}

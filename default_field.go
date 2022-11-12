@@ -1,4 +1,4 @@
-package info
+package teacozy
 
 import (
 	"fmt"
