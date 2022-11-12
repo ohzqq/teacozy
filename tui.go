@@ -14,7 +14,7 @@ type TUI struct {
 	*List
 	Input       textarea.Model
 	view        viewport.Model
-	form        *Form
+	form        *List
 	info        *Fields
 	Title       string
 	FocusedView string
@@ -23,6 +23,7 @@ type TUI struct {
 	showInfo    bool
 	width       int
 	height      int
+	state       state
 	Hash        map[string]string
 	Menus       Menus
 	CurrentMenu *Menu

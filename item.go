@@ -31,9 +31,8 @@ type Item struct {
 
 func NewItem(item list.Item) *Item {
 	i := Item{
-		Data:   item,
-		value:  item.FilterValue(),
-		Fields: NewFields(),
+		Data:  item,
+		value: item.FilterValue(),
 	}
 
 	return &i
@@ -62,10 +61,6 @@ func (i *Item) EditFields() *List {
 		return i.Fields.Edit()
 	}
 	return &List{}
-}
-
-func (i Item) Value() string {
-	return i.value
 }
 
 func (i *Item) SetMultiSelect() *Item {
@@ -114,6 +109,24 @@ func (i Item) Flatten() []*Item {
 
 func (i Item) Index() int {
 	return i.idx
+}
+
+func (i Item) Get(key string) FieldData {
+	if i.Fields.Data != nil {
+		return i.Fields.Data.Get(key)
+	}
+	return &i
+}
+
+func (i Item) Keys() []string {
+	if i.Fields.Data != nil {
+		return i.Fields.Data.Keys()
+	}
+	return []string{}
+}
+
+func (i Item) Value() string {
+	return i.value
 }
 
 func (i *Item) Set(content string) {

@@ -7,13 +7,27 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type state int
-
 const (
-	form state = iota
+	main state = iota
+	form
 	view
 	edit
 )
+
+type state int
+
+func (s state) String() string {
+	switch s {
+	case form:
+		return "form"
+	case view:
+		return "view"
+	case edit:
+		return "edit"
+	default:
+		return "main"
+	}
+}
 
 type Form struct {
 	Model  *List
