@@ -40,10 +40,10 @@ type Fields struct {
 	Data      FormData
 }
 
-func NewForm(data FormData) *Fields {
-	f := NewFields().SetData(data)
-	return f
-}
+//func NewForm(data FormData) *Fields {
+//  f := NewFields().SetData(data)
+//  return f
+//}
 
 func NewFields() *Fields {
 	return &Fields{

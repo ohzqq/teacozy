@@ -7,23 +7,23 @@ import (
 	"github.com/ohzqq/teacozy/info"
 )
 
-type Model struct {
+type Info struct {
 	*Form
 }
 
-func NewForm(data info.FormData) *Model {
-	return &Model{Form: New(data)}
+func NewForm(data info.FormData) *Info {
+	return &Info{Form: New(data)}
 }
 
-func NewInfo(data info.FormData) *Model {
+func NewInfo(data info.FormData) *Info {
 	form := New(data)
 	form.state = view
-	return &Model{
+	return &Info{
 		Form: form,
 	}
 }
 
-func (m *Model) Start() *info.Fields {
+func (m *Info) Start() *info.Fields {
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -31,7 +31,7 @@ func (m *Model) Start() *info.Fields {
 	return m.Fields
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -49,10 +49,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *Info) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) View() string {
+func (m *Info) View() string {
 	return m.Form.View()
 }

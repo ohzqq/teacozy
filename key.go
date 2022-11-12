@@ -90,7 +90,7 @@ var Keys = keys{
 	ExitScreen:  ExitScreen,
 	FullScreen:  FullScreen,
 	Help:        Help,
-	Info:        Info,
+	Info:        InfoKey,
 	PrevScreen:  PrevScreen,
 	Quit:        Quit,
 	SaveAndExit: SaveAndExit,
@@ -124,7 +124,7 @@ var (
 		key.WithKeys("?"),
 		key.WithHelp("?", "full help"),
 	)
-	Info = key.NewBinding(
+	InfoKey = key.NewBinding(
 		key.WithKeys("i"),
 		key.WithHelp("i", "view item info"),
 	)
