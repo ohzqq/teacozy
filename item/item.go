@@ -53,6 +53,14 @@ func (i *Item) SetInfo(f *info.Fields) {
 	i.Info = f
 }
 
+func (i *Item) EditInfo() {
+	if i.Info.Data != nil {
+		for _, field := range i.Info.AllFields() {
+			i.List.Add(NewItem(field))
+		}
+	}
+}
+
 func (i *Item) SetMultiSelect() *Item {
 	i.MultiSelect = true
 	return i

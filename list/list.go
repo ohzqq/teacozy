@@ -13,6 +13,7 @@ type Model struct {
 	List             list.Model
 	Title            string
 	MultiSelect      bool
+	ShowKeys         bool
 	ShowSelectedOnly bool
 	Keys             urkey.KeyMap
 	Items            item.Items
@@ -55,6 +56,12 @@ func (m *Model) SetItems(items item.Items) *Model {
 func (m *Model) SetMultiSelect() *Model {
 	m.MultiSelect = true
 	m.Items.SetMultiSelect()
+	return m
+}
+
+func (m *Model) SetShowKeys() *Model {
+	m.ShowKeys = true
+	m.Items.SetShowKeys()
 	return m
 }
 

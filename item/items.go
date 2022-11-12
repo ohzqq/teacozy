@@ -8,6 +8,7 @@ import (
 type Items struct {
 	all         []*Item
 	MultiSelect bool
+	ShowKeys    bool
 }
 
 func NewItems() Items {
@@ -24,9 +25,20 @@ func (i *Items) SetMultiSelect() *Items {
 	return i
 }
 
+func (i *Items) SetShowKeys() *Items {
+	i.ShowKeys = true
+	return i
+}
+
 func (i *Items) List() list.Model {
 	i.Process()
-	del := NewItemDelegate(i.MultiSelect)
+	del := NewItemDelegate()
+	if i.ShowKeys {
+		del.ShowKeys()
+	}
+	if i.MultiSelect {
+		del.MultiSelect()
+	}
 	w, h := util.TermSize()
 	l := list.New(i.Visible(), del, w, h)
 	return l

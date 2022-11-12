@@ -14,15 +14,23 @@ import (
 )
 
 type itemDelegate struct {
-	MultiSelect bool
+	multiSelect bool
+	showKeys    bool
 	styles      style.ItemStyle
 }
 
-func NewItemDelegate(multi bool) itemDelegate {
+func NewItemDelegate() itemDelegate {
 	return itemDelegate{
-		MultiSelect: multi,
-		styles:      style.ItemStyles(),
+		styles: style.ItemStyles(),
 	}
+}
+
+func (d *itemDelegate) ShowKeys() {
+	d.showKeys = true
+}
+
+func (d *itemDelegate) MultiSelect() {
+	d.multiSelect = true
 }
 
 func (d itemDelegate) Height() int {
@@ -58,7 +66,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			if curItem.HasList() {
 				return ToggleListCmd(curItem)
 			}
-			if d.MultiSelect {
+			if d.multiSelect {
 				return ToggleSelectedCmd(curItem)
 			}
 		}
@@ -76,8 +84,11 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case *Item:
 		curItem = i
-		c := fmt.Sprintf("%d: %s", i.idx, i.FilterValue())
-		content = c
+		content = i.FilterValue()
+		//  if d.showKeys() {
+		//    content =
+		//}
+		//content = c
 	}
 
 	if m.Width() > 0 {
