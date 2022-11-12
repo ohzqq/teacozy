@@ -24,16 +24,16 @@ type Item struct {
 	Level             int
 	List              Items
 	TotalSubListItems int
-	Label             string
-	Content           string
+	key               string
+	value             string
 	Info              *Fields
 }
 
 func NewItem(item list.Item) *Item {
 	i := Item{
-		Data:    item,
-		Content: item.FilterValue(),
-		Info:    NewFields(),
+		Data:  item,
+		value: item.FilterValue(),
+		Info:  NewFields(),
 	}
 
 	return &i
@@ -41,8 +41,8 @@ func NewItem(item list.Item) *Item {
 
 func NewDefaultItem(content string) *Item {
 	item := Item{
-		Content: content,
-		Info:    NewFields(),
+		value: content,
+		Info:  NewFields(),
 	}
 	item.Data = item
 	return &item
@@ -60,13 +60,18 @@ func (i *Item) EditInfo() {
 	}
 }
 
+func (i Item) Value() string {
+	return i.value
+}
+
 func (i *Item) SetMultiSelect() *Item {
 	i.MultiSelect = true
 	return i
 }
 
-func (i *Item) SetLabel(label string) {
-	i.Label = label
+func (i *Item) SetKey(label string) *Item {
+	i.key = label
+	return i
 }
 
 func (i Item) ListDepth() int {
@@ -111,12 +116,16 @@ func (i Item) Index() int {
 	return i.idx
 }
 
-func (i *Item) SetContent(content string) {
-	i.Content = content
+func (i *Item) Set(content string) {
+	i.value = content
 }
 
 func (i Item) FilterValue() string {
-	return i.Content
+	return i.value
+}
+
+func (i Item) Key() string {
+	return i.key
 }
 
 func (i Item) HasList() bool {
@@ -126,7 +135,7 @@ func (i Item) HasList() bool {
 
 func (i *Item) Edit() textarea.Model {
 	input := textarea.New()
-	input.SetValue(i.Content)
+	input.SetValue(i.value)
 	input.ShowLineNumbers = false
 	return input
 }

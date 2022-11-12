@@ -7,28 +7,25 @@ import (
 )
 
 type DefaultFields struct {
-	data []Field
+	data []FieldData
 }
 
-type DefaultField struct {
-	key   string
-	value string
+type Field struct {
+	*Item
 }
 
-func NewDefaultField(key, val string) *DefaultField {
-	return &DefaultField{
-		key:   key,
-		value: val,
-	}
+func NewDefaultField(key, val string) *Field {
+	item := NewDefaultItem(val).SetKey(key)
+	return &Field{Item: item}
 }
 
-func (f DefaultFields) Get(key string) Field {
+func (f DefaultFields) Get(key string) FieldData {
 	for _, field := range f.data {
 		if field.Key() == key {
 			return field
 		}
 	}
-	return &DefaultField{}
+	return &Item{}
 }
 
 func (f DefaultFields) Keys() []string {
@@ -50,20 +47,4 @@ func (f *DefaultFields) Add(key, val string) error {
 	field := NewDefaultField(key, val)
 	f.data = append(f.data, field)
 	return nil
-}
-
-func (f DefaultField) FilterValue() string {
-	return f.value
-}
-
-func (f DefaultField) Value() string {
-	return f.value
-}
-
-func (f *DefaultField) Set(val string) {
-	f.value = val
-}
-
-func (f DefaultField) Key() string {
-	return f.key
 }

@@ -20,11 +20,11 @@ type FieldStyle struct {
 }
 
 type FormData interface {
-	Get(string) Field
+	Get(string) FieldData
 	Keys() []string
 }
 
-type Field interface {
+type FieldData interface {
 	FilterValue() string
 	Value() string
 	Key() string
@@ -37,6 +37,7 @@ type Fields struct {
 	IsVisible bool
 	Style     FieldStyle
 	Data      FormData
+	data      []FieldData
 }
 
 //func NewForm(data FormData) *Fields {
@@ -63,8 +64,8 @@ func (f *Fields) SetData(data FormData) *Fields {
 	return f
 }
 
-func (f Fields) AllFields() []Field {
-	var fields []Field
+func (f Fields) AllFields() []FieldData {
+	var fields []FieldData
 	if f.Data == nil {
 		return fields
 	}

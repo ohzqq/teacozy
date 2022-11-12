@@ -62,7 +62,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			if key.Matches(msg, Keys.SaveAndExit) {
 				cur := m.Model.List.SelectedItem()
 				i := m.Model.Items.Get(cur)
-				field := i.Data.(Field)
+				field := i.Data.(FieldData)
 				val := m.Input.Value()
 				field.Set(val)
 				m.Model.Items.Set(i.Index(), NewItem(field))
@@ -91,7 +91,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 					m.state = view
 				case key.Matches(msg, Keys.EditField):
 					cur := m.Model.List.SelectedItem()
-					field := m.Model.Items.Get(cur).Data.(Field)
+					field := m.Model.Items.Get(cur).Data.(*Field)
 					cmds = append(cmds, EditItemCmd(field))
 				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
@@ -120,11 +120,11 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
 	case ReturnSelectionsMsg:
-		var field Field
+		var field FieldData
 		if items := m.Model.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(Field)
+			field = items[0].Data.(*Field)
 		}
-		cmds = append(cmds, EditItemCmd(field))
+		cmds = append(cmds, EditItemCmd(field.(*Field)))
 	}
 
 	return m, tea.Batch(cmds...)

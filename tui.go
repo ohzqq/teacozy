@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type UI struct {
+type TUI struct {
 	*List
 	info             *Fields
 	Keys             KeyMap
@@ -24,9 +24,9 @@ type UI struct {
 	CurrentMenu      *Menu
 }
 
-func NewUI(title string) UI {
+func NewUI(title string) TUI {
 	l := NewList().SetMultiSelect()
-	return UI{
+	return TUI{
 		List:        l,
 		Title:       title,
 		Menus:       make(Menus),
@@ -34,27 +34,27 @@ func NewUI(title string) UI {
 	}
 }
 
-func (l *UI) AddMenu(menu *Menu) {
+func (l *TUI) AddMenu(menu *Menu) {
 	l.Menus[menu.Label] = menu
 }
 
-func (l *UI) ShowMenu() {
+func (l *TUI) ShowMenu() {
 	l.showMenu = true
 }
 
-func (l *UI) HideMenu() {
+func (l *TUI) HideMenu() {
 	l.showMenu = false
 }
 
-func (l *UI) ShowInfo() {
+func (l *TUI) ShowInfo() {
 	l.showInfo = true
 }
 
-func (l *UI) HideInfo() {
+func (l *TUI) HideInfo() {
 	l.showInfo = false
 }
 
-func (m *UI) Start() *UI {
+func (m *TUI) Start() *TUI {
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -62,7 +62,7 @@ func (m *UI) Start() *UI {
 	return m
 }
 
-func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd   tea.Cmd
 		cmds  []tea.Cmd
@@ -122,7 +122,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *UI) View() string {
+func (m *TUI) View() string {
 	var (
 		sections    []string
 		availHeight = m.List.List.Height()

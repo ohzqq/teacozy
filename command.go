@@ -21,7 +21,7 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 	}
 }
 
-type MenuCmd func(m *UI) tea.Cmd
+type MenuCmd func(m *TUI) tea.Cmd
 
 // form commands
 type SaveAsHashMsg struct{}
@@ -41,17 +41,17 @@ func EditInfoCmd() tea.Cmd {
 }
 
 type EditItemMsg struct {
-	Field
+	*Field
 }
 
-func EditItemCmd(field Field) tea.Cmd {
+func EditItemCmd(field *Field) tea.Cmd {
 	return func() tea.Msg {
 		return EditItemMsg{Field: field}
 	}
 }
 
 type UpdateContentMsg struct {
-	Field
+	*Field
 }
 
 func UpdateContentCmd(key, val string) tea.Cmd {
