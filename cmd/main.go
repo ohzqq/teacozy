@@ -6,12 +6,12 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/prompt"
-	"github.com/ohzqq/teacozy/ui"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -26,21 +26,23 @@ func main() {
 	testUI()
 }
 
-func testUIMenu() *ui.Menu {
+func testUIMenu() *teacozy.Menu {
 	t := key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "deselect all"),
 	)
-	testHelpKeys := []ui.MenuItem{
-		ui.NewMenuItem("t", "select item", UiTestKeyAction),
-		ui.NewMenuItem("o", "deselect item", UiTestKeyAction),
+	testHelpKeys := []teacozy.MenuItem{
+		teacozy.NewMenuItem("t", "select item", UiTestKeyAction),
+		teacozy.NewMenuItem("o", "deselect item", UiTestKeyAction),
 	}
-	m := ui.NewMenu("test", t, testHelpKeys...)
+	m := teacozy.NewMenu("test", t, testHelpKeys...)
 	return m
 }
-func UiTestKeyAction(m *ui.UI) tea.Cmd {
+
+func UiTestKeyAction(m *teacozy.UI) tea.Cmd {
 	return list.UpdateStatusCmd(fmt.Sprintf("%v", "poot"))
 }
+
 func testUI() {
 	items := newItems()
 	f := testInfo()
@@ -51,7 +53,7 @@ func testUI() {
 	other := item.NewDefaultItem("OTHER")
 	other.SetInfo(otherInfo())
 	items.Add(other)
-	m := ui.NewUI("test")
+	m := teacozy.NewUI("test")
 	m.SetItems(items)
 	m.AddMenu(testUIMenu())
 	m.SetMultiSelect()
