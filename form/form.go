@@ -21,7 +21,7 @@ const (
 )
 
 type Form struct {
-	Model  *list.Model
+	Model  *list.List
 	Input  textarea.Model
 	Fields *info.Fields
 	Hash   map[string]string
@@ -45,7 +45,7 @@ func (f *Form) Render() *Form {
 		item := item.NewItem(field)
 		items.Add(item)
 	}
-	m := list.New()
+	m := list.NewList()
 	m.Title = "Edit..."
 	m.SetItems(items).InitList()
 	f.Model = m

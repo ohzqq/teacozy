@@ -6,17 +6,12 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/form"
-	"github.com/ohzqq/teacozy/info"
-	"github.com/ohzqq/teacozy/item"
-	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/list"
 )
 
 type UI struct {
-	*list.Model
-	info             *info.Fields
-	Keys             urkey.KeyMap
+	*List
+	info             *Fields
+	Keys             KeyMap
 	Title            string
 	ShowSelectedOnly bool
 	FocusedView      string
@@ -30,9 +25,9 @@ type UI struct {
 }
 
 func NewUI(title string) UI {
-	l := list.New().SetMultiSelect()
+	l := NewList().SetMultiSelect()
 	return UI{
-		Model:       l,
+		List:        l,
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
@@ -80,7 +75,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, urkey.Quit):
+		case key.Matches(msg, Keys.Quit):
 			cmds = append(cmds, tea.Quit)
 		default:
 			for label, menu := range m.Menus {
@@ -92,17 +87,17 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	case info.EditMsg:
-		cur := m.Items.Get(m.Model.List.SelectedItem())
-		f := form.NewForm(cur.Info.Data)
-		fields := f.Start()
-		cur.SetInfo(fields)
-	case info.HideMsg:
+	case EditMsg:
+		//cur := m.Items.Get(m.List.List.SelectedItem())
+		//f := NewForm(cur.Info.Data)
+		//fields := f.Start()
+		//cur.SetInfo(fields)
+	case HideMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
-	case item.ShowInfoMsg:
+	case ShowInfoMsg:
 		m.info = msg.Info
 		m.HideMenu()
 		m.ShowInfo()
@@ -114,7 +109,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		m.Model, cmd = m.Model.Update(msg)
+		m.List, cmd = m.List.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
 		for label, _ := range m.Menus {
@@ -130,7 +125,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *UI) View() string {
 	var (
 		sections    []string
-		availHeight = m.Model.List.Height()
+		availHeight = m.List.List.Height()
 	)
 
 	var menu string
@@ -146,8 +141,8 @@ func (m *UI) View() string {
 		availHeight -= lipgloss.Height(info)
 	}
 
-	m.Model.SetSize(m.width, availHeight)
-	content := m.Model.List.View()
+	m.List.SetSize(m.width, availHeight)
+	content := m.List.List.View()
 	sections = append(sections, content)
 
 	if m.showMenu {

@@ -42,10 +42,10 @@ func EditInfoCmd() tea.Cmd {
 }
 
 type EditItemMsg struct {
-	info.Field
+	Field
 }
 
-func EditItemCmd(field info.Field) tea.Cmd {
+func EditItemCmd(field Field) tea.Cmd {
 	return func() tea.Msg {
 		return EditItemMsg{Field: field}
 	}
@@ -57,7 +57,7 @@ type UpdateContentMsg struct {
 
 func UpdateContentCmd(key, val string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateContentMsg{Field: info.NewDefaultField(key, val)}
+		return UpdateContentMsg{Field: NewDefaultField(key, val)}
 	}
 }
 
@@ -132,7 +132,7 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
-func ToggleAllItemsCmd(l *Model) {
+func ToggleAllItemsCmd(l *List) {
 	l.Items.ToggleAllSelectedItems()
 }
 

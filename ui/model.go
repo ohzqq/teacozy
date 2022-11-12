@@ -14,7 +14,7 @@ import (
 )
 
 type UI struct {
-	*list.Model
+	*list.List
 	info             *info.Fields
 	Keys             urkey.KeyMap
 	Title            string
@@ -30,7 +30,7 @@ type UI struct {
 }
 
 func NewUI(title string) UI {
-	l := list.New().SetMultiSelect()
+	l := list.NewList().SetMultiSelect()
 	return UI{
 		Model:       l,
 		Title:       title,

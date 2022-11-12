@@ -10,12 +10,12 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-var fieldStyle = Style{
+var fieldStyle = FieldStyle{
 	Key:   lipgloss.NewStyle().Foreground(DefaultColors().Blue),
 	Value: lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg),
 }
 
-type Style struct {
+type FieldStyle struct {
 	Key   lipgloss.Style
 	Value lipgloss.Style
 }
@@ -36,11 +36,11 @@ type Fields struct {
 	Model     viewport.Model
 	HideKeys  bool
 	IsVisible bool
-	Style     Style
+	Style     FieldStyle
 	Data      FormData
 }
 
-func New(data FormData) *Fields {
+func NewForm(data FormData) *Fields {
 	f := NewFields().SetData(data)
 	return f
 }

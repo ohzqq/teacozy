@@ -1,39 +1,36 @@
-package list
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/item"
-	urkey "github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/util"
 )
 
-type Model struct {
+type List struct {
 	List             list.Model
 	Title            string
 	MultiSelect      bool
 	ShowKeys         bool
 	ShowSelectedOnly bool
-	Keys             urkey.KeyMap
-	Items            item.Items
+	Keys             KeyMap
+	Items            Items
 	Width            int
 	Height           int
 	Style            list.Styles
 }
 
-func NewList() *Model {
-	w, h := util.TermSize()
-	p := Model{
-		Items:  item.NewItems(),
+func NewList() *List {
+	w, h := TermSize()
+	p := List{
+		Items:  NewItems(),
 		Width:  w,
 		Height: h,
-		Keys:   urkey.DefaultKeys(),
+		Keys:   DefaultKeys(),
 	}
 	return &p
 }
 
-func (m *Model) InitList() list.Model {
+func (m *List) InitList() list.Model {
 	l := m.Items.List()
 	l.SetSize(m.Width, m.Height)
 	l.SetShowStatusBar(false)
@@ -48,31 +45,31 @@ func (m *Model) InitList() list.Model {
 	return l
 }
 
-func (m *Model) SetItems(items item.Items) *Model {
+func (m *List) SetItems(items Items) *List {
 	m.Items = items
 	return m
 }
 
-func (m *Model) SetMultiSelect() *Model {
+func (m *List) SetMultiSelect() *List {
 	m.MultiSelect = true
 	m.Items.SetMultiSelect()
 	return m
 }
 
-func (m *Model) SetShowKeys() *Model {
+func (m *List) SetShowKeys() *List {
 	m.ShowKeys = true
 	m.Items.SetShowKeys()
 	return m
 }
 
-func (m *Model) SetSize(w, h int) *Model {
+func (m *List) SetSize(w, h int) *List {
 	m.Width = w
 	m.Height = h
 	m.List.SetSize(w, h)
 	return m
 }
 
-func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -89,7 +86,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		}
 		if m.MultiSelect {
 			switch {
-			case key.Matches(msg, urkey.Enter):
+			case key.Matches(msg, Enter):
 				if m.ShowSelectedOnly {
 					cmds = append(cmds, ReturnSelectionsCmd())
 				}
@@ -102,7 +99,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		} else {
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
-				cur := m.List.SelectedItem().(*item.Item)
+				cur := m.List.SelectedItem().(*Item)
 				m.Items.ToggleSelectedItem(cur.Index())
 				cmds = append(cmds, ReturnSelectionsCmd())
 			}
@@ -114,11 +111,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case UpdateVisibleItemsMsg:
 		items := m.Items.Display(string(msg))
 		m.List.SetItems(items)
-	case item.ToggleSelectedMsg:
+	case ToggleSelectedMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
 		cmds = append(cmds, tea.Quit)
-	case item.ToggleListMsg:
+	case ToggleListMsg:
 		switch msg.ListOpen {
 		case true:
 			m.Items.CloseItemList(msg.Index())
@@ -134,24 +131,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *List) Init() tea.Cmd {
 	m.List = m.InitList()
 	return nil
 }
 
-func (m Model) View() string {
+func (m List) View() string {
 	return m.List.View()
-}
-
-func ListKeyMap() list.KeyMap {
-	km := list.DefaultKeyMap()
-	km.NextPage = key.NewBinding(
-		key.WithKeys("right", "l", "pgdown"),
-		key.WithHelp("l/pgdn", "next page"),
-	)
-	km.Quit = key.NewBinding(
-		key.WithKeys("ctrl+c", "esc"),
-		key.WithHelp("ctrl+c", "quit"),
-	)
-	return km
 }

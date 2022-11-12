@@ -9,7 +9,7 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Model struct {
+type List struct {
 	List             list.Model
 	Title            string
 	MultiSelect      bool
@@ -22,9 +22,9 @@ type Model struct {
 	Style            list.Styles
 }
 
-func NewList() *Model {
+func NewList() *List {
 	w, h := util.TermSize()
-	p := Model{
+	p := List{
 		Items:  item.NewItems(),
 		Width:  w,
 		Height: h,
@@ -33,7 +33,7 @@ func NewList() *Model {
 	return &p
 }
 
-func (m *Model) InitList() list.Model {
+func (m *List) InitList() list.Model {
 	l := m.Items.List()
 	l.SetSize(m.Width, m.Height)
 	l.SetShowStatusBar(false)
@@ -48,31 +48,31 @@ func (m *Model) InitList() list.Model {
 	return l
 }
 
-func (m *Model) SetItems(items item.Items) *Model {
+func (m *List) SetItems(items item.Items) *List {
 	m.Items = items
 	return m
 }
 
-func (m *Model) SetMultiSelect() *Model {
+func (m *List) SetMultiSelect() *List {
 	m.MultiSelect = true
 	m.Items.SetMultiSelect()
 	return m
 }
 
-func (m *Model) SetShowKeys() *Model {
+func (m *List) SetShowKeys() *List {
 	m.ShowKeys = true
 	m.Items.SetShowKeys()
 	return m
 }
 
-func (m *Model) SetSize(w, h int) *Model {
+func (m *List) SetSize(w, h int) *List {
 	m.Width = w
 	m.Height = h
 	m.List.SetSize(w, h)
 	return m
 }
 
-func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -134,12 +134,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *List) Init() tea.Cmd {
 	m.List = m.InitList()
 	return nil
 }
 
-func (m Model) View() string {
+func (m List) View() string {
 	return m.List.View()
 }
 

@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/list"
 )
 
 type state int
@@ -17,7 +16,7 @@ const (
 )
 
 type Form struct {
-	Model  *list.Model
+	Model  *List
 	Input  textarea.Model
 	Fields *Fields
 	Hash   map[string]string
@@ -41,7 +40,7 @@ func (f *Form) Render() *Form {
 		item := NewItem(field)
 		items.Add(item)
 	}
-	m := list.New()
+	m := NewList()
 	m.Title = "Edit..."
 	m.SetItems(items).InitList()
 	f.Model = m
@@ -69,7 +68,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				m.Model.Items.Set(i.Index(), NewItem(field))
 				m.Input.Blur()
 				m.Render()
-				cmds = append(cmds, list.UpdateVisibleItemsCmd("visible"))
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)

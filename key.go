@@ -10,7 +10,7 @@ const tab = ` `
 type KeyMap struct {
 	ToggleItem  key.Binding
 	SelectAll   key.Binding
-	DeselectAll key.Binding
+	DeSelectAll key.Binding
 	Unfocus     key.Binding
 	Switch      key.Binding
 	Enter       key.Binding
@@ -28,10 +28,10 @@ func DefaultKeys() KeyMap {
 		),
 		ToggleItem:  ToggleItem,
 		SelectAll:   SelectAll,
-		DeselectAll: DeselectAll,
+		DeSelectAll: DeSelectAll,
 		Enter:       Enter,
 		ExitScreen:  ExitScreen,
-		Prev:        PrevMenu,
+		Prev:        PrevScreen,
 	}
 }
 
@@ -43,7 +43,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	keys = append(keys, second)
 	third := []key.Binding{
 		k.ToggleItem,
-		k.DeselectAll,
+		k.DeSelectAll,
 		k.SelectAll,
 	}
 	keys = append(keys, third)
@@ -68,7 +68,7 @@ func ListKeyMap() list.KeyMap {
 }
 
 type keys struct {
-	DeselectAll key.Binding
+	DeSelectAll key.Binding
 	EditField   key.Binding
 	Enter       key.Binding
 	ExitScreen  key.Binding
@@ -84,7 +84,7 @@ type keys struct {
 }
 
 var Keys = keys{
-	DeselectAll: DeleselectAll,
+	DeSelectAll: DeSelectAll,
 	EditField:   EditField,
 	Enter:       Enter,
 	ExitScreen:  ExitScreen,
@@ -100,7 +100,7 @@ var Keys = keys{
 }
 
 var (
-	DeselectAll = key.NewBinding(
+	DeSelectAll = key.NewBinding(
 		key.WithKeys("V"),
 		key.WithHelp("V", "deselect all"),
 	)
