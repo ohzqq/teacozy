@@ -87,17 +87,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	case EditMsg:
+	case EditInfoMsg:
 		//cur := m.Items.Get(m.List.List.SelectedItem())
 		//f := NewForm(cur.Info.Data)
 		//fields := f.Start()
 		//cur.SetInfo(fields)
-	case HideMsg:
+	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
-	case ShowInfoMsg:
+	case ShowItemInfoMsg:
 		m.info = msg.Info
 		m.HideMenu()
 		m.ShowInfo()

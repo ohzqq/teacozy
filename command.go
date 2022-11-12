@@ -21,103 +21,103 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 	}
 }
 
-type MenuCmd func(m *TUI) tea.Cmd
+type MenuFunc func(m *TUI) tea.Cmd
 
 // form commands
-type SaveAsHashMsg struct{}
+type SaveFormAsHashMsg struct{}
 
-func SaveAsHashCmd() tea.Cmd {
+func SaveFormAsHashCmd() tea.Cmd {
 	return func() tea.Msg {
-		return SaveAsHashMsg{}
+		return SaveFormAsHashMsg{}
 	}
 }
 
-type EditInfoMsg struct{}
+type EditFormMsg struct{}
 
-func EditInfoCmd() tea.Cmd {
+func EditFormCmd() tea.Cmd {
 	return func() tea.Msg {
-		return EditInfoMsg{}
+		return EditFormMsg{}
 	}
 }
 
-type EditItemMsg struct {
+type EditFormItemMsg struct {
 	*Field
 }
 
-func EditItemCmd(field *Field) tea.Cmd {
+func EditFormItemCmd(field *Field) tea.Cmd {
 	return func() tea.Msg {
-		return EditItemMsg{Field: field}
+		return EditFormItemMsg{Field: field}
 	}
 }
 
-type UpdateContentMsg struct {
+type UpdateFormContentMsg struct {
 	*Field
 }
 
-func UpdateContentCmd(key, val string) tea.Cmd {
+func UpdateFormContentCmd(key, val string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateContentMsg{Field: NewDefaultField(key, val)}
+		return UpdateFormContentMsg{Field: NewDefaultField(key, val)}
 	}
 }
 
 // info commands
-type HideMsg struct{}
+type HideInfoMsg struct{}
 
-func HideCmd() tea.Cmd {
+func HideInfoCmd() tea.Cmd {
 	return func() tea.Msg {
-		return HideMsg{}
+		return HideInfoMsg{}
 	}
 }
 
-type ShowMsg struct{}
+type ShowInfoMsg struct{}
 
-func ShowCmd() tea.Cmd {
+func ShowInfoCmd() tea.Cmd {
 	return func() tea.Msg {
-		return ShowMsg{}
+		return ShowInfoMsg{}
 	}
 }
 
-type EditMsg struct {
+type EditInfoMsg struct {
 	Fields *Fields
 }
 
-func EditCmd(f *Fields) tea.Cmd {
+func EditInfoCmd(f *Fields) tea.Cmd {
 	return func() tea.Msg {
-		return EditMsg{Fields: f}
+		return EditInfoMsg{Fields: f}
 	}
 }
 
 //item commands
 
-type ToggleListMsg struct{ *Item }
+type ToggleItemListMsg struct{ *Item }
 
-func ToggleListCmd(item *Item) tea.Cmd {
+func ToggleItemListCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleListMsg{Item: item}
+		return ToggleItemListMsg{Item: item}
 	}
 }
 
-type ToggleSelectedMsg struct{ *Item }
+type ToggleSelectedItemMsg struct{ *Item }
 
-func ToggleSelectedCmd(item *Item) tea.Cmd {
+func ToggleSelectedItemCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleSelectedMsg{Item: item}
+		return ToggleSelectedItemMsg{Item: item}
 	}
 }
 
-type ShowInfoMsg struct{ *Item }
+type ShowItemInfoMsg struct{ *Item }
 
-func ShowInfoCmd(item *Item) tea.Cmd {
+func ShowItemInfoCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ShowInfoMsg{Item: item}
+		return ShowItemInfoMsg{Item: item}
 	}
 }
 
-type EditContentMsg struct{ *Item }
+type EditItemValueMsg struct{ *Item }
 
-func EditContentCmd(item *Item) tea.Cmd {
+func EditItemValueCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return EditContentMsg{Item: item}
+		return EditItemValueMsg{Item: item}
 	}
 }
 

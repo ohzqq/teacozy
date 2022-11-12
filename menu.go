@@ -108,10 +108,10 @@ func (m Menu) Height() int {
 
 type MenuItem struct {
 	Key key.Binding
-	Cmd MenuCmd
+	Cmd MenuFunc
 }
 
-func NewMenuItem(k, h string, cmd MenuCmd) MenuItem {
+func NewMenuItem(k, h string, cmd MenuFunc) MenuItem {
 	return MenuItem{
 		Key: key.NewBinding(
 			key.WithKeys(k),

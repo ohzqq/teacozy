@@ -77,9 +77,9 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			case view:
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
-					cmds = append(cmds, SaveAsHashCmd())
+					cmds = append(cmds, SaveFormAsHashCmd())
 				case key.Matches(msg, Keys.EditField):
-					cmds = append(cmds, EditInfoCmd())
+					cmds = append(cmds, EditFormCmd())
 				case key.Matches(msg, Keys.ExitScreen):
 					m.state = form
 				}
@@ -92,7 +92,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				case key.Matches(msg, Keys.EditField):
 					cur := m.Model.List.SelectedItem()
 					field := m.Model.Items.Get(cur).Data.(*Field)
-					cmds = append(cmds, EditItemCmd(field))
+					cmds = append(cmds, EditFormItemCmd(field))
 				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
@@ -100,21 +100,21 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-	case SaveAsHashMsg:
+	case SaveFormAsHashMsg:
 		m.Hash = make(map[string]string)
 		for _, field := range m.Fields.AllFields() {
 			m.Hash[field.Key()] = field.Value()
 		}
 		cmds = append(cmds, tea.Quit)
-	case EditInfoMsg:
+	case EditFormMsg:
 		m.Render()
 		m.state = form
-	case EditItemMsg:
+	case EditFormItemMsg:
 		m.Input = textarea.New()
 		m.Input.SetValue(msg.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
-	case UpdateContentMsg:
+	case UpdateFormContentMsg:
 		field := m.Fields.Data.Get(msg.Key())
 		field.Set(msg.Value())
 	case tea.WindowSizeMsg:
@@ -124,7 +124,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		if items := m.Model.Items.Selections(); len(items) > 0 {
 			field = items[0].Data.(*Field)
 		}
-		cmds = append(cmds, EditItemCmd(field.(*Field)))
+		cmds = append(cmds, EditFormItemCmd(field.(*Field)))
 	}
 
 	return m, tea.Batch(cmds...)

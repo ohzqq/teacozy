@@ -111,11 +111,11 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case UpdateVisibleItemsMsg:
 		items := m.Items.Display(string(msg))
 		m.List.SetItems(items)
-	case ToggleSelectedMsg:
+	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
 		cmds = append(cmds, tea.Quit)
-	case ToggleListMsg:
+	case ToggleItemListMsg:
 		switch msg.ListOpen {
 		case true:
 			m.Items.CloseItemList(msg.Index())

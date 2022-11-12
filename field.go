@@ -94,9 +94,9 @@ func (m *Fields) Update(msg tea.Msg) (*Fields, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, Keys.ExitScreen):
-			cmds = append(cmds, HideCmd())
+			cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, Keys.EditField):
-			cmds = append(cmds, EditCmd(m))
+			cmds = append(cmds, EditInfoCmd(m))
 		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
