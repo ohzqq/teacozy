@@ -24,14 +24,6 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 
 type MenuCmd func(m *UI) tea.Cmd
 
-type UpdateStatusMsg string
-
-func UpdateStatusCmd(status string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateStatusMsg(status)
-	}
-}
-
 // form commands
 type SaveAsHashMsg struct{}
 
