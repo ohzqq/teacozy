@@ -22,7 +22,7 @@ type Model struct {
 	Style            list.Styles
 }
 
-func New() *Model {
+func NewList() *Model {
 	w, h := util.TermSize()
 	p := Model{
 		Items:  item.NewItems(),
