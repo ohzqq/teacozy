@@ -5,9 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type state int
@@ -37,10 +35,10 @@ func New(data FormData) *Form {
 }
 
 func (f *Form) Render() *Form {
-	items := item.NewItems()
+	items := NewItems()
 	for _, key := range f.Fields.Data.Keys() {
 		field := f.Fields.Data.Get(key)
-		item := item.NewItem(field)
+		item := NewItem(field)
 		items.Add(item)
 	}
 	m := list.New()
@@ -68,7 +66,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				field := i.Data.(Field)
 				val := m.Input.Value()
 				field.Set(val)
-				m.Model.Items.Set(i.Index(), item.NewItem(field))
+				m.Model.Items.Set(i.Index(), NewItem(field))
 				m.Input.Blur()
 				m.Render()
 				cmds = append(cmds, list.UpdateVisibleItemsCmd("visible"))
@@ -136,7 +134,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 func (m *Form) View() string {
 	var (
 		sections    []string
-		availHeight = util.TermHeight()
+		availHeight = TermHeight()
 	)
 	var field string
 	if m.Input.Focused() {

@@ -7,13 +7,12 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
 
 var fieldStyle = Style{
-	Key:   lipgloss.NewStyle().Foreground(style.DefaultColors().Blue),
-	Value: lipgloss.NewStyle().Foreground(style.DefaultColors().DefaultFg),
+	Key:   lipgloss.NewStyle().Foreground(DefaultColors().Blue),
+	Value: lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg),
 }
 
 type Style struct {

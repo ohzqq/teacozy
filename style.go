@@ -1,4 +1,4 @@
-package style
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/list"

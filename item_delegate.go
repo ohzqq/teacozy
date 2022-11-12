@@ -15,12 +15,12 @@ import (
 type itemDelegate struct {
 	multiSelect bool
 	showKeys    bool
-	styles      style.ItemStyle
+	styles      ItemStyle
 }
 
 func NewItemDelegate() itemDelegate {
 	return itemDelegate{
-		styles: style.ItemStyles(),
+		styles: ItemStyles(),
 	}
 }
 
