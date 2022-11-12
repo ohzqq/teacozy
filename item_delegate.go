@@ -1,4 +1,4 @@
-package item
+package teacozy
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
-	urkey "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -55,13 +54,13 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, urkey.Info):
+		case key.Matches(msg, Keys.Info):
 			if info := curItem.Info; info.String() != "" {
 				cmds = append(cmds, ShowInfoCmd(curItem))
 			}
-		case key.Matches(msg, urkey.EditField):
+		case key.Matches(msg, Keys.EditField):
 			cmds = append(cmds, EditContentCmd(curItem))
-		case key.Matches(msg, urkey.ToggleItem):
+		case key.Matches(msg, Keys.ToggleItem):
 			m.CursorDown()
 			if curItem.HasList() {
 				return ToggleListCmd(curItem)

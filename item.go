@@ -1,9 +1,8 @@
-package item
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/ohzqq/teacozy/info"
 )
 
 const (
@@ -27,14 +26,14 @@ type Item struct {
 	TotalSubListItems int
 	Label             string
 	Content           string
-	Info              *info.Fields
+	Info              *Fields
 }
 
 func NewItem(item list.Item) *Item {
 	i := Item{
 		Data:    item,
 		Content: item.FilterValue(),
-		Info:    info.NewFields(),
+		Info:    NewFields(),
 	}
 
 	return &i
@@ -43,13 +42,13 @@ func NewItem(item list.Item) *Item {
 func NewDefaultItem(content string) *Item {
 	item := Item{
 		Content: content,
-		Info:    info.NewFields(),
+		Info:    NewFields(),
 	}
 	item.Data = item
 	return &item
 }
 
-func (i *Item) SetInfo(f *info.Fields) {
+func (i *Item) SetInfo(f *Fields) {
 	i.Info = f
 }
 
