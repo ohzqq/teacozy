@@ -7,7 +7,7 @@ import (
 )
 
 type List struct {
-	List             list.Model
+	Model            list.Model
 	Title            string
 	MultiSelect      bool
 	ShowKeys         bool
@@ -28,7 +28,7 @@ func NewList(title string, items Items) *List {
 	l.KeyMap = ListKeyMap()
 	l.Title = title
 	p := List{
-		List:   l,
+		Model:  l,
 		Items:  items,
 		Width:  w,
 		Height: h,
@@ -48,7 +48,7 @@ func (m *List) InitList() list.Model {
 	if m.Title == "" {
 		l.Title = ""
 	}
-	m.List = l
+	m.Model = l
 	return l
 }
 
@@ -72,7 +72,7 @@ func (m *List) SetShowKeys() *List {
 func (m *List) SetSize(w, h int) *List {
 	m.Width = w
 	m.Height = h
-	m.List.SetSize(w, h)
+	m.Model.SetSize(w, h)
 	return m
 }
 
@@ -106,18 +106,18 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		} else {
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
-				cur := m.List.SelectedItem().(*Item)
+				cur := m.Model.SelectedItem().(*Item)
 				m.Items.ToggleSelectedItem(cur.Index())
 				cmds = append(cmds, ReturnSelectionsCmd())
 			}
 		}
 	case UpdateStatusMsg:
-		cmds = append(cmds, m.List.NewStatusMessage(msg.Msg))
+		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
-		m.List.SetSize(msg.Width-1, msg.Height-2)
+		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case UpdateVisibleItemsMsg:
 		items := m.Items.Display(string(msg))
-		m.List.SetItems(items)
+		m.Model.SetItems(items)
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
@@ -132,17 +132,17 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	}
 
-	m.List, cmd = m.List.Update(msg)
+	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m *List) Init() tea.Cmd {
-	m.List = m.InitList()
+	m.Model = m.InitList()
 	return nil
 }
 
 func (m List) View() string {
-	return m.List.View()
+	return m.Model.View()
 }

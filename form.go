@@ -75,7 +75,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		}
 		if m.Input.Focused() {
 			if key.Matches(msg, Keys.SaveAndExit) {
-				cur := m.Model.List.SelectedItem()
+				cur := m.Model.Model.SelectedItem()
 				i := m.Model.Items.Get(cur)
 				field := i.Data.(FieldData)
 				val := m.Input.Value()
@@ -105,13 +105,13 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				case key.Matches(msg, Keys.SaveAndExit):
 					m.state = view
 				case key.Matches(msg, Keys.EditField):
-					cur := m.Model.List.SelectedItem()
+					cur := m.Model.Model.SelectedItem()
 					field := m.Model.Items.Get(cur).Data.(*Field)
 					cmds = append(cmds, EditFormItemCmd(field))
 				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
-				m.Model.List, cmd = m.Model.List.Update(msg)
+				m.Model.Model, cmd = m.Model.Model.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 		}
@@ -133,7 +133,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 		field := m.Fields.Data.Get(msg.Key())
 		field.Set(msg.Value())
 	case tea.WindowSizeMsg:
-		m.Model.List.SetSize(msg.Width-2, msg.Height-2)
+		m.Model.Model.SetSize(msg.Width-2, msg.Height-2)
 	case ReturnSelectionsMsg:
 		var field FieldData
 		if items := m.Model.Items.Selections(); len(items) > 0 {
@@ -161,7 +161,7 @@ func (m *Form) View() string {
 		v := m.view.View()
 		sections = append(sections, v)
 	case form:
-		m.Model.List.SetSize(m.Model.Width, availHeight)
+		m.Model.Model.SetSize(m.Model.Width, availHeight)
 		v := m.Model.View()
 		sections = append(sections, v)
 	}

@@ -35,6 +35,7 @@ func New(title string, items Items) TUI {
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
+		state:       main,
 	}
 }
 
@@ -78,21 +79,36 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		switch {
-		case key.Matches(msg, Keys.Quit):
-			cmds = append(cmds, tea.Quit)
-		default:
-			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle) {
-					m.CurrentMenu = menu
-					m.ShowMenu()
-					m.HideInfo()
-					cmds = append(cmds, SetFocusedViewCmd(label))
+		if m.Input.Focused() {
+			if key.Matches(msg, Keys.SaveAndExit) {
+				cur := m.List.Model.SelectedItem()
+				i := m.Items.Get(cur)
+				field := i.Data.(FieldData)
+				val := m.Input.Value()
+				field.Set(val)
+				m.Items.Set(i.Index(), NewItem(field))
+				m.Input.Blur()
+				m.Render()
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+			}
+			m.Input, cmd = m.Input.Update(msg)
+		} else {
+			switch {
+			case key.Matches(msg, Keys.Quit):
+				cmds = append(cmds, tea.Quit)
+			default:
+				for label, menu := range m.Menus {
+					if key.Matches(msg, menu.Toggle) {
+						m.CurrentMenu = menu
+						m.ShowMenu()
+						m.HideInfo()
+						cmds = append(cmds, SetFocusedViewCmd(label))
+					}
 				}
 			}
 		}
 	case EditInfoMsg:
-		cur := m.Items.Get(m.List.List.SelectedItem())
+		cur := m.Items.Get(m.List.Model.SelectedItem())
 		m.form = cur.Fields.Edit()
 		//fields := f.Start()
 		//cur.SetFields(fields)
@@ -130,7 +146,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *TUI) View() string {
 	var (
 		sections    []string
-		availHeight = m.List.List.Height()
+		availHeight = m.List.Model.Height()
 	)
 
 	var menu string
@@ -147,7 +163,7 @@ func (m *TUI) View() string {
 	}
 
 	m.List.SetSize(m.width, availHeight)
-	content := m.List.List.View()
+	content := m.List.Model.View()
 	sections = append(sections, content)
 
 	if m.showMenu {
