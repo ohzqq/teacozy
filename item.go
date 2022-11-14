@@ -15,7 +15,7 @@ const (
 )
 
 type Item struct {
-	Data              list.Item
+	Item              list.Item
 	idx               int
 	IsSelected        bool
 	ListOpen          bool
@@ -24,6 +24,7 @@ type Item struct {
 	Level             int
 	List              Items
 	TotalSubListItems int
+	Data              FieldData
 	key               string
 	value             string
 	Fields            *Fields
@@ -31,19 +32,20 @@ type Item struct {
 
 func NewItem(item list.Item) *Item {
 	i := Item{
-		Data:  item,
+		Item:  item,
 		value: item.FilterValue(),
 	}
 
 	return &i
 }
 
-func NewDefaultItem(content string) *Item {
+func NewDefaultItem(key, val string) *Item {
 	item := Item{
-		value:  content,
+		key:    key,
+		value:  val,
 		Fields: NewFields(),
 	}
-	item.Data = item
+	item.Item = item
 	return &item
 }
 

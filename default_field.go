@@ -15,7 +15,7 @@ type Field struct {
 }
 
 func NewDefaultField(key, val string) *Field {
-	item := NewDefaultItem(val).SetKey(key)
+	item := NewDefaultItem(key, val)
 	return &Field{Item: item}
 }
 

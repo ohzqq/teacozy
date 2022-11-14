@@ -83,12 +83,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if key.Matches(msg, Keys.SaveAndExit) {
 				cur := m.List.Model.SelectedItem()
 				i := m.Items.Get(cur)
-				field := i.Data.(FieldData)
+				field := i.Item.(FieldData)
 				val := m.Input.Value()
 				field.Set(val)
 				m.Items.Set(i.Index(), NewItem(field))
 				m.Input.Blur()
-				m.Render()
+				//m.Render()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			m.Input, cmd = m.Input.Update(msg)
