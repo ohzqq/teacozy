@@ -40,14 +40,6 @@ func SaveFormAsHashCmd() tea.Cmd {
 	}
 }
 
-type EditFormMsg struct{}
-
-func EditFormCmd() tea.Cmd {
-	return func() tea.Msg {
-		return EditFormMsg{}
-	}
-}
-
 type EditFormItemMsg struct {
 	Data FieldData
 	*Item

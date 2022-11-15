@@ -119,6 +119,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			switch {
+			case key.Matches(msg, Keys.Info):
+				cmds = append(cmds, HideInfoCmd())
 			case key.Matches(msg, Keys.Quit):
 				cmds = append(cmds, tea.Quit)
 			default:
@@ -165,14 +167,15 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
+	case ShowInfoMsg:
+		m.ShowInfo()
+		cmds = append(cmds, SetFocusedViewCmd("info"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case ShowItemInfoMsg:
-		m.view = msg.Fields.Display()
 		m.info = msg.Fields.Info()
 		m.HideMenu()
-		m.ShowInfo()
-		cmds = append(cmds, SetFocusedViewCmd("info"))
+		cmds = append(cmds, ShowInfoCmd())
 	}
 
 	switch focus {
