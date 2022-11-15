@@ -15,7 +15,6 @@ type TUI struct {
 	Alt         *List
 	Input       textarea.Model
 	view        viewport.Model
-	form        *List
 	info        *Info
 	Title       string
 	FocusedView string
@@ -82,15 +81,15 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Input.Focused() {
 			if key.Matches(msg, Keys.SaveAndExit) {
-				cur := m.form.Model.SelectedItem()
-				i := m.form.Items.Get(cur)
+				cur := m.Main.Model.SelectedItem()
+				i := m.Main.Items.Get(cur)
 				field := i.Item.(FieldData)
 				val := m.Input.Value()
 				if original := field.Value(); original != val {
 					field.Set(val)
 					item := NewItem().SetData(field)
 					item.Changed = true
-					m.form.Items.Set(i.Index(), item)
+					m.Main.Items.Set(i.Index(), item)
 				}
 				m.Input.Blur()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
@@ -98,17 +97,18 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			//if focus == "form" {
 			if m.Main.isForm {
 				switch {
+				case key.Matches(msg, Keys.ExitScreen):
+					m.Main = m.Alt
 				case key.Matches(msg, Keys.SaveAndExit):
-					cur := m.form.Model.SelectedItem()
-					i := m.form.Items.Get(cur)
+					cur := m.Main.Model.SelectedItem()
+					i := m.Main.Items.Get(cur)
 					if i.Changed {
 						cmds = append(cmds, ItemChangedCmd())
 					}
+					m.Main = m.Alt
 					m.HideInfo()
-					cmds = append(cmds, SetFocusedViewCmd("list"))
 				}
 			}
 			switch {
@@ -126,8 +126,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case ItemChangedMsg:
-		curItem := m.Main.Model.SelectedItem()
-		cur := m.Main.Items.Get(curItem)
+		sel := m.Main.Model.SelectedItem()
+		cur := m.Main.Items.Get(sel)
 		cur.Changed = true
 	case EditFormItemMsg:
 		if m.Main.isForm {
@@ -141,7 +141,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cur := m.Main.Items.Get(sel)
 		m.Alt = m.Main
 		m.Main = cur.Fields.Edit()
-		m.form = cur.Fields.Edit()
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case HideInfoMsg:
@@ -163,9 +162,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	case "info":
 		m.info, cmd = m.info.Update(msg)
-		cmds = append(cmds, cmd)
-	case "form":
-		m.form, cmd = m.form.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		m.Main, cmd = m.Main.Update(msg)
