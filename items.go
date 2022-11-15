@@ -6,12 +6,15 @@ import (
 
 type Items struct {
 	all         []*Item
+	Delegate    itemDelegate
 	MultiSelect bool
 	ShowKeys    bool
 }
 
 func NewItems() Items {
-	return Items{}
+	return Items{
+		Delegate: NewItemDelegate(),
+	}
 }
 
 func (i *Items) SetItems(items ...*Item) *Items {
@@ -20,26 +23,23 @@ func (i *Items) SetItems(items ...*Item) *Items {
 }
 
 func (i *Items) SetMultiSelect() *Items {
-	i.MultiSelect = true
+	i.Delegate.MultiSelect()
 	return i
 }
 
 func (i *Items) SetShowKeys() *Items {
-	i.ShowKeys = true
+	i.Delegate.ShowKeys()
 	return i
 }
 
 func (i *Items) List() list.Model {
 	i.Process()
-	del := NewItemDelegate()
-	if i.ShowKeys {
-		del.ShowKeys()
-	}
-	if i.MultiSelect {
-		del.MultiSelect()
-	}
 	w, h := TermSize()
-	l := list.New(i.Visible(), del, w, h)
+	l := list.New(i.Visible(), i.Delegate, w, h)
+	l.SetSize(w, h)
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+	l.KeyMap = ListKeyMap()
 	return l
 }
 

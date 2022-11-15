@@ -13,14 +13,6 @@ func SetFocusedViewCmd(v string) tea.Cmd {
 	}
 }
 
-type UpdateMenuContentMsg string
-
-func UpdateMenuContentCmd(s string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateMenuContentMsg(s)
-	}
-}
-
 type ItemChangedMsg struct{}
 
 func ItemChangedCmd() tea.Cmd {
@@ -29,7 +21,33 @@ func ItemChangedCmd() tea.Cmd {
 	}
 }
 
+// menu commands
+
 type MenuFunc func(m *TUI) tea.Cmd
+
+type UpdateMenuContentMsg string
+
+func UpdateMenuContentCmd(s string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateMenuContentMsg(s)
+	}
+}
+
+type HideMenuMsg struct{}
+
+func HideMenuCmd() tea.Cmd {
+	return func() tea.Msg {
+		return HideMenuMsg{}
+	}
+}
+
+type ShowMenuMsg struct{}
+
+func ShowMenuCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ShowMenuMsg{}
+	}
+}
 
 // form commands
 type SaveFormAsHashMsg struct{}
@@ -48,16 +66,6 @@ type EditFormItemMsg struct {
 func EditFormItemCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
 		return EditFormItemMsg{Data: item.Data, Item: item}
-	}
-}
-
-type UpdateFormContentMsg struct {
-	*Field
-}
-
-func UpdateFormContentCmd(key, val string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateFormContentMsg{Field: NewField(key, val)}
 	}
 }
 

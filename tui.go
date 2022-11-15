@@ -35,7 +35,6 @@ func New(title string, items Items) TUI {
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
-		state:       main,
 	}
 }
 
@@ -162,19 +161,25 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cur := m.Main.Items.Get(sel)
 		m.Alt = m.Main
 		m.Main = cur.Fields.Edit()
-		m.HideInfo()
+		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowInfoMsg:
 		m.ShowInfo()
+		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
+	case HideMenuMsg:
+		m.HideMenu()
+		cmds = append(cmds, SetFocusedViewCmd("list"))
+	case ShowMenuMsg:
+		m.ShowMenu()
+		m.HideInfo()
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case ShowItemInfoMsg:
 		m.info = msg.Fields.Info()
-		m.HideMenu()
 		cmds = append(cmds, ShowInfoCmd())
 	}
 
@@ -201,7 +206,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *TUI) Init() tea.Cmd {
-	return m.Main.Init()
+	//return m.Main.Init()
+	return nil
 }
 
 func (m *TUI) View() string {

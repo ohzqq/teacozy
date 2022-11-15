@@ -22,19 +22,14 @@ type List struct {
 
 func NewList(title string, items Items) *List {
 	w, h := TermSize()
-	l := items.List()
-	l.SetSize(w, h)
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.KeyMap = ListKeyMap()
-	l.Title = title
 	p := List{
-		Model:  l,
 		Items:  items,
 		width:  w,
 		height: h,
 		Keys:   DefaultKeys(),
+		Title:  title,
 	}
+	p.Model = p.InitList()
 	return &p
 }
 
@@ -65,6 +60,9 @@ func (m *List) SetItems(items Items) *List {
 func (m *List) SetMultiSelect() *List {
 	m.MultiSelect = true
 	m.Items.SetMultiSelect()
+	del := NewItemDelegate()
+	del.MultiSelect()
+	m.Model.SetDelegate(del)
 	return m
 }
 

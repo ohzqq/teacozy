@@ -120,7 +120,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	prefix := curItem.Prefix()
+	prefix := dash
+	if d.multiSelect {
+		prefix = uncheck
+		if isSelected {
+			prefix = check
+		}
+	}
+	if curItem.HasList() {
+		prefix = openSub
+		if curItem.ListOpen {
+			prefix = closeSub
+		}
+	}
 	if curItem.Changed {
 		content = "*" + content
 	}
