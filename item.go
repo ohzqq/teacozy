@@ -24,8 +24,6 @@ type Item struct {
 	Level             int
 	List              Items
 	TotalSubListItems int
-	key               string
-	value             string
 	Form              FormData
 	Fields            *Fields
 	Data              FieldData
@@ -66,13 +64,11 @@ func (i *Item) SetKey(key string) *Item {
 	if field, ok := i.Data.(*Field); ok {
 		field.key = key
 	}
-	i.key = key
 	return i
 }
 
 func (i *Item) SetValue(val string) *Item {
 	i.Data.Set(val)
-	//i.value = val
 	return i
 }
 
@@ -127,7 +123,6 @@ func (i Item) Value() string {
 }
 
 func (i *Item) Set(content string) {
-	i.value = content
 	i.Data.Set(content)
 }
 
@@ -146,7 +141,7 @@ func (i Item) HasList() bool {
 
 func (i *Item) Edit() textarea.Model {
 	input := textarea.New()
-	input.SetValue(i.value)
+	input.SetValue(i.Value())
 	input.ShowLineNumbers = false
 	return input
 }
