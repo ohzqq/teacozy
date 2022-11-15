@@ -11,7 +11,8 @@ import (
 )
 
 type TUI struct {
-	List        *List
+	Main        *List
+	Alt         *List
 	Input       textarea.Model
 	view        viewport.Model
 	form        *List
@@ -31,7 +32,7 @@ type TUI struct {
 
 func New(title string, items Items) TUI {
 	return TUI{
-		List:        NewList(title, items),
+		Main:        NewList(title, items),
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
@@ -84,9 +85,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cur := m.form.Model.SelectedItem()
 				i := m.form.Items.Get(cur)
 				field := i.Item.(FieldData)
-				original := field.Value()
 				val := m.Input.Value()
-				if original != val {
+				if original := field.Value(); original != val {
 					field.Set(val)
 					item := NewItem().SetData(field)
 					item.Changed = true
@@ -98,13 +98,16 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			if focus == "form" {
+			//if focus == "form" {
+			if m.Main.isForm {
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
-					//cur := m.form.Model.SelectedItem()
-					//i := m.form.Items.Get(cur)
+					cur := m.form.Model.SelectedItem()
+					i := m.form.Items.Get(cur)
+					if i.Changed {
+						cmds = append(cmds, ItemChangedCmd())
+					}
 					m.HideInfo()
-					cmds = append(cmds, ItemChangedCmd())
 					cmds = append(cmds, SetFocusedViewCmd("list"))
 				}
 			}
@@ -123,19 +126,24 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case ItemChangedMsg:
-		curItem := m.List.Model.SelectedItem()
-		cur := m.List.Items.Get(curItem)
+		curItem := m.Main.Model.SelectedItem()
+		cur := m.Main.Items.Get(curItem)
 		cur.Changed = true
 	case EditFormItemMsg:
-		m.Input = textarea.New()
-		m.Input.SetValue(msg.Value())
-		m.Input.ShowLineNumbers = false
-		m.Input.Focus()
-		//cmds = append(cmds, SetFocusedViewCmd("input"))
+		if m.Main.isForm {
+			m.Input = textarea.New()
+			m.Input.SetValue(msg.Value())
+			m.Input.ShowLineNumbers = false
+			m.Input.Focus()
+		}
 	case EditInfoMsg:
-		cur := m.List.Items.Get(m.List.Model.SelectedItem())
+		sel := m.Main.Model.SelectedItem()
+		cur := m.Main.Items.Get(sel)
+		m.Alt = m.Main
+		m.Main = cur.Fields.Edit()
 		m.form = cur.Fields.Edit()
-		cmds = append(cmds, SetFocusedViewCmd("form"))
+		m.HideInfo()
+		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
@@ -160,7 +168,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.form, cmd = m.form.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		m.List, cmd = m.List.Update(msg)
+		m.Main, cmd = m.Main.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
 		for label, _ := range m.Menus {
@@ -175,56 +183,57 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *TUI) Init() tea.Cmd {
-	return m.List.Init()
+	return m.Main.Init()
 }
 
 func (m *TUI) View() string {
 	var (
 		sections    []string
-		availHeight = m.List.Model.Height()
+		availHeight = m.Main.Model.Height()
 		field       string
 	)
 
-	switch m.FocusedView {
-	case "form":
-		if m.Input.Focused() {
-			field = m.Input.View()
-			availHeight -= lipgloss.Height(field)
-		}
-
-		m.form.SetSize(m.width, availHeight)
-		content := m.form.View()
-		sections = append(sections, content)
-
-		if m.Input.Focused() {
-			sections = append(sections, field)
-		}
-	default:
-		var menu string
-		if m.showMenu {
-			menu = m.CurrentMenu.Model.View()
-			availHeight -= lipgloss.Height(menu)
-		}
-
-		var info string
-		if m.showInfo {
-			//m.info.Render()
-			info = m.info.View()
-			availHeight -= lipgloss.Height(info)
-		}
-
-		m.List.SetSize(m.width, availHeight)
-		content := m.List.Model.View()
-		sections = append(sections, content)
-
-		if m.showMenu {
-			sections = append(sections, menu)
-		}
-
-		if m.showInfo {
-			sections = append(sections, info)
-		}
+	//switch m.FocusedView {
+	//case "form":
+	if m.Input.Focused() {
+		field = m.Input.View()
+		availHeight -= lipgloss.Height(field)
 	}
+
+	//m.form.SetSize(m.width, availHeight)
+	//content := m.form.View()
+	//sections = append(sections, content)
+
+	var menu string
+	if m.showMenu {
+		menu = m.CurrentMenu.Model.View()
+		availHeight -= lipgloss.Height(menu)
+	}
+
+	var info string
+	if m.showInfo {
+		//m.info.Render()
+		info = m.info.View()
+		availHeight -= lipgloss.Height(info)
+	}
+
+	m.Main.SetSize(m.width, availHeight)
+	content := m.Main.Model.View()
+	sections = append(sections, content)
+
+	if m.showMenu {
+		sections = append(sections, menu)
+	}
+
+	if m.showInfo {
+		sections = append(sections, info)
+	}
+
+	if m.Input.Focused() {
+		sections = append(sections, field)
+	}
+	//default:
+	//}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }

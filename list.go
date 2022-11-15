@@ -12,6 +12,7 @@ type List struct {
 	MultiSelect      bool
 	ShowKeys         bool
 	ShowSelectedOnly bool
+	isForm           bool
 	Keys             KeyMap
 	Items            Items
 	Width            int

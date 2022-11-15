@@ -58,7 +58,6 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 				cmds = append(cmds, ShowItemInfoCmd(curItem))
 			}
 		case key.Matches(msg, Keys.EditField):
-			//field := curItem.Get()
 			cmds = append(cmds, EditFormItemCmd(curItem))
 		case key.Matches(msg, Keys.ToggleItem):
 			m.CursorDown()

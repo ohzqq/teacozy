@@ -136,6 +136,7 @@ func (f *Fields) Edit() *List {
 		}
 	}
 	form := NewList("Edit...", items)
+	form.isForm = true
 	return form
 }
 
