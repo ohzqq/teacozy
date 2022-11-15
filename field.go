@@ -23,7 +23,7 @@ type FormData interface {
 }
 
 type FieldData interface {
-	FilterValue() string
+	//FilterValue() string
 	Value() string
 	Key() string
 	Set(string)
@@ -50,7 +50,7 @@ func NewFields() *Fields {
 }
 
 func (f *Fields) NewField(key, val string) *Fields {
-	item := NewDefaultItem(key, val)
+	item := NewField(key, val)
 	f.data = append(f.data, item)
 	return f
 }

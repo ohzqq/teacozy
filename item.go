@@ -32,15 +32,9 @@ type Item struct {
 }
 
 func NewItem() *Item {
-	return &Item{}
-}
-
-func NewDefaultItem(key, val string) *Item {
-	item := &Item{
-		key:   key,
-		value: val,
+	return &Item{
+		Data: &Field{},
 	}
-	return NewItem().SetData(item)
 }
 
 // item info
@@ -62,21 +56,23 @@ func (i *Item) SetMultiSelect() *Item {
 }
 
 func (i *Item) SetData(data FieldData) *Item {
-	i.Item = data
 	i.Data = data
-	i.value = data.Value()
-	i.key = data.Key()
+	i.Item = i
 	i.Fields = NewFields().Add(data)
 	return i
 }
 
-func (i *Item) SetKey(label string) *Item {
-	i.key = label
+func (i *Item) SetKey(key string) *Item {
+	if field, ok := i.Data.(*Field); ok {
+		field.key = key
+	}
+	i.key = key
 	return i
 }
 
 func (i *Item) SetValue(val string) *Item {
-	i.value = val
+	i.Data.Set(val)
+	//i.value = val
 	return i
 }
 
@@ -127,8 +123,7 @@ func (i Item) Keys() []string {
 }
 
 func (i Item) Value() string {
-	return i.value
-	//return i.Data.Value()
+	return i.Data.Value()
 }
 
 func (i *Item) Set(content string) {
@@ -137,11 +132,11 @@ func (i *Item) Set(content string) {
 }
 
 func (i Item) FilterValue() string {
-	return i.value
+	return i.Data.Value()
 }
 
 func (i Item) Key() string {
-	return i.key
+	return i.Data.Key()
 }
 
 func (i Item) HasList() bool {
