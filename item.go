@@ -27,26 +27,27 @@ type Item struct {
 	Data              FieldData
 	key               string
 	value             string
+	Form              FormData
 	Fields            *Fields
 }
 
-func NewItem(item list.Item) *Item {
+func NewItem(item FieldData) *Item {
 	i := Item{
-		Item:  item,
-		value: item.FilterValue(),
+		Item: item,
+		Data: item,
 	}
 
 	return &i
 }
 
 func NewDefaultItem(key, val string) *Item {
-	item := Item{
-		key:    key,
-		value:  val,
-		Fields: NewFields(),
+	item := &Item{
+		key:   key,
+		value: val,
 	}
+	item.Data = item
 	item.Item = item
-	return &item
+	return item
 }
 
 // item info
@@ -59,10 +60,7 @@ func (i *Item) SetFields(f *Fields) {
 }
 
 func (i *Item) EditFields() *List {
-	if i.Fields.Data != nil {
-		return i.Fields.Edit()
-	}
-	return &List{}
+	return i.Fields.Edit()
 }
 
 func (i *Item) SetMultiSelect() *Item {
@@ -114,21 +112,15 @@ func (i Item) Index() int {
 }
 
 func (i Item) Get(key string) FieldData {
-	if i.Fields.Data != nil {
-		return i.Fields.Data.Get(key)
-	}
-	return &i
+	return i.Fields.Get(key)
 }
 
 func (i Item) Keys() []string {
-	if i.Fields.Data != nil {
-		return i.Fields.Data.Keys()
-	}
-	return []string{}
+	return i.Fields.Keys()
 }
 
 func (i Item) Value() string {
-	return i.value
+	return i.Data.Value()
 }
 
 func (i *Item) Set(content string) {

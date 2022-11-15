@@ -17,6 +17,9 @@ type Info struct {
 
 func NewInfo(data FormData) *Info {
 	fields := NewFields().SetData(data)
+	if f, ok := data.(*Fields); ok {
+		fields = f
+	}
 	return &Info{
 		Data:   data,
 		Model:  fields.Display(),

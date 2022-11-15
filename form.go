@@ -77,7 +77,7 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 			if key.Matches(msg, Keys.SaveAndExit) {
 				cur := m.Model.Model.SelectedItem()
 				i := m.Model.Items.Get(cur)
-				field := i.Data.(FieldData)
+				field := i.Item.(FieldData)
 				val := m.Input.Value()
 				field.Set(val)
 				m.Model.Items.Set(i.Index(), NewItem(field))
@@ -104,10 +104,10 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
 					m.state = view
-				case key.Matches(msg, Keys.EditField):
-					cur := m.Model.Model.SelectedItem()
-					field := m.Model.Items.Get(cur).Data.(*Field)
-					cmds = append(cmds, EditFormItemCmd(field))
+				//case key.Matches(msg, Keys.EditField):
+				//cur := m.Model.Model.SelectedItem()
+				//field := m.Model.Items.Get(cur).Item.(*Item) //.(*Field)
+				//cmds = append(cmds, EditFormItemCmd(field))
 				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
@@ -137,9 +137,9 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 	case ReturnSelectionsMsg:
 		var field FieldData
 		if items := m.Model.Items.Selections(); len(items) > 0 {
-			field = items[0].Data.(*Field)
+			field = items[0].Item.(*Field)
 		}
-		cmds = append(cmds, EditFormItemCmd(field.(*Field)))
+		cmds = append(cmds, EditFormItemCmd(field.(*Item)))
 	}
 
 	return m, tea.Batch(cmds...)

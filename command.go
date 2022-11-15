@@ -41,12 +41,13 @@ func EditFormCmd() tea.Cmd {
 }
 
 type EditFormItemMsg struct {
-	*Field
+	Data FieldData
+	*Item
 }
 
-func EditFormItemCmd(field *Field) tea.Cmd {
+func EditFormItemCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return EditFormItemMsg{Field: field}
+		return EditFormItemMsg{Data: item.Data, Item: item}
 	}
 }
 

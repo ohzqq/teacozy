@@ -49,6 +49,37 @@ func NewFields() *Fields {
 	}
 }
 
+func (f *Fields) NewField(key, val string) *Fields {
+	item := NewDefaultItem(key, val)
+	f.data = append(f.data, item)
+	return f
+}
+
+func (f *Fields) SetData(data FormData) *Fields {
+	f.Data = data
+	for _, key := range data.Keys() {
+		f.data = append(f.data, data.Get(key))
+	}
+	return f
+}
+
+func (f Fields) Get(key string) FieldData {
+	for _, field := range f.data {
+		if field.Key() == key {
+			return field
+		}
+	}
+	return nil
+}
+
+func (f Fields) Keys() []string {
+	var keys []string
+	for _, field := range f.data {
+		keys = append(keys, field.Key())
+	}
+	return keys
+}
+
 func (f *Fields) Render() *Fields {
 	content := f.String()
 	height := lipgloss.Height(content)
@@ -58,7 +89,7 @@ func (f *Fields) Render() *Fields {
 }
 
 func (f *Fields) Info() *Info {
-	return NewInfo(f.Data)
+	return NewInfo(f)
 }
 
 func (f *Fields) Display() viewport.Model {
@@ -69,7 +100,7 @@ func (f *Fields) Display() viewport.Model {
 
 func (f *Fields) Edit() *List {
 	items := NewItems()
-	if f.Data != nil {
+	if len(f.data) > 0 {
 		for _, field := range f.All() {
 			items.Add(NewItem(field))
 		}
@@ -78,21 +109,8 @@ func (f *Fields) Edit() *List {
 	return form
 }
 
-func (f *Fields) SetData(data FormData) *Fields {
-	f.Data = data
-	return f
-}
-
 func (f Fields) All() []FieldData {
-	var fields []FieldData
-	if f.Data == nil {
-		return fields
-	}
-	for _, key := range f.Data.Keys() {
-		field := f.Data.Get(key)
-		fields = append(fields, field)
-	}
-	return fields
+	return f.data
 }
 
 func (f *Fields) NoKeys() *Fields {
