@@ -103,25 +103,29 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	render := iStyle.NormalItem.Render
 
-	prefix := curItem.Prefix()
-
 	if isCurrent {
 		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
+			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
 	} else if isSelected {
 		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
+			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
 	} else if isSub {
 		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
+			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
 	} else {
 		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(prefix + s)
+			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
 	}
+
+	prefix := curItem.Prefix()
+	if curItem.Changed {
+		content = "*" + content
+	}
+	content = prefix + content
 
 	fmt.Fprintf(w, render(content))
 	//fmt.Fprintf(w, "%d: %s", curItem.id, render(title))

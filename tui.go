@@ -81,20 +81,33 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Input.Focused() {
 			if key.Matches(msg, Keys.SaveAndExit) {
-				cur := m.List.Model.SelectedItem()
-				i := m.List.Items.Get(cur)
+				cur := m.form.Model.SelectedItem()
+				i := m.form.Items.Get(cur)
 				field := i.Item.(FieldData)
+				original := field.Value()
 				val := m.Input.Value()
-				field.Set(val)
-				item := NewItem().SetData(field)
-				m.List.Items.Set(i.Index(), item)
+				if original != val {
+					field.Set(val)
+					item := NewItem().SetData(field)
+					item.Changed = true
+					m.form.Items.Set(i.Index(), item)
+				}
 				m.Input.Blur()
-				//m.Render()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
+			if focus == "form" {
+				switch {
+				case key.Matches(msg, Keys.SaveAndExit):
+					//cur := m.form.Model.SelectedItem()
+					//i := m.form.Items.Get(cur)
+					m.HideInfo()
+					cmds = append(cmds, ItemChangedCmd())
+					cmds = append(cmds, SetFocusedViewCmd("list"))
+				}
+			}
 			switch {
 			case key.Matches(msg, Keys.Quit):
 				cmds = append(cmds, tea.Quit)
@@ -109,18 +122,20 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+	case ItemChangedMsg:
+		curItem := m.List.Model.SelectedItem()
+		cur := m.List.Items.Get(curItem)
+		cur.Changed = true
 	case EditFormItemMsg:
-		cmds = append(cmds, UpdateStatusCmd(msg.Data.Value()))
-		//m.Input = textarea.New()
-		//m.Input.SetValue(msg.Value())
-		//m.Input.ShowLineNumbers = false
-		//m.Input.Focus()
+		m.Input = textarea.New()
+		m.Input.SetValue(msg.Value())
+		m.Input.ShowLineNumbers = false
+		m.Input.Focus()
+		//cmds = append(cmds, SetFocusedViewCmd("input"))
 	case EditInfoMsg:
 		cur := m.List.Items.Get(m.List.Model.SelectedItem())
 		m.form = cur.Fields.Edit()
 		cmds = append(cmds, SetFocusedViewCmd("form"))
-		//fields := f.Start()
-		//cur.SetFields(fields)
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
@@ -135,6 +150,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch focus {
+	case "input":
+		m.Input, cmd = m.Input.Update(msg)
+		cmds = append(cmds, cmd)
 	case "info":
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
@@ -152,6 +170,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	//cmds = append(cmds, UpdateStatusCmd(m.FocusedView))
 	return m, tea.Batch(cmds...)
 }
 
@@ -163,11 +182,23 @@ func (m *TUI) View() string {
 	var (
 		sections    []string
 		availHeight = m.List.Model.Height()
+		field       string
 	)
 
 	switch m.FocusedView {
 	case "form":
-		return m.form.View()
+		if m.Input.Focused() {
+			field = m.Input.View()
+			availHeight -= lipgloss.Height(field)
+		}
+
+		m.form.SetSize(m.width, availHeight)
+		content := m.form.View()
+		sections = append(sections, content)
+
+		if m.Input.Focused() {
+			sections = append(sections, field)
+		}
 	default:
 		var menu string
 		if m.showMenu {
@@ -193,7 +224,7 @@ func (m *TUI) View() string {
 		if m.showInfo {
 			sections = append(sections, info)
 		}
-
-		return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 	}
+
+	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }

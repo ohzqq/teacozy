@@ -24,6 +24,7 @@ type Item struct {
 	Level             int
 	List              Items
 	TotalSubListItems int
+	Changed           bool
 	Form              FormData
 	Fields            *Fields
 	Data              FieldData
@@ -31,7 +32,8 @@ type Item struct {
 
 func NewItem() *Item {
 	return &Item{
-		Data: &Field{},
+		Data:   &Field{},
+		Fields: NewFields(),
 	}
 }
 

@@ -21,6 +21,14 @@ func UpdateMenuContentCmd(s string) tea.Cmd {
 	}
 }
 
+type ItemChangedMsg struct{}
+
+func ItemChangedCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ItemChangedMsg{}
+	}
+}
+
 type MenuFunc func(m *TUI) tea.Cmd
 
 // form commands

@@ -105,10 +105,11 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
 					m.state = view
-				//case key.Matches(msg, Keys.EditField):
-				//cur := m.Model.Model.SelectedItem()
-				//field := m.Model.Items.Get(cur).Item.(*Item) //.(*Field)
-				//cmds = append(cmds, EditFormItemCmd(field))
+				case key.Matches(msg, Keys.EditField):
+					cur := m.Model.Model.SelectedItem()
+					field := m.Model.Items.Get(cur).Item.(*Item) //.(*Field)
+					cmds = append(cmds, EditFormItemCmd(field))
+					cmds = append(cmds, UpdateStatusCmd("edit item"))
 				case key.Matches(msg, Keys.ExitScreen):
 					cmds = append(cmds, tea.Quit)
 				}
