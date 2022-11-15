@@ -83,7 +83,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	switch i := listItem.(type) {
 	case *Item:
 		curItem = i
-		content = i.FilterValue()
+		content = i.Value()
 		//  if d.showKeys() {
 		//    content =
 		//}

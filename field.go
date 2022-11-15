@@ -55,6 +55,11 @@ func (f *Fields) NewField(key, val string) *Fields {
 	return f
 }
 
+func (f *Fields) Add(field FieldData) *Fields {
+	f.data = append(f.data, field)
+	return f
+}
+
 func (f *Fields) SetData(data FormData) *Fields {
 	f.Data = data
 	for _, key := range data.Keys() {
@@ -102,7 +107,8 @@ func (f *Fields) Edit() *List {
 	items := NewItems()
 	if len(f.data) > 0 {
 		for _, field := range f.All() {
-			items.Add(NewItem(field))
+			i := NewItem().SetData(field)
+			items.Add(i)
 		}
 	}
 	form := NewList("Edit...", items)

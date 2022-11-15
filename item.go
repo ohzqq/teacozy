@@ -24,20 +24,15 @@ type Item struct {
 	Level             int
 	List              Items
 	TotalSubListItems int
-	Data              FieldData
 	key               string
 	value             string
 	Form              FormData
 	Fields            *Fields
+	Data              FieldData
 }
 
-func NewItem(item FieldData) *Item {
-	i := Item{
-		Item: item,
-		Data: item,
-	}
-
-	return &i
+func NewItem() *Item {
+	return &Item{}
 }
 
 func NewDefaultItem(key, val string) *Item {
@@ -45,9 +40,7 @@ func NewDefaultItem(key, val string) *Item {
 		key:   key,
 		value: val,
 	}
-	item.Data = item
-	item.Item = item
-	return item
+	return NewItem().SetData(item)
 }
 
 // item info
@@ -68,8 +61,22 @@ func (i *Item) SetMultiSelect() *Item {
 	return i
 }
 
+func (i *Item) SetData(data FieldData) *Item {
+	i.Item = data
+	i.Data = data
+	i.value = data.Value()
+	i.key = data.Key()
+	i.Fields = NewFields().Add(data)
+	return i
+}
+
 func (i *Item) SetKey(label string) *Item {
 	i.key = label
+	return i
+}
+
+func (i *Item) SetValue(val string) *Item {
+	i.value = val
 	return i
 }
 
@@ -120,11 +127,13 @@ func (i Item) Keys() []string {
 }
 
 func (i Item) Value() string {
-	return i.Data.Value()
+	return i.value
+	//return i.Data.Value()
 }
 
 func (i *Item) Set(content string) {
 	i.value = content
+	i.Data.Set(content)
 }
 
 func (i Item) FilterValue() string {

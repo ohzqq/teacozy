@@ -53,7 +53,7 @@ func (f *Form) Render() *Form {
 	items := NewItems()
 	for _, key := range f.Fields.Data.Keys() {
 		field := f.Fields.Data.Get(key)
-		item := NewItem(field)
+		item := NewItem().SetData(field)
 		items.Add(item)
 	}
 	m := NewList("Edit...", items)
@@ -80,7 +80,8 @@ func (m *Form) Update(msg tea.Msg) (*Form, tea.Cmd) {
 				field := i.Item.(FieldData)
 				val := m.Input.Value()
 				field.Set(val)
-				m.Model.Items.Set(i.Index(), NewItem(field))
+				item := NewItem().SetData(field)
+				m.Model.Items.Set(i.Index(), item)
 				m.Input.Blur()
 				m.Render()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
