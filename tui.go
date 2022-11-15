@@ -39,6 +39,13 @@ func New(title string, items Items) TUI {
 	}
 }
 
+func (ui *TUI) SetSize(w, h int) *TUI {
+	ui.width = w
+	ui.height = h
+	ui.Main.SetSize(w, h)
+	return ui
+}
+
 func (l *TUI) AddMenu(menu *Menu) {
 	l.Menus[menu.Label] = menu
 }
@@ -102,9 +109,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, Keys.ExitScreen):
 					m.Main = m.Alt
 				case key.Matches(msg, Keys.SaveAndExit):
-					cur := m.Main.Model.SelectedItem()
-					i := m.Main.Items.Get(cur)
-					if i.Changed {
+					sel := m.Main.Model.SelectedItem()
+					cur := m.Main.Items.Get(sel)
+					if cur.Changed {
 						cmds = append(cmds, ItemChangedCmd())
 					}
 					m.Main = m.Alt
@@ -124,6 +131,18 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
+		}
+	case tea.WindowSizeMsg:
+		m.SetSize(msg.Width-1, msg.Height-2)
+	case SaveFormAsHashMsg:
+		if m.Main.isForm {
+			m.Hash = make(map[string]string)
+			sel := m.Main.Model.SelectedItem()
+			cur := m.Main.Items.Get(sel)
+			for _, field := range cur.Fields.All() {
+				m.Hash[field.Key()] = field.Value()
+			}
+			//cmds = append(cmds, tea.Quit)
 		}
 	case ItemChangedMsg:
 		sel := m.Main.Model.SelectedItem()
@@ -185,20 +204,14 @@ func (m *TUI) Init() tea.Cmd {
 func (m *TUI) View() string {
 	var (
 		sections    []string
-		availHeight = m.Main.Model.Height()
+		availHeight = m.Main.Height()
 		field       string
 	)
 
-	//switch m.FocusedView {
-	//case "form":
 	if m.Input.Focused() {
 		field = m.Input.View()
 		availHeight -= lipgloss.Height(field)
 	}
-
-	//m.form.SetSize(m.width, availHeight)
-	//content := m.form.View()
-	//sections = append(sections, content)
 
 	var menu string
 	if m.showMenu {
@@ -208,7 +221,6 @@ func (m *TUI) View() string {
 
 	var info string
 	if m.showInfo {
-		//m.info.Render()
 		info = m.info.View()
 		availHeight -= lipgloss.Height(info)
 	}
@@ -228,8 +240,28 @@ func (m *TUI) View() string {
 	if m.Input.Focused() {
 		sections = append(sections, field)
 	}
-	//default:
-	//}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
+}
+
+const (
+	main state = iota
+	form
+	view
+	edit
+)
+
+type state int
+
+func (s state) String() string {
+	switch s {
+	case form:
+		return "form"
+	case view:
+		return "view"
+	case edit:
+		return "edit"
+	default:
+		return "main"
+	}
 }

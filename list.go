@@ -15,8 +15,8 @@ type List struct {
 	isForm           bool
 	Keys             KeyMap
 	Items            Items
-	Width            int
-	Height           int
+	width            int
+	height           int
 	Style            list.Styles
 }
 
@@ -31,8 +31,8 @@ func NewList(title string, items Items) *List {
 	p := List{
 		Model:  l,
 		Items:  items,
-		Width:  w,
-		Height: h,
+		width:  w,
+		height: h,
 		Keys:   DefaultKeys(),
 	}
 	return &p
@@ -40,7 +40,7 @@ func NewList(title string, items Items) *List {
 
 func (m *List) InitList() list.Model {
 	l := m.Items.List()
-	l.SetSize(m.Width, m.Height)
+	l.SetSize(m.width, m.height)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
@@ -51,6 +51,10 @@ func (m *List) InitList() list.Model {
 	}
 	m.Model = l
 	return l
+}
+
+func (m List) Height() int {
+	return TermHeight()
 }
 
 func (m *List) SetItems(items Items) *List {
@@ -71,8 +75,8 @@ func (m *List) SetShowKeys() *List {
 }
 
 func (m *List) SetSize(w, h int) *List {
-	m.Width = w
-	m.Height = h
+	m.width = w
+	m.height = h
 	m.Model.SetSize(w, h)
 	return m
 }
