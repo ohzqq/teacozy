@@ -23,7 +23,6 @@ type FormData interface {
 }
 
 type FieldData interface {
-	//FilterValue() string
 	Value() string
 	Key() string
 	Set(string)

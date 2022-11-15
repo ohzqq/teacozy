@@ -57,7 +57,7 @@ type UpdateFormContentMsg struct {
 
 func UpdateFormContentCmd(key, val string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateFormContentMsg{Field: NewDefaultField(key, val)}
+		return UpdateFormContentMsg{Field: NewField(key, val)}
 	}
 }
 
