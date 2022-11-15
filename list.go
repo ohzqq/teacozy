@@ -92,7 +92,8 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			m.ShowSelectedOnly = false
 			cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 		}
-		if m.MultiSelect {
+		switch {
+		case m.MultiSelect:
 			switch {
 			case key.Matches(msg, Enter):
 				if m.ShowSelectedOnly {
@@ -104,7 +105,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				m.Items.ToggleAllSelectedItems()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
-		} else {
+		default:
 			switch {
 			case key.Matches(msg, m.Keys.Enter):
 				cur := m.Model.SelectedItem().(*Item)

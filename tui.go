@@ -214,7 +214,7 @@ func (m *TUI) View() string {
 	}
 
 	m.Main.SetSize(m.width, availHeight)
-	content := m.Main.Model.View()
+	content := m.Main.View()
 	sections = append(sections, content)
 
 	if m.showMenu {
