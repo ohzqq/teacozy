@@ -37,6 +37,12 @@ type Fields struct {
 	data      []FieldData
 }
 
+type Field struct {
+	*Item
+	key   string
+	value string
+}
+
 //func NewForm(data FormData) *Fields {
 //  f := NewFields().SetData(data)
 //  return f
@@ -48,6 +54,25 @@ func NewFields() *Fields {
 	}
 }
 
+func NewField(key, val string) *Field {
+	return &Field{key: key, value: val}
+}
+
+func (i Field) Key() string {
+	return i.key
+}
+
+func (i *Field) Value() string {
+	return i.value
+}
+
+func (i *Field) FilterValue() string {
+	return i.value
+}
+
+func (i *Field) Set(val string) {
+	i.value = val
+}
 func (f *Fields) NewField(key, val string) *Fields {
 	item := NewField(key, val)
 	f.data = append(f.data, item)
