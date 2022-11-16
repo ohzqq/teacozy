@@ -72,6 +72,12 @@ func (m *List) SetSize(w, h int) *List {
 	return m
 }
 
+func (m *List) SelectedItem() *Item {
+	sel := m.Model.SelectedItem()
+	cur := m.Items.Get(sel)
+	return cur
+}
+
 func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var (
 		cmd  tea.Cmd

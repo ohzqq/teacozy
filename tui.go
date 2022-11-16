@@ -87,8 +87,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Input.Focused() {
 			if key.Matches(msg, Keys.SaveAndExit) {
-				sel := m.Main.Model.SelectedItem()
-				cur := m.Main.Items.Get(sel)
+				cur := m.Main.SelectedItem()
 				field := cur.Item.(FieldData)
 				val := m.Input.Value()
 				if original := field.Value(); original != val {
@@ -108,8 +107,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, Keys.ExitScreen):
 					m.Main = m.Alt
 				case key.Matches(msg, Keys.SaveAndExit):
-					sel := m.Main.Model.SelectedItem()
-					cur := m.Main.Items.Get(sel)
+					cur := m.Main.SelectedItem()
 					if cur.Changed {
 						cmds = append(cmds, ItemChangedCmd())
 					}
@@ -138,16 +136,14 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case SaveFormAsHashMsg:
 		if m.Main.isForm {
 			m.Hash = make(map[string]string)
-			sel := m.Main.Model.SelectedItem()
-			cur := m.Main.Items.Get(sel)
+			cur := m.Main.SelectedItem()
 			for _, field := range cur.Fields.All() {
 				m.Hash[field.Key()] = field.Value()
 			}
 			//cmds = append(cmds, tea.Quit)
 		}
 	case ItemChangedMsg:
-		sel := m.Main.Model.SelectedItem()
-		cur := m.Main.Items.Get(sel)
+		cur := m.Main.SelectedItem()
 		cur.Changed = true
 	case EditFormItemMsg:
 		if m.Main.isForm {
@@ -157,8 +153,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input.Focus()
 		}
 	case EditInfoMsg:
-		sel := m.Main.Model.SelectedItem()
-		cur := m.Main.Items.Get(sel)
+		cur := m.Main.SelectedItem()
 		m.Alt = m.Main
 		m.Main = cur.Fields.Edit()
 		cmds = append(cmds, HideInfoCmd())
