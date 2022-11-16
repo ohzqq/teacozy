@@ -28,6 +28,11 @@ func NewInfo(data FormData) *Info {
 	}
 }
 
+func (i *Info) SetSize(w, h int) *Info {
+	i.Model = viewport.New(w, h)
+	return i
+}
+
 func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 	var (
 		cmd  tea.Cmd

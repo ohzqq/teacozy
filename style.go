@@ -5,7 +5,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Style struct {
+type TUIStyle struct {
+	Color  Color
+	List   list.Styles
+	Item   ItemStyle
+	Widget WidgetStyle
+	Frame  Frame
+}
+
+type Frame struct {
+	MaxWidth  int
+	MaxHeight int
+	width     int
+	height    int
+	Frame     lipgloss.Style
+}
+
+type Color struct {
 	DefaultFg lipgloss.Color
 	DefaultBg lipgloss.Color
 	Black     lipgloss.Color
@@ -20,8 +36,8 @@ type Style struct {
 	Yellow    lipgloss.Color
 }
 
-func DefaultColors() Style {
-	return Style{
+func DefaultColors() Color {
+	return Color{
 		DefaultFg: lipgloss.Color("#FFBF00"),
 		DefaultBg: lipgloss.Color("#262626"),
 		Black:     lipgloss.Color("#262626"),
@@ -35,6 +51,41 @@ func DefaultColors() Style {
 		White:     lipgloss.Color("#EEEEEE"),
 		Yellow:    lipgloss.Color("#FFFFAF"),
 	}
+}
+
+type WidgetStyle struct {
+	MaxWidth  int
+	MaxHeight int
+	width     int
+	height    int
+}
+
+func (s WidgetStyle) Width() int {
+	if s.MaxWidth == 0 {
+		s.MaxWidth = TermWidth()
+	}
+
+	w := s.MaxWidth
+
+	if s.width != 0 && s.width < s.MaxWidth {
+		w = s.width
+	}
+
+	return w
+}
+
+func (s WidgetStyle) Height() int {
+	if s.MaxHeight == 0 {
+		s.MaxHeight = TermHeight()
+	}
+
+	h := s.MaxHeight
+
+	if s.height != 0 && s.height < s.MaxHeight {
+		h = s.height
+	}
+
+	return h
 }
 
 const (

@@ -54,6 +54,12 @@ func NewFields() *Fields {
 	}
 }
 
+func DisplayFields(fields *Fields, w, h int) *Info {
+	info := NewInfo(fields)
+	info.SetSize(w, h)
+	return info
+}
+
 func NewField(key, val string) *Field {
 	return &Field{key: key, value: val}
 }
@@ -73,6 +79,7 @@ func (i *Field) FilterValue() string {
 func (i *Field) Set(val string) {
 	i.value = val
 }
+
 func (f *Fields) NewField(key, val string) *Fields {
 	item := NewField(key, val)
 	f.data = append(f.data, item)

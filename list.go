@@ -198,7 +198,7 @@ func (m List) View() string {
 
 	if m.Input.Focused() {
 		field = m.Input.View()
-		availHeight -= lipgloss.Height(field)
+		availHeight -= availHeight / 3
 	}
 
 	m.SetSize(m.width, availHeight)

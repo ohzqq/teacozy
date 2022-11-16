@@ -22,6 +22,7 @@ type TUI struct {
 	showMenu         bool
 	showInfo         bool
 	currentModelItem int
+	widgetStyle      WidgetStyle
 	width            int
 	height           int
 	state            state
@@ -36,6 +37,9 @@ func New(title string, items Items) TUI {
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
+		widgetStyle: WidgetStyle{
+			MaxHeight: TermHeight() / 3,
+		},
 	}
 }
 
@@ -119,7 +123,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
-		m.info = NewInfo(msg.Fields)
+		m.info = NewInfo(msg.Fields).SetSize(m.widgetStyle.Width(), m.widgetStyle.Height())
 		m.currentModelItem = m.Main.Model.Index()
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
@@ -167,14 +171,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *TUI) Init() tea.Cmd {
-	//return m.Main.Init()
 	return nil
 }
 
 func (m *TUI) View() string {
 	var (
 		sections    []string
-		availHeight = m.Main.Height()
+		availHeight = m.height
 	)
 
 	var menu string
@@ -189,7 +192,7 @@ func (m *TUI) View() string {
 		availHeight -= lipgloss.Height(info)
 	}
 
-	m.Main.SetSize(m.width, availHeight)
+	m.SetSize(m.width, availHeight)
 	content := m.Main.View()
 	sections = append(sections, content)
 
