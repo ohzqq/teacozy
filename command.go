@@ -51,22 +51,29 @@ func ShowMenuCmd() tea.Cmd {
 }
 
 // form commands
-type SaveFormFunc func(m *TUI) tea.Cmd
+type SaveFormFunc func(m *List) tea.Cmd
 
-type SaveAndExitMsg struct{}
+type SaveAndExitFormMsg struct {
+	Save SaveFormFunc
+}
 
-func SaveAndExitCmd() tea.Cmd {
+func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
 	return func() tea.Msg {
-		return SaveAndExitMsg{}
+		return SaveAndExitFormMsg{Save: fn}
 	}
 }
 
 type SaveFormAsHashMsg struct{}
 
-func SaveFormAsHashCmd() tea.Cmd {
-	return func() tea.Msg {
+func SaveFormAsHashCmd(m *List) tea.Cmd {
+	fn := func() tea.Msg {
+		m.Hash = make(map[string]string)
+		for _, item := range m.Items.All() {
+			m.Hash[item.Key()] = item.Value()
+		}
 		return SaveFormAsHashMsg{}
 	}
+	return fn
 }
 
 type EditFormItemMsg struct {

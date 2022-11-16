@@ -18,6 +18,8 @@ type List struct {
 	isForm           bool
 	Keys             KeyMap
 	Items            Items
+	SaveFormFunc     SaveFormFunc
+	Hash             map[string]string
 	width            int
 	height           int
 	Style            list.Styles
@@ -25,9 +27,10 @@ type List struct {
 
 func NewList(title string, items Items) *List {
 	m := List{
-		Items: items,
-		Keys:  DefaultKeys(),
-		Title: title,
+		Items:        items,
+		Keys:         DefaultKeys(),
+		Title:        title,
+		SaveFormFunc: SaveFormAsHashCmd,
 	}
 	l := m.Items.List()
 	l.SetSize(m.Width(), m.Height())
@@ -117,11 +120,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			case m.isForm:
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
-					//cur := m.SelectedItem()
-					//if cur.Changed {
-					//  cmds = append(cmds, ItemChangedCmd())
-					//}
-					cmds = append(cmds, SaveAndExitCmd())
+					cmds = append(cmds, SaveAndExitFormCmd(SaveFormAsHashCmd))
 				}
 			case m.MultiSelect:
 				switch {

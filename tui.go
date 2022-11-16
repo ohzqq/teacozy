@@ -111,15 +111,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		m.SetSize(msg.Width-1, msg.Height-2)
-	case SaveFormAsHashMsg:
-		if m.Main.isForm {
-			m.Hash = make(map[string]string)
-			cur := m.Main.SelectedItem()
-			for _, field := range cur.Fields.All() {
-				m.Hash[field.Key()] = field.Value()
-			}
-			//cmds = append(cmds, tea.Quit)
-		}
 	case EditInfoMsg:
 		cur := m.Main.SelectedItem()
 		m.Alt = m.Main
@@ -144,6 +135,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ShowItemInfoMsg:
 		m.info = msg.Fields.Info()
 		cmds = append(cmds, ShowInfoCmd())
+	case SaveAndExitFormMsg:
+		cmds = append(cmds, msg.Save(m.Main))
 	}
 
 	switch focus {
