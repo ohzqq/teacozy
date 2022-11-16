@@ -21,32 +21,30 @@ type List struct {
 }
 
 func NewList(title string, items Items) *List {
-	w, h := TermSize()
-	p := List{
-		Items:  items,
-		width:  w,
-		height: h,
-		Keys:   DefaultKeys(),
-		Title:  title,
+	m := List{
+		Items: items,
+		Keys:  DefaultKeys(),
+		Title: title,
 	}
-	p.Model = p.InitList()
-	return &p
-}
-
-func (m *List) InitList() list.Model {
 	l := m.Items.List()
-	l.SetSize(m.width, m.height)
+	l.SetSize(m.Width(), m.Height())
 	l.Title = m.Title
-
-	if m.Title == "" {
-		l.Title = ""
-	}
 	m.Model = l
-	return l
+	return &m
 }
 
 func (m List) Height() int {
+	if m.height > 0 {
+		return m.height
+	}
 	return TermHeight()
+}
+
+func (m List) Width() int {
+	if m.width > 0 {
+		return m.width
+	}
+	return TermWidth()
 }
 
 func (m *List) SetItems(items Items) *List {
@@ -55,15 +53,15 @@ func (m *List) SetItems(items Items) *List {
 }
 
 func (m *List) SetMultiSelect() *List {
+	m.Items.Delegate.MultiSelect()
+	m.Model.SetDelegate(m.Items.Delegate)
 	m.MultiSelect = true
-	del := NewItemDelegate().MultiSelect()
-	m.Model.SetDelegate(del)
 	return m
 }
 
 func (m *List) SetShowKeys() *List {
-	del := NewItemDelegate().ShowKeys()
-	m.Model.SetDelegate(del)
+	m.Items.Delegate.ShowKeys()
+	m.Model.SetDelegate(m.Items.Delegate)
 	return m
 }
 
@@ -138,7 +136,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 }
 
 func (m *List) Init() tea.Cmd {
-	m.Model = m.InitList()
 	return nil
 }
 

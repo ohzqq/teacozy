@@ -22,21 +22,10 @@ func (i *Items) SetItems(items ...*Item) *Items {
 	return i
 }
 
-func (i *Items) SetMultiSelect() *Items {
-	i.Delegate.MultiSelect()
-	return i
-}
-
-func (i *Items) SetShowKeys() *Items {
-	i.Delegate.ShowKeys()
-	return i
-}
-
 func (i *Items) List() list.Model {
 	i.Process()
 	w, h := TermSize()
 	l := list.New(i.Visible(), i.Delegate, w, h)
-	l.SetSize(w, h)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
