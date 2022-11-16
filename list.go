@@ -3,11 +3,14 @@ package teacozy
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type List struct {
 	Model            list.Model
+	Input            textarea.Model
 	Title            string
 	MultiSelect      bool
 	ShowKeys         bool
@@ -88,31 +91,61 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		switch {
-		case key.Matches(msg, m.Keys.Prev):
-			m.ShowSelectedOnly = false
-			cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
-		}
-		switch {
-		case m.MultiSelect:
-			switch {
-			case key.Matches(msg, Enter):
-				if m.ShowSelectedOnly {
-					cmds = append(cmds, ReturnSelectionsCmd())
+		if m.Input.Focused() {
+			if key.Matches(msg, Keys.SaveAndExit) {
+				cur := m.SelectedItem()
+				field := cur.Item.(FieldData)
+				val := m.Input.Value()
+				if original := field.Value(); original != val {
+					field.Set(val)
+					item := NewItem().SetData(field)
+					//cur.Changed = true
+					cmds = append(cmds, ItemChangedCmd(item))
 				}
-				m.ShowSelectedOnly = true
-				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-			case key.Matches(msg, m.Keys.SelectAll):
-				m.Items.ToggleAllSelectedItems()
+				m.Input.Blur()
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
-		default:
+			m.Input, cmd = m.Input.Update(msg)
+			cmds = append(cmds, cmd)
+		} else {
 			switch {
-			case key.Matches(msg, m.Keys.Enter):
-				cur := m.Model.SelectedItem().(*Item)
-				m.Items.ToggleSelectedItem(cur.Index())
-				cmds = append(cmds, ReturnSelectionsCmd())
+			case key.Matches(msg, m.Keys.Prev):
+				m.ShowSelectedOnly = false
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
+			switch {
+			case m.isForm:
+				switch {
+				case key.Matches(msg, Keys.SaveAndExit):
+					//cur := m.SelectedItem()
+					//if cur.Changed {
+					//  cmds = append(cmds, ItemChangedCmd())
+					//}
+					cmds = append(cmds, SaveAndExitCmd())
+				}
+			case m.MultiSelect:
+				switch {
+				case key.Matches(msg, Enter):
+					if m.ShowSelectedOnly {
+						cmds = append(cmds, ReturnSelectionsCmd())
+					}
+					m.ShowSelectedOnly = true
+					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
+				case key.Matches(msg, m.Keys.SelectAll):
+					m.Items.ToggleAllSelectedItems()
+					cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+				}
+			default:
+				switch {
+				case key.Matches(msg, m.Keys.Enter):
+					cur := m.Model.SelectedItem().(*Item)
+					m.Items.ToggleSelectedItem(cur.Index())
+					cmds = append(cmds, ReturnSelectionsCmd())
+				}
+			}
+			m.Model, cmd = m.Model.Update(msg)
+			cmds = append(cmds, cmd)
+
 		}
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
@@ -125,6 +158,18 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
 		cmds = append(cmds, tea.Quit)
+	case EditFormItemMsg:
+		if m.isForm {
+			m.Input = textarea.New()
+			m.Input.SetValue(msg.Value())
+			m.Input.ShowLineNumbers = false
+			m.Input.Focus()
+		}
+	case ItemChangedMsg:
+		msg.Item.Changed = true
+		m.Items.Set(msg.Item.Index(), msg.Item)
+
+		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	case ToggleItemListMsg:
 		switch msg.ListOpen {
 		case true:
@@ -135,9 +180,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	}
 
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
-
 	return m, tea.Batch(cmds...)
 }
 
@@ -146,5 +188,24 @@ func (m *List) Init() tea.Cmd {
 }
 
 func (m List) View() string {
-	return m.Model.View()
+	var (
+		sections    []string
+		availHeight = m.Height()
+		field       string
+	)
+
+	if m.Input.Focused() {
+		field = m.Input.View()
+		availHeight -= lipgloss.Height(field)
+	}
+
+	m.SetSize(m.width, availHeight)
+	content := m.Model.View()
+	sections = append(sections, content)
+
+	if m.Input.Focused() {
+		sections = append(sections, field)
+	}
+
+	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }

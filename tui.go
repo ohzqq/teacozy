@@ -85,49 +85,27 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		if m.Input.Focused() {
-			if key.Matches(msg, Keys.SaveAndExit) {
-				cur := m.Main.SelectedItem()
-				field := cur.Item.(FieldData)
-				val := m.Input.Value()
-				if original := field.Value(); original != val {
-					field.Set(val)
-					item := NewItem().SetData(field)
-					item.Changed = true
-					m.Main.Items.Set(cur.Index(), item)
-				}
-				m.Input.Blur()
-				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
-			}
-			m.Input, cmd = m.Input.Update(msg)
-			cmds = append(cmds, cmd)
-		} else {
-			if m.Main.isForm {
-				switch {
-				case key.Matches(msg, Keys.ExitScreen):
-					m.Main = m.Alt
-				case key.Matches(msg, Keys.SaveAndExit):
-					cur := m.Main.SelectedItem()
-					if cur.Changed {
-						cmds = append(cmds, ItemChangedCmd())
-					}
-					m.Main = m.Alt
-					m.HideInfo()
-				}
-			}
+		if m.Main.isForm {
 			switch {
-			case key.Matches(msg, Keys.Info):
-				cmds = append(cmds, HideInfoCmd())
-			case key.Matches(msg, Keys.Quit):
-				cmds = append(cmds, tea.Quit)
-			default:
-				for label, menu := range m.Menus {
-					if key.Matches(msg, menu.Toggle) {
-						m.CurrentMenu = menu
-						m.ShowMenu()
-						m.HideInfo()
-						cmds = append(cmds, SetFocusedViewCmd(label))
-					}
+			case key.Matches(msg, Keys.ExitScreen):
+				m.Main = m.Alt
+			case key.Matches(msg, Keys.SaveAndExit):
+				//m.Main = m.Alt
+				m.HideInfo()
+			}
+		}
+		switch {
+		case key.Matches(msg, Keys.Info):
+			cmds = append(cmds, HideInfoCmd())
+		case key.Matches(msg, Keys.Quit):
+			cmds = append(cmds, tea.Quit)
+		default:
+			for label, menu := range m.Menus {
+				if key.Matches(msg, menu.Toggle) {
+					m.CurrentMenu = menu
+					m.ShowMenu()
+					m.HideInfo()
+					cmds = append(cmds, SetFocusedViewCmd(label))
 				}
 			}
 		}
@@ -141,16 +119,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Hash[field.Key()] = field.Value()
 			}
 			//cmds = append(cmds, tea.Quit)
-		}
-	case ItemChangedMsg:
-		cur := m.Main.SelectedItem()
-		cur.Changed = true
-	case EditFormItemMsg:
-		if m.Main.isForm {
-			m.Input = textarea.New()
-			m.Input.SetValue(msg.Value())
-			m.Input.ShowLineNumbers = false
-			m.Input.Focus()
 		}
 	case EditInfoMsg:
 		cur := m.Main.SelectedItem()
@@ -179,9 +147,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch focus {
-	case "input":
-		m.Input, cmd = m.Input.Update(msg)
-		cmds = append(cmds, cmd)
 	case "info":
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)

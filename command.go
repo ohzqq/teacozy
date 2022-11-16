@@ -13,16 +13,17 @@ func SetFocusedViewCmd(v string) tea.Cmd {
 	}
 }
 
-type ItemChangedMsg struct{}
+type ItemChangedMsg struct {
+	*Item
+}
 
-func ItemChangedCmd() tea.Cmd {
+func ItemChangedCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ItemChangedMsg{}
+		return ItemChangedMsg{Item: item}
 	}
 }
 
 // menu commands
-
 type MenuFunc func(m *TUI) tea.Cmd
 
 type UpdateMenuContentMsg string
@@ -50,6 +51,16 @@ func ShowMenuCmd() tea.Cmd {
 }
 
 // form commands
+type SaveFormFunc func(m *TUI) tea.Cmd
+
+type SaveAndExitMsg struct{}
+
+func SaveAndExitCmd() tea.Cmd {
+	return func() tea.Msg {
+		return SaveAndExitMsg{}
+	}
+}
+
 type SaveFormAsHashMsg struct{}
 
 func SaveFormAsHashCmd() tea.Cmd {
@@ -96,8 +107,7 @@ func EditInfoCmd(f *Fields) tea.Cmd {
 	}
 }
 
-//item commands
-
+// item commands
 type ToggleItemListMsg struct{ *Item }
 
 func ToggleItemListCmd(item *Item) tea.Cmd {
@@ -131,7 +141,6 @@ func EditItemValueCmd(item *Item) tea.Cmd {
 }
 
 // list commands
-
 type ReturnSelectionsMsg struct{}
 
 func ReturnSelectionsCmd() tea.Cmd {
