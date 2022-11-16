@@ -10,6 +10,7 @@ type Info struct {
 	Model     viewport.Model
 	HideKeys  bool
 	IsVisible bool
+	id        int
 	Style     FieldStyle
 	Data      FormData
 	Fields    *Fields

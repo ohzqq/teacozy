@@ -87,6 +87,16 @@ func EditFormItemCmd(item *Item) tea.Cmd {
 	}
 }
 
+type FormChangedMsg struct {
+	//*Item
+}
+
+func FormChangedCmd() tea.Cmd {
+	return func() tea.Msg {
+		return FormChangedMsg{}
+	}
+}
+
 // info commands
 type HideInfoMsg struct{}
 

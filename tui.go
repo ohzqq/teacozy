@@ -11,22 +11,23 @@ import (
 )
 
 type TUI struct {
-	Main        *List
-	Alt         *List
-	Input       textarea.Model
-	view        viewport.Model
-	info        *Info
-	Title       string
-	FocusedView string
-	ShowWidget  bool
-	showMenu    bool
-	showInfo    bool
-	width       int
-	height      int
-	state       state
-	Hash        map[string]string
-	Menus       Menus
-	CurrentMenu *Menu
+	Main             *List
+	Alt              *List
+	Input            textarea.Model
+	view             viewport.Model
+	info             *Info
+	Title            string
+	FocusedView      string
+	ShowWidget       bool
+	showMenu         bool
+	showInfo         bool
+	currentModelItem int
+	width            int
+	height           int
+	state            state
+	Hash             map[string]string
+	Menus            Menus
+	CurrentMenu      *Menu
 }
 
 func New(title string, items Items) TUI {
@@ -117,6 +118,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main = cur.Fields.Edit()
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
+	case ShowItemInfoMsg:
+		m.info = NewInfo(msg.Fields)
+		m.currentModelItem = m.Main.Model.Index()
+		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
@@ -132,9 +137,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HideInfo()
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
-	case ShowItemInfoMsg:
-		m.info = msg.Fields.Info()
-		cmds = append(cmds, ShowInfoCmd())
+	case FormChangedMsg:
+		m.Main = m.Alt
+		m.Main.Model.Select(m.currentModelItem)
+		cur := m.Main.SelectedItem()
+		cmds = append(cmds, ItemChangedCmd(cur))
+		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m.Main))
 	}
@@ -167,13 +175,7 @@ func (m *TUI) View() string {
 	var (
 		sections    []string
 		availHeight = m.Main.Height()
-		field       string
 	)
-
-	if m.Input.Focused() {
-		field = m.Input.View()
-		availHeight -= lipgloss.Height(field)
-	}
 
 	var menu string
 	if m.showMenu {
@@ -197,10 +199,6 @@ func (m *TUI) View() string {
 
 	if m.showInfo {
 		sections = append(sections, info)
-	}
-
-	if m.Input.Focused() {
-		sections = append(sections, field)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

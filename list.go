@@ -16,6 +16,7 @@ type List struct {
 	ShowKeys         bool
 	ShowSelectedOnly bool
 	isForm           bool
+	FormChanged      bool
 	Keys             KeyMap
 	Items            Items
 	SaveFormFunc     SaveFormFunc
@@ -23,6 +24,7 @@ type List struct {
 	width            int
 	height           int
 	Style            list.Styles
+	id               int
 }
 
 func NewList(title string, items Items) *List {
@@ -102,7 +104,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				if original := field.Value(); original != val {
 					field.Set(val)
 					item := NewItem().SetData(field)
-					//cur.Changed = true
 					cmds = append(cmds, ItemChangedCmd(item))
 				}
 				m.Input.Blur()
@@ -120,7 +121,8 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			case m.isForm:
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
-					cmds = append(cmds, SaveAndExitFormCmd(SaveFormAsHashCmd))
+					cmds = append(cmds, FormChangedCmd())
+					//cmds = append(cmds, SaveAndExitFormCmd(SaveFormAsHashCmd))
 				}
 			case m.MultiSelect:
 				switch {
@@ -164,10 +166,11 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			m.Input.ShowLineNumbers = false
 			m.Input.Focus()
 		}
+	case FormChangedMsg:
+		m.FormChanged = true
 	case ItemChangedMsg:
 		msg.Item.Changed = true
 		m.Items.Set(msg.Item.Index(), msg.Item)
-
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	case ToggleItemListMsg:
 		switch msg.ListOpen {
