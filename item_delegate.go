@@ -11,35 +11,46 @@ import (
 	"github.com/muesli/reflow/truncate"
 )
 
-type itemDelegate struct {
+const (
+	check    string = "[x] "
+	uncheck  string = "[ ] "
+	dash     string = "- "
+	openSub  string = `[+] `
+	closeSub string = `[-] `
+	none     string = ``
+)
+
+type ItemDelegate struct {
 	multiSelect bool
 	showKeys    bool
 	styles      ItemStyle
 }
 
-func NewItemDelegate() itemDelegate {
-	return itemDelegate{
+func NewItemDelegate() *ItemDelegate {
+	return &ItemDelegate{
 		styles: ItemStyles(),
 	}
 }
 
-func (d *itemDelegate) ShowKeys() {
+func (d *ItemDelegate) ShowKeys() *ItemDelegate {
 	d.showKeys = true
+	return d
 }
 
-func (d *itemDelegate) MultiSelect() {
+func (d *ItemDelegate) MultiSelect() *ItemDelegate {
 	d.multiSelect = true
+	return d
 }
 
-func (d itemDelegate) Height() int {
+func (d ItemDelegate) Height() int {
 	return 1
 }
 
-func (d itemDelegate) Spacing() int {
+func (d ItemDelegate) Spacing() int {
 	return 0
 }
 
-func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+func (d ItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
 		curItem *Item
 		cmds    []tea.Cmd
@@ -72,7 +83,7 @@ func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	var (
 		iStyle  = &d.styles
 		content string
@@ -83,10 +94,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	case *Item:
 		curItem = i
 		content = i.Value()
-		//  if d.showKeys() {
-		//    content =
-		//}
-		//content = c
 	}
 
 	if m.Width() > 0 {
@@ -97,7 +104,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var (
 		isCurrent  = index == m.Index()
 		isSelected = curItem.IsSelected
-		isSub      = curItem.IsSub()
 	)
 
 	render := iStyle.NormalItem.Render
@@ -110,7 +116,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		render = func(s string) string {
 			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
-	} else if isSub {
+	} else if curItem.IsSub() {
 		render = func(s string) string {
 			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
 		}
@@ -133,9 +139,17 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 			prefix = closeSub
 		}
 	}
+
+	if d.showKeys {
+		prefix = none
+		key := fieldStyle.Key.Render(curItem.Key())
+		content = fmt.Sprintf("%s: %s", key, content)
+	}
+
 	if curItem.Changed {
 		content = "*" + content
 	}
+
 	content = prefix + content
 
 	fmt.Fprintf(w, render(content))

@@ -36,9 +36,6 @@ func NewList(title string, items Items) *List {
 func (m *List) InitList() list.Model {
 	l := m.Items.List()
 	l.SetSize(m.width, m.height)
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.KeyMap = ListKeyMap()
 	l.Title = m.Title
 
 	if m.Title == "" {
@@ -59,16 +56,14 @@ func (m *List) SetItems(items Items) *List {
 
 func (m *List) SetMultiSelect() *List {
 	m.MultiSelect = true
-	m.Items.SetMultiSelect()
-	del := NewItemDelegate()
-	del.MultiSelect()
+	del := NewItemDelegate().MultiSelect()
 	m.Model.SetDelegate(del)
 	return m
 }
 
 func (m *List) SetShowKeys() *List {
-	m.ShowKeys = true
-	m.Items.SetShowKeys()
+	del := NewItemDelegate().ShowKeys()
+	m.Model.SetDelegate(del)
 	return m
 }
 

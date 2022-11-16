@@ -6,7 +6,7 @@ import (
 
 type Items struct {
 	all         []*Item
-	Delegate    itemDelegate
+	Delegate    *ItemDelegate
 	MultiSelect bool
 	ShowKeys    bool
 }
@@ -40,6 +40,7 @@ func (i *Items) List() list.Model {
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
+	l.Styles = ListStyles()
 	return l
 }
 

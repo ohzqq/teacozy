@@ -5,15 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 )
 
-const (
-	check    string = "[x] "
-	uncheck  string = "[ ] "
-	dash     string = "- "
-	openSub  string = `[+] `
-	closeSub string = `[-] `
-	none     string = ``
-)
-
 type Item struct {
 	Item              list.Item
 	idx               int
