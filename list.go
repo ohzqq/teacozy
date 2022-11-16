@@ -197,8 +197,10 @@ func (m List) View() string {
 	)
 
 	if m.Input.Focused() {
+		iHeight := availHeight / 3
+		m.Input.SetHeight(iHeight)
 		field = m.Input.View()
-		availHeight -= availHeight / 3
+		availHeight -= iHeight
 	}
 
 	m.SetSize(m.width, availHeight)

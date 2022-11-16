@@ -13,12 +13,32 @@ type TUIStyle struct {
 	Frame  Frame
 }
 
+func DefaultTuiStyle() TUIStyle {
+	tui := TUIStyle{
+		Color:  DefaultColors(),
+		Item:   ItemStyles(),
+		List:   ListStyles(),
+		Widget: DefaultWidgetStyle(),
+		Frame:  DefaultFrameStyle(),
+	}
+
+	return tui
+}
+
 type Frame struct {
 	MaxWidth  int
 	MaxHeight int
+	Style     lipgloss.Style
 	width     int
 	height    int
-	Frame     lipgloss.Style
+}
+
+func DefaultFrameStyle() Frame {
+	return Frame{
+		Style:     FrameStyle(),
+		MaxWidth:  TermWidth(),
+		MaxHeight: TermHeight(),
+	}
 }
 
 type Color struct {
@@ -58,6 +78,13 @@ type WidgetStyle struct {
 	MaxHeight int
 	width     int
 	height    int
+}
+
+func DefaultWidgetStyle() WidgetStyle {
+	return WidgetStyle{
+		MaxWidth:  TermWidth(),
+		MaxHeight: TermHeight() / 3,
+	}
 }
 
 func (s WidgetStyle) Width() int {

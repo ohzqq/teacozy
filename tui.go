@@ -23,6 +23,7 @@ type TUI struct {
 	showInfo         bool
 	currentModelItem int
 	widgetStyle      WidgetStyle
+	Style            TUIStyle
 	width            int
 	height           int
 	state            state
@@ -37,9 +38,7 @@ func New(title string, items Items) TUI {
 		Title:       title,
 		Menus:       make(Menus),
 		FocusedView: "list",
-		widgetStyle: WidgetStyle{
-			MaxHeight: TermHeight() / 3,
-		},
+		Style:       DefaultTuiStyle(),
 	}
 }
 
