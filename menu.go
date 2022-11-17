@@ -37,7 +37,10 @@ func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
 		Toggle: toggle,
 		Keys:   items,
 	}
-	m.BuildModel()
+	m.content = m.Render()
+	vp := viewport.New(m.Width(), m.Height())
+	vp.SetContent(m.content)
+	m.Model = vp
 
 	return &m
 }
@@ -45,13 +48,6 @@ func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
 func (m *Menu) SetKeys(keys MenuItems) *Menu {
 	m.Keys = keys
 	return m
-}
-
-func (m *Menu) BuildModel() {
-	m.content = m.Render()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.content)
-	m.Model = vp
 }
 
 func (m Menu) Render() string {
