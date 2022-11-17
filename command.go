@@ -42,11 +42,13 @@ func HideMenuCmd() tea.Cmd {
 	}
 }
 
-type ShowMenuMsg struct{}
+type ShowMenuMsg struct {
+	*Menu
+}
 
-func ShowMenuCmd() tea.Cmd {
+func ShowMenuCmd(menu *Menu) tea.Cmd {
 	return func() tea.Msg {
-		return ShowMenuMsg{}
+		return ShowMenuMsg{Menu: menu}
 	}
 }
 
@@ -88,7 +90,7 @@ func EditFormItemCmd(item *Item) tea.Cmd {
 }
 
 type FormChangedMsg struct {
-	//*Item
+	*Item
 }
 
 func FormChangedCmd() tea.Cmd {
@@ -115,7 +117,7 @@ func ShowInfoCmd() tea.Cmd {
 }
 
 type EditInfoMsg struct {
-	Fields *Fields
+	*Fields
 }
 
 func EditInfoCmd(f *Fields) tea.Cmd {
@@ -183,13 +185,5 @@ type UpdateStatusMsg struct{ Msg string }
 func UpdateStatusCmd(status string) tea.Cmd {
 	return func() tea.Msg {
 		return UpdateStatusMsg{Msg: status}
-	}
-}
-
-type SetSizeMsg []int
-
-func SetSizeCmd(size []int) tea.Cmd {
-	return func() tea.Msg {
-		return SetSizeMsg(size)
 	}
 }

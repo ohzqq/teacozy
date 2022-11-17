@@ -116,7 +116,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
 					cmds = append(cmds, FormChangedCmd())
-					//cmds = append(cmds, SaveAndExitFormCmd(SaveFormAsHashCmd))
 				}
 			case m.MultiSelect:
 				switch {

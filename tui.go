@@ -11,23 +11,23 @@ import (
 )
 
 type TUI struct {
-	Main             *List
-	Alt              *List
-	Input            textarea.Model
-	view             viewport.Model
-	info             *Info
-	Title            string
-	FocusedView      string
-	showMenu         bool
-	showInfo         bool
-	currentModelItem int
-	Style            TUIStyle
-	width            int
-	height           int
-	state            state
-	Hash             map[string]string
-	Menus            Menus
-	CurrentMenu      *Menu
+	Main            *List
+	Alt             *List
+	Input           textarea.Model
+	view            viewport.Model
+	info            *Info
+	Title           string
+	FocusedView     string
+	showMenu        bool
+	showInfo        bool
+	currentListItem int
+	Style           TUIStyle
+	width           int
+	height          int
+	state           state
+	Hash            map[string]string
+	Menus           Menus
+	CurrentMenu     *Menu
 }
 
 func New(title string, items Items) TUI {
@@ -51,7 +51,6 @@ func (ui TUI) Width() int {
 
 func (ui TUI) Height() int {
 	return ui.Style.Frame.Height()
-	//return ui.Main.Frame.Height()
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
@@ -99,7 +98,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, Keys.ExitScreen):
 				m.Main = m.Alt
 			case key.Matches(msg, Keys.SaveAndExit):
-				//m.Main = m.Alt
 				m.HideInfo()
 			}
 		}
@@ -130,8 +128,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
-		m.info = NewInfo(msg.Fields) //.SetSize(m.Style.Widget.Width(), m.Style.Widget.Height())
-		m.currentModelItem = m.Main.Model.Index()
+		m.info = NewInfo(msg.Fields)
+		m.currentListItem = m.Main.Model.Index()
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
 		m.HideInfo()
@@ -143,14 +141,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case HideMenuMsg:
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
-	case ShowMenuMsg:
-		m.ShowMenu()
-		m.HideInfo()
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
 	case FormChangedMsg:
 		m.Main = m.Alt
-		m.Main.Model.Select(m.currentModelItem)
+		m.Main.Model.Select(m.currentListItem)
 		cur := m.Main.SelectedItem()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
@@ -187,7 +182,9 @@ func (m *TUI) View() string {
 		availHeight  = m.Height()
 		widgetHeight = m.Style.Widget.Height()
 	)
+
 	m.SetSize(m.Width(), availHeight)
+
 	var widget string
 	if m.showMenu {
 		widget = m.CurrentMenu.Model.View()
