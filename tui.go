@@ -183,15 +183,11 @@ func (m *TUI) Init() tea.Cmd {
 
 func (m *TUI) View() string {
 	var (
-		sections    []string
-		availHeight = m.Height()
-		//widgetWidth  = m.Style.Widget.Width()
+		sections     []string
+		availHeight  = m.Height()
 		widgetHeight = m.Style.Widget.Height()
-		//mainWidth    = m.Main.Width()
-		//mainHeight = m.Main.Height()
 	)
 
-	//m.SetSize(m.Width(), availHeight)
 	var widget string
 	if m.showMenu {
 		widget = m.CurrentMenu.Model.View()
