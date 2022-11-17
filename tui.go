@@ -18,11 +18,9 @@ type TUI struct {
 	info             *Info
 	Title            string
 	FocusedView      string
-	ShowWidget       bool
 	showMenu         bool
 	showInfo         bool
 	currentModelItem int
-	widgetStyle      WidgetStyle
 	Style            TUIStyle
 	width            int
 	height           int
@@ -43,10 +41,17 @@ func New(title string, items Items) TUI {
 }
 
 func (ui *TUI) SetSize(w, h int) *TUI {
-	ui.width = w
-	ui.height = h
+	//ui.Style.Frame.SetSize(w, h)
 	ui.Main.SetSize(w, h)
 	return ui
+}
+
+func (ui TUI) Width() int {
+	return ui.Style.Frame.Width()
+}
+
+func (ui TUI) Height() int {
+	return ui.Style.Frame.Height()
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
@@ -61,8 +66,8 @@ func (l *TUI) HideMenu() {
 	l.showMenu = false
 }
 
-func (l *TUI) ShowInfo() {
-	l.showInfo = true
+func (ui *TUI) ShowInfo() {
+	ui.showInfo = true
 }
 
 func (l *TUI) HideInfo() {
@@ -114,7 +119,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case tea.WindowSizeMsg:
-		m.SetSize(msg.Width-1, msg.Height-2)
+		w := msg.Width - 1
+		h := msg.Height - 2
+		m.SetSize(w, h)
 	case EditInfoMsg:
 		cur := m.Main.SelectedItem()
 		m.Alt = m.Main
@@ -122,7 +129,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
-		m.info = NewInfo(msg.Fields).SetSize(m.widgetStyle.Width(), m.widgetStyle.Height())
+		m.info = NewInfo(msg.Fields) //.SetSize(m.Style.Widget.Width(), m.Style.Widget.Height())
 		m.currentModelItem = m.Main.Model.Index()
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
@@ -176,22 +183,22 @@ func (m *TUI) Init() tea.Cmd {
 func (m *TUI) View() string {
 	var (
 		sections    []string
-		availHeight = m.height
+		availHeight = m.Height()
 	)
 
 	var menu string
 	if m.showMenu {
 		menu = m.CurrentMenu.Model.View()
-		availHeight -= lipgloss.Height(menu)
+		availHeight -= m.Style.Widget.Height()
 	}
 
 	var info string
 	if m.showInfo {
 		info = m.info.View()
-		availHeight -= lipgloss.Height(info)
+		availHeight -= m.Style.Widget.Height()
 	}
 
-	m.SetSize(m.width, availHeight)
+	m.SetSize(m.Width(), availHeight)
 	content := m.Main.View()
 	sections = append(sections, content)
 

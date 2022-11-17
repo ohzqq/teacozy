@@ -12,6 +12,7 @@ type Info struct {
 	IsVisible bool
 	id        int
 	Style     FieldStyle
+	Frame     Frame
 	Data      FormData
 	Fields    *Fields
 }
@@ -21,11 +22,13 @@ func NewInfo(data FormData) *Info {
 	if f, ok := data.(*Fields); ok {
 		fields = f
 	}
-	return &Info{
+	info := Info{
 		Data:   data,
-		Model:  fields.Display(),
 		Fields: fields,
+		Frame:  DefaultWidgetStyle(),
 	}
+	info.Model = viewport.New(info.Frame.Width(), info.Frame.Height())
+	return &info
 }
 
 func (i *Info) SetSize(w, h int) *Info {
