@@ -21,10 +21,9 @@ type List struct {
 	Items            Items
 	SaveFormFunc     SaveFormFunc
 	Hash             map[string]string
-	width            int
-	height           int
 	Style            list.Styles
 	id               int
+	Frame
 }
 
 func NewList(title string, items Items) *List {
@@ -33,6 +32,7 @@ func NewList(title string, items Items) *List {
 		Keys:         DefaultKeys(),
 		Title:        title,
 		SaveFormFunc: SaveFormAsHashCmd,
+		Frame:        DefaultFrameStyle(),
 	}
 	l := m.Items.List()
 	l.SetSize(m.Width(), m.Height())
@@ -41,18 +41,27 @@ func NewList(title string, items Items) *List {
 	return &m
 }
 
+func (m *List) SetSize(w, h int) *List {
+	m.SetWidth(w)
+	m.SetHeight(h)
+	m.Model.SetSize(m.Width(), m.Height())
+	return m
+}
+
 func (m List) Height() int {
-	if m.height > 0 {
-		return m.height
-	}
-	return TermHeight()
+	//if m.height > 0 {
+	//  return m.height
+	//}
+	//return TermHeight()
+	return m.Frame.Height()
 }
 
 func (m List) Width() int {
-	if m.width > 0 {
-		return m.width
-	}
-	return TermWidth()
+	//if m.width > 0 {
+	//return m.width
+	//}
+	//return TermWidth()
+	return m.Frame.Width()
 }
 
 func (m *List) SetItems(items Items) *List {
@@ -70,13 +79,6 @@ func (m *List) SetMultiSelect() *List {
 func (m *List) SetShowKeys() *List {
 	m.Items.Delegate.ShowKeys()
 	m.Model.SetDelegate(m.Items.Delegate)
-	return m
-}
-
-func (m *List) SetSize(w, h int) *List {
-	m.width = w
-	m.height = h
-	m.Model.SetSize(w, h)
 	return m
 }
 

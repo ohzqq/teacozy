@@ -41,7 +41,6 @@ func New(title string, items Items) TUI {
 }
 
 func (ui *TUI) SetSize(w, h int) *TUI {
-	//ui.Style.Frame.SetSize(w, h)
 	ui.Main.SetSize(w, h)
 	return ui
 }
@@ -52,6 +51,7 @@ func (ui TUI) Width() int {
 
 func (ui TUI) Height() int {
 	return ui.Style.Frame.Height()
+	//return ui.Main.Frame.Height()
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
@@ -121,6 +121,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
+		m.Style.Frame.SetSize(w, h)
 		m.SetSize(w, h)
 	case EditInfoMsg:
 		cur := m.Main.SelectedItem()
