@@ -18,12 +18,12 @@ type List struct {
 	isForm           bool
 	FormChanged      bool
 	Keys             KeyMap
-	Items            Items
 	SaveFormFunc     SaveFormFunc
 	Hash             map[string]string
 	Style            list.Styles
 	id               int
 	Frame
+	Items
 }
 
 func NewList(title string, items Items) *List {
@@ -42,6 +42,16 @@ func NewList(title string, items Items) *List {
 	return &m
 }
 
+func defaultList() *List {
+	m := List{
+		Keys:         DefaultKeys(),
+		SaveFormFunc: SaveFormAsHashCmd,
+		Frame:        DefaultFrameStyle(),
+	}
+	m.Frame.MinHeight = 10
+	return &m
+}
+
 func (m *List) SetSize(w, h int) *List {
 	m.Frame.SetSize(w, h)
 	m.Model.SetSize(m.Width(), m.Height())
@@ -56,10 +66,10 @@ func (m List) Width() int {
 	return m.Frame.Width()
 }
 
-func (m *List) SetItems(items Items) *List {
-	m.Items = items
-	return m
-}
+//func (m *List) SetItems(items Items) *List {
+//  m.Items = items
+//  return m
+//}
 
 func (m *List) SetMultiSelect() *List {
 	m.Items.Delegate.MultiSelect()
@@ -165,6 +175,13 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		msg.Item.Changed = true
 		m.Items.Set(msg.Item.Index(), msg.Item)
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+	case ChangeItemOrderMsg:
+		cmds = append(cmds, SetItemsCmd(msg.Items))
+	case SetItemsMsg:
+		l := msg.Items.List()
+		l.SetSize(m.Width(), m.Height())
+		l.Title = m.Title
+		m.Model = l
 	case ToggleItemListMsg:
 		switch msg.ListOpen {
 		case true:

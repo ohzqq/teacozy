@@ -19,6 +19,7 @@ func NewItems() Items {
 
 func (i *Items) SetItems(items ...*Item) *Items {
 	i.all = items
+	i.Process()
 	return i
 }
 

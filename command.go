@@ -187,3 +187,19 @@ func UpdateStatusCmd(status string) tea.Cmd {
 		return UpdateStatusMsg{Msg: status}
 	}
 }
+
+type ChangeItemOrderMsg struct{ Items }
+
+func ChangeItemOrderCmd(items Items) tea.Cmd {
+	return func() tea.Msg {
+		return ChangeItemOrderMsg{Items: items}
+	}
+}
+
+type SetItemsMsg struct{ Items }
+
+func SetItemsCmd(items Items) tea.Cmd {
+	return func() tea.Msg {
+		return SetItemsMsg{Items: items}
+	}
+}
