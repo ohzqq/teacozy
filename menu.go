@@ -42,33 +42,6 @@ func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
 	return &m
 }
 
-func UpdateMenu(m *TUI, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.CurrentMenu.Toggle):
-			m.HideMenu()
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, item := range m.CurrentMenu.Keys {
-				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(m))
-					m.HideMenu()
-				}
-			}
-			m.HideMenu()
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		}
-	}
-	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return tea.Batch(cmds...)
-}
-
 func (m *Menu) SetKeys(keys MenuItems) *Menu {
 	m.Keys = keys
 	return m
