@@ -187,7 +187,7 @@ func (m *TUI) View() string {
 		availHeight  = m.Height()
 		widgetHeight = m.Style.Widget.Height()
 	)
-
+	m.SetSize(m.Width(), availHeight)
 	var widget string
 	if m.showMenu {
 		widget = m.CurrentMenu.Model.View()

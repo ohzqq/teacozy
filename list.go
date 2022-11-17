@@ -43,25 +43,16 @@ func NewList(title string, items Items) *List {
 }
 
 func (m *List) SetSize(w, h int) *List {
-	m.SetWidth(w)
-	m.SetHeight(h)
+	m.Frame.SetSize(w, h)
 	m.Model.SetSize(m.Width(), m.Height())
 	return m
 }
 
 func (m List) Height() int {
-	//if m.height > 0 {
-	//  return m.height
-	//}
-	//return TermHeight()
 	return m.Frame.Height()
 }
 
 func (m List) Width() int {
-	//if m.width > 0 {
-	//return m.width
-	//}
-	//return TermWidth()
 	return m.Frame.Width()
 }
 
