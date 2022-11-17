@@ -36,7 +36,7 @@ func New(title string, items Items) TUI {
 	return TUI{
 		Main:        NewList(title, items),
 		Title:       title,
-		Menus:       make(Menus),
+		Menus:       DefaultTuiMenus(),
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
 		help:        help.New(),
@@ -111,7 +111,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		default:
 			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle) {
+				if key.Matches(msg, menu.Toggle) && len(menu.Keys) > 0 {
 					m.CurrentMenu = menu
 					m.ShowMenu()
 					m.HideInfo()

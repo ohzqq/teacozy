@@ -14,6 +14,11 @@ func (m Menus) Get(key string) *Menu {
 	return m[key]
 }
 
+func (m Menus) Set(key string, menu *Menu) Menus {
+	m[key] = menu
+	return m
+}
+
 type Menu struct {
 	Model     viewport.Model
 	width     int
@@ -73,11 +78,11 @@ func (m *Menu) SetToggle(toggle, help string) *Menu {
 }
 
 func (m *Menu) View() string {
-	m.Model.SetContent(m.Render())
+	m.Model.SetContent(m.String())
 	return m.Model.View()
 }
 
-func (m Menu) Render() string {
+func (m Menu) String() string {
 	var kh []string
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
