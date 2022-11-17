@@ -106,6 +106,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.HideInfo()
 			}
 		}
+		if m.showMenu {
+			cmds = append(cmds, m.UpdateMenu(msg))
+		}
 		switch {
 		case key.Matches(msg, Keys.Info):
 			cmds = append(cmds, HideInfoCmd())
