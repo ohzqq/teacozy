@@ -3,6 +3,7 @@ package teacozy
 import (
 	"log"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -25,6 +26,7 @@ type TUI struct {
 	width           int
 	height          int
 	state           state
+	help            help.Model
 	Hash            map[string]string
 	Menus           Menus
 	CurrentMenu     *Menu
@@ -37,6 +39,7 @@ func New(title string, items Items) TUI {
 		Menus:       make(Menus),
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
+		help:        help.New(),
 	}
 }
 
@@ -214,7 +217,7 @@ func (m *TUI) View() string {
 
 	var widget string
 	if m.showMenu {
-		widget = m.CurrentMenu.Model.View()
+		widget = m.CurrentMenu.View()
 		availHeight -= widgetHeight
 	}
 

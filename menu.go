@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -26,28 +25,56 @@ type Menu struct {
 	style     lipgloss.Style
 	IsFocused bool
 	Keys      []MenuItem
-	Update    func(tea.Model, tea.Msg) tea.Cmd
+	Frame
 }
 
-type MenuItems []MenuItem
-
 func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
-	m := Menu{
-		Label:  l,
-		Toggle: toggle,
-		Keys:   items,
-	}
-	m.content = m.Render()
-	vp := viewport.New(m.Width(), m.Height())
-	vp.SetContent(m.content)
-	m.Model = vp
+	m := DefaultMenu().SetKeys(items...)
+	m.Label = l
+	m.Toggle = toggle
+	return m
+}
 
+func DefaultMenu() *Menu {
+	m := Menu{
+		Frame: DefaultWidgetStyle(),
+	}
+	m.Model = viewport.New(m.Width(), m.Height())
 	return &m
 }
 
-func (m *Menu) SetKeys(keys MenuItems) *Menu {
+func (m *Menu) SetKeys(keys ...MenuItem) *Menu {
 	m.Keys = keys
 	return m
+}
+
+func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
+	key := NewMenuItem(k, h, cmd)
+	m.AddKey(key)
+	return m
+}
+
+func (m *Menu) AddKey(key MenuItem) *Menu {
+	m.Keys = append(m.Keys, key)
+	return m
+}
+
+func (m *Menu) SetLabel(l string) *Menu {
+	m.Label = l
+	return m
+}
+
+func (m *Menu) SetToggle(toggle, help string) *Menu {
+	m.Toggle = key.NewBinding(
+		key.WithKeys(toggle),
+		key.WithHelp(toggle, help),
+	)
+	return m
+}
+
+func (m *Menu) View() string {
+	m.Model.SetContent(m.Render())
+	return m.Model.View()
 }
 
 func (m Menu) Render() string {
@@ -55,24 +82,7 @@ func (m Menu) Render() string {
 	for _, k := range m.Keys {
 		kh = append(kh, k.String())
 	}
-	style := FrameStyle().Copy().Width(m.Width())
-	return style.Render(strings.Join(kh, "\n"))
-}
-
-func (m *Menu) SetWidth(w int) *Menu {
-	m.width = w
-	return m
-}
-
-func (m Menu) Width() int {
-	if m.width != 0 {
-		return m.width
-	}
-	return TermWidth() - 2
-}
-
-func (m Menu) Height() int {
-	return lipgloss.Height(m.content)
+	return m.Style.Render(strings.Join(kh, "\n"))
 }
 
 type MenuItem struct {
