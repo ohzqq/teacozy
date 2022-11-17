@@ -3,7 +3,6 @@ package teacozy
 import (
 	"log"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -26,21 +25,23 @@ type TUI struct {
 	width           int
 	height          int
 	state           state
-	help            help.Model
 	Hash            map[string]string
+	HelpMenu        *Menu
 	Menus           Menus
 	CurrentMenu     *Menu
 }
 
 func New(title string, items Items) TUI {
-	return TUI{
+	ui := TUI{
 		Main:        NewList(title, items),
 		Title:       title,
-		Menus:       DefaultTuiMenus(),
+		Menus:       make(Menus),
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
-		help:        help.New(),
+		HelpMenu:    DefaultMenu().SetToggle("?", "help").SetLabel("help"),
 	}
+	ui.AddMenu(SortListMenu())
+	return ui
 }
 
 func (ui *TUI) SetSize(w, h int) *TUI {
@@ -57,6 +58,7 @@ func (ui TUI) Height() int {
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
+	l.HelpMenu.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc, GoToMenuCmd(menu))
 	l.Menus[menu.Label] = menu
 }
 
@@ -109,6 +111,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, Keys.Quit):
 			cmds = append(cmds, tea.Quit)
+		case key.Matches(msg, Keys.Help):
+			cmds = append(cmds, ChangeMenuCmd(m.HelpMenu))
 		default:
 			for label, menu := range m.Menus {
 				if key.Matches(msg, menu.Toggle) && len(menu.Keys) > 0 {
@@ -141,6 +145,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ShowInfo()
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
+	case ChangeMenuMsg:
+		m.CurrentMenu = msg.Menu
+		cmds = append(cmds, ShowMenuCmd(m.CurrentMenu))
+	case ShowMenuMsg:
+		m.ShowMenu()
+		m.HideInfo()
+		cmds = append(cmds, SetFocusedViewCmd(m.CurrentMenu.Label))
 	case HideMenuMsg:
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
@@ -189,8 +200,8 @@ func (m *TUI) UpdateMenu(msg tea.Msg) tea.Cmd {
 		default:
 			for _, item := range m.CurrentMenu.Keys {
 				if key.Matches(msg, item.Key) {
-					cmds = append(cmds, item.Cmd(m))
 					m.HideMenu()
+					cmds = append(cmds, item.Cmd(m))
 				}
 			}
 			m.HideMenu()

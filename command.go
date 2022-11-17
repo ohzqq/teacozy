@@ -42,13 +42,19 @@ func HideMenuCmd() tea.Cmd {
 	}
 }
 
-type ShowMenuMsg struct {
-	*Menu
-}
+type ShowMenuMsg struct{ *Menu }
 
 func ShowMenuCmd(menu *Menu) tea.Cmd {
 	return func() tea.Msg {
 		return ShowMenuMsg{Menu: menu}
+	}
+}
+
+type ChangeMenuMsg struct{ *Menu }
+
+func ChangeMenuCmd(menu *Menu) tea.Cmd {
+	return func() tea.Msg {
+		return ChangeMenuMsg{Menu: menu}
 	}
 }
 
