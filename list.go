@@ -34,6 +34,7 @@ func NewList(title string, items Items) *List {
 		SaveFormFunc: SaveFormAsHashCmd,
 		Frame:        DefaultFrameStyle(),
 	}
+	m.Frame.MinHeight = 10
 	l := m.Items.List()
 	l.SetSize(m.Width(), m.Height())
 	l.Title = m.Title

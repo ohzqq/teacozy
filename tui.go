@@ -185,30 +185,40 @@ func (m *TUI) View() string {
 	var (
 		sections    []string
 		availHeight = m.Height()
+		//widgetWidth  = m.Style.Widget.Width()
+		widgetHeight = m.Style.Widget.Height()
+		//mainWidth    = m.Main.Width()
+		//mainHeight = m.Main.Height()
 	)
 
-	var menu string
+	//m.SetSize(m.Width(), availHeight)
+	var widget string
 	if m.showMenu {
-		menu = m.CurrentMenu.Model.View()
-		availHeight -= m.Style.Widget.Height()
+		widget = m.CurrentMenu.Model.View()
+		availHeight -= widgetHeight
 	}
 
-	var info string
 	if m.showInfo {
-		info = m.info.View()
-		availHeight -= m.Style.Widget.Height()
+		widget = m.info.View()
+		availHeight -= widgetHeight
 	}
 
-	m.SetSize(m.Width(), availHeight)
 	content := m.Main.View()
 	sections = append(sections, content)
 
 	if m.showMenu {
-		sections = append(sections, menu)
+		sections = append(sections, widget)
 	}
 
 	if m.showInfo {
-		sections = append(sections, info)
+		sections = append(sections, widget)
+	}
+
+	if min := m.Main.Frame.MinHeight; min > availHeight {
+		if m.showMenu || m.showInfo {
+			return lipgloss.NewStyle().Height(availHeight).Render(widget)
+		}
+		return lipgloss.NewStyle().Height(availHeight).Render(content)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
