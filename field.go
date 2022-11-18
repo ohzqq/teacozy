@@ -74,15 +74,16 @@ func (f Fields) Keys() []string {
 }
 
 func (f *Fields) Edit() *List {
-	items := NewItems()
+	form := DefaultList().SetTitle("edit") //.SetItems(items)
+	//items := NewItems()
 	if len(f.Data) > 0 {
 		for _, field := range f.All() {
 			i := NewItem().SetData(field)
-			items.Add(i)
+			form.Add(i)
+			//items.Add(i)
 		}
 	}
 	//form := NewList("Edit...", items)
-	form := DefaultList().SetTitle("edit").SetItems(items)
 	//form.SetShowKeys()
 	//form.Editable = true
 	return form.Edit()

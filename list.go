@@ -38,6 +38,7 @@ func DefaultList() *List {
 		Keys:         DefaultKeys(),
 		SaveFormFunc: SaveFormAsHashCmd,
 		Frame:        DefaultFrameStyle(),
+		Items:        NewItems(),
 	}
 	m.Frame.MinHeight = 10
 	return &m
