@@ -51,6 +51,14 @@ func (m *List) ChooseOne() *List {
 	return m
 }
 
+func (m *List) ChooseMany() *List {
+	m.Model = m.Items.List()
+	m.Items.Delegate.MultiSelect()
+	m.Model.SetDelegate(m.Items.Delegate)
+	m.MultiSelect = true
+	return m
+}
+
 func (m *List) SetItems(items Items) *List {
 	m.Items = items
 	return m
