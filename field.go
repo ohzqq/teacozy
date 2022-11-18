@@ -55,7 +55,7 @@ func NewFields() *Fields {
 }
 
 func DisplayFields(fields *Fields, w, h int) *Info {
-	info := NewInfo(fields)
+	info := NewInfo().SetData(fields)
 	info.SetSize(w, h)
 	return info
 }
@@ -125,7 +125,7 @@ func (f *Fields) Render() *Fields {
 }
 
 func (f *Fields) Info() *Info {
-	return NewInfo(f)
+	return NewInfo().SetData(f)
 }
 
 func (f *Fields) Display() viewport.Model {

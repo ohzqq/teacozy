@@ -1,10 +1,7 @@
 package teacozy
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -20,7 +17,7 @@ func (m Menus) Set(key string, menu *Menu) Menus {
 }
 
 type Menu struct {
-	Model     viewport.Model
+	Model     *Info
 	width     int
 	Toggle    key.Binding
 	height    int
@@ -30,8 +27,6 @@ type Menu struct {
 	style     lipgloss.Style
 	IsFocused bool
 	Items     []MenuItem
-	Fields    *Fields
-	Frame
 }
 
 func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
@@ -43,10 +38,8 @@ func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
 
 func DefaultMenu() *Menu {
 	m := Menu{
-		Frame:  DefaultWidgetStyle(),
-		Fields: NewFields(),
+		Model: NewInfo(),
 	}
-	m.Model = viewport.New(m.Width(), m.Height())
 	return &m
 }
 
@@ -70,7 +63,7 @@ func (m Menu) Keys() []string {
 func (m *Menu) SetKeys(keys ...MenuItem) *Menu {
 	m.Items = keys
 	for _, k := range keys {
-		m.Fields.Add(k)
+		m.Model.Fields.Add(k)
 	}
 	return m
 }
@@ -82,6 +75,7 @@ func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
 }
 
 func (m *Menu) AddKey(key MenuItem) *Menu {
+	m.Model.Fields.Add(key)
 	m.Items = append(m.Items, key)
 	return m
 }
@@ -97,16 +91,7 @@ func (m *Menu) SetToggle(toggle, help string) *Menu {
 }
 
 func (m *Menu) View() string {
-	m.Model.SetContent(m.String())
 	return m.Model.View()
-}
-
-func (m Menu) String() string {
-	var kh []string
-	for _, k := range m.Items {
-		kh = append(kh, k.String())
-	}
-	return m.Style.Render(strings.Join(kh, "\n"))
 }
 
 type MenuItem struct {
