@@ -194,11 +194,11 @@ func UpdateStatusCmd(status string) tea.Cmd {
 	}
 }
 
-type ChangeItemOrderMsg struct{ Items }
+type SortItemsMsg struct{ Items }
 
-func ChangeItemOrderCmd(items Items) tea.Cmd {
+func SortItemsCmd(items Items) tea.Cmd {
 	return func() tea.Msg {
-		return ChangeItemOrderMsg{Items: items}
+		return SortItemsMsg{Items: items}
 	}
 }
 

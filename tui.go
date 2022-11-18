@@ -58,7 +58,11 @@ func (ui TUI) Height() int {
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
-	l.HelpMenu.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc, GoToMenuCmd(menu))
+	l.HelpMenu.NewKey(
+		menu.Toggle.Help().Key,
+		menu.Toggle.Help().Desc,
+		GoToMenuCmd(menu),
+	)
 	l.Menus[menu.Label] = menu
 }
 
@@ -122,7 +126,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		default:
 			for label, menu := range m.Menus {
-				if key.Matches(msg, menu.Toggle) && len(menu.Keys) > 0 {
+				if key.Matches(msg, menu.Toggle) && len(menu.Items) > 0 {
 					m.CurrentMenu = menu
 					m.ShowMenu()
 					m.HideInfo()
@@ -205,8 +209,8 @@ func (m *TUI) UpdateMenu(msg tea.Msg) tea.Cmd {
 			m.HideMenu()
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
-			for _, item := range m.CurrentMenu.Keys {
-				if key.Matches(msg, item.Key) {
+			for _, item := range m.CurrentMenu.Items {
+				if key.Matches(msg, item.KeyBind) {
 					m.HideMenu()
 					cmds = append(cmds, item.Cmd(m))
 				}

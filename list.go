@@ -175,7 +175,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		msg.Item.Changed = true
 		m.Items.Set(msg.Item.Index(), msg.Item)
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
-	case ChangeItemOrderMsg:
+	case SortItemsMsg:
 		cmds = append(cmds, SetItemsCmd(msg.Items))
 	case SetItemsMsg:
 		l := msg.Items.List()

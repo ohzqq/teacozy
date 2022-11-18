@@ -5,7 +5,12 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
-const tab = ` `
+func NewKeyBind(k, help string) key.Binding {
+	return key.NewBinding(
+		key.WithKeys(k),
+		key.WithHelp(k, help),
+	)
+}
 
 type KeyMap struct {
 	ToggleItem  key.Binding
@@ -21,11 +26,8 @@ type KeyMap struct {
 
 func DefaultKeys() KeyMap {
 	return KeyMap{
-		KeyMap: ListKeyMap(),
-		Unfocus: key.NewBinding(
-			key.WithKeys("q"),
-			key.WithHelp("q", "exit view"),
-		),
+		KeyMap:      ListKeyMap(),
+		Unfocus:     NewKeyBind("q", "exit view"),
 		ToggleItem:  ToggleItem,
 		SelectAll:   SelectAll,
 		DeSelectAll: DeSelectAll,
