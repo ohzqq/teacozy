@@ -27,22 +27,17 @@ type List struct {
 }
 
 func NewList(title string, items Items) *List {
-	m := List{
-		Items:        items,
-		Keys:         DefaultKeys(),
-		Title:        title,
-		SaveFormFunc: SaveFormAsHashCmd,
-		Frame:        DefaultFrameStyle(),
-	}
+	m := DefaultList()
+	m.SetItems(items)
 	m.Frame.MinHeight = 10
 	l := m.Items.List()
 	l.SetSize(m.Width(), m.Height())
 	l.Title = m.Title
 	m.Model = l
-	return &m
+	return m
 }
 
-func defaultList() *List {
+func DefaultList() *List {
 	m := List{
 		Keys:         DefaultKeys(),
 		SaveFormFunc: SaveFormAsHashCmd,
@@ -50,6 +45,11 @@ func defaultList() *List {
 	}
 	m.Frame.MinHeight = 10
 	return &m
+}
+
+func (m *List) SetItems(items Items) *List {
+	m.Items = items
+	return m
 }
 
 func (m *List) SetSize(w, h int) *List {
