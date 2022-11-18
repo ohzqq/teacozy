@@ -44,6 +44,18 @@ func New(title string, items Items) TUI {
 	return ui
 }
 
+func NewUi(main *List) TUI {
+	ui := TUI{
+		Main:        main,
+		Menus:       make(Menus),
+		FocusedView: "list",
+		Style:       DefaultTuiStyle(),
+		HelpMenu:    DefaultMenu().SetToggle("?", "help").SetLabel("help"),
+	}
+	ui.AddMenu(SortListMenu())
+	return ui
+}
+
 func (ui *TUI) SetSize(w, h int) *TUI {
 	ui.Main.SetSize(w, h)
 	return ui

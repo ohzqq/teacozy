@@ -29,11 +29,10 @@ type List struct {
 func NewList(title string, items Items) *List {
 	m := DefaultList()
 	m.SetItems(items)
-	m.Frame.MinHeight = 10
 	l := m.Items.List()
 	l.SetSize(m.Width(), m.Height())
-	l.Title = m.Title
 	m.Model = l
+	m.SetTitle(title)
 	return m
 }
 
@@ -47,8 +46,18 @@ func DefaultList() *List {
 	return &m
 }
 
+func (m *List) ChooseOne() *List {
+	m.Model = m.Items.List()
+	return m
+}
+
 func (m *List) SetItems(items Items) *List {
 	m.Items = items
+	return m
+}
+
+func (m *List) SetTitle(title string) *List {
+	m.Model.Title = title
 	return m
 }
 
