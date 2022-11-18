@@ -27,6 +27,12 @@ func NewInfo() *Info {
 	return &info
 }
 
+func NewForm() *Info {
+	info := NewInfo()
+	info.Editable = true
+	return info
+}
+
 func (i *Info) SetData(data FormData) *Info {
 	fields := NewFields().SetData(data)
 	if f, ok := data.(*Fields); ok {

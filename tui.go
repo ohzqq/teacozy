@@ -146,7 +146,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
-		m.info = NewInfo().SetData(msg.Fields)
+		m.info = NewForm().SetData(msg.Fields)
 		m.currentListItem = m.Main.Model.Index()
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:

@@ -128,12 +128,6 @@ func (f *Fields) Info() *Info {
 	return NewInfo().SetData(f)
 }
 
-func (f *Fields) Display() viewport.Model {
-	content := f.String()
-	height := lipgloss.Height(content)
-	return viewport.New(TermWidth(), height)
-}
-
 func (f *Fields) Edit() *List {
 	items := NewItems()
 	if len(f.data) > 0 {
