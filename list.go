@@ -29,11 +29,11 @@ type List struct {
 func NewList(title string, items Items) *List {
 	m := DefaultList()
 	m.SetItems(items)
-	l := m.Items.List()
-	l.SetSize(m.Width(), m.Height())
-	m.Model = l
 	m.SetTitle(title)
-	return m
+	//l := m.Items.List()
+	//l.SetSize(m.Width(), m.Height())
+	//m.Model = l
+	return m.ChooseOne()
 }
 
 func DefaultList() *List {
@@ -53,9 +53,7 @@ func (m *List) ChooseOne() *List {
 
 func (m *List) ChooseMany() *List {
 	m.Model = m.Items.List()
-	m.Items.Delegate.MultiSelect()
-	m.Model.SetDelegate(m.Items.Delegate)
-	m.MultiSelect = true
+	m.SetMultiSelect()
 	return m
 }
 
