@@ -81,10 +81,11 @@ func (f *Fields) Edit() *List {
 			items.Add(i)
 		}
 	}
-	form := NewList("Edit...", items)
-	form.SetShowKeys()
-	form.Editable = true
-	return form
+	//form := NewList("Edit...", items)
+	form := DefaultList().SetTitle("edit").SetItems(items)
+	//form.SetShowKeys()
+	//form.Editable = true
+	return form.Edit()
 }
 
 func (f Fields) All() []FieldData {

@@ -30,9 +30,6 @@ func NewList(title string, items Items) *List {
 	m := DefaultList()
 	m.SetItems(items)
 	m.SetTitle(title)
-	//l := m.Items.List()
-	//l.SetSize(m.Width(), m.Height())
-	//m.Model = l
 	return m.ChooseOne()
 }
 
@@ -54,6 +51,13 @@ func (m *List) ChooseOne() *List {
 func (m *List) ChooseMany() *List {
 	m.Model = m.Items.List()
 	m.SetMultiSelect()
+	return m
+}
+
+func (m *List) Edit() *List {
+	m.Model = m.Items.List()
+	m.SetShowKeys()
+	m.Editable = true
 	return m
 }
 
