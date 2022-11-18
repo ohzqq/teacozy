@@ -98,7 +98,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		if m.Input.Focused() {
 			if key.Matches(msg, Keys.SaveAndExit) {
 				cur := m.SelectedItem()
-				field := cur.Item.(FieldData)
+				field := cur.Data
 				val := m.Input.Value()
 				if original := field.Value(); original != val {
 					field.Set(val)

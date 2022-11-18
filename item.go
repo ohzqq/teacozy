@@ -1,12 +1,10 @@
 package teacozy
 
 import (
-	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 )
 
 type Item struct {
-	Item              list.Item
 	idx               int
 	IsSelected        bool
 	ListOpen          bool
@@ -47,7 +45,6 @@ func (i *Item) SetMultiSelect() *Item {
 
 func (i *Item) SetData(data FieldData) *Item {
 	i.Data = data
-	i.Item = i
 	i.Fields = NewFields().Add(data)
 	return i
 }
