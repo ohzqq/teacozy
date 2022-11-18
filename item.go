@@ -65,7 +65,7 @@ func (i Item) ListDepth() int {
 	depth := 0
 	if i.HasList() {
 		depth++
-		for _, item := range i.List.all {
+		for _, item := range i.List.items {
 			if item.HasList() {
 				depth++
 			}
@@ -81,7 +81,7 @@ func (i Item) ListLength() int {
 func (i Item) Flatten() []*Item {
 	var items []*Item
 	if i.HasList() {
-		for _, item := range i.List.all {
+		for _, item := range i.List.items {
 			if i.MultiSelect {
 				item.SetMultiSelect()
 			}
@@ -124,7 +124,7 @@ func (i Item) Key() string {
 }
 
 func (i Item) HasList() bool {
-	has := len(i.List.all) > 0
+	has := len(i.List.items) > 0
 	return has
 }
 
