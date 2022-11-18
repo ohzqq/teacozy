@@ -15,7 +15,7 @@ type List struct {
 	MultiSelect      bool
 	ShowKeys         bool
 	ShowSelectedOnly bool
-	isForm           bool
+	Editable         bool
 	FormChanged      bool
 	Keys             KeyMap
 	SaveFormFunc     SaveFormFunc
@@ -65,11 +65,6 @@ func (m List) Height() int {
 func (m List) Width() int {
 	return m.Frame.Width()
 }
-
-//func (m *List) SetItems(items Items) *List {
-//  m.Items = items
-//  return m
-//}
 
 func (m *List) SetMultiSelect() *List {
 	m.Items.Delegate.MultiSelect()
@@ -122,7 +117,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			switch {
-			case m.isForm:
+			case m.Editable:
 				switch {
 				case key.Matches(msg, Keys.SaveAndExit):
 					cmds = append(cmds, FormChangedCmd())
@@ -163,7 +158,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case ReturnSelectionsMsg:
 		cmds = append(cmds, tea.Quit)
 	case EditFormItemMsg:
-		if m.isForm {
+		if m.Editable {
 			m.Input = textarea.New()
 			m.Input.SetValue(msg.Value())
 			m.Input.ShowLineNumbers = false

@@ -16,7 +16,6 @@ type Item struct {
 	List              Items
 	TotalSubListItems int
 	Changed           bool
-	Form              FormData
 	Fields            *Fields
 	Data              FieldData
 }

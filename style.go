@@ -233,3 +233,13 @@ func ListStyles() list.Styles {
 
 	return s
 }
+
+var fieldStyle = FieldStyle{
+	Key:   lipgloss.NewStyle().Foreground(DefaultColors().Blue),
+	Value: lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg),
+}
+
+type FieldStyle struct {
+	Key   lipgloss.Style
+	Value lipgloss.Style
+}

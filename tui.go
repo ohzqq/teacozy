@@ -102,7 +102,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		if m.Main.isForm {
+		if m.Main.Editable {
 			switch {
 			case key.Matches(msg, Keys.ExitScreen):
 				m.Main = m.Alt
