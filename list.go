@@ -9,11 +9,11 @@ import (
 )
 
 type List struct {
-	Model            list.Model
-	Input            textarea.Model
-	Title            string
-	MultiSelect      bool
-	ShowKeys         bool
+	Model list.Model
+	Input textarea.Model
+	Title string
+	//MultiSelect      bool
+	//ShowKeys         bool
 	ShowSelectedOnly bool
 	Editable         bool
 	FormChanged      bool
@@ -52,15 +52,15 @@ func (m *List) ChooseOne() *List {
 }
 
 func (m *List) ChooseMany() *List {
-	m.SetModel()
 	m.SetMultiSelect()
+	m.SetModel()
 	return m
 }
 
 func (m *List) Edit() *List {
-	m.SetModel()
-	m.SetShowKeys()
 	m.Editable = true
+	m.SetShowKeys()
+	m.SetModel()
 	return m
 }
 
@@ -97,15 +97,20 @@ func (m List) Width() int {
 }
 
 func (m *List) SetMultiSelect() *List {
-	m.Items.Delegate.MultiSelect()
-	m.Model.SetDelegate(m.Items.Delegate)
-	m.MultiSelect = true
+	m.Items.Delegate.SetMultiSelect()
 	return m
 }
 
+func (m *List) MultiSelect() bool {
+	return m.Items.Delegate.MultiSelect
+}
+
+func (m *List) ShowKeys() bool {
+	return m.Items.Delegate.ShowKeys
+}
+
 func (m *List) SetShowKeys() *List {
-	m.Items.Delegate.ShowKeys()
-	m.Model.SetDelegate(m.Items.Delegate)
+	m.Items.Delegate.SetShowKeys()
 	return m
 }
 
@@ -152,7 +157,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				case key.Matches(msg, Keys.SaveAndExit):
 					cmds = append(cmds, FormChangedCmd())
 				}
-			case m.MultiSelect:
+			case m.MultiSelect():
 				switch {
 				case key.Matches(msg, Enter):
 					if m.ShowSelectedOnly {

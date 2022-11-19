@@ -21,8 +21,8 @@ const (
 )
 
 type ItemDelegate struct {
-	multiSelect bool
-	showKeys    bool
+	MultiSelect bool
+	ShowKeys    bool
 	styles      ItemStyle
 }
 
@@ -32,13 +32,13 @@ func NewItemDelegate() *ItemDelegate {
 	}
 }
 
-func (d *ItemDelegate) ShowKeys() *ItemDelegate {
-	d.showKeys = true
+func (d *ItemDelegate) SetShowKeys() *ItemDelegate {
+	d.ShowKeys = true
 	return d
 }
 
-func (d *ItemDelegate) MultiSelect() *ItemDelegate {
-	d.multiSelect = true
+func (d *ItemDelegate) SetMultiSelect() *ItemDelegate {
+	d.MultiSelect = true
 	return d
 }
 
@@ -75,7 +75,7 @@ func (d ItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			if curItem.HasList() {
 				return ToggleItemListCmd(curItem)
 			}
-			if d.multiSelect {
+			if d.MultiSelect {
 				return ToggleSelectedItemCmd(curItem)
 			}
 		}
@@ -127,7 +127,7 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	prefix := dash
-	if d.multiSelect {
+	if d.MultiSelect {
 		prefix = uncheck
 		if isSelected {
 			prefix = check
@@ -140,7 +140,7 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	if d.showKeys {
+	if d.ShowKeys {
 		prefix = none
 		key := fieldStyle.Key.Render(curItem.Key())
 		content = fmt.Sprintf("%s: %s", key, content)
