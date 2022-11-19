@@ -21,7 +21,7 @@ const (
 )
 
 type Items struct {
-	flat        []*Item
+	items       []*Item
 	MultiSelect bool
 	ShowKeys    bool
 	styles      ItemStyle
@@ -34,7 +34,7 @@ func NewItems() *Items {
 }
 
 func (i *Items) SetItems(items ...*Item) *Items {
-	i.flat = items
+	i.items = items
 	return i
 }
 
@@ -46,12 +46,12 @@ func (i *Items) List() list.Model {
 }
 
 func (i *Items) Add(item *Item) *Items {
-	i.flat = append(i.flat, item)
+	i.items = append(i.items, item)
 	return i
 }
 
 func (i *Items) Set(idx int, item *Item) {
-	i.flat[idx] = item
+	i.items[idx] = item
 }
 
 func (i *Items) Process() {
@@ -73,16 +73,16 @@ func (i *Items) Process() {
 		}
 		idx++
 	}
-	i.flat = items
+	i.items = items
 }
 
 func (i Items) All() []*Item {
-	return i.flat
+	return i.items
 }
 
 func (i *Items) AllItems() []list.Item {
 	var li []list.Item
-	for _, item := range i.flat {
+	for _, item := range i.items {
 		li = append(li, item)
 	}
 	return li
@@ -136,24 +136,24 @@ func (i Items) Selections() []list.Item {
 
 func (i Items) Get(item list.Item) *Item {
 	idx := item.(*Item).Index()
-	return i.flat[idx]
+	return i.items[idx]
 }
 
 func (i Items) GetItemByIndex(idx int) *Item {
 	var item *Item
-	if idx < len(i.flat) {
-		item = i.flat[idx]
+	if idx < len(i.items) {
+		item = i.items[idx]
 	}
 	return item
 }
 
 func (i *Items) ToggleSelectedItem(idx int) {
 	li := i.GetItemByIndex(idx).ToggleSelected()
-	i.flat[li.Index()] = li
+	i.items[li.Index()] = li
 }
 
 func (i *Items) ToggleAllSelectedItems() {
-	for _, item := range i.flat {
+	for _, item := range i.items {
 		item.ToggleSelected()
 	}
 }
@@ -196,8 +196,8 @@ func (i Items) GetItemList(item list.Item) []*Item {
 	var items []*Item
 	li := item.(*Item)
 	if li.HasList() {
-		t := len(li.List.flat)
-		items = i.flat[li.idx+1 : li.idx+t+1]
+		t := len(li.List.items)
+		items = i.items[li.idx+1 : li.idx+t+1]
 	}
 	return items
 }
