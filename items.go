@@ -21,6 +21,7 @@ const (
 )
 
 type Items struct {
+	flat        []*Item
 	items       []*Item
 	MultiSelect bool
 	ShowKeys    bool
@@ -34,6 +35,7 @@ func NewItems() *Items {
 }
 
 func (i *Items) SetItems(items ...*Item) *Items {
+	i.flat = items
 	i.items = items
 	return i
 }
@@ -46,18 +48,19 @@ func (i *Items) List() list.Model {
 }
 
 func (i *Items) Add(item *Item) *Items {
+	i.flat = append(i.flat, item)
 	i.items = append(i.items, item)
 	return i
 }
 
 func (i *Items) Set(idx int, item *Item) {
-	i.items[idx] = item
+	i.flat[idx] = item
 }
 
 func (i *Items) Process() {
 	var items []*Item
 	idx := 0
-	for _, item := range i.All() {
+	for _, item := range i.items {
 		if i.MultiSelect {
 			item.SetMultiSelect()
 		}
@@ -73,36 +76,30 @@ func (i *Items) Process() {
 		}
 		idx++
 	}
-	i.items = items
+	i.flat = items
 }
 
 func (i Items) All() []*Item {
-	return i.items
+	return i.flat
 }
 
 func (i *Items) AllItems() []list.Item {
 	var li []list.Item
-	for _, item := range i.items {
+	for _, item := range i.flat {
 		li = append(li, item)
 	}
 	return li
 }
 
 func (i Items) Display(opt string) []list.Item {
-	var items []list.Item
 	switch opt {
 	case "selected":
-		items = i.Selections()
-		//for _, item := range i.Selections() {
-		//  items = append(items, item)
-		//}
-
+		return i.Selections()
 	case "all":
-		items = i.AllItems()
+		return i.AllItems()
 	default:
-		items = i.Visible()
+		return i.Visible()
 	}
-	return items
 }
 
 func (i Items) Visible() []list.Item {
@@ -136,24 +133,24 @@ func (i Items) Selections() []list.Item {
 
 func (i Items) Get(item list.Item) *Item {
 	idx := item.(*Item).Index()
-	return i.items[idx]
+	return i.flat[idx]
 }
 
 func (i Items) GetItemByIndex(idx int) *Item {
 	var item *Item
-	if idx < len(i.items) {
-		item = i.items[idx]
+	if idx < len(i.flat) {
+		item = i.flat[idx]
 	}
 	return item
 }
 
 func (i *Items) ToggleSelectedItem(idx int) {
 	li := i.GetItemByIndex(idx).ToggleSelected()
-	i.items[li.Index()] = li
+	i.flat[li.Index()] = li
 }
 
 func (i *Items) ToggleAllSelectedItems() {
-	for _, item := range i.items {
+	for _, item := range i.flat {
 		item.ToggleSelected()
 	}
 }
@@ -196,8 +193,8 @@ func (i Items) GetItemList(item list.Item) []*Item {
 	var items []*Item
 	li := item.(*Item)
 	if li.HasList() {
-		t := len(li.List.items)
-		items = i.items[li.idx+1 : li.idx+t+1]
+		t := len(li.List.flat)
+		items = i.flat[li.idx+1 : li.idx+t+1]
 	}
 	return items
 }
