@@ -13,7 +13,10 @@ type Key struct {
 
 func NewKey(k, h string) *Key {
 	return &Key{
-		Bind: NewKeyBind(k, h),
+		Bind: key.NewBinding(
+			key.WithKeys(k),
+			key.WithHelp(k, h),
+		),
 	}
 }
 
@@ -47,31 +50,6 @@ func NewKeyBind(k, help string) key.Binding {
 	)
 }
 
-type KeyMap struct {
-	ToggleItem  key.Binding
-	SelectAll   key.Binding
-	DeSelectAll key.Binding
-	Unfocus     key.Binding
-	Switch      key.Binding
-	Enter       key.Binding
-	ExitScreen  key.Binding
-	Prev        key.Binding
-	list.KeyMap
-}
-
-func DefaultKeys() KeyMap {
-	return KeyMap{
-		KeyMap:      ListKeyMap(),
-		Unfocus:     NewKeyBind("q", "exit view"),
-		ToggleItem:  ToggleItem,
-		SelectAll:   SelectAll,
-		DeSelectAll: DeSelectAll,
-		Enter:       Enter,
-		ExitScreen:  ExitScreen,
-		Prev:        PrevScreen,
-	}
-}
-
 func ListKeyMap() list.KeyMap {
 	km := list.DefaultKeyMap()
 	km.NextPage = key.NewBinding(
@@ -88,16 +66,16 @@ func ListKeyMap() list.KeyMap {
 type keys struct {
 	DeSelectAll key.Binding
 	EditField   key.Binding
-	Enter       key.Binding
+	Enter       Key
 	ExitScreen  Key
 	FullScreen  key.Binding
 	Help        key.Binding
 	Info        key.Binding
 	Menu        key.Binding
-	PrevScreen  key.Binding
+	PrevScreen  Key
 	Quit        key.Binding
 	SaveAndExit key.Binding
-	SelectAll   key.Binding
+	SelectAll   Key
 	SortList    key.Binding
 	ToggleItem  key.Binding
 }
@@ -105,16 +83,16 @@ type keys struct {
 var Keys = keys{
 	DeSelectAll: DeSelectAll,
 	EditField:   EditField,
-	Enter:       Enter,
+	Enter:       Key{Bind: Enter},
 	ExitScreen:  Key{Bind: ExitScreen},
 	FullScreen:  FullScreen,
 	Help:        Help,
 	Info:        InfoKey,
 	Menu:        MenuKey,
-	PrevScreen:  PrevScreen,
+	PrevScreen:  Key{Bind: PrevScreen},
 	Quit:        Quit,
 	SaveAndExit: SaveAndExit,
-	SelectAll:   SelectAll,
+	SelectAll:   Key{Bind: SelectAll},
 	SortList:    SortList,
 	ToggleItem:  ToggleItem,
 }

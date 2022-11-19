@@ -15,7 +15,6 @@ type List struct {
 	ShowSelectedOnly bool
 	Editable         bool
 	FormChanged      bool
-	Keys             KeyMap
 	SaveFormFunc     SaveFormFunc
 	Hash             map[string]string
 	Style            list.Styles
@@ -26,7 +25,6 @@ type List struct {
 
 func NewList() *List {
 	m := List{
-		Keys:         DefaultKeys(),
 		SaveFormFunc: SaveFormAsHashCmd,
 		Frame:        DefaultFrameStyle(),
 		Items:        NewItems(),
@@ -145,7 +143,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		} else {
 			switch {
-			case key.Matches(msg, m.Keys.Prev):
+			case Keys.PrevScreen.Matches(msg):
 				m.ShowSelectedOnly = false
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
@@ -157,19 +155,19 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				}
 			case m.MultiSelect():
 				switch {
-				case key.Matches(msg, Enter):
+				case Keys.Enter.Matches(msg):
 					if m.ShowSelectedOnly {
 						cmds = append(cmds, ReturnSelectionsCmd())
 					}
 					m.ShowSelectedOnly = true
 					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-				case key.Matches(msg, m.Keys.SelectAll):
+				case Keys.SelectAll.Matches(msg):
 					m.Items.ToggleAllSelectedItems()
 					cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 				}
 			default:
 				switch {
-				case key.Matches(msg, m.Keys.Enter):
+				case Keys.Enter.Matches(msg):
 					cur := m.Model.SelectedItem().(*Item)
 					m.Items.ToggleSelectedItem(cur.Index())
 					cmds = append(cmds, ReturnSelectionsCmd())

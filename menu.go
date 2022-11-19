@@ -69,8 +69,7 @@ func (m *Menu) SetKeys(keys ...*Key) *Menu {
 }
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
-	key := NewKey(k, h)
-	key.SetCmd(cmd)
+	key := NewKey(k, h).SetCmd(cmd)
 	m.AddKey(key)
 	return m
 }
