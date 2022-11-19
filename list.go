@@ -9,11 +9,9 @@ import (
 )
 
 type List struct {
-	Model list.Model
-	Input textarea.Model
-	Title string
-	//MultiSelect      bool
-	//ShowKeys         bool
+	Model            list.Model
+	Input            textarea.Model
+	Title            string
 	ShowSelectedOnly bool
 	Editable         bool
 	FormChanged      bool
@@ -38,7 +36,7 @@ func NewList() *List {
 }
 
 func NewListModel(w, h int, items Items) list.Model {
-	l := list.New(items.Visible(), items.Delegate, w, h)
+	l := list.New(items.Visible(), items, w, h)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
@@ -97,20 +95,20 @@ func (m List) Width() int {
 }
 
 func (m *List) SetMultiSelect() *List {
-	m.Items.Delegate.SetMultiSelect()
+	m.Items.SetMultiSelect()
 	return m
 }
 
 func (m *List) MultiSelect() bool {
-	return m.Items.Delegate.MultiSelect
+	return m.Items.MultiSelect
 }
 
 func (m *List) ShowKeys() bool {
-	return m.Items.Delegate.ShowKeys
+	return m.Items.ShowKeys
 }
 
 func (m *List) SetShowKeys() *List {
-	m.Items.Delegate.SetShowKeys()
+	m.Items.SetShowKeys()
 	return m
 }
 
