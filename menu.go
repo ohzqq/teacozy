@@ -69,7 +69,7 @@ func (m *Menu) SetKeys(keys ...Key) *Menu {
 }
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
-	key := NewMenuItem(k, h, cmd)
+	key := NewKey(k, h, cmd)
 	m.AddKey(key)
 	return m
 }
@@ -92,30 +92,4 @@ func (m *Menu) SetToggle(toggle, help string) *Menu {
 
 func (m *Menu) View() string {
 	return m.Model.View()
-}
-
-type Key struct {
-	Bind key.Binding
-	Cmd  MenuFunc
-}
-
-func NewMenuItem(k, h string, cmd MenuFunc) Key {
-	return Key{
-		Bind: NewKeyBind(k, h),
-		Cmd:  cmd,
-	}
-}
-
-func (i Key) Key() string {
-	return i.Bind.Help().Key
-}
-
-func (i Key) Value() string {
-	return i.Bind.Help().Desc
-}
-
-func (i Key) Set(v string) {}
-
-func (i Key) String() string {
-	return i.Bind.Help().Key + ": " + i.Bind.Help().Desc
 }

@@ -3,7 +3,38 @@ package teacozy
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 )
+
+type Key struct {
+	Bind key.Binding
+	Cmd  MenuFunc
+}
+
+func NewKey(k, h string, cmd MenuFunc) Key {
+	return Key{
+		Bind: NewKeyBind(k, h),
+		Cmd:  cmd,
+	}
+}
+
+func (k Key) Matches(msg tea.KeyMsg) bool {
+	return key.Matches(msg, k.Bind)
+}
+
+func (i Key) Key() string {
+	return i.Bind.Help().Key
+}
+
+func (i Key) Value() string {
+	return i.Bind.Help().Desc
+}
+
+func (i Key) Set(v string) {}
+
+func (i Key) String() string {
+	return i.Bind.Help().Key + ": " + i.Bind.Help().Desc
+}
 
 func NewKeyBind(k, help string) key.Binding {
 	return key.NewBinding(
@@ -37,25 +68,6 @@ func DefaultKeys() KeyMap {
 	}
 }
 
-func (k KeyMap) FullHelp() [][]key.Binding {
-	var keys [][]key.Binding
-	first := []key.Binding{}
-	keys = append(keys, first)
-	second := []key.Binding{}
-	keys = append(keys, second)
-	third := []key.Binding{
-		k.ToggleItem,
-		k.DeSelectAll,
-		k.SelectAll,
-	}
-	keys = append(keys, third)
-	return keys
-}
-
-func (s KeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{}
-}
-
 func ListKeyMap() list.KeyMap {
 	km := list.DefaultKeyMap()
 	km.NextPage = key.NewBinding(
@@ -73,7 +85,7 @@ type keys struct {
 	DeSelectAll key.Binding
 	EditField   key.Binding
 	Enter       key.Binding
-	ExitScreen  key.Binding
+	ExitScreen  Key
 	FullScreen  key.Binding
 	Help        key.Binding
 	Info        key.Binding
@@ -90,7 +102,7 @@ var Keys = keys{
 	DeSelectAll: DeSelectAll,
 	EditField:   EditField,
 	Enter:       Enter,
-	ExitScreen:  ExitScreen,
+	ExitScreen:  Key{Bind: ExitScreen},
 	FullScreen:  FullScreen,
 	Help:        Help,
 	Info:        InfoKey,

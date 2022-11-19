@@ -60,7 +60,7 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, Keys.ExitScreen):
+		case Keys.ExitScreen.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, Keys.EditField):
 			if m.Editable {
