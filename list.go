@@ -26,13 +26,6 @@ type List struct {
 	Items
 }
 
-//func NewList(title string, items Items) *List {
-//  m := DefaultList().
-//    SetItems(items).
-//    SetTitle(title)
-//  return m.ChooseOne()
-//}
-
 func NewList() *List {
 	m := List{
 		Keys:         DefaultKeys(),
