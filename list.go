@@ -21,7 +21,7 @@ type List struct {
 	Style            list.Styles
 	id               int
 	Frame
-	Items
+	*Items
 }
 
 func NewList() *List {
@@ -35,7 +35,7 @@ func NewList() *List {
 	return &m
 }
 
-func NewListModel(w, h int, items Items) list.Model {
+func NewListModel(w, h int, items *Items) list.Model {
 	l := list.New(items.Visible(), items, w, h)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
@@ -70,7 +70,7 @@ func (m *List) SetModel() *List {
 	return m
 }
 
-func (m *List) SetItems(items Items) *List {
+func (m *List) SetItems(items *Items) *List {
 	m.Items = items
 	return m
 }
@@ -185,7 +185,8 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case UpdateVisibleItemsMsg:
 		items := m.Items.Display(string(msg))
-		m.Model.SetItems(items)
+		cmds = append(cmds, SetItemsCmd(items))
+		//m.Model.SetItems(items)
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
@@ -206,10 +207,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case SortItemsMsg:
 		cmds = append(cmds, SetItemsCmd(msg.Items))
 	case SetItemsMsg:
-		l := msg.Items.List()
-		l.SetSize(m.Width(), m.Height())
-		l.Title = m.Title
-		m.Model = l
+		m.Model.SetItems(msg.Items)
 	case ToggleItemListMsg:
 		switch msg.ListOpen {
 		case true:

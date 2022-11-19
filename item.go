@@ -10,6 +10,7 @@ type Item struct {
 	ListOpen          bool
 	IsHidden          bool
 	MultiSelect       bool
+	hasFields         bool
 	Level             int
 	List              Items
 	TotalSubListItems int
@@ -28,6 +29,10 @@ func NewItem() *Item {
 // item info
 func (i Item) DisplayFields() string {
 	return i.Fields.String()
+}
+
+func (i Item) HasFields() bool {
+	return i.Fields.HasData()
 }
 
 func (i *Item) SetFields(f *Fields) {

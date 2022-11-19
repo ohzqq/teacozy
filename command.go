@@ -1,6 +1,7 @@
 package teacozy
 
 import (
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -194,17 +195,17 @@ func UpdateStatusCmd(status string) tea.Cmd {
 	}
 }
 
-type SortItemsMsg struct{ Items }
+type SortItemsMsg struct{ Items []list.Item }
 
-func SortItemsCmd(items Items) tea.Cmd {
+func SortItemsCmd(items []list.Item) tea.Cmd {
 	return func() tea.Msg {
 		return SortItemsMsg{Items: items}
 	}
 }
 
-type SetItemsMsg struct{ Items }
+type SetItemsMsg struct{ Items []list.Item }
 
-func SetItemsCmd(items Items) tea.Cmd {
+func SetItemsCmd(items []list.Item) tea.Cmd {
 	return func() tea.Msg {
 		return SetItemsMsg{Items: items}
 	}

@@ -49,6 +49,10 @@ func (f *Fields) Add(field FieldData) *Fields {
 	return f
 }
 
+func (f Fields) HasData() bool {
+	return len(f.Data) > 0
+}
+
 func (f *Fields) SetData(data FormData) *Fields {
 	for _, key := range data.Keys() {
 		f.Data = append(f.Data, data.Get(key))

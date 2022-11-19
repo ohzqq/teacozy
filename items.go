@@ -27,8 +27,8 @@ type Items struct {
 	styles      ItemStyle
 }
 
-func NewItems() Items {
-	return Items{
+func NewItems() *Items {
+	return &Items{
 		styles: ItemStyles(),
 	}
 }
@@ -41,7 +41,7 @@ func (i *Items) SetItems(items ...*Item) *Items {
 func (i *Items) List() list.Model {
 	i.Process()
 	w, h := TermSize()
-	l := NewListModel(w, h, *i)
+	l := NewListModel(w, h, i)
 	return l
 }
 
@@ -57,9 +57,12 @@ func (i *Items) Set(idx int, item *Item) {
 func (i *Items) Process() {
 	var items []*Item
 	idx := 0
-	for _, item := range i.items {
+	for _, item := range i.All() {
 		if i.MultiSelect {
 			item.SetMultiSelect()
+		}
+		if item.HasFields() {
+			item.hasFields = true
 		}
 		item.idx = idx
 		items = append(items, item)
@@ -89,9 +92,11 @@ func (i Items) Display(opt string) []list.Item {
 	var items []list.Item
 	switch opt {
 	case "selected":
-		for _, item := range i.Selections() {
-			items = append(items, item)
-		}
+		items = i.Selections()
+		//for _, item := range i.Selections() {
+		//  items = append(items, item)
+		//}
+
 	case "all":
 		items = i.AllItems()
 	default:
@@ -119,9 +124,9 @@ func (i Items) Visible() []list.Item {
 	return items
 }
 
-func (i Items) Selections() []*Item {
-	var items []*Item
-	for _, item := range i.items {
+func (i Items) Selections() []list.Item {
+	var items []list.Item
+	for _, item := range i.All() {
 		if item.IsSelected {
 			items = append(items, item)
 		}
@@ -215,23 +220,29 @@ func (d Items) Spacing() int {
 	return 0
 }
 
-func (d Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
 		curItem *Item
 		cmds    []tea.Cmd
 	)
 
-	switch i := m.SelectedItem().(type) {
-	case *Item:
-		curItem = i
+	sel := m.SelectedItem()
+	if item, ok := sel.(*Item); ok {
+		curItem = d.GetItemByIndex(item.Index())
 	}
+	//switch i := m.SelectedItem().(type) {
+	//case *Item:
+	//  curItem = i
+	//}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, Keys.Info):
-			if info := curItem.Fields; info.String() != "" {
-				cmds = append(cmds, ShowItemInfoCmd(curItem))
+			if sel != nil {
+				if curItem.HasFields() {
+					cmds = append(cmds, ShowItemInfoCmd(curItem))
+				}
 			}
 		case key.Matches(msg, Keys.EditField):
 			cmds = append(cmds, EditFormItemCmd(curItem))
@@ -241,7 +252,8 @@ func (d Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 				return ToggleItemListCmd(curItem)
 			}
 			if d.MultiSelect {
-				return ToggleSelectedItemCmd(curItem)
+				d.ToggleSelectedItem(curItem.Index())
+				//return ToggleSelectedItemCmd(curItem)
 			}
 		}
 	}
