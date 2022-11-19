@@ -37,7 +37,7 @@ func NewList() *List {
 	return &m
 }
 
-func ListModel(w, h int, items Items) list.Model {
+func NewListModel(w, h int, items Items) list.Model {
 	l := list.New(items.Visible(), items.Delegate, w, h)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
@@ -47,22 +47,28 @@ func ListModel(w, h int, items Items) list.Model {
 }
 
 func (m *List) ChooseOne() *List {
-	m.Items.Process()
-	m.Model = ListModel(m.Width(), m.Height(), m.Items)
+	m.SetModel()
 	return m
 }
 
 func (m *List) ChooseMany() *List {
-	m.Items.Process()
-	m.Model = ListModel(m.Width(), m.Height(), m.Items)
+	m.SetModel()
 	m.SetMultiSelect()
 	return m
 }
 
 func (m *List) Edit() *List {
-	m.Model = ListModel(m.Width(), m.Height(), m.Items)
+	m.SetModel()
 	m.SetShowKeys()
 	m.Editable = true
+	return m
+}
+
+func (m *List) SetModel() *List {
+	if !m.Editable {
+		m.Items.Process()
+	}
+	m.Model = NewListModel(m.Width(), m.Height(), m.Items)
 	return m
 }
 

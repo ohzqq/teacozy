@@ -25,7 +25,7 @@ func (i *Items) SetItems(items ...*Item) *Items {
 func (i *Items) List() list.Model {
 	i.Process()
 	w, h := TermSize()
-	l := ListModel(w, h, *i)
+	l := NewListModel(w, h, *i)
 	return l
 }
 
