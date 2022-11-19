@@ -26,10 +26,10 @@ type Menu struct {
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Items     []Key
+	Items     []*Key
 }
 
-func NewMenu(l string, toggle key.Binding, items ...Key) *Menu {
+func NewMenu(l string, toggle key.Binding, items ...*Key) *Menu {
 	m := DefaultMenu().SetKeys(items...)
 	m.Label = l
 	m.Toggle = toggle
@@ -43,13 +43,13 @@ func DefaultMenu() *Menu {
 	return &m
 }
 
-func (m Menu) Get(k string) Key {
+func (m Menu) Get(k string) *Key {
 	for _, item := range m.Items {
 		if k == item.Key() {
 			return item
 		}
 	}
-	return Key{}
+	return &Key{}
 }
 
 func (m Menu) Keys() []string {
@@ -60,7 +60,7 @@ func (m Menu) Keys() []string {
 	return keys
 }
 
-func (m *Menu) SetKeys(keys ...Key) *Menu {
+func (m *Menu) SetKeys(keys ...*Key) *Menu {
 	m.Items = keys
 	for _, k := range keys {
 		m.Model.Fields.Add(k)
@@ -69,12 +69,13 @@ func (m *Menu) SetKeys(keys ...Key) *Menu {
 }
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
-	key := NewKey(k, h, cmd)
+	key := NewKey(k, h)
+	key.SetCmd(cmd)
 	m.AddKey(key)
 	return m
 }
 
-func (m *Menu) AddKey(key Key) *Menu {
+func (m *Menu) AddKey(key *Key) *Menu {
 	m.Model.Fields.Add(key)
 	m.Items = append(m.Items, key)
 	return m

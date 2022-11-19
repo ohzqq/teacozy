@@ -11,11 +11,15 @@ type Key struct {
 	Cmd  MenuFunc
 }
 
-func NewKey(k, h string, cmd MenuFunc) Key {
-	return Key{
+func NewKey(k, h string) *Key {
+	return &Key{
 		Bind: NewKeyBind(k, h),
-		Cmd:  cmd,
 	}
+}
+
+func (k *Key) SetCmd(cmd MenuFunc) *Key {
+	k.Cmd = cmd
+	return k
 }
 
 func (k Key) Matches(msg tea.KeyMsg) bool {

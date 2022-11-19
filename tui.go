@@ -104,7 +104,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Main.Editable {
 			switch {
-			//case key.Matches(msg, Keys.ExitScreen):
 			case Keys.ExitScreen.Matches(msg):
 				m.Main = m.Alt
 			case key.Matches(msg, Keys.SaveAndExit):
