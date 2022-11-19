@@ -25,11 +25,7 @@ func (i *Items) SetItems(items ...*Item) *Items {
 func (i *Items) List() list.Model {
 	i.Process()
 	w, h := TermSize()
-	l := list.New(i.Visible(), i.Delegate, w, h)
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.KeyMap = ListKeyMap()
-	l.Styles = ListStyles()
+	l := ListModel(w, h, *i)
 	return l
 }
 

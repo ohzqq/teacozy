@@ -30,6 +30,7 @@ func NewList(title string, items Items) *List {
 	m := DefaultList()
 	m.SetItems(items)
 	m.SetTitle(title)
+	m.Model = ListModel(m.Width(), m.Height(), m.Items)
 	return m.ChooseOne()
 }
 
@@ -42,6 +43,15 @@ func DefaultList() *List {
 	}
 	m.Frame.MinHeight = 10
 	return &m
+}
+
+func ListModel(w, h int, items Items) list.Model {
+	l := list.New(items.Visible(), items.Delegate, w, h)
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+	l.KeyMap = ListKeyMap()
+	l.Styles = ListStyles()
+	return l
 }
 
 func (m *List) ChooseOne() *List {
@@ -64,6 +74,7 @@ func (m *List) Edit() *List {
 
 func (m *List) SetItems(items Items) *List {
 	m.Items = items
+	m.Items.Process()
 	return m
 }
 
