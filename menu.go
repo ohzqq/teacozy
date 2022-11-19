@@ -26,10 +26,10 @@ type Menu struct {
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Items     []MenuItem
+	Items     []Key
 }
 
-func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
+func NewMenu(l string, toggle key.Binding, items ...Key) *Menu {
 	m := DefaultMenu().SetKeys(items...)
 	m.Label = l
 	m.Toggle = toggle
@@ -43,13 +43,13 @@ func DefaultMenu() *Menu {
 	return &m
 }
 
-func (m Menu) Get(k string) MenuItem {
+func (m Menu) Get(k string) Key {
 	for _, item := range m.Items {
 		if k == item.Key() {
 			return item
 		}
 	}
-	return MenuItem{}
+	return Key{}
 }
 
 func (m Menu) Keys() []string {
@@ -60,7 +60,7 @@ func (m Menu) Keys() []string {
 	return keys
 }
 
-func (m *Menu) SetKeys(keys ...MenuItem) *Menu {
+func (m *Menu) SetKeys(keys ...Key) *Menu {
 	m.Items = keys
 	for _, k := range keys {
 		m.Model.Fields.Add(k)
@@ -74,7 +74,7 @@ func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
 	return m
 }
 
-func (m *Menu) AddKey(key MenuItem) *Menu {
+func (m *Menu) AddKey(key Key) *Menu {
 	m.Model.Fields.Add(key)
 	m.Items = append(m.Items, key)
 	return m
@@ -94,28 +94,28 @@ func (m *Menu) View() string {
 	return m.Model.View()
 }
 
-type MenuItem struct {
-	KeyBind key.Binding
-	Cmd     MenuFunc
+type Key struct {
+	Bind key.Binding
+	Cmd  MenuFunc
 }
 
-func NewMenuItem(k, h string, cmd MenuFunc) MenuItem {
-	return MenuItem{
-		KeyBind: NewKeyBind(k, h),
-		Cmd:     cmd,
+func NewMenuItem(k, h string, cmd MenuFunc) Key {
+	return Key{
+		Bind: NewKeyBind(k, h),
+		Cmd:  cmd,
 	}
 }
 
-func (i MenuItem) Key() string {
-	return i.KeyBind.Help().Key
+func (i Key) Key() string {
+	return i.Bind.Help().Key
 }
 
-func (i MenuItem) Value() string {
-	return i.KeyBind.Help().Desc
+func (i Key) Value() string {
+	return i.Bind.Help().Desc
 }
 
-func (i MenuItem) Set(v string) {}
+func (i Key) Set(v string) {}
 
-func (i MenuItem) String() string {
-	return i.KeyBind.Help().Key + ": " + i.KeyBind.Help().Desc
+func (i Key) String() string {
+	return i.Bind.Help().Key + ": " + i.Bind.Help().Desc
 }

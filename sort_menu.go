@@ -6,17 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type DefaultMenus struct {
-	Menus Menus
-	*Menu
-}
-
-func GoToMenuCmd(m *Menu) MenuFunc {
-	return func(ui *TUI) tea.Cmd {
-		return ChangeMenuCmd(m)
-	}
-}
-
 func SortListMenu() *Menu {
 	m := DefaultMenu().SetToggle("o", "sort by").SetLabel("sort by")
 	m.NewKey("k", "key (asc)", SortListByKey("asc"))
@@ -40,6 +29,7 @@ func SortListByValue(order string) MenuFunc {
 		return SortItemsCmd(items)
 	}
 }
+
 func SortListByKey(order string) MenuFunc {
 	return func(ui *TUI) tea.Cmd {
 		items := ui.Main.Items.All()

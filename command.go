@@ -53,6 +53,12 @@ func ShowMenuCmd(menu *Menu) tea.Cmd {
 
 type ChangeMenuMsg struct{ *Menu }
 
+func GoToMenuCmd(m *Menu) MenuFunc {
+	return func(ui *TUI) tea.Cmd {
+		return ChangeMenuCmd(m)
+	}
+}
+
 func ChangeMenuCmd(menu *Menu) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeMenuMsg{Menu: menu}
