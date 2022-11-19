@@ -77,6 +77,7 @@ type keys struct {
 	FullScreen  key.Binding
 	Help        key.Binding
 	Info        key.Binding
+	Menu        key.Binding
 	PrevScreen  key.Binding
 	Quit        key.Binding
 	SaveAndExit key.Binding
@@ -93,6 +94,7 @@ var Keys = keys{
 	FullScreen:  FullScreen,
 	Help:        Help,
 	Info:        InfoKey,
+	Menu:        MenuKey,
 	PrevScreen:  PrevScreen,
 	Quit:        Quit,
 	SaveAndExit: SaveAndExit,
@@ -130,9 +132,13 @@ var (
 		key.WithKeys("i"),
 		key.WithHelp("i", "view item info"),
 	)
+	MenuKey = key.NewBinding(
+		key.WithKeys("m"),
+		key.WithHelp("m", "show menu"),
+	)
 	PrevScreen = key.NewBinding(
 		key.WithKeys("p"),
-		key.WithHelp("p", "prev menu"),
+		key.WithHelp("p", "prev screen"),
 	)
 	Quit = key.NewBinding(
 		key.WithKeys("ctrl+c", "esc"),

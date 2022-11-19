@@ -26,7 +26,8 @@ type TUI struct {
 	height          int
 	state           state
 	Hash            map[string]string
-	HelpMenu        *Menu
+	Help            *Info
+	MainMenu        *Menu
 	Menus           Menus
 	CurrentMenu     *Menu
 }
@@ -37,7 +38,7 @@ func New(main *List) TUI {
 		Menus:       make(Menus),
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
-		HelpMenu:    DefaultMenu().SetToggle("?", "help").SetLabel("help"),
+		MainMenu:    DefaultMenu().SetToggle("m", "menu").SetLabel("menu"),
 	}
 	ui.AddMenu(SortListMenu())
 	return ui
@@ -57,7 +58,7 @@ func (ui TUI) Height() int {
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
-	l.HelpMenu.NewKey(
+	l.MainMenu.NewKey(
 		menu.Toggle.Help().Key,
 		menu.Toggle.Help().Desc,
 		GoToMenuCmd(menu),
@@ -121,7 +122,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if focus == "help" {
 				cmds = append(cmds, HideMenuCmd())
 			} else {
-				cmds = append(cmds, ChangeMenuCmd(m.HelpMenu))
+				cmds = append(cmds, ChangeMenuCmd(m.MainMenu))
+			}
+		case key.Matches(msg, Keys.Menu):
+			if focus == "menu" {
+				cmds = append(cmds, HideMenuCmd())
+			} else {
+				cmds = append(cmds, ChangeMenuCmd(m.MainMenu))
 			}
 		default:
 			for label, menu := range m.Menus {

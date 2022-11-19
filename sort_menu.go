@@ -11,22 +11,6 @@ type DefaultMenus struct {
 	*Menu
 }
 
-func DefaultTuiMenus() DefaultMenus {
-	menu := DefaultMenus{
-		Menus: make(Menus),
-		Menu:  DefaultMenu().SetToggle("?", "Menu").SetLabel("Menu"),
-	}
-	sort := SortListMenu()
-	menu.Menus.Set("sort by", sort)
-
-	fn := func(ui *TUI) tea.Cmd {
-		return UpdateStatusCmd("poot")
-	}
-	menu.NewKey("o", "sort by", fn)
-	menu.Menus.Set("default", menu.Menu)
-	return menu
-}
-
 func GoToMenuCmd(m *Menu) MenuFunc {
 	return func(ui *TUI) tea.Cmd {
 		return ChangeMenuCmd(m)
