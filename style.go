@@ -3,6 +3,7 @@ package teacozy
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
 )
 
 const (
@@ -116,18 +117,18 @@ type Color struct {
 
 func DefaultColors() Color {
 	return Color{
-		DefaultFg: lipgloss.Color("#FFBF00"),
-		DefaultBg: lipgloss.Color("#262626"),
-		Black:     lipgloss.Color("#262626"),
-		Blue:      lipgloss.Color("#5FAFFF"),
-		Cyan:      lipgloss.Color("#AFFFFF"),
-		Green:     lipgloss.Color("#AFFFAF"),
-		Grey:      lipgloss.Color("#626262"),
-		Pink:      lipgloss.Color("#FFAFFF"),
-		Purple:    lipgloss.Color("#AFAFFF"),
-		Red:       lipgloss.Color("#FF875F"),
-		White:     lipgloss.Color("#EEEEEE"),
-		Yellow:    lipgloss.Color("#FFFFAF"),
+		DefaultFg: color.Foreground,
+		DefaultBg: color.Background,
+		Black:     color.Black,
+		Blue:      color.Blue,
+		Cyan:      color.Cyan,
+		Green:     color.Green,
+		Grey:      color.Grey,
+		Pink:      color.Pink,
+		Purple:    color.Purple,
+		Red:       color.Red,
+		White:     color.White,
+		Yellow:    color.Yellow,
 	}
 }
 
