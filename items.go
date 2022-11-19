@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
@@ -239,15 +238,15 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, Keys.Info):
+		case Keys.Info.Matches(msg):
 			if sel != nil {
 				if curItem.HasFields() {
 					cmds = append(cmds, ShowItemInfoCmd(curItem))
 				}
 			}
-		case key.Matches(msg, Keys.EditField):
+		case Keys.EditField.Matches(msg):
 			cmds = append(cmds, EditFormItemCmd(curItem))
-		case key.Matches(msg, Keys.ToggleItem):
+		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
 			if curItem.HasList() {
 				return ToggleItemListCmd(curItem)

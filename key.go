@@ -64,37 +64,37 @@ func ListKeyMap() list.KeyMap {
 }
 
 type keys struct {
-	DeSelectAll key.Binding
-	EditField   key.Binding
+	DeSelectAll Key
+	EditField   Key
 	Enter       Key
 	ExitScreen  Key
-	FullScreen  key.Binding
-	Help        key.Binding
-	Info        key.Binding
-	Menu        key.Binding
+	FullScreen  Key
+	Help        Key
+	Info        Key
+	Menu        Key
 	PrevScreen  Key
-	Quit        key.Binding
-	SaveAndExit key.Binding
+	Quit        Key
+	SaveAndExit Key
 	SelectAll   Key
-	SortList    key.Binding
-	ToggleItem  key.Binding
+	SortList    Key
+	ToggleItem  Key
 }
 
 var Keys = keys{
-	DeSelectAll: DeSelectAll,
-	EditField:   EditField,
+	DeSelectAll: Key{Bind: DeSelectAll},
+	EditField:   Key{Bind: EditField},
 	Enter:       Key{Bind: Enter},
 	ExitScreen:  Key{Bind: ExitScreen},
-	FullScreen:  FullScreen,
-	Help:        Help,
-	Info:        InfoKey,
-	Menu:        MenuKey,
+	FullScreen:  Key{Bind: FullScreen},
+	Help:        Key{Bind: Help},
+	Info:        Key{Bind: InfoKey},
+	Menu:        Key{Bind: MenuKey},
 	PrevScreen:  Key{Bind: PrevScreen},
-	Quit:        Quit,
-	SaveAndExit: SaveAndExit,
+	Quit:        Key{Bind: Quit},
+	SaveAndExit: Key{Bind: SaveAndExit},
 	SelectAll:   Key{Bind: SelectAll},
-	SortList:    SortList,
-	ToggleItem:  ToggleItem,
+	SortList:    Key{Bind: SortList},
+	ToggleItem:  Key{Bind: ToggleItem},
 }
 
 var (

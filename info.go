@@ -1,7 +1,6 @@
 package teacozy
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -62,7 +61,7 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 		switch {
 		case Keys.ExitScreen.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, Keys.EditField):
+		case Keys.EditField.Matches(msg):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd(m.Fields))
 			}

@@ -106,7 +106,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case Keys.ExitScreen.Matches(msg):
 				m.Main = m.Alt
-			case key.Matches(msg, Keys.SaveAndExit):
+			case Keys.SaveAndExit.Matches(msg):
 				m.HideInfo()
 			}
 		}
@@ -114,17 +114,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.UpdateMenu(msg))
 		}
 		switch {
-		case key.Matches(msg, Keys.Info):
+		case Keys.Info.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, Keys.Quit):
+		case Keys.Quit.Matches(msg):
 			cmds = append(cmds, tea.Quit)
-		case key.Matches(msg, Keys.Help):
+		case Keys.Help.Matches(msg):
 			if focus == "help" {
 				cmds = append(cmds, HideMenuCmd())
 			} else {
 				cmds = append(cmds, ChangeMenuCmd(m.MainMenu))
 			}
-		case key.Matches(msg, Keys.Menu):
+		case Keys.Menu.Matches(msg):
 			if focus == "menu" {
 				cmds = append(cmds, HideMenuCmd())
 			} else {

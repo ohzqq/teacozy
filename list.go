@@ -1,7 +1,6 @@
 package teacozy
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -127,7 +126,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		if m.Input.Focused() {
-			if key.Matches(msg, Keys.SaveAndExit) {
+			if Keys.SaveAndExit.Matches(msg) {
 				cur := m.SelectedItem()
 				field := cur.Data
 				val := m.Input.Value()
@@ -150,7 +149,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			switch {
 			case m.Editable:
 				switch {
-				case key.Matches(msg, Keys.SaveAndExit):
+				case Keys.SaveAndExit.Matches(msg):
 					cmds = append(cmds, FormChangedCmd())
 				}
 			case m.MultiSelect():
