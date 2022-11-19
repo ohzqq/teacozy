@@ -31,20 +31,7 @@ type TUI struct {
 	CurrentMenu     *Menu
 }
 
-func New(title string, items Items) TUI {
-	ui := TUI{
-		Main:        NewList(title, items),
-		Title:       title,
-		Menus:       make(Menus),
-		FocusedView: "list",
-		Style:       DefaultTuiStyle(),
-		HelpMenu:    DefaultMenu().SetToggle("?", "help").SetLabel("help"),
-	}
-	ui.AddMenu(SortListMenu())
-	return ui
-}
-
-func NewUi(main *List) TUI {
+func New(main *List) TUI {
 	ui := TUI{
 		Main:        main,
 		Menus:       make(Menus),

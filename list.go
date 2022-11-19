@@ -26,15 +26,14 @@ type List struct {
 	Items
 }
 
-func NewList(title string, items Items) *List {
-	m := DefaultList()
-	m.SetItems(items)
-	m.SetTitle(title)
-	m.Model = ListModel(m.Width(), m.Height(), m.Items)
-	return m
-}
+//func NewList(title string, items Items) *List {
+//  m := DefaultList().
+//    SetItems(items).
+//    SetTitle(title)
+//  return m.ChooseOne()
+//}
 
-func DefaultList() *List {
+func NewList() *List {
 	m := List{
 		Keys:         DefaultKeys(),
 		SaveFormFunc: SaveFormAsHashCmd,
