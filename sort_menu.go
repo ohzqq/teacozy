@@ -27,12 +27,6 @@ func DefaultTuiMenus() DefaultMenus {
 
 func GoToMenuCmd(m *Menu) MenuFunc {
 	return func(ui *TUI) tea.Cmd {
-		//ui.CurrentMenu = m
-		//ui.ShowMenu()
-		//ui.HideInfo()
-		//fmt.Println(ui.CurrentMenu.Label)
-		//return UpdateStatusCmd(m.Label)
-		//return SetFocusedViewCmd(ui.CurrentMenu.Label)
 		return ChangeMenuCmd(m)
 	}
 }
