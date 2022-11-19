@@ -20,12 +20,14 @@ type TUI struct {
 	FocusedView     string
 	showMenu        bool
 	showInfo        bool
+	showHelp        bool
 	currentListItem int
 	Style           TUIStyle
 	width           int
 	height          int
 	state           state
 	Hash            map[string]string
+	ShortHelp       Help
 	Help            *Info
 	MainMenu        *Menu
 	Menus           Menus
@@ -39,7 +41,10 @@ func New(main *List) TUI {
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
 		MainMenu:    DefaultMenu().SetToggle("m", "menu").SetLabel("menu"),
+		showHelp:    true,
 	}
+	sh := NewHelp(Keys.ToggleItem, Keys.Help, Keys.Quit)
+	ui.ShortHelp = sh
 	ui.AddMenu(SortListMenu())
 	return ui
 }
@@ -120,9 +125,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		case Keys.Help.Matches(msg):
 			if focus == "help" {
-				cmds = append(cmds, HideMenuCmd())
+				cmds = append(cmds, HideInfoCmd())
 			} else {
-				cmds = append(cmds, ChangeMenuCmd(m.MainMenu))
+				m.info = Keys.FullHelp()
+				cmds = append(cmds, ShowInfoCmd())
 			}
 		case Keys.Menu.Matches(msg):
 			if focus == "menu" {
@@ -254,6 +260,12 @@ func (m *TUI) View() string {
 		availHeight -= widgetHeight
 	}
 
+	var help string
+	if m.showHelp {
+		help = m.ShortHelp.View()
+		availHeight -= lipgloss.Height(help)
+	}
+
 	content := m.Main.View()
 	sections = append(sections, content)
 
@@ -263,6 +275,10 @@ func (m *TUI) View() string {
 
 	if m.showInfo {
 		sections = append(sections, widget)
+	}
+
+	if m.showHelp {
+		sections = append(sections, help)
 	}
 
 	if min := m.Main.Frame.MinHeight; min > availHeight {

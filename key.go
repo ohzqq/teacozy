@@ -80,13 +80,71 @@ type keys struct {
 	ToggleItem  Key
 }
 
+func (k keys) FullHelp() *Info {
+	return NewInfo().SetData(k)
+}
+
+func (k keys) Get(name string) FieldData {
+	var key Key
+	switch name {
+	case "Deselect All":
+		key = k.DeSelectAll
+	case "Edit Field":
+		key = k.EditField
+	case "Enter":
+		key = k.Enter
+	case "Exit Screen":
+		key = k.ExitScreen
+	case "Full Screen":
+		key = k.FullScreen
+	case "Help":
+		key = k.Help
+	case "Item Meta":
+		key = k.Info
+	case "Main Menu":
+		key = k.Menu
+	case "Prev Screen":
+		key = k.PrevScreen
+	case "Quit":
+		key = k.Quit
+	case "Save And Exit":
+		key = k.SaveAndExit
+	case "Select All":
+		key = k.SelectAll
+	case "Sort List":
+		key = k.SortList
+	case "Toggle Item":
+		key = k.ToggleItem
+	}
+	return key
+}
+
+func (k keys) Keys() []string {
+	return []string{
+		"Deselect All",
+		"Edit Field",
+		"Enter",
+		"Exit Screen",
+		"Full Screen",
+		"Help",
+		"Item Meta",
+		"Main Menu",
+		"Prev Screen",
+		"Quit",
+		"Save And Exit",
+		"Select All",
+		"Sort List",
+		"Toggle Item",
+	}
+}
+
 var Keys = keys{
 	DeSelectAll: Key{Bind: DeSelectAll},
 	EditField:   Key{Bind: EditField},
 	Enter:       Key{Bind: Enter},
 	ExitScreen:  Key{Bind: ExitScreen},
 	FullScreen:  Key{Bind: FullScreen},
-	Help:        Key{Bind: Help},
+	Help:        Key{Bind: HelpKey},
 	Info:        Key{Bind: InfoKey},
 	Menu:        Key{Bind: MenuKey},
 	PrevScreen:  Key{Bind: PrevScreen},
@@ -118,9 +176,9 @@ var (
 		key.WithKeys("f"),
 		key.WithHelp("f", "full screen"),
 	)
-	Help = key.NewBinding(
+	HelpKey = key.NewBinding(
 		key.WithKeys("?"),
-		key.WithHelp("?", "full help"),
+		key.WithHelp("?", "help"),
 	)
 	InfoKey = key.NewBinding(
 		key.WithKeys("i"),
@@ -136,7 +194,7 @@ var (
 	)
 	Quit = key.NewBinding(
 		key.WithKeys("ctrl+c", "esc"),
-		key.WithHelp("ctrl+c", "quit"),
+		key.WithHelp("ctrl+c/esc", "quit"),
 	)
 	SaveAndExit = key.NewBinding(
 		key.WithKeys("ctrl+w"),
@@ -152,6 +210,6 @@ var (
 	)
 	ToggleItem = key.NewBinding(
 		key.WithKeys(" "),
-		key.WithHelp("space", "select item"),
+		key.WithHelp("space", "toggle"),
 	)
 )
