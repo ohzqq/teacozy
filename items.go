@@ -79,8 +79,12 @@ func (i *Items) Process() {
 	i.flat = items
 }
 
-func (i Items) All() []*Item {
+func (i Items) Flat() []*Item {
 	return i.flat
+}
+
+func (i Items) All() []*Item {
+	return i.items
 }
 
 func (i *Items) AllItems() []list.Item {
@@ -105,7 +109,7 @@ func (i Items) Display(opt string) []list.Item {
 func (i Items) Visible() []list.Item {
 	var items []list.Item
 	level := 0
-	for _, item := range i.All() {
+	for _, item := range i.Flat() {
 		if !item.IsHidden {
 			items = append(items, item)
 		}
@@ -123,7 +127,7 @@ func (i Items) Visible() []list.Item {
 
 func (i Items) Selections() []list.Item {
 	var items []list.Item
-	for _, item := range i.All() {
+	for _, item := range i.Flat() {
 		if item.IsSelected {
 			items = append(items, item)
 		}

@@ -77,7 +77,7 @@ type SaveFormAsHashMsg struct{}
 func SaveFormAsHashCmd(m *List) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
-		for _, item := range m.Items.All() {
+		for _, item := range m.Items.Flat() {
 			m.Hash[item.Key()] = item.Value()
 		}
 		return SaveFormAsHashMsg{}
@@ -195,9 +195,9 @@ func UpdateStatusCmd(status string) tea.Cmd {
 	}
 }
 
-type SortItemsMsg struct{ Items []list.Item }
+type SortItemsMsg struct{ Items []*Item }
 
-func SortItemsCmd(items []list.Item) tea.Cmd {
+func SortItemsCmd(items []*Item) tea.Cmd {
 	return func() tea.Msg {
 		return SortItemsMsg{Items: items}
 	}

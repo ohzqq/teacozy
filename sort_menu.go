@@ -1,6 +1,8 @@
 package teacozy
 
 import (
+	"sort"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -33,17 +35,38 @@ func GoToMenuCmd(m *Menu) MenuFunc {
 
 func SortListMenu() *Menu {
 	m := DefaultMenu().SetToggle("o", "sort by").SetLabel("sort by")
-	//fn := func(ui *TUI) tea.Cmd {
-	//  return UpdateStatusCmd("poot")
-	//}
+	m.NewKey("k", "key (asc)", SortListByKey("asc"))
+	m.NewKey("K", "key (desc)", SortListByKey("desc"))
+	m.NewKey("v", "value (asc)", SortListByValue("asc"))
+	m.NewKey("V", "value (desc)", SortListByValue("desc"))
 	return m
 }
 
-//func SortListByKey(ui *TUI) tea.Cmd {
-//  items := ui.Main.List.Items.All()
-//  sort.SliceStable(items,
-//    func(i, j int) bool {
-//      return items[i].Key() < items[j].Key()
-//    },
-//  )
-//}
+func SortListByValue(order string) MenuFunc {
+	return func(ui *TUI) tea.Cmd {
+		items := ui.Main.Items.All()
+		sort.SliceStable(items,
+			func(i, j int) bool {
+				if order == "asc" {
+					return items[i].Value() < items[j].Value()
+				}
+				return items[j].Value() < items[i].Value()
+			},
+		)
+		return SortItemsCmd(items)
+	}
+}
+func SortListByKey(order string) MenuFunc {
+	return func(ui *TUI) tea.Cmd {
+		items := ui.Main.Items.All()
+		sort.SliceStable(items,
+			func(i, j int) bool {
+				if order == "asc" {
+					return items[i].Key() < items[j].Key()
+				}
+				return items[j].Key() < items[i].Key()
+			},
+		)
+		return SortItemsCmd(items)
+	}
+}

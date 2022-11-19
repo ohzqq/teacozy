@@ -205,7 +205,9 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Items.Set(msg.Item.Index(), msg.Item)
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	case SortItemsMsg:
-		cmds = append(cmds, SetItemsCmd(msg.Items))
+		m.Items.SetItems(msg.Items...)
+		m.Items.Process()
+		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
 	case ToggleItemListMsg:
