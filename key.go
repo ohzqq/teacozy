@@ -121,20 +121,20 @@ func (k keys) Get(name string) FieldData {
 
 func (k keys) Keys() []string {
 	return []string{
-		"Deselect All",
-		"Edit Field",
-		"Enter",
-		"Exit Screen",
-		"Full Screen",
-		"Help",
-		"Item Meta",
-		"Main Menu",
-		"Prev Screen",
+		"Toggle Item",
 		"Quit",
 		"Save And Exit",
-		"Select All",
+		"Edit Field",
+		"Enter",
+		"Full Screen",
+		"Item Meta",
+		"Main Menu",
 		"Sort List",
-		"Toggle Item",
+		"Prev Screen",
+		"Exit Screen",
+		"Select All",
+		"Deselect All",
+		"Help",
 	}
 }
 
@@ -182,7 +182,7 @@ var (
 	)
 	InfoKey = key.NewBinding(
 		key.WithKeys("i"),
-		key.WithHelp("i", "view item info"),
+		key.WithHelp("i", "view item meta"),
 	)
 	MenuKey = key.NewBinding(
 		key.WithKeys("m"),
@@ -206,7 +206,7 @@ var (
 	)
 	SortList = key.NewBinding(
 		key.WithKeys("o"),
-		key.WithHelp("o", "sort options"),
+		key.WithHelp("o", "sort list"),
 	)
 	ToggleItem = key.NewBinding(
 		key.WithKeys(" "),

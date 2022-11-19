@@ -43,7 +43,7 @@ func New(main *List) TUI {
 		MainMenu:    DefaultMenu().SetToggle("m", "menu").SetLabel("menu"),
 		showHelp:    true,
 	}
-	sh := NewHelp(Keys.ToggleItem, Keys.Help, Keys.Quit)
+	sh := NewHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	ui.ShortHelp = sh
 	ui.AddMenu(SortListMenu())
 	return ui
