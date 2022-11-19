@@ -123,12 +123,13 @@ func DefaultColors() Color {
 		Blue:      color.Blue,
 		Cyan:      color.Cyan,
 		Green:     color.Green,
-		Grey:      color.Grey,
-		Pink:      color.Pink,
-		Purple:    color.Purple,
-		Red:       color.Red,
-		White:     color.White,
-		Yellow:    color.Yellow,
+		//Green:     lipgloss.Color(color.Get("green")),
+		Grey:   color.Grey,
+		Pink:   color.Pink,
+		Purple: color.Purple,
+		Red:    color.Red,
+		White:  color.White,
+		Yellow: color.Yellow,
 	}
 }
 

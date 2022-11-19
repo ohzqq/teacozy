@@ -3,39 +3,51 @@ package color
 import "github.com/charmbracelet/lipgloss"
 
 func SetColors(c map[string]string) {
-	colors = c
+	for color, val := range c {
+		Set(color, val)
+	}
 }
 
 func Set(color, val string) {
-	colors[color] = val
-}
-
-var colors = map[string]string{
-	"foreground": "#FFBF00",
-	"background": "#262626",
-	"black":      "#262626",
-	"blue":       "#5FAFFF",
-	"cyan":       "#AFFFFF",
-	"green":      "#AFFFAF",
-	"grey":       "#626262",
-	"pink":       "#FFAFFF",
-	"purple":     "#AFAFFF",
-	"red":        "#FF875F",
-	"white":      "#EEEEEE",
-	"Yellow":     "#FFFFAF",
+	switch color {
+	case "foreground":
+		Foreground = lipgloss.Color(val)
+	case "background":
+		Background = lipgloss.Color(val)
+	case "black":
+		Black = lipgloss.Color(val)
+	case "blue":
+		Blue = lipgloss.Color(val)
+	case "cyan":
+		Cyan = lipgloss.Color(val)
+	case "green":
+		Green = lipgloss.Color(val)
+	case "grey":
+		Grey = lipgloss.Color(val)
+	case "pink":
+		Pink = lipgloss.Color(val)
+	case "purple":
+		Purple = lipgloss.Color(val)
+	case "red":
+		Red = lipgloss.Color(val)
+	case "white":
+		White = lipgloss.Color(val)
+	case "Yellow":
+		Yellow = lipgloss.Color(val)
+	}
 }
 
 var (
-	Foreground = lipgloss.Color(colors["foreground"])
-	Background = lipgloss.Color(colors["background"])
-	Black      = lipgloss.Color(colors["black"])
-	Blue       = lipgloss.Color(colors["blue"])
-	Cyan       = lipgloss.Color(colors["cyan"])
-	Green      = lipgloss.Color(colors["green"])
-	Grey       = lipgloss.Color(colors["grey"])
-	Pink       = lipgloss.Color(colors["pink"])
-	Purple     = lipgloss.Color(colors["purple"])
-	Red        = lipgloss.Color(colors["red"])
-	White      = lipgloss.Color(colors["white"])
-	Yellow     = lipgloss.Color(colors["yellow"])
+	Foreground = lipgloss.Color("#FFBF00")
+	Background = lipgloss.Color("#262626")
+	Black      = lipgloss.Color("#262626")
+	Blue       = lipgloss.Color("#5FAFFF")
+	Cyan       = lipgloss.Color("#AFFFFF")
+	Green      = lipgloss.Color("#AFFFAF")
+	Grey       = lipgloss.Color("#626262")
+	Pink       = lipgloss.Color("#FFAFFF")
+	Purple     = lipgloss.Color("#AFAFFF")
+	Red        = lipgloss.Color("#FF875F")
+	White      = lipgloss.Color("#EEEEEE")
+	Yellow     = lipgloss.Color("#FFFFAF")
 )
