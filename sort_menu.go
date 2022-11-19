@@ -15,12 +15,12 @@ func DefaultTuiMenus() DefaultMenus {
 		Menu:  DefaultMenu().SetToggle("?", "Menu").SetLabel("Menu"),
 	}
 	sort := SortListMenu()
-	menu.Menus.Set("sort list", sort)
+	menu.Menus.Set("sort by", sort)
 
 	fn := func(ui *TUI) tea.Cmd {
 		return UpdateStatusCmd("poot")
 	}
-	menu.NewKey("o", "sort list", fn)
+	menu.NewKey("o", "sort by", fn)
 	menu.Menus.Set("default", menu.Menu)
 	return menu
 }
@@ -32,10 +32,18 @@ func GoToMenuCmd(m *Menu) MenuFunc {
 }
 
 func SortListMenu() *Menu {
-	m := DefaultMenu().SetToggle("o", "sort list").SetLabel("sort list")
-	fn := func(ui *TUI) tea.Cmd {
-		return UpdateStatusCmd(m.Label)
-	}
-	m.NewKey("t", "test", fn)
+	m := DefaultMenu().SetToggle("o", "sort by").SetLabel("sort by")
+	//fn := func(ui *TUI) tea.Cmd {
+	//  return UpdateStatusCmd("poot")
+	//}
 	return m
 }
+
+//func SortListByKey(ui *TUI) tea.Cmd {
+//  items := ui.Main.List.Items.All()
+//  sort.SliceStable(items,
+//    func(i, j int) bool {
+//      return items[i].Key() < items[j].Key()
+//    },
+//  )
+//}
