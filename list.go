@@ -31,7 +31,7 @@ func NewList(title string, items Items) *List {
 	m.SetItems(items)
 	m.SetTitle(title)
 	m.Model = ListModel(m.Width(), m.Height(), m.Items)
-	return m.ChooseOne()
+	return m
 }
 
 func DefaultList() *List {
@@ -55,18 +55,20 @@ func ListModel(w, h int, items Items) list.Model {
 }
 
 func (m *List) ChooseOne() *List {
-	m.Model = m.Items.List()
+	m.Items.Process()
+	m.Model = ListModel(m.Width(), m.Height(), m.Items)
 	return m
 }
 
 func (m *List) ChooseMany() *List {
-	m.Model = m.Items.List()
+	m.Items.Process()
+	m.Model = ListModel(m.Width(), m.Height(), m.Items)
 	m.SetMultiSelect()
 	return m
 }
 
 func (m *List) Edit() *List {
-	m.Model = m.Items.List()
+	m.Model = ListModel(m.Width(), m.Height(), m.Items)
 	m.SetShowKeys()
 	m.Editable = true
 	return m
@@ -74,7 +76,6 @@ func (m *List) Edit() *List {
 
 func (m *List) SetItems(items Items) *List {
 	m.Items = items
-	m.Items.Process()
 	return m
 }
 
