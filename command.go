@@ -198,6 +198,15 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
+type ExitSelectionsListMsg struct{}
+
+func (m *List) ExitSelectionsListCmd() tea.Cmd {
+	return func() tea.Msg {
+		m.SelectionList = false
+		return ExitSelectionsListMsg{}
+	}
+}
+
 func ToggleAllItemsCmd(l *List) {
 	l.Items.ToggleAllSelectedItems()
 }

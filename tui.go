@@ -127,6 +127,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.UpdateMenu(msg))
 		}
 		switch {
+		case Keys.PrevScreen.Matches(msg):
+			if m.Main.SelectionList {
+				m.Main.SelectionList = false
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+			}
 		case Keys.FullScreen.Matches(msg):
 			m.fullScreen = !m.fullScreen
 			cmds = append(cmds, m.ToggleFullScreenCmd())

@@ -215,7 +215,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		for _, sel := range m.Selections() {
 			items = append(items, m.Get(sel))
 		}
-		//cmds = append(cmds, m.Model.ToggleSpinner())
 		cmds = append(cmds, m.ActionFunc(items...))
 	case EditFormItemMsg:
 		if m.Editable {
