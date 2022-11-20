@@ -12,7 +12,7 @@ type Item struct {
 	MultiSelect       bool
 	hasFields         bool
 	Level             int
-	List              Items
+	Children          Items
 	TotalSubListItems int
 	Changed           bool
 	Fields            *Fields
@@ -68,10 +68,10 @@ func (i *Item) SetValue(val string) *Item {
 
 func (i Item) ListDepth() int {
 	depth := 0
-	if i.HasList() {
+	if i.HasChildren() {
 		depth++
-		for _, item := range i.List.flat {
-			if item.HasList() {
+		for _, item := range i.Children.flat {
+			if item.HasChildren() {
 				depth++
 			}
 		}
@@ -83,16 +83,21 @@ func (i Item) ListLength() int {
 	return len(i.Flatten())
 }
 
+func (i Item) HasChildren() bool {
+	has := len(i.Children.flat) > 0
+	return has
+}
+
 func (i Item) Flatten() []*Item {
 	var items []*Item
-	if i.HasList() {
-		for _, item := range i.List.flat {
+	if i.HasChildren() {
+		for _, item := range i.Children.flat {
 			if i.MultiSelect {
 				item.SetMultiSelect()
 			}
 			item.IsHidden = true
 			items = append(items, item)
-			if item.HasList() {
+			if item.HasChildren() {
 				items = append(items, item.Flatten()...)
 			}
 		}
@@ -128,11 +133,6 @@ func (i Item) Key() string {
 	return i.Data.Key()
 }
 
-func (i Item) HasList() bool {
-	has := len(i.List.flat) > 0
-	return has
-}
-
 func (i *Item) Edit() textarea.Model {
 	input := textarea.New()
 	input.SetValue(i.Value())
@@ -141,7 +141,7 @@ func (i *Item) Edit() textarea.Model {
 }
 
 func (i Item) Prefix() string {
-	if i.HasList() {
+	if i.HasChildren() {
 		if i.ListOpen {
 			return closeSub
 		}

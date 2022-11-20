@@ -112,7 +112,7 @@ func (i Items) Visible() []list.Item {
 		if !item.IsHidden {
 			items = append(items, item)
 		}
-		if item.HasList() && item.ListOpen {
+		if item.HasChildren() && item.ListOpen {
 			level++
 			for _, sub := range i.GetItemList(item) {
 				sub.Hide()
@@ -172,7 +172,7 @@ func (i *Items) DeselectAllItems() {
 func (i *Items) OpenAllItemLists() {
 	for _, item := range i.AllItems() {
 		li := item.(*Item)
-		if li.HasList() {
+		if li.HasChildren() {
 			i.OpenItemList(li.Index())
 		}
 	}
@@ -197,7 +197,7 @@ func (i *Items) CloseItemList(idx int) {
 	for _, sub := range i.GetItemList(li) {
 		sub.Hide()
 		i.Set(sub.Index(), sub)
-		if sub.HasList() {
+		if sub.HasChildren() {
 			i.CloseItemList(sub.Index())
 		}
 	}
@@ -206,8 +206,8 @@ func (i *Items) CloseItemList(idx int) {
 func (i Items) GetItemList(item list.Item) []*Item {
 	var items []*Item
 	li := item.(*Item)
-	if li.HasList() {
-		t := len(li.List.flat)
+	if li.HasChildren() {
+		t := len(li.Children.flat)
 		items = i.flat[li.idx+1 : li.idx+t+1]
 	}
 	return items
@@ -253,9 +253,13 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			}
 		case Keys.EditField.Matches(msg):
 			cmds = append(cmds, EditFormItemCmd(curItem))
+		case Keys.ToggleItemList.Matches(msg):
+			if curItem.HasChildren() {
+				return ToggleItemListCmd(curItem)
+			}
 		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
-			if curItem.HasList() {
+			if curItem.HasChildren() {
 				return ToggleItemListCmd(curItem)
 			}
 			if d.MultiSelect {
@@ -316,7 +320,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 			prefix = check
 		}
 	}
-	if curItem.HasList() {
+	if curItem.HasChildren() {
 		prefix = openSub
 		if curItem.ListOpen {
 			prefix = closeSub

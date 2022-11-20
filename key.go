@@ -78,6 +78,7 @@ type keys struct {
 	ToggleAllItems Key
 	SortList       Key
 	ToggleItem     Key
+	ToggleItemList Key
 }
 
 func (k keys) FullHelp() *Info {
@@ -115,6 +116,8 @@ func (k keys) Get(name string) FieldData {
 		key = k.SortList
 	case "Toggle Item":
 		key = k.ToggleItem
+	case "Toggle Item List":
+		key = k.ToggleItemList
 	}
 	return key
 }
@@ -134,6 +137,7 @@ func (k keys) Keys() []string {
 		"Exit Screen",
 		"Deselect All Items",
 		"Toggle All Items",
+		"Toggle Item List",
 		"Help",
 	}
 }
@@ -153,6 +157,7 @@ var Keys = keys{
 	ToggleAllItems: Key{Bind: ToggleAllItems},
 	SortList:       Key{Bind: SortList},
 	ToggleItem:     Key{Bind: ToggleItem},
+	ToggleItemList: Key{Bind: ToggleItemList},
 }
 
 var (
@@ -211,5 +216,9 @@ var (
 	ToggleItem = key.NewBinding(
 		key.WithKeys(" "),
 		key.WithHelp("space", "toggle"),
+	)
+	ToggleItemList = key.NewBinding(
+		key.WithKeys("x"),
+		key.WithHelp("x", "toggle item list"),
 	)
 )
