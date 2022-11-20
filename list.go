@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type ActionFunc func(items ...*Item) error
+
 type List struct {
 	Model            list.Model
 	Input            textarea.Model
@@ -15,6 +17,7 @@ type List struct {
 	Editable         bool
 	FormChanged      bool
 	SaveFormFunc     SaveFormFunc
+	ActionFunc       ActionFunc
 	Hash             map[string]string
 	Style            list.Styles
 	id               int
@@ -151,6 +154,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				switch {
 				case Keys.SaveAndExit.Matches(msg):
 					cmds = append(cmds, FormChangedCmd())
+				}
+			case m.ShowSelectedOnly:
+				switch {
+				case Keys.Enter.Matches(msg):
 				}
 			case m.MultiSelect():
 				switch {
