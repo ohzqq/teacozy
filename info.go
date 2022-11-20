@@ -42,6 +42,11 @@ func (i *Info) SetData(data FormData) *Info {
 	return i
 }
 
+func (i *Info) SetHeight(h int) *Info {
+	i.Model = viewport.New(i.Frame.Width(), h)
+	return i
+}
+
 func (i *Info) SetSize(w, h int) *Info {
 	i.Model = viewport.New(w, h)
 	return i

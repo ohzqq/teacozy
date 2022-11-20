@@ -20,6 +20,8 @@ type TUI struct {
 	info            *Info
 	Title           string
 	FocusedView     string
+	fullScreen      bool
+	actionConfirmed bool
 	showMenu        bool
 	showInfo        bool
 	showHelp        bool
@@ -27,7 +29,6 @@ type TUI struct {
 	Style           TUIStyle
 	width           int
 	height          int
-	fullScreen      bool
 	Hash            map[string]string
 	ShortHelp       Help
 	Help            *Info
@@ -208,7 +209,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main.Model.Select(m.currentListItem)
 		cur := m.Main.SelectedItem()
 		m.info = NewForm().SetData(cur.Fields)
+		m.info.SetHeight(2)
 		m.ShowInfo()
+		m.CurrentMenu = ConfirmMenu()
+		m.ShowMenu()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:
