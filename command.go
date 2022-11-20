@@ -219,6 +219,18 @@ func UpdateVisibleItemsCmd(opt string) tea.Cmd {
 	}
 }
 
+func (m *List) ShowVisibleItemsCmd() tea.Cmd {
+	return func() tea.Msg {
+		return UpdateVisibleItemsMsg("visible")
+	}
+}
+
+func (m *List) ShowSelectedItemsCmd() tea.Cmd {
+	return func() tea.Msg {
+		return UpdateVisibleItemsMsg("selected")
+	}
+}
+
 type UpdateStatusMsg struct{ Msg string }
 
 func UpdateStatusCmd(status string) tea.Cmd {

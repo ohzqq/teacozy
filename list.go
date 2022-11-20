@@ -145,7 +145,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 					cmds = append(cmds, ItemChangedCmd(item))
 				}
 				m.Input.Blur()
-				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+				cmds = append(cmds, m.ShowVisibleItemsCmd())
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
@@ -153,7 +153,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			switch {
 			case Keys.PrevScreen.Matches(msg):
 				m.SelectionList = false
-				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+				cmds = append(cmds, m.ShowVisibleItemsCmd())
 			}
 			switch {
 			case m.Editable:
@@ -176,10 +176,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 				case Keys.DeselectAll.Matches(msg):
 					m.Items.DeselectAllItems()
-					cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+					cmds = append(cmds, m.ShowVisibleItemsCmd())
 				case Keys.ToggleAllItems.Matches(msg):
 					m.Items.ToggleAllSelectedItems()
-					cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+					cmds = append(cmds, m.ShowVisibleItemsCmd())
 				}
 			default:
 				switch {
@@ -228,11 +228,11 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case ItemChangedMsg:
 		msg.Item.Changed = true
 		m.Items.Set(msg.Item.Index(), msg.Item)
-		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+		cmds = append(cmds, m.ShowVisibleItemsCmd())
 	case SortItemsMsg:
 		m.Items.SetItems(msg.Items...)
 		m.Items.Process()
-		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+		cmds = append(cmds, m.ShowVisibleItemsCmd())
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
 	case ToggleItemChildrenMsg:
@@ -242,7 +242,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		default:
 			m.Items.OpenItemList(msg.Index())
 		}
-		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+		cmds = append(cmds, m.ShowVisibleItemsCmd())
 	}
 
 	return m, tea.Batch(cmds...)
