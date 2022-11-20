@@ -24,6 +24,15 @@ func ItemChangedCmd(item *Item) tea.Cmd {
 	}
 }
 
+func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
+	return func() tea.Msg {
+		if ui.fullScreen {
+			return tea.EnterAltScreen()
+		}
+		return tea.ExitAltScreen()
+	}
+}
+
 // menu commands
 type MenuFunc func(m *TUI) tea.Cmd
 

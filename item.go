@@ -163,6 +163,16 @@ func (i *Item) ToggleSelected() *Item {
 	return i
 }
 
+func (i *Item) Select() *Item {
+	i.IsSelected = true
+	return i
+}
+
+func (i *Item) Deselect() *Item {
+	i.IsSelected = false
+	return i
+}
+
 func (i *Item) ToggleList() *Item {
 	i.ListOpen = !i.ListOpen
 	return i

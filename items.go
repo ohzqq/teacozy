@@ -158,6 +158,17 @@ func (i *Items) ToggleAllSelectedItems() {
 	}
 }
 
+func (i *Items) SelectAllItems() {
+	for _, item := range i.flat {
+		item.Select()
+	}
+}
+
+func (i *Items) DeselectAllItems() {
+	for _, item := range i.flat {
+		item.Deselect()
+	}
+}
 func (i *Items) OpenAllItemLists() {
 	for _, item := range i.AllItems() {
 		li := item.(*Item)
@@ -230,10 +241,6 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	if item, ok := sel.(*Item); ok {
 		curItem = d.GetItemByIndex(item.Index())
 	}
-	//switch i := m.SelectedItem().(type) {
-	//case *Item:
-	//  curItem = i
-	//}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -253,7 +260,6 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			}
 			if d.MultiSelect {
 				d.ToggleSelectedItem(curItem.Index())
-				//return ToggleSelectedItemCmd(curItem)
 			}
 		}
 	}

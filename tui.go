@@ -25,7 +25,7 @@ type TUI struct {
 	Style           TUIStyle
 	width           int
 	height          int
-	state           state
+	fullScreen      bool
 	Hash            map[string]string
 	ShortHelp       Help
 	Help            *Info
@@ -125,6 +125,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.UpdateMenu(msg))
 		}
 		switch {
+		case Keys.FullScreen.Matches(msg):
+			m.fullScreen = !m.fullScreen
+			cmds = append(cmds, m.ToggleFullScreenCmd())
 		case Keys.Info.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
 		case Keys.Quit.Matches(msg):

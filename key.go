@@ -64,7 +64,7 @@ func ListKeyMap() list.KeyMap {
 }
 
 type keys struct {
-	DeSelectAll    Key
+	DeselectAll    Key
 	EditField      Key
 	Enter          Key
 	ExitScreen     Key
@@ -87,8 +87,8 @@ func (k keys) FullHelp() *Info {
 func (k keys) Get(name string) FieldData {
 	var key Key
 	switch name {
-	case "Deselect All":
-		key = k.DeSelectAll
+	case "Deselect All Items":
+		key = k.DeselectAll
 	case "Edit Field":
 		key = k.EditField
 	case "Enter":
@@ -132,12 +132,14 @@ func (k keys) Keys() []string {
 		"Sort List",
 		"Prev Screen",
 		"Exit Screen",
+		"Deselect All Items",
 		"Toggle All Items",
 		"Help",
 	}
 }
 
 var Keys = keys{
+	DeselectAll:    Key{Bind: DeselectAll},
 	EditField:      Key{Bind: EditField},
 	Enter:          Key{Bind: Enter},
 	ExitScreen:     Key{Bind: ExitScreen},
@@ -148,12 +150,16 @@ var Keys = keys{
 	PrevScreen:     Key{Bind: PrevScreen},
 	Quit:           Key{Bind: Quit},
 	SaveAndExit:    Key{Bind: SaveAndExit},
-	ToggleAllItems: Key{Bind: SelectAll},
+	ToggleAllItems: Key{Bind: ToggleAllItems},
 	SortList:       Key{Bind: SortList},
-	ToggleItem:     Key{Bind: ToggleAllItems},
+	ToggleItem:     Key{Bind: ToggleItem},
 }
 
 var (
+	DeselectAll = key.NewBinding(
+		key.WithKeys("V"),
+		key.WithHelp("V", "deselect all items"),
+	)
 	EditField = key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit meta"),
@@ -194,7 +200,7 @@ var (
 		key.WithKeys("ctrl+w"),
 		key.WithHelp("ctrl+w", "save and exit"),
 	)
-	SelectAll = key.NewBinding(
+	ToggleAllItems = key.NewBinding(
 		key.WithKeys("v"),
 		key.WithHelp("v", "select all"),
 	)
@@ -202,7 +208,7 @@ var (
 		key.WithKeys("o"),
 		key.WithHelp("o", "sort"),
 	)
-	ToggleAllItems = key.NewBinding(
+	ToggleItem = key.NewBinding(
 		key.WithKeys(" "),
 		key.WithHelp("space", "toggle"),
 	)
