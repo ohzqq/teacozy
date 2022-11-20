@@ -63,6 +63,8 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 			cmds = append(cmds, HideInfoCmd())
 		case Keys.ExitScreen.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
+		case Keys.PrevScreen.Matches(msg):
+			cmds = append(cmds, HideInfoCmd())
 		case Keys.EditField.Matches(msg):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd(m.Fields))

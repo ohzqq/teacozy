@@ -160,7 +160,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 					}
 					m.ShowSelectedOnly = true
 					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-				case Keys.SelectAll.Matches(msg):
+				case Keys.ToggleAllItems.Matches(msg):
 					m.Items.ToggleAllSelectedItems()
 					cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 				}

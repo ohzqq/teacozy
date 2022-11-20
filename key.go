@@ -64,20 +64,20 @@ func ListKeyMap() list.KeyMap {
 }
 
 type keys struct {
-	DeSelectAll Key
-	EditField   Key
-	Enter       Key
-	ExitScreen  Key
-	FullScreen  Key
-	Help        Key
-	Info        Key
-	Menu        Key
-	PrevScreen  Key
-	Quit        Key
-	SaveAndExit Key
-	SelectAll   Key
-	SortList    Key
-	ToggleItem  Key
+	DeSelectAll    Key
+	EditField      Key
+	Enter          Key
+	ExitScreen     Key
+	FullScreen     Key
+	Help           Key
+	Info           Key
+	Menu           Key
+	PrevScreen     Key
+	Quit           Key
+	SaveAndExit    Key
+	ToggleAllItems Key
+	SortList       Key
+	ToggleItem     Key
 }
 
 func (k keys) FullHelp() *Info {
@@ -110,7 +110,7 @@ func (k keys) Get(name string) FieldData {
 	case "Save And Exit":
 		key = k.SaveAndExit
 	case "Select All":
-		key = k.SelectAll
+		key = k.ToggleAllItems
 	case "Sort List":
 		key = k.SortList
 	case "Toggle Item":
@@ -132,34 +132,28 @@ func (k keys) Keys() []string {
 		"Sort List",
 		"Prev Screen",
 		"Exit Screen",
-		"Select All",
-		"Deselect All",
+		"Toggle All Items",
 		"Help",
 	}
 }
 
 var Keys = keys{
-	DeSelectAll: Key{Bind: DeSelectAll},
-	EditField:   Key{Bind: EditField},
-	Enter:       Key{Bind: Enter},
-	ExitScreen:  Key{Bind: ExitScreen},
-	FullScreen:  Key{Bind: FullScreen},
-	Help:        Key{Bind: HelpKey},
-	Info:        Key{Bind: InfoKey},
-	Menu:        Key{Bind: MenuKey},
-	PrevScreen:  Key{Bind: PrevScreen},
-	Quit:        Key{Bind: Quit},
-	SaveAndExit: Key{Bind: SaveAndExit},
-	SelectAll:   Key{Bind: SelectAll},
-	SortList:    Key{Bind: SortList},
-	ToggleItem:  Key{Bind: ToggleItem},
+	EditField:      Key{Bind: EditField},
+	Enter:          Key{Bind: Enter},
+	ExitScreen:     Key{Bind: ExitScreen},
+	FullScreen:     Key{Bind: FullScreen},
+	Help:           Key{Bind: HelpKey},
+	Info:           Key{Bind: InfoKey},
+	Menu:           Key{Bind: MenuKey},
+	PrevScreen:     Key{Bind: PrevScreen},
+	Quit:           Key{Bind: Quit},
+	SaveAndExit:    Key{Bind: SaveAndExit},
+	ToggleAllItems: Key{Bind: SelectAll},
+	SortList:       Key{Bind: SortList},
+	ToggleItem:     Key{Bind: ToggleAllItems},
 }
 
 var (
-	DeSelectAll = key.NewBinding(
-		key.WithKeys("V"),
-		key.WithHelp("V", "deselect all"),
-	)
 	EditField = key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit meta"),
@@ -193,7 +187,7 @@ var (
 		key.WithHelp("p", "prev screen"),
 	)
 	Quit = key.NewBinding(
-		key.WithKeys("ctrl+c", "esc"),
+		key.WithKeys("ctrl+c", "esc", "Q"),
 		key.WithHelp("ctrl+c/esc", "quit"),
 	)
 	SaveAndExit = key.NewBinding(
@@ -208,7 +202,7 @@ var (
 		key.WithKeys("o"),
 		key.WithHelp("o", "sort"),
 	)
-	ToggleItem = key.NewBinding(
+	ToggleAllItems = key.NewBinding(
 		key.WithKeys(" "),
 		key.WithHelp("space", "toggle"),
 	)

@@ -113,6 +113,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Main.Editable {
 			switch {
+			case Keys.ExitScreen.Matches(msg):
+				m.Main = m.Alt
 			case Keys.PrevScreen.Matches(msg):
 				m.Main = m.Alt
 			case Keys.SaveAndExit.Matches(msg):
@@ -125,8 +127,6 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case Keys.Info.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
-		case Keys.ExitScreen.Matches(msg):
-			cmds = append(cmds, tea.Quit)
 		case Keys.Quit.Matches(msg):
 			cmds = append(cmds, tea.Quit)
 		case Keys.Help.Matches(msg):
