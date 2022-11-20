@@ -95,17 +95,6 @@ func (i *Items) AllItems() []list.Item {
 	return li
 }
 
-func (i Items) Display(opt string) []list.Item {
-	switch opt {
-	case "selected":
-		return i.Selections()
-	case "all":
-		return i.AllItems()
-	default:
-		return i.Visible()
-	}
-}
-
 func (i Items) Visible() []list.Item {
 	var items []list.Item
 	level := 0

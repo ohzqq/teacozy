@@ -184,9 +184,16 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case UpdateVisibleItemsMsg:
-		items := m.Items.Display(string(msg))
+		var items []list.Item
+		switch string(msg) {
+		case "selected":
+			items = m.Selections()
+		case "all":
+			items = m.AllItems()
+		default:
+			items = m.Visible()
+		}
 		cmds = append(cmds, SetItemsCmd(items))
-		//m.Model.SetItems(items)
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
