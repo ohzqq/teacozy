@@ -236,7 +236,6 @@ func (d Items) Spacing() int {
 func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
 		curItem *Item
-		cmds    []tea.Cmd
 	)
 
 	sel := m.SelectedItem()
@@ -250,11 +249,11 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case Keys.Info.Matches(msg):
 			if sel != nil {
 				if curItem.HasFields() {
-					cmds = append(cmds, ShowItemInfoCmd(curItem))
+					return ShowItemInfoCmd(curItem)
 				}
 			}
 		case Keys.EditField.Matches(msg):
-			cmds = append(cmds, EditFormItemCmd(curItem))
+			return EditFormItemCmd(curItem)
 		case Keys.ToggleItemList.Matches(msg):
 			switch {
 			case curItem.HasChildren():
@@ -265,20 +264,14 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
 			if curItem.HasChildren() {
-				switch curItem.ShowChildren {
-				case true:
-					d.CloseItemList(curItem.Index())
-				default:
-					d.OpenItemList(curItem.Index())
-				}
-				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+				return ToggleItemChildrenCmd(curItem)
 			}
 			if d.MultiSelect {
-				d.ToggleSelectedItem(curItem.Index())
+				return ToggleSelectedItemCmd(curItem)
 			}
 		}
 	}
-	return tea.Batch(cmds...)
+	return nil
 }
 
 func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
