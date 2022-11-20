@@ -16,6 +16,10 @@ func (m Menus) Set(key string, menu *Menu) Menus {
 	return m
 }
 
+func (m Menus) Del(key string) {
+	delete(m, key)
+}
+
 type Menu struct {
 	Model     *Info
 	width     int

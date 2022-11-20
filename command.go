@@ -14,6 +14,14 @@ func SetFocusedViewCmd(v string) tea.Cmd {
 	}
 }
 
+type ActionMenuMsg struct{}
+
+func ActionMenuCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ActionMenuMsg{}
+	}
+}
+
 type ItemChangedMsg struct {
 	*Item
 }

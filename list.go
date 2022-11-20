@@ -10,17 +10,17 @@ import (
 type ActionFunc func(items ...*Item) tea.Cmd
 
 type List struct {
-	Model            list.Model
-	Input            textarea.Model
-	Title            string
-	ShowSelectedOnly bool
-	Editable         bool
-	FormChanged      bool
-	SaveFormFunc     SaveFormFunc
-	ActionFunc       ActionFunc
-	Hash             map[string]string
-	Style            list.Styles
-	id               int
+	Model         list.Model
+	Input         textarea.Model
+	Title         string
+	SelectionList bool
+	Editable      bool
+	FormChanged   bool
+	SaveFormFunc  SaveFormFunc
+	ActionFunc    ActionFunc
+	Hash          map[string]string
+	Style         list.Styles
+	id            int
 	Frame
 	*Items
 }
@@ -30,8 +30,8 @@ func NewList() *List {
 		SaveFormFunc: SaveFormAsHashCmd,
 		Frame:        DefaultFrameStyle(),
 		Items:        NewItems(),
-		ActionFunc:   PrintItems,
 	}
+	m.SetAction(PrintItems)
 	m.Frame.MinHeight = 10
 	return &m
 }
@@ -68,6 +68,11 @@ func (m *List) SetModel() *List {
 		m.Items.Process()
 	}
 	m.Model = NewListModel(m.Width(), m.Height(), m.Items)
+	return m
+}
+
+func (m *List) SetAction(fn ActionFunc) *List {
+	m.ActionFunc = fn
 	return m
 }
 
@@ -147,7 +152,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		} else {
 			switch {
 			case Keys.PrevScreen.Matches(msg):
-				m.ShowSelectedOnly = false
+				m.SelectionList = false
 				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			switch {
@@ -156,7 +161,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				case Keys.SaveAndExit.Matches(msg):
 					cmds = append(cmds, FormChangedCmd())
 				}
-			case m.ShowSelectedOnly:
+			case m.SelectionList:
 				switch {
 				case Keys.Enter.Matches(msg):
 					cmds = append(cmds, ReturnSelectionsCmd())
@@ -164,10 +169,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			case m.MultiSelect():
 				switch {
 				case Keys.Enter.Matches(msg):
-					if m.ShowSelectedOnly {
+					if m.SelectionList {
 						cmds = append(cmds, ReturnSelectionsCmd())
 					}
-					m.ShowSelectedOnly = true
+					m.SelectionList = true
 					cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
 				case Keys.DeselectAll.Matches(msg):
 					m.Items.DeselectAllItems()
@@ -196,10 +201,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		var items []list.Item
 		switch string(msg) {
 		case "selected":
-			//items = m.Selections()
-			for _, item := range m.Selections() {
-				items = append(items, item)
-			}
+			items = m.Selections()
 		case "all":
 			items = m.AllItems()
 		default:
@@ -209,8 +211,12 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
-		cmds = append(cmds, m.ActionFunc(m.Selections()...))
-		//cmds = append(cmds, tea.Quit)
+		var items []*Item
+		for _, sel := range m.Selections() {
+			items = append(items, m.Get(sel))
+		}
+		//cmds = append(cmds, m.Model.ToggleSpinner())
+		cmds = append(cmds, m.ActionFunc(items...))
 	case EditFormItemMsg:
 		if m.Editable {
 			m.Input = textarea.New()

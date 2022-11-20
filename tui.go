@@ -30,6 +30,7 @@ type TUI struct {
 	ShortHelp       Help
 	Help            *Info
 	MainMenu        *Menu
+	ActionMenu      *Menu
 	Menus           Menus
 	CurrentMenu     *Menu
 }
@@ -41,6 +42,7 @@ func New(main *List) TUI {
 		FocusedView: "list",
 		Style:       DefaultTuiStyle(),
 		MainMenu:    DefaultMenu().SetToggle("m", "menu").SetLabel("menu"),
+		ActionMenu:  ActionMenu(),
 		showHelp:    true,
 	}
 	ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
@@ -189,6 +191,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
+	case ActionMenuMsg:
+		m.CurrentMenu = m.ActionMenu
+		m.ShowMenu()
+		m.HideInfo()
+		cmds = append(cmds, SetFocusedViewCmd("action"))
 	case FormChangedMsg:
 		m.Main = m.Alt
 		m.Main.Model.Select(m.currentListItem)
@@ -204,6 +211,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
+		if m.Main.SelectionList {
+			cmds = append(cmds, ActionMenuCmd())
+		}
 		m.Main, cmd = m.Main.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
