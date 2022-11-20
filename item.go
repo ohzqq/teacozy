@@ -5,18 +5,18 @@ import (
 )
 
 type Item struct {
-	idx               int
-	IsSelected        bool
-	ListOpen          bool
-	IsHidden          bool
-	MultiSelect       bool
-	hasFields         bool
-	Level             int
-	Children          Items
-	TotalSubListItems int
-	Changed           bool
-	Fields            *Fields
-	Data              FieldData
+	idx           int
+	IsHidden      bool
+	IsSelected    bool
+	MultiSelect   bool
+	ShowChildren  bool
+	Level         int
+	Children      Items
+	TotalChildren int
+	Changed       bool
+	hasFields     bool
+	Fields        *Fields
+	Data          FieldData
 }
 
 func NewItem() *Item {
@@ -140,24 +140,6 @@ func (i *Item) Edit() textarea.Model {
 	return input
 }
 
-func (i Item) Prefix() string {
-	if i.HasChildren() {
-		if i.ListOpen {
-			return closeSub
-		}
-		return openSub
-	}
-
-	if i.MultiSelect {
-		if i.IsSelected {
-			return check
-		}
-		return uncheck
-	}
-
-	return dash
-}
-
 func (i *Item) ToggleSelected() *Item {
 	i.IsSelected = !i.IsSelected
 	return i
@@ -174,7 +156,7 @@ func (i *Item) Deselect() *Item {
 }
 
 func (i *Item) ToggleList() *Item {
-	i.ListOpen = !i.ListOpen
+	i.ShowChildren = !i.ShowChildren
 	return i
 }
 
@@ -189,12 +171,12 @@ func (i *Item) Hide() *Item {
 }
 
 func (i *Item) Open() *Item {
-	i.ListOpen = true
+	i.ShowChildren = true
 	return i
 }
 
 func (i *Item) Close() *Item {
-	i.ListOpen = false
+	i.ShowChildren = false
 	return i
 }
 

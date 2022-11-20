@@ -211,7 +211,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
 	case ToggleItemListMsg:
-		switch msg.ListOpen {
+		switch msg.ShowChildren {
 		case true:
 			m.Items.CloseItemList(msg.Index())
 		default:

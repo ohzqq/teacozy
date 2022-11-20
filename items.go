@@ -112,7 +112,7 @@ func (i Items) Visible() []list.Item {
 		if !item.IsHidden {
 			items = append(items, item)
 		}
-		if item.HasChildren() && item.ListOpen {
+		if item.HasChildren() && item.ShowChildren {
 			level++
 			for _, sub := range i.GetItemList(item) {
 				sub.Hide()
@@ -180,7 +180,7 @@ func (i *Items) OpenAllItemLists() {
 
 func (i *Items) OpenItemList(idx int) {
 	li := i.GetItemByIndex(idx)
-	li.ListOpen = true
+	li.ShowChildren = true
 	i.Set(li.Index(), li)
 
 	for _, sub := range i.GetItemList(li) {
@@ -191,7 +191,7 @@ func (i *Items) OpenItemList(idx int) {
 
 func (i *Items) CloseItemList(idx int) {
 	li := i.GetItemByIndex(idx)
-	li.ListOpen = false
+	li.ShowChildren = false
 	i.Set(li.Index(), li)
 
 	for _, sub := range i.GetItemList(li) {
@@ -322,7 +322,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 	}
 	if curItem.HasChildren() {
 		prefix = openSub
-		if curItem.ListOpen {
+		if curItem.ShowChildren {
 			prefix = closeSub
 		}
 	}
