@@ -5,19 +5,18 @@ import (
 )
 
 type Item struct {
-	idx           int
-	IsHidden      bool
-	IsSelected    bool
-	MultiSelect   bool
-	ShowChildren  bool
-	Level         int
-	TotalChildren int
-	Parent        *Item
-	Children      Items
-	Changed       bool
-	hasFields     bool
-	Fields        *Fields
-	Data          FieldData
+	idx          int
+	IsHidden     bool
+	IsSelected   bool
+	MultiSelect  bool
+	ShowChildren bool
+	Level        int
+	Parent       *Item
+	Children     Items
+	Changed      bool
+	hasFields    bool
+	Fields       *Fields
+	Data         FieldData
 }
 
 func NewItem() *Item {
@@ -80,13 +79,16 @@ func (i Item) ListDepth() int {
 	return depth
 }
 
-func (i Item) ListLength() int {
-	return len(i.Flatten())
-}
-
 func (i Item) HasChildren() bool {
 	has := len(i.Children.flat) > 0
 	return has
+}
+
+func (i Item) TotalChildren() int {
+	if i.HasChildren() {
+		return len(i.Children.flat)
+	}
+	return 0
 }
 
 func (i *Item) Flatten() []*Item {

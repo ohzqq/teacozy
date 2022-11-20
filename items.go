@@ -209,7 +209,7 @@ func (i Items) GetItemList(item list.Item) []*Item {
 	var items []*Item
 	li := item.(*Item)
 	if li.HasChildren() {
-		t := len(li.Children.flat)
+		t := li.TotalChildren()
 		items = i.flat[li.idx+1 : li.idx+t+1]
 	}
 	return items
