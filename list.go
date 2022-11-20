@@ -210,7 +210,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
-	case ToggleItemListMsg:
+	case ToggleItemChildrenMsg:
 		switch msg.ShowChildren {
 		case true:
 			m.Items.CloseItemList(msg.Index())

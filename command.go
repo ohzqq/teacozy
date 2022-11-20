@@ -149,11 +149,11 @@ func EditInfoCmd(f *Fields) tea.Cmd {
 }
 
 // item commands
-type ToggleItemListMsg struct{ *Item }
+type ToggleItemChildrenMsg struct{ *Item }
 
-func ToggleItemListCmd(item *Item) tea.Cmd {
+func ToggleItemChildrenCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleItemListMsg{Item: item}
+		return ToggleItemChildrenMsg{Item: item}
 	}
 }
 

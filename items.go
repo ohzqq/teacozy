@@ -256,16 +256,22 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 		case Keys.EditField.Matches(msg):
 			cmds = append(cmds, EditFormItemCmd(curItem))
 		case Keys.ToggleItemList.Matches(msg):
-			if curItem.HasChildren() {
-				return ToggleItemListCmd(curItem)
-			}
-			if curItem.IsSub() {
-				return ToggleItemListCmd(curItem.Parent)
+			switch {
+			case curItem.HasChildren():
+				return ToggleItemChildrenCmd(curItem)
+			case curItem.IsSub():
+				return ToggleItemChildrenCmd(curItem.Parent)
 			}
 		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
 			if curItem.HasChildren() {
-				return ToggleItemListCmd(curItem)
+				switch curItem.ShowChildren {
+				case true:
+					d.CloseItemList(curItem.Index())
+				default:
+					d.OpenItemList(curItem.Index())
+				}
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 			if d.MultiSelect {
 				d.ToggleSelectedItem(curItem.Index())
