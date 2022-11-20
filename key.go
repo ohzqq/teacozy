@@ -186,7 +186,7 @@ var (
 	)
 	MenuKey = key.NewBinding(
 		key.WithKeys("m"),
-		key.WithHelp("m", "show menu"),
+		key.WithHelp("m", "menu"),
 	)
 	PrevScreen = key.NewBinding(
 		key.WithKeys("p"),
@@ -206,7 +206,7 @@ var (
 	)
 	SortList = key.NewBinding(
 		key.WithKeys("o"),
-		key.WithHelp("o", "sort list"),
+		key.WithHelp("o", "sort"),
 	)
 	ToggleItem = key.NewBinding(
 		key.WithKeys(" "),

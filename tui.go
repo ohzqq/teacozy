@@ -43,8 +43,7 @@ func New(main *List) TUI {
 		MainMenu:    DefaultMenu().SetToggle("m", "menu").SetLabel("menu"),
 		showHelp:    true,
 	}
-	sh := NewHelp(Keys.SortList, Keys.Menu, Keys.Help)
-	ui.ShortHelp = sh
+	ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	ui.AddMenu(SortListMenu())
 	return ui
 }
@@ -60,6 +59,11 @@ func (ui TUI) Width() int {
 
 func (ui TUI) Height() int {
 	return ui.Style.Frame.Height()
+}
+
+func (ui *TUI) SetHelp(keys ...Key) *TUI {
+	ui.ShortHelp = NewHelp(keys...)
+	return ui
 }
 
 func (l *TUI) AddMenu(menu *Menu) {
@@ -109,7 +113,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.Main.Editable {
 			switch {
-			case Keys.ExitScreen.Matches(msg):
+			case Keys.PrevScreen.Matches(msg):
 				m.Main = m.Alt
 			case Keys.SaveAndExit.Matches(msg):
 				m.HideInfo()
@@ -121,6 +125,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case Keys.Info.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
+		case Keys.ExitScreen.Matches(msg):
+			cmds = append(cmds, tea.Quit)
 		case Keys.Quit.Matches(msg):
 			cmds = append(cmds, tea.Quit)
 		case Keys.Help.Matches(msg):
