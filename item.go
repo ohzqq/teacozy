@@ -11,8 +11,9 @@ type Item struct {
 	MultiSelect   bool
 	ShowChildren  bool
 	Level         int
-	Children      Items
 	TotalChildren int
+	Parent        *Item
+	Children      Items
 	Changed       bool
 	hasFields     bool
 	Fields        *Fields
@@ -88,7 +89,7 @@ func (i Item) HasChildren() bool {
 	return has
 }
 
-func (i Item) Flatten() []*Item {
+func (i *Item) Flatten() []*Item {
 	var items []*Item
 	if i.HasChildren() {
 		for _, item := range i.Children.flat {

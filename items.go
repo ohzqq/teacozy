@@ -69,6 +69,7 @@ func (i *Items) Process() {
 		item.idx = idx
 		items = append(items, item)
 		for _, sub := range item.Flatten() {
+			sub.Parent = item
 			idx++
 			sub.idx = idx
 			items = append(items, sub)
@@ -115,6 +116,7 @@ func (i Items) Visible() []list.Item {
 		if item.HasChildren() && item.ShowChildren {
 			level++
 			for _, sub := range i.GetItemList(item) {
+				sub.Parent = item
 				sub.Hide()
 				sub.SetLevel(level)
 				items = append(items, sub)
@@ -257,6 +259,9 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 			if curItem.HasChildren() {
 				return ToggleItemListCmd(curItem)
 			}
+			if curItem.IsSub() {
+				return ToggleItemListCmd(curItem.Parent)
+			}
 		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
 			if curItem.HasChildren() {
@@ -320,6 +325,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 			prefix = check
 		}
 	}
+
 	if curItem.HasChildren() {
 		prefix = openSub
 		if curItem.ShowChildren {
