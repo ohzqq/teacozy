@@ -151,11 +151,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		} else {
 			switch {
-			case Keys.PrevScreen.Matches(msg):
-				m.SelectionList = false
-				cmds = append(cmds, m.ShowVisibleItemsCmd())
-			}
-			switch {
 			case m.Editable:
 				switch {
 				case Keys.SaveAndExit.Matches(msg):
@@ -163,6 +158,9 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				}
 			case m.SelectionList:
 				switch {
+				case Keys.PrevScreen.Matches(msg):
+					m.SelectionList = false
+					cmds = append(cmds, m.ShowVisibleItemsCmd())
 				case Keys.Enter.Matches(msg):
 					cmds = append(cmds, ReturnSelectionsCmd())
 				}

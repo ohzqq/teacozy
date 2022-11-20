@@ -214,6 +214,7 @@ func (d *Items) SetMultiSelect() *Items {
 	return d
 }
 
+// Item Delegate Interface
 func (d Items) Height() int {
 	return 1
 }

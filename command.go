@@ -129,6 +129,14 @@ func FormChangedCmd() tea.Cmd {
 	}
 }
 
+type ConfirmFormSaveMsg struct{}
+
+func ConfirmFormSaveCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmFormSaveMsg{}
+	}
+}
+
 // info commands
 type HideInfoMsg struct{}
 

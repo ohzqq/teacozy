@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -15,6 +16,7 @@ type TUI struct {
 	Alt             *List
 	Input           textarea.Model
 	view            viewport.Model
+	prompt          textinput.Model
 	info            *Info
 	Title           string
 	FocusedView     string
@@ -130,7 +132,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case Keys.PrevScreen.Matches(msg):
 			if m.Main.SelectionList {
 				m.Main.SelectionList = false
-				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
+				cmds = append(cmds, m.Main.ShowVisibleItemsCmd())
 			}
 		case Keys.FullScreen.Matches(msg):
 			m.fullScreen = !m.fullScreen
@@ -205,6 +207,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main = m.Alt
 		m.Main.Model.Select(m.currentListItem)
 		cur := m.Main.SelectedItem()
+		m.info = NewForm().SetData(cur.Fields)
+		m.ShowInfo()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:
