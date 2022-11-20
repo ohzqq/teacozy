@@ -10,6 +10,7 @@ type Item struct {
 	IsSelected   bool
 	MultiSelect  bool
 	ShowChildren bool
+	showKey      bool
 	Level        int
 	Parent       *Item
 	Children     Items
@@ -134,6 +135,14 @@ func (i Item) FilterValue() string {
 
 func (i Item) Key() string {
 	return i.Data.Key()
+}
+
+func (i Item) String() string {
+	var item string
+	if i.showKey {
+		item = i.Key() + ": "
+	}
+	return item + i.Value()
 }
 
 func (i *Item) Edit() textarea.Model {

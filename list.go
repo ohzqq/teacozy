@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type ActionFunc func(items ...*Item) error
+type ActionFunc func(items ...*Item) tea.Cmd
 
 type List struct {
 	Model            list.Model
@@ -30,6 +30,7 @@ func NewList() *List {
 		SaveFormFunc: SaveFormAsHashCmd,
 		Frame:        DefaultFrameStyle(),
 		Items:        NewItems(),
+		ActionFunc:   PrintItems,
 	}
 	m.Frame.MinHeight = 10
 	return &m
@@ -158,6 +159,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			case m.ShowSelectedOnly:
 				switch {
 				case Keys.Enter.Matches(msg):
+					cmds = append(cmds, ReturnSelectionsCmd())
 				}
 			case m.MultiSelect():
 				switch {
@@ -194,7 +196,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		var items []list.Item
 		switch string(msg) {
 		case "selected":
-			items = m.Selections()
+			//items = m.Selections()
+			for _, item := range m.Selections() {
+				items = append(items, item)
+			}
 		case "all":
 			items = m.AllItems()
 		default:
@@ -204,7 +209,8 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
-		cmds = append(cmds, tea.Quit)
+		cmds = append(cmds, m.ActionFunc(m.Selections()...))
+		//cmds = append(cmds, tea.Quit)
 	case EditFormItemMsg:
 		if m.Editable {
 			m.Input = textarea.New()

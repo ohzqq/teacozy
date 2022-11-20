@@ -117,7 +117,6 @@ func (i Fields) String() string {
 }
 
 type Field struct {
-	*Item
 	key   string
 	value string
 }

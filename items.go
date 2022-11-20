@@ -115,8 +115,8 @@ func (i Items) Visible() []list.Item {
 	return items
 }
 
-func (i Items) Selections() []list.Item {
-	var items []list.Item
+func (i Items) Selections() []*Item {
+	var items []*Item
 	for _, item := range i.Flat() {
 		if item.IsSelected {
 			items = append(items, item)
