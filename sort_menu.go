@@ -18,7 +18,8 @@ func SortListMenu() *Menu {
 func SortListByValue(order string) MenuFunc {
 	return func(m tea.Model) tea.Cmd {
 		ui := m.(*TUI)
-		items := ui.Main.Items.All()
+		main := ui.Main.(*List)
+		items := main.Items.All()
 		sort.SliceStable(items,
 			func(i, j int) bool {
 				if order == "asc" {
@@ -34,7 +35,8 @@ func SortListByValue(order string) MenuFunc {
 func SortListByKey(order string) MenuFunc {
 	return func(m tea.Model) tea.Cmd {
 		ui := m.(*TUI)
-		items := ui.Main.Items.All()
+		main := ui.Main.(*List)
+		items := main.Items.All()
 		sort.SliceStable(items,
 			func(i, j int) bool {
 				if order == "asc" {

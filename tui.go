@@ -12,8 +12,8 @@ import (
 )
 
 type TUI struct {
-	Main            *List
-	Alt             *List
+	Main            tea.Model
+	Alt             tea.Model
 	Input           textarea.Model
 	view            viewport.Model
 	prompt          textinput.Model
@@ -55,7 +55,10 @@ func New(main *List) TUI {
 }
 
 func (ui *TUI) SetSize(w, h int) *TUI {
-	ui.Main.SetSize(w, h)
+	switch main := ui.Main.(type) {
+	case *List:
+		main.SetSize(w, h)
+	}
 	return ui
 }
 
@@ -117,7 +120,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
-		if m.Main.Editable {
+		if _, ok := m.Main.(*Form); ok {
 			switch {
 			case Keys.ExitScreen.Matches(msg):
 				m.Main = m.Alt
@@ -132,9 +135,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case Keys.PrevScreen.Matches(msg):
-			if m.Main.SelectionList {
-				m.Main.SelectionList = false
-				cmds = append(cmds, m.Main.ShowVisibleItemsCmd())
+			if main := m.Main.(*List); main.SelectionList {
+				main.SelectionList = false
+				m.Main = main
+				cmds = append(cmds, UpdateVisibleItemsCmd("visible"))
 			}
 		case Keys.FullScreen.Matches(msg):
 			m.fullScreen = !m.fullScreen
@@ -172,14 +176,18 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Style.Frame.SetSize(w, h)
 		m.SetSize(w, h)
 	case EditInfoMsg:
-		cur := m.Main.SelectedItem()
-		m.Alt = m.Main
-		m.Main = cur.Fields.Edit()
+		if main := m.Main.(*List); main.SelectionList {
+			cur := main.SelectedItem()
+			m.Alt = main
+			m.Main = NewForm(cur.Fields)
+		}
 		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
 		m.info = NewInfoForm().SetData(msg.Fields)
-		m.currentListItem = m.Main.Model.Index()
+		if main, ok := m.Main.(*List); ok {
+			m.currentListItem = main.Model.Index()
+		}
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
 		m.HideInfo()
@@ -207,16 +215,19 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, SetFocusedViewCmd("action"))
 	case FormChangedMsg:
 		m.Main = m.Alt
-		m.Main.Model.Select(m.currentListItem)
-		cur := m.Main.SelectedItem()
+		var cur *Item
+		if main, ok := m.Main.(*List); ok {
+			main.Model.Select(m.currentListItem)
+			cur = main.SelectedItem()
+		}
 		m.info = NewInfoForm().SetData(cur.Fields)
 		m.ShowInfo()
 		m.CurrentMenu = ConfirmMenu()
 		m.ShowMenu()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
-	case SaveAndExitFormMsg:
-		cmds = append(cmds, msg.Exit(m.Main))
+		//case SaveAndExitFormMsg:
+		//  cmds = append(cmds, msg.Exit(m.Main))
 	}
 
 	switch focus {
@@ -224,11 +235,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		if m.Main.SelectionList {
-			cmds = append(cmds, ActionMenuCmd())
+		if main, ok := m.Main.(*List); ok {
+			if main.SelectionList {
+				cmds = append(cmds, ActionMenuCmd())
+			}
+			m.Main, cmd = main.Update(msg)
+			cmds = append(cmds, cmd)
 		}
-		m.Main, cmd = m.Main.Update(msg)
-		cmds = append(cmds, cmd)
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
@@ -317,11 +330,13 @@ func (m *TUI) View() string {
 		sections = append(sections, status)
 	}
 
-	if min := m.Main.Frame.MinHeight; min > availHeight {
-		if m.showMenu || m.showInfo {
-			return lipgloss.NewStyle().Height(availHeight).Render(widget)
+	if main, ok := m.Main.(*List); ok {
+		if min := main.Frame.MinHeight; min > availHeight {
+			if m.showMenu || m.showInfo {
+				return lipgloss.NewStyle().Height(availHeight).Render(widget)
+			}
+			return lipgloss.NewStyle().Height(availHeight).Render(content)
 		}
-		return lipgloss.NewStyle().Height(availHeight).Render(content)
 	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

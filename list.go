@@ -124,7 +124,7 @@ func (m *List) SelectedItem() *Item {
 	return cur
 }
 
-func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
+func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
