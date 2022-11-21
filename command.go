@@ -88,10 +88,17 @@ type SaveFormFunc func(m *List) tea.Cmd
 type SaveForm func(m *Form) tea.Cmd
 
 type SaveAndExitFormMsg struct {
-	Save SaveFormFunc
+	Exit SaveFormFunc
+	Save SaveForm
 }
 
 func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
+	return func() tea.Msg {
+		return SaveAndExitFormMsg{Exit: fn}
+	}
+}
+
+func SaveFormCmd(fn SaveForm) tea.Cmd {
 	return func() tea.Msg {
 		return SaveAndExitFormMsg{Save: fn}
 	}
@@ -139,6 +146,14 @@ type FormChangedMsg struct {
 func FormChangedCmd() tea.Cmd {
 	return func() tea.Msg {
 		return FormChangedMsg{}
+	}
+}
+
+type ConfirmMenuMsg bool
+
+func ConfirmMenuCmd(confirm bool) tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmMenuMsg(confirm)
 	}
 }
 

@@ -68,15 +68,20 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			if m.confirm {
-			} else {
+			switch {
+			case m.confirm:
+				var mod tea.Model
+				mod, cmd = m.Confirm.Update(msg)
+				m.Confirm = mod.(*Menu)
+			case m.FormChanged:
 				switch {
 				case Keys.SaveAndExit.Matches(msg):
-					cmds = append(cmds, FormChangedCmd())
+					m.Confirm.AddContent(m.Fields.String())
+					m.confirm = true
 				}
-				m.Model, cmd = m.Model.Update(msg)
-				cmds = append(cmds, cmd)
 			}
+			m.Model, cmd = m.Model.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
@@ -91,23 +96,26 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.Focus()
 	case FormChangedMsg:
 		m.FormChanged = true
-		for _, field := range m.Fields.All() {
-			m.Confirm.Info.Fields.Add(field)
-		}
-		//m.Info = DisplayFields(
-		//m.Fields,
-		//m.Frame.Width(),
-		//m.Frame.Height()/3*2,
-		//)
-		m.confirm = true
 	case ItemChangedMsg:
 		idx := m.Model.Index()
 		msg.Item.Changed = true
 		m.Model.SetItem(idx, msg.Item)
+		cmds = append(cmds, FormChangedCmd())
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
+	case HideMenuMsg:
+		println("hide")
+		m.confirm = false
+	case ConfirmMenuMsg:
+		if msg {
+			m.Confirm.Model.SetContent("confirmed")
+			cmds = append(cmds, SaveFormCmd(m.SaveForm))
+		}
+	//case SaveAndExitFormMsg:
+	//cmds = append(cmds, msg.Save(m))
 	case SaveAndExitFormMsg:
-		cmds = append(cmds, m.SaveForm(m))
+		cmds = append(cmds, msg.Save(m))
+		cmds = append(cmds, tea.Quit)
 	}
 
 	return m, tea.Batch(cmds...)

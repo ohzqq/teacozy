@@ -1,6 +1,8 @@
 package teacozy
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -11,7 +13,7 @@ type Info struct {
 	IsVisible bool
 	Editable  bool
 	id        int
-	content   string
+	content   []string
 	Style     FieldStyle
 	Frame     Frame
 	Data      FormData
@@ -22,6 +24,7 @@ func NewInfo() *Info {
 	info := Info{
 		Fields: NewFields(),
 		Frame:  DefaultWidgetStyle(),
+		Style:  fieldStyle,
 	}
 	info.Model = viewport.New(info.Frame.Width(), info.Frame.Height())
 	return &info
@@ -50,6 +53,16 @@ func (i *Info) SetHeight(h int) *Info {
 
 func (i *Info) SetSize(w, h int) *Info {
 	i.Model = viewport.New(w, h)
+	return i
+}
+
+func (i *Info) SetContent(content string) *Info {
+	i.content = append(i.content, content)
+	return i
+}
+
+func (i *Info) AddContent(content ...string) *Info {
+	i.content = append(i.content, content...)
 	return i
 }
 
@@ -90,6 +103,10 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	m.Model.SetContent(m.Fields.String())
+	content := m.Fields.String()
+	if c := m.content; len(m.content) > 0 {
+		content = strings.Join(c, "\n")
+	}
+	m.Model.SetContent(content)
 	return m.Model.View()
 }

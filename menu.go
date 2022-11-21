@@ -23,9 +23,7 @@ func (m Menus) Del(key string) {
 
 type Menu struct {
 	*Info
-	width     int
 	Toggle    key.Binding
-	height    int
 	Label     string
 	content   string
 	show      bool
@@ -92,11 +90,6 @@ func (m *Menu) SetLabel(l string) *Menu {
 
 func (m *Menu) SetToggle(toggle, help string) *Menu {
 	m.Toggle = NewKeyBind(toggle, help)
-	return m
-}
-
-func (m *Menu) SetContent(content string) *Menu {
-	m.content = content
 	return m
 }
 

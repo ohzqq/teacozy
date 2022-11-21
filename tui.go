@@ -216,7 +216,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:
-		cmds = append(cmds, msg.Save(m.Main))
+		cmds = append(cmds, msg.Exit(m.Main))
 	}
 
 	switch focus {
