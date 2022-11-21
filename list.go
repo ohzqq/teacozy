@@ -228,7 +228,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		msg.Item.Changed = true
 		m.Items.Set(m.Model.Index(), msg.Item)
 		cmds = append(cmds, m.ShowVisibleItemsCmd())
-		//cmds = append(cmds, UpdateStatusCmd(fmt.Sprintf("%d", m.Model.Index())))
 	case SortItemsMsg:
 		m.Items.SetItems(msg.Items...)
 		m.Items.Process()
