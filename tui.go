@@ -126,8 +126,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Main = m.Alt
 			case Keys.PrevScreen.Matches(msg):
 				m.Main = m.Alt
-			case Keys.SaveAndExit.Matches(msg):
-				m.HideInfo()
+				//case Keys.SaveAndExit.Matches(msg):
+				//m.HideInfo()
 			}
 		}
 		if m.showMenu {
@@ -176,12 +176,16 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Style.Frame.SetSize(w, h)
 		m.SetSize(w, h)
 	case EditInfoMsg:
-		if main := m.Main.(*List); main.SelectionList {
-			cur := main.SelectedItem()
-			m.Alt = main
-			m.Main = NewForm(cur.Fields)
+		//if main := m.Main.(*List); main.SelectionList {
+		//  m.Alt = main
+		//}
+		m.Alt = m.Main
+		form := NewForm(m.info.Fields)
+		m.Main = form
+		m.HideInfo()
+		if form.Changed {
+			cmds = append(cmds, FormChangedCmd())
 		}
-		cmds = append(cmds, HideInfoCmd())
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
 		m.info = NewInfoForm().SetData(msg.Fields)
@@ -213,19 +217,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ShowMenu()
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("action"))
-	case FormChangedMsg:
+	case ExitFormMsg:
 		m.Main = m.Alt
-		var cur *Item
-		if main, ok := m.Main.(*List); ok {
-			main.Model.Select(m.currentListItem)
-			cur = main.SelectedItem()
-		}
-		m.info = NewInfoForm().SetData(cur.Fields)
-		m.ShowInfo()
-		m.CurrentMenu = ConfirmMenu()
-		m.ShowMenu()
-		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
+	case FormChangedMsg:
+		cmds = append(cmds, ExitFormCmd())
+		//var cur list.Item
+		//if main, ok := m.Main.(*Form); ok {
+		//main.Model.Select(m.currentListItem)
+		//cur = main.Model.SelectedItem()
+		//}
+		//cmds = append(cmds, ItemChangedCmd(cur))
 		//case SaveAndExitFormMsg:
 		//  cmds = append(cmds, msg.Exit(m.Main))
 	}
@@ -235,13 +237,14 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		if main, ok := m.Main.(*List); ok {
+		switch main := m.Main.(type) {
+		case *List:
 			if main.SelectionList {
 				cmds = append(cmds, ActionMenuCmd())
 			}
-			m.Main, cmd = main.Update(msg)
-			cmds = append(cmds, cmd)
 		}
+		m.Main, cmd = m.Main.Update(msg)
+		cmds = append(cmds, cmd)
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {

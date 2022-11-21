@@ -104,6 +104,14 @@ func SaveFormCmd(fn SaveForm) tea.Cmd {
 	}
 }
 
+type ExitFormMsg struct{}
+
+func ExitFormCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ExitFormMsg{}
+	}
+}
+
 type SaveFormAsHashMsg struct{}
 
 func SaveFormAsHashCmd(m *List) tea.Cmd {

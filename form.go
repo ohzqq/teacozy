@@ -10,26 +10,28 @@ import (
 type Form struct {
 	Frame
 	*Items
-	Model       list.Model
-	Input       textarea.Model
-	Info        *Info
-	Fields      *Fields
-	Confirm     *Menu
-	Title       string
-	FormChanged bool
-	confirm     bool
-	SaveForm    SaveForm
-	Hash        map[string]string
-	Style       list.Styles
+	Model     list.Model
+	Input     textarea.Model
+	Info      *Info
+	Fields    *Fields
+	Confirm   *Menu
+	Title     string
+	Changed   bool
+	OldFields *Fields
+	confirm   bool
+	SaveForm  SaveForm
+	Hash      map[string]string
+	Style     list.Styles
 }
 
 func NewForm(fields *Fields) *Form {
 	m := Form{
-		SaveForm: SaveFormAsHash,
-		Frame:    DefaultFrameStyle(),
-		Items:    NewItems().SetShowKeys(),
-		Fields:   fields,
-		Confirm:  ConfirmMenu(),
+		SaveForm:  SaveFormAsHash,
+		Frame:     DefaultFrameStyle(),
+		Items:     NewItems().SetShowKeys(),
+		Fields:    fields,
+		OldFields: NewFields().SetData(fields),
+		Confirm:   ConfirmMenu(),
 	}
 	m.Frame.MinHeight = 10
 
@@ -82,7 +84,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			default:
 				switch {
-				case m.FormChanged:
+				case m.Changed:
 					switch {
 					case Keys.SaveAndExit.Matches(msg):
 						m.confirm = true
@@ -103,24 +105,25 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
-	case FormChangedMsg:
-		m.FormChanged = true
 	case ItemChangedMsg:
 		idx := m.Model.Index()
 		msg.Item.Changed = true
+		m.Changed = true
 		m.Model.SetItem(idx, msg.Item)
-		cmds = append(cmds, FormChangedCmd())
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
 	case HideMenuMsg:
 		m.confirm = false
 	case ConfirmMenuMsg:
-		if msg {
+		if msg == true {
 			cmds = append(cmds, SaveFormCmd(m.SaveForm))
 		}
+		m.Changed = false
+		cmds = append(cmds, ExitFormCmd())
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m))
-		cmds = append(cmds, tea.Quit)
+		cmds = append(cmds, FormChangedCmd())
+		//cmds = append(cmds, tea.Quit)
 	}
 
 	return m, tea.Batch(cmds...)
