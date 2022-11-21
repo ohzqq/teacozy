@@ -136,7 +136,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		}
 		if m.Input.Focused() {
 			if Keys.SaveAndExit.Matches(msg) {
-				cur := m.SelectedItem()
+				cur := m.Model.SelectedItem().(*Item)
 				field := cur.Data
 				val := m.Input.Value()
 				if original := field.Value(); original != val {
@@ -215,9 +215,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		}
 		cmds = append(cmds, m.ActionFunc(items...))
 	case EditFormItemMsg:
+		cur := m.Model.SelectedItem().(*Item)
 		if m.Editable {
 			m.Input = textarea.New()
-			m.Input.SetValue(msg.Value())
+			m.Input.SetValue(cur.Value())
 			m.Input.ShowLineNumbers = false
 			m.Input.Focus()
 		}
@@ -225,8 +226,9 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.FormChanged = true
 	case ItemChangedMsg:
 		msg.Item.Changed = true
-		m.Items.Set(msg.Item.Index(), msg.Item)
+		m.Items.Set(m.Model.Index(), msg.Item)
 		cmds = append(cmds, m.ShowVisibleItemsCmd())
+		//cmds = append(cmds, UpdateStatusCmd(fmt.Sprintf("%d", m.Model.Index())))
 	case SortItemsMsg:
 		m.Items.SetItems(msg.Items...)
 		m.Items.Process()
