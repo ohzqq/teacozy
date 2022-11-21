@@ -42,7 +42,7 @@ func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
 }
 
 // menu commands
-type MenuFunc func(m *TUI) tea.Cmd
+type MenuFunc func(m tea.Model) tea.Cmd
 
 type UpdateMenuContentMsg string
 
@@ -70,9 +70,9 @@ func ShowMenuCmd(menu *Menu) tea.Cmd {
 
 type ChangeMenuMsg struct{ *Menu }
 
-func GoToMenuCmd(m *Menu) MenuFunc {
-	return func(ui *TUI) tea.Cmd {
-		return ChangeMenuCmd(m)
+func GoToMenuCmd(menu *Menu) MenuFunc {
+	return func(m tea.Model) tea.Cmd {
+		return ChangeMenuCmd(menu)
 	}
 }
 
@@ -84,6 +84,8 @@ func ChangeMenuCmd(menu *Menu) tea.Cmd {
 
 // form commands
 type SaveFormFunc func(m *List) tea.Cmd
+
+type SaveForm func(m *Form) tea.Cmd
 
 type SaveAndExitFormMsg struct {
 	Save SaveFormFunc
@@ -98,6 +100,17 @@ func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
 type SaveFormAsHashMsg struct{}
 
 func SaveFormAsHashCmd(m *List) tea.Cmd {
+	fn := func() tea.Msg {
+		m.Hash = make(map[string]string)
+		for _, item := range m.Items.Flat() {
+			m.Hash[item.Key()] = item.Value()
+		}
+		return SaveFormAsHashMsg{}
+	}
+	return fn
+}
+
+func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
 		for _, item := range m.Items.Flat() {

@@ -2,6 +2,7 @@ package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -93,6 +94,36 @@ func (m *Menu) SetToggle(toggle, help string) *Menu {
 	m.Toggle = NewKeyBind(toggle, help)
 	return m
 }
+
+func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.Toggle):
+			m.show = false
+			cmds = append(cmds, HideMenuCmd())
+		default:
+			for _, item := range m.Items {
+				if key.Matches(msg, item.Bind) {
+					cmds = append(cmds, item.Cmd(m))
+					m.show = false
+					cmds = append(cmds, HideMenuCmd())
+				}
+			}
+			m.show = false
+			cmds = append(cmds, HideMenuCmd())
+		}
+	}
+	m.Model, cmd = m.Model.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
+}
+
+func (m Menu) Init() tea.Cmd { return nil }
 
 func (m *Menu) View() string {
 	return m.Model.View()

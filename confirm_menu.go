@@ -12,9 +12,10 @@ func ConfirmMenu() *Menu {
 type ConfirmOrDenyMsg bool
 
 func ConfirmOrDeny(confirm bool) MenuFunc {
-	return func(m *TUI) tea.Cmd {
+	return func(m tea.Model) tea.Cmd {
+		ui := m.(*TUI)
 		if confirm {
-			m.actionConfirmed = true
+			ui.actionConfirmed = true
 		}
 		return nil
 	}

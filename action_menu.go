@@ -20,7 +20,8 @@ func PrintItems(items ...*Item) tea.Cmd {
 	return tea.Quit
 }
 
-func PrintItemsMenuFunc(m *TUI) tea.Cmd {
-	m.Main.SetAction(PrintItems)
+func PrintItemsMenuFunc(m tea.Model) tea.Cmd {
+	ui := m.(*TUI)
+	ui.Main.SetAction(PrintItems)
 	return ReturnSelectionsCmd()
 }
