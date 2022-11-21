@@ -77,6 +77,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
+		m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case EditFormItemMsg:
 		cur := m.Model.SelectedItem().(*Item)
@@ -115,7 +116,8 @@ func (m Form) View() string {
 		availHeight -= iHeight
 	}
 
-	m.SetSize(m.width, availHeight)
+	m.Frame.SetSize(m.Frame.Width(), availHeight)
+	m.Model.SetSize(m.Frame.Width(), availHeight)
 	content := m.Model.View()
 	sections = append(sections, content)
 
