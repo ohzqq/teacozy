@@ -37,8 +37,10 @@ func NewForm(fields *Fields) *Form {
 		i := NewItem().SetData(field)
 		m.Add(i)
 	}
+	m.Confirm.AddContent(m.Fields.String())
 
 	m.Model = NewListModel(m.Frame.Width(), m.Frame.Height(), m.Items)
+
 	return &m
 }
 
@@ -70,18 +72,25 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			switch {
 			case m.confirm:
+				switch {
+				case Keys.PrevScreen.Matches(msg):
+					cmds = append(cmds, HideMenuCmd())
+				}
 				var mod tea.Model
 				mod, cmd = m.Confirm.Update(msg)
 				m.Confirm = mod.(*Menu)
-			case m.FormChanged:
+				cmds = append(cmds, cmd)
+			default:
 				switch {
-				case Keys.SaveAndExit.Matches(msg):
-					m.Confirm.AddContent(m.Fields.String())
-					m.confirm = true
+				case m.FormChanged:
+					switch {
+					case Keys.SaveAndExit.Matches(msg):
+						m.confirm = true
+					}
 				}
+				m.Model, cmd = m.Model.Update(msg)
+				cmds = append(cmds, cmd)
 			}
-			m.Model, cmd = m.Model.Update(msg)
-			cmds = append(cmds, cmd)
 		}
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
@@ -104,15 +113,11 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
 	case HideMenuMsg:
-		println("hide")
 		m.confirm = false
 	case ConfirmMenuMsg:
 		if msg {
-			m.Confirm.Model.SetContent("confirmed")
 			cmds = append(cmds, SaveFormCmd(m.SaveForm))
 		}
-	//case SaveAndExitFormMsg:
-	//cmds = append(cmds, msg.Save(m))
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m))
 		cmds = append(cmds, tea.Quit)

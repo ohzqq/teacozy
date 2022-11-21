@@ -107,8 +107,8 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			for _, item := range m.Items {
 				if key.Matches(msg, item.Bind) {
-					cmds = append(cmds, item.Cmd(m))
 					m.show = false
+					cmds = append(cmds, item.Cmd(m))
 					cmds = append(cmds, HideMenuCmd())
 				}
 			}
