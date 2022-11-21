@@ -26,7 +26,7 @@ func NewInfo() *Info {
 	return &info
 }
 
-func NewForm() *Info {
+func NewInfoForm() *Info {
 	info := NewInfo()
 	info.Editable = true
 	return info
