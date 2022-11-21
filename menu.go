@@ -22,7 +22,7 @@ func (m Menus) Del(key string) {
 }
 
 type Menu struct {
-	Model     *Info
+	*Info
 	width     int
 	Toggle    key.Binding
 	height    int
@@ -43,7 +43,7 @@ func NewMenu(l string, toggle key.Binding, items ...*Key) *Menu {
 
 func DefaultMenu() *Menu {
 	m := Menu{
-		Model: NewInfo(),
+		Info: NewInfo(),
 	}
 	return &m
 }
@@ -68,7 +68,7 @@ func (m Menu) Keys() []string {
 func (m *Menu) SetKeys(keys ...*Key) *Menu {
 	m.Items = keys
 	for _, k := range keys {
-		m.Model.Fields.Add(k)
+		m.Info.Fields.Add(k)
 	}
 	return m
 }
@@ -80,7 +80,7 @@ func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
 }
 
 func (m *Menu) AddKey(key *Key) *Menu {
-	m.Model.Fields.Add(key)
+	m.Info.Fields.Add(key)
 	m.Items = append(m.Items, key)
 	return m
 }
@@ -92,6 +92,11 @@ func (m *Menu) SetLabel(l string) *Menu {
 
 func (m *Menu) SetToggle(toggle, help string) *Menu {
 	m.Toggle = NewKeyBind(toggle, help)
+	return m
+}
+
+func (m *Menu) SetContent(content string) *Menu {
+	m.content = content
 	return m
 }
 
@@ -118,7 +123,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, HideMenuCmd())
 		}
 	}
-	m.Model, cmd = m.Model.Update(msg)
+	m.Info, cmd = m.Info.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
@@ -126,5 +131,5 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Menu) Init() tea.Cmd { return nil }
 
 func (m *Menu) View() string {
-	return m.Model.View()
+	return m.Info.View()
 }

@@ -29,6 +29,7 @@ func NewForm(fields *Fields) *Form {
 		Frame:    DefaultFrameStyle(),
 		Items:    NewItems().SetShowKeys(),
 		Fields:   fields,
+		Confirm:  ConfirmMenu(),
 	}
 	m.Frame.MinHeight = 10
 
@@ -90,11 +91,14 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.Focus()
 	case FormChangedMsg:
 		m.FormChanged = true
-		m.Info = DisplayFields(
-			m.Fields,
-			m.Frame.Width(),
-			m.Frame.Height()/3*2,
-		)
+		for _, field := range m.Fields.All() {
+			m.Confirm.Info.Fields.Add(field)
+		}
+		//m.Info = DisplayFields(
+		//m.Fields,
+		//m.Frame.Width(),
+		//m.Frame.Height()/3*2,
+		//)
 		m.confirm = true
 	case ItemChangedMsg:
 		idx := m.Model.Index()
@@ -121,8 +125,9 @@ func (m Form) View() string {
 	)
 
 	if m.confirm {
-		info := m.Info.View()
-		availHeight -= m.Info.Model.Height
+		//info := m.Info.View()
+		info := m.Confirm.View()
+		//availHeight -= m.Info.Model.Height
 		sections = append(sections, info)
 	} else {
 		if m.Input.Focused() {

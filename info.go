@@ -11,6 +11,7 @@ type Info struct {
 	IsVisible bool
 	Editable  bool
 	id        int
+	content   string
 	Style     FieldStyle
 	Frame     Frame
 	Data      FormData

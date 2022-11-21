@@ -263,7 +263,7 @@ func (m *TUI) UpdateMenu(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
-	m.CurrentMenu.Model, cmd = m.CurrentMenu.Model.Update(msg)
+	m.CurrentMenu.Info, cmd = m.CurrentMenu.Info.Update(msg)
 	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
