@@ -25,6 +25,7 @@ type TUI struct {
 	showMenu        bool
 	showInfo        bool
 	showHelp        bool
+	showConfirm     bool
 	currentListItem int
 	Style           TUIStyle
 	width           int
@@ -208,11 +209,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main = m.Alt
 		m.Main.Model.Select(m.currentListItem)
 		cur := m.Main.SelectedItem()
-		//m.info = NewForm().SetData(cur.Fields)
-		//m.info.SetHeight(2)
-		//m.ShowInfo()
-		//m.CurrentMenu = ConfirmMenu()
-		//m.ShowMenu()
+		m.info = NewForm().SetData(cur.Fields)
+		m.ShowInfo()
+		m.CurrentMenu = ConfirmMenu()
+		m.ShowMenu()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:
@@ -288,29 +288,33 @@ func (m *TUI) View() string {
 	}
 
 	if m.showInfo {
+		if m.showConfirm {
+			m.info.SetHeight(2)
+		}
 		widget = m.info.View()
 		availHeight -= widgetHeight
 	}
 
-	var help string
+	var status string
 	if m.showHelp {
-		help = m.ShortHelp.View()
-		availHeight -= lipgloss.Height(help)
+		status = m.ShortHelp.View()
+		availHeight -= lipgloss.Height(status)
+	}
+
+	if m.showConfirm {
+		status = m.CurrentMenu.View()
+		availHeight -= lipgloss.Height(status)
 	}
 
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	if m.showMenu {
+	if m.showMenu || m.showInfo {
 		sections = append(sections, widget)
 	}
 
-	if m.showInfo {
-		sections = append(sections, widget)
-	}
-
-	if m.showHelp {
-		sections = append(sections, help)
+	if m.showHelp || m.showConfirm {
+		sections = append(sections, status)
 	}
 
 	if min := m.Main.Frame.MinHeight; min > availHeight {
