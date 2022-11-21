@@ -208,11 +208,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main = m.Alt
 		m.Main.Model.Select(m.currentListItem)
 		cur := m.Main.SelectedItem()
-		m.info = NewForm().SetData(cur.Fields)
-		m.info.SetHeight(2)
-		m.ShowInfo()
-		m.CurrentMenu = ConfirmMenu()
-		m.ShowMenu()
+		//m.info = NewForm().SetData(cur.Fields)
+		//m.info.SetHeight(2)
+		//m.ShowInfo()
+		//m.CurrentMenu = ConfirmMenu()
+		//m.ShowMenu()
 		cmds = append(cmds, ItemChangedCmd(cur))
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SaveAndExitFormMsg:

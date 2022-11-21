@@ -225,8 +225,12 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case FormChangedMsg:
 		m.FormChanged = true
 	case ItemChangedMsg:
+		idx := msg.Item.Index()
+		if m.Editable {
+			idx = m.Model.Index()
+		}
 		msg.Item.Changed = true
-		m.Items.Set(m.Model.Index(), msg.Item)
+		m.Items.Set(idx, msg.Item)
 		cmds = append(cmds, m.ShowVisibleItemsCmd())
 	case SortItemsMsg:
 		m.Items.SetItems(msg.Items...)
