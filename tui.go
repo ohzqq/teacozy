@@ -9,34 +9,36 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jinzhu/copier"
 )
 
 type TUI struct {
-	Main            tea.Model
-	Alt             tea.Model
-	Input           textarea.Model
-	view            viewport.Model
-	prompt          textinput.Model
-	info            *Info
-	Title           string
-	FocusedView     string
-	fullScreen      bool
-	actionConfirmed bool
-	showMenu        bool
-	showInfo        bool
-	showHelp        bool
-	showConfirm     bool
-	currentListItem int
-	Style           TUIStyle
-	width           int
-	height          int
-	Hash            map[string]string
-	ShortHelp       Help
-	Help            *Info
-	MainMenu        *Menu
-	ActionMenu      *Menu
-	Menus           Menus
-	CurrentMenu     *Menu
+	Main              tea.Model
+	Alt               tea.Model
+	Input             textarea.Model
+	view              viewport.Model
+	prompt            textinput.Model
+	info              *Info
+	Title             string
+	FocusedView       string
+	fullScreen        bool
+	actionConfirmed   bool
+	showMenu          bool
+	showInfo          bool
+	showHelp          bool
+	showConfirm       bool
+	currentListItem   int
+	currentItemFields *Fields
+	Style             TUIStyle
+	width             int
+	height            int
+	Hash              map[string]string
+	ShortHelp         Help
+	Help              *Info
+	MainMenu          *Menu
+	ActionMenu        *Menu
+	Menus             Menus
+	CurrentMenu       *Menu
 }
 
 func New(main *List) TUI {
@@ -183,14 +185,14 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		form := NewForm(m.info.Fields)
 		m.Main = form
 		m.HideInfo()
-		if form.Changed {
-			cmds = append(cmds, FormChangedCmd())
-		}
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowItemInfoMsg:
 		m.info = NewInfoForm().SetData(msg.Fields)
 		if main, ok := m.Main.(*List); ok {
 			m.currentListItem = main.Model.Index()
+			item := NewFields()
+			copier.CopyWithOption(item, main.SelectedItem().Fields, copier.Option{DeepCopy: true})
+			m.currentItemFields = item
 		}
 		cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
@@ -218,15 +220,28 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HideInfo()
 		cmds = append(cmds, SetFocusedViewCmd("action"))
 	case ExitFormMsg:
-		m.Main = m.Alt
+		//m.Main = m.Alt
+		//m.Alt = m.Main
+		if form, ok := m.Main.(*Form); ok {
+			m.Main = m.Alt
+			if !form.Changed {
+				//form.Model.Select(m.currentListItem)
+				list := m.Main.(*List)
+				cur := list.SelectedItem()
+				cur.Fields = m.currentItemFields
+				//cur := m.currentItemFields
+				//list.Set(cur.Index(), cur)
+			}
+		}
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case FormChangedMsg:
-		cmds = append(cmds, ExitFormCmd())
 		//var cur list.Item
-		//if main, ok := m.Main.(*Form); ok {
-		//main.Model.Select(m.currentListItem)
-		//cur = main.Model.SelectedItem()
-		//}
+		if _, ok := m.Main.(*Form); ok {
+			//main.Model.Select(m.currentListItem)
+			//cur = main.Model.SelectedItem()
+		}
+		cmds = append(cmds, UpdateStatusCmd("saved"))
+		cmds = append(cmds, ExitFormCmd())
 		//cmds = append(cmds, ItemChangedCmd(cur))
 		//case SaveAndExitFormMsg:
 		//  cmds = append(cmds, msg.Exit(m.Main))

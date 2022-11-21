@@ -84,10 +84,12 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			default:
 				switch {
-				case m.Changed:
+				case Keys.SaveAndExit.Matches(msg):
 					switch {
-					case Keys.SaveAndExit.Matches(msg):
+					case m.Changed:
 						m.confirm = true
+					default:
+						cmds = append(cmds, ExitFormCmd())
 					}
 				}
 				m.Model, cmd = m.Model.Update(msg)
@@ -117,9 +119,11 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ConfirmMenuMsg:
 		if msg == true {
 			cmds = append(cmds, SaveFormCmd(m.SaveForm))
+		} else {
+			m.Changed = false
+			cmds = append(cmds, ExitFormCmd())
 		}
-		m.Changed = false
-		cmds = append(cmds, ExitFormCmd())
+
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m))
 		cmds = append(cmds, FormChangedCmd())
