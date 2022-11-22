@@ -54,6 +54,7 @@ func (m *Form) InitList() {
 	)
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
+	m.Model.Styles = style.ListStyles()
 }
 
 func (m *Form) Start() {
