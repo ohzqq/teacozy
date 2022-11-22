@@ -3,6 +3,7 @@ package teacozy
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -47,7 +48,7 @@ func (i *Info) SetData(data FormData) *Info {
 }
 
 func (i *Info) SetHeight(h int) *Info {
-	i.Model = viewport.New(i.Frame.Width(), h)
+	i.SetSize(i.Frame.Width(), h)
 	return i
 }
 
@@ -78,13 +79,13 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case Keys.Help.Matches(msg):
+		case key.Matches(msg, keybind.Help):
 			cmds = append(cmds, HideInfoCmd())
-		case Keys.ExitScreen.Matches(msg):
+		case key.Matches(msg, keybind.ExitScreen):
 			cmds = append(cmds, HideInfoCmd())
-		case Keys.PrevScreen.Matches(msg):
+		case key.Matches(msg, keybind.PrevScreen):
 			cmds = append(cmds, HideInfoCmd())
-		case Keys.EditField.Matches(msg):
+		case key.Matches(msg, keybind.EditField):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd(m.Fields))
 			}

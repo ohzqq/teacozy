@@ -5,25 +5,15 @@ import (
 
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy"
 )
-
-type FormData interface {
-	Get(string) FieldData
-	Keys() []string
-}
-
-type FieldData interface {
-	Value() string
-	Key() string
-	Set(string)
-}
 
 type Fields struct {
 	Model     viewport.Model
 	IsVisible bool
 	hideKeys  bool
 	Style     FieldStyle
-	Data      []FieldData
+	Data      []teacozy.FieldData
 	fields    []*Field
 	data      *Items
 }
@@ -49,7 +39,7 @@ func (f *Fields) NewField(key, val string) *Fields {
 	return f
 }
 
-func (f *Fields) Add(field FieldData) *Fields {
+func (f *Fields) Add(field teacozy.FieldData) *Fields {
 	f.Data = append(f.Data, field)
 	return f
 }
@@ -62,7 +52,7 @@ func (f Fields) Items() *Items {
 	return f.data
 }
 
-func (f *Fields) SetData(data FormData) *Fields {
+func (f *Fields) SetData(data teacozy.FormData) *Fields {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
@@ -75,7 +65,7 @@ func (f *Fields) SetData(data FormData) *Fields {
 	return f
 }
 
-func (f Fields) Get(key string) FieldData {
+func (f Fields) Get(key string) teacozy.FieldData {
 	for _, field := range f.Data {
 		if field.Key() == key {
 			return field
@@ -103,7 +93,7 @@ func (f *Fields) Edit() *List {
 	return form.Edit()
 }
 
-func (f Fields) All() []FieldData {
+func (f Fields) All() []teacozy.FieldData {
 	return f.Data
 }
 
