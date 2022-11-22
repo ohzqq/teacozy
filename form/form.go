@@ -7,16 +7,18 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/keybind"
 )
 
 type Form struct {
 	*Fields
-	Model    list.Model
-	Input    textarea.Model
-	view     viewport.Model
-	Info     *teacozy.Info
-	Confirm  *teacozy.Menu
+	Model  list.Model
+	Input  textarea.Model
+	view   viewport.Model
+	width  int
+	height int
+	//Info     *teacozy.Info
+	//Confirm  *teacozy.Menu
 	SaveForm SaveForm
 	confirm  bool
 }
@@ -36,8 +38,8 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		if m.Input.Focused() {
-			if key.Matches(msg, SaveAndExit) {
-				cur := m.Model.SelectedItem().(*Item)
+			if key.Matches(msg, keybind.SaveAndExit) {
+				cur := m.Model.SelectedItem().(*Field)
 				val := m.Input.Value()
 				if original := cur.Value(); original != val {
 					cur.Set(val)
@@ -52,7 +54,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case m.confirm:
 				switch {
-				case key.Matches(msg, PrevScreen):
+				case key.Matches(msg, keybind.PrevScreen):
 					cmds = append(cmds, HideMenuCmd())
 				}
 				var mod tea.Model
@@ -61,7 +63,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			default:
 				switch {
-				case Keys.SaveAndExit.Matches(msg):
+				case key.Matches(msg, keybind.SaveAndExit):
 					switch {
 					case m.Changed:
 						m.confirm = true
@@ -79,7 +81,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case EditFormItemMsg:
-		cur := m.Model.SelectedItem().(*Item)
+		cur := m.Model.SelectedItem().(*Field)
 		m.Input = textarea.New()
 		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
@@ -109,7 +111,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Form) FieldChanged(item *Item) tea.Cmd {
+func (m *Form) FieldChanged(item *Field) tea.Cmd {
 	return func() tea.Msg {
 		item.Changed()
 		m.Changed = true
@@ -141,7 +143,7 @@ func (m Form) View() string {
 			availHeight -= iHeight
 		}
 
-		m.Frame.SetSize(m.Frame.Width(), availHeight)
+		//m.Frame.SetSize(m.Frame.Width(), availHeight)
 		m.Model.SetSize(m.Frame.Width(), availHeight)
 		content := m.Model.View()
 		sections = append(sections, content)
