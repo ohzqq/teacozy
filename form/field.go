@@ -1,21 +1,13 @@
 package form
 
-import "github.com/charmbracelet/bubbles/list"
-
-type FormData interface {
-	Get(string) FieldData
-	Keys() []string
-}
-
-type FieldData interface {
-	Value() string
-	Key() string
-	Set(string)
-}
+import (
+	"github.com/charmbracelet/bubbles/list"
+	"github.com/ohzqq/teacozy"
+)
 
 type Fields struct {
 	fields []*Field
-	Data   []FieldData
+	Data   []teacozy.FieldData
 }
 
 func NewFields() *Fields {
@@ -27,7 +19,7 @@ func (f *Fields) Add(field *Field) {
 	f.Data = append(f.Data, field)
 }
 
-func (f *Fields) SetData(data FormData) {
+func (f *Fields) SetData(data teacozy.FormData) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
@@ -66,7 +58,7 @@ type Field struct {
 	value   string
 	changed bool
 	idx     int
-	Data    FieldData
+	Data    teacozy.FieldData
 }
 
 func NewField() *Field {
@@ -75,7 +67,7 @@ func NewField() *Field {
 	}
 }
 
-func (i *Field) SetData(data FieldData) {
+func (i *Field) SetData(data teacozy.FieldData) {
 	i.key = data.Key()
 	i.value = data.Value()
 	i.Data = data

@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keybind"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -40,7 +41,7 @@ func (m *Form) SetFields(fields *Fields) {
 	m.Fields = fields
 }
 
-func (m *Form) SetFormData(fd FormData) {
+func (m *Form) SetFormData(fd teacozy.FormData) {
 	m.Fields = NewFields()
 	m.Fields.SetData(fd)
 }

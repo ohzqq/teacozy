@@ -1,6 +1,9 @@
 package form
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy"
+)
 
 type SaveFormFunc func(m *Form) tea.Cmd
 
@@ -45,7 +48,7 @@ func SaveFormAsHash(m *Form) tea.Cmd {
 }
 
 type EditFormItemMsg struct {
-	Data FieldData
+	Data teacozy.FieldData
 	*Field
 }
 
