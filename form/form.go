@@ -1,6 +1,8 @@
 package form
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
@@ -8,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keybind"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Form struct {
@@ -17,14 +20,51 @@ type Form struct {
 	view   viewport.Model
 	width  int
 	height int
+	Hash   map[string]string
 	//Info     *teacozy.Info
 	//Confirm  *teacozy.Menu
+	Changed  bool
 	SaveForm SaveForm
 	confirm  bool
 }
 
 func New() Form {
-	form := Form{}
+	w, h := util.TermSize()
+	form := Form{
+		width:  w,
+		height: h,
+		Fields: NewFields(),
+	}
+
+	return form
+}
+
+func (m *Form) SetFields(fields *Fields) {
+	m.Fields = fields
+}
+
+func (m *Form) SetFormData(fd FormData) {
+	m.Fields = NewFields()
+	m.Fields.SetData(fd)
+}
+
+func (m *Form) InitList() {
+	m.Model = list.New(
+		m.Fields.Items(),
+		itemDelegate(),
+		m.width,
+		m.height,
+	)
+	m.Model.SetShowStatusBar(false)
+}
+
+func (m *Form) Start() {
+	m.InitList()
+	p := tea.NewProgram(m)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
+	//fmt.Printf("%+V\n", m.Hash)
 }
 
 func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -53,14 +93,14 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			switch {
 			case m.confirm:
-				switch {
-				case key.Matches(msg, keybind.PrevScreen):
-					cmds = append(cmds, HideMenuCmd())
-				}
-				var mod tea.Model
-				mod, cmd = m.Confirm.Update(msg)
-				m.Confirm = mod.(*Menu)
-				cmds = append(cmds, cmd)
+				//switch {
+				//case key.Matches(msg, keybind.PrevScreen):
+				//cmds = append(cmds, HideMenuCmd())
+				//}
+				//var mod tea.Model
+				//mod, cmd = m.Confirm.Update(msg)
+				//m.Confirm = mod.(*Menu)
+				//cmds = append(cmds, cmd)
 			default:
 				switch {
 				case key.Matches(msg, keybind.SaveAndExit):
@@ -68,17 +108,19 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					case m.Changed:
 						m.confirm = true
 					default:
-						cmds = append(cmds, ExitFormCmd())
+						//cmds = append(cmds, ExitFormCmd())
 					}
 				}
 				m.Model, cmd = m.Model.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 		}
-	case UpdateStatusMsg:
-		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
+	//case UpdateStatusMsg:
+	//cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
-		m.Frame.SetSize(msg.Width-1, msg.Height-2)
+		m.width = msg.Width - 1
+		m.height = msg.Height - 1
+		//m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case EditFormItemMsg:
 		cur := m.Model.SelectedItem().(*Field)
@@ -88,20 +130,18 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.Focus()
 	case SetItemMsg:
 		idx := m.Model.Index()
-		m.Model.SetItem(idx, msg.Item)
-	case SetItemsMsg:
-		m.Model.SetItems(msg.Items)
-	case HideMenuMsg:
-		m.confirm = false
-	case ConfirmMenuMsg:
-		if msg == true {
-			m.SaveChanges()
-			cmds = append(cmds, SaveFormCmd(m.SaveForm))
-		} else {
-			m.UndoChanges()
-			m.Changed = false
-			cmds = append(cmds, ExitFormCmd())
-		}
+		m.Model.SetItem(idx, msg.Field)
+	//case HideMenuMsg:
+	//  m.confirm = false
+	//case ConfirmMenuMsg:
+	//  if msg == true {
+	//    m.SaveChanges()
+	//    cmds = append(cmds, SaveFormCmd(m.SaveFormFunc))
+	//  } else {
+	//    m.UndoChanges()
+	//    m.Changed = false
+	//    cmds = append(cmds, ExitFormCmd())
+	//  }
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m))
 		cmds = append(cmds, FormChangedCmd())
@@ -115,7 +155,7 @@ func (m *Form) FieldChanged(item *Field) tea.Cmd {
 	return func() tea.Msg {
 		item.Changed()
 		m.Changed = true
-		return SetItemMsg{Item: item}
+		return SetItemMsg{Field: item}
 	}
 }
 
@@ -126,15 +166,15 @@ func (m *Form) Init() tea.Cmd {
 func (m Form) View() string {
 	var (
 		sections    []string
-		availHeight = m.Frame.Height()
+		availHeight = m.height
 		field       string
 	)
 
 	if m.confirm {
 		//info := m.Info.View()
-		info := m.Confirm.View()
+		//info := m.Confirm.View()
 		//availHeight -= m.Info.Model.Height
-		sections = append(sections, info)
+		//sections = append(sections, info)
 	} else {
 		if m.Input.Focused() {
 			iHeight := availHeight / 3
@@ -144,7 +184,7 @@ func (m Form) View() string {
 		}
 
 		//m.Frame.SetSize(m.Frame.Width(), availHeight)
-		m.Model.SetSize(m.Frame.Width(), availHeight)
+		m.Model.SetSize(m.width, availHeight)
 		content := m.Model.View()
 		sections = append(sections, content)
 

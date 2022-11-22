@@ -2,7 +2,7 @@ package form
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type SaveFormFunc func(m *List) tea.Cmd
+type SaveFormFunc func(m *Form) tea.Cmd
 
 type SaveForm func(m *Form) tea.Cmd
 
@@ -33,21 +33,10 @@ func ExitFormCmd() tea.Cmd {
 
 type SaveFormAsHashMsg struct{}
 
-func SaveFormAsHashCmd(m *List) tea.Cmd {
-	fn := func() tea.Msg {
-		m.Hash = make(map[string]string)
-		for _, item := range m.Items.Flat() {
-			m.Hash[item.Key()] = item.Value()
-		}
-		return SaveFormAsHashMsg{}
-	}
-	return fn
-}
-
 func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
-		for _, item := range m.Items.Flat() {
+		for _, item := range m.Fields.Data {
 			m.Hash[item.Key()] = item.Value()
 		}
 		return SaveFormAsHashMsg{}
@@ -57,17 +46,17 @@ func SaveFormAsHash(m *Form) tea.Cmd {
 
 type EditFormItemMsg struct {
 	Data FieldData
-	*Item
+	*Field
 }
 
-func EditFormItemCmd(item *Item) tea.Cmd {
+func EditFormItemCmd(item *Field) tea.Cmd {
 	return func() tea.Msg {
-		return EditFormItemMsg{Data: item.Data, Item: item}
+		return EditFormItemMsg{Data: item.Data, Field: item}
 	}
 }
 
 type FormChangedMsg struct {
-	*Item
+	*Field
 }
 
 func FormChangedCmd() tea.Cmd {
@@ -89,5 +78,13 @@ type ConfirmFormSaveMsg struct{}
 func ConfirmFormSaveCmd() tea.Cmd {
 	return func() tea.Msg {
 		return ConfirmFormSaveMsg{}
+	}
+}
+
+type SetItemMsg struct{ *Field }
+
+func SetItemCmd(item *Field) tea.Cmd {
+	return func() tea.Msg {
+		return SetItemMsg{Field: item}
 	}
 }
