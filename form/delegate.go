@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/keybind"
+	"github.com/ohzqq/teacozy/style"
 )
 
 func itemDelegate() list.DefaultDelegate {
@@ -29,6 +30,7 @@ func itemDelegate() list.DefaultDelegate {
 	d.ShortHelpFunc = func() []key.Binding {
 		return help
 	}
+	d.Styles = style.NewDefaultItemStyles()
 
 	return d
 }

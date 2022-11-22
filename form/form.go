@@ -10,30 +10,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keybind"
-	"github.com/ohzqq/teacozy/util"
+	"github.com/ohzqq/teacozy/style"
 )
 
 type Form struct {
 	*Fields
-	Model  list.Model
-	Input  textarea.Model
-	view   viewport.Model
-	width  int
-	height int
-	Hash   map[string]string
-	//Info     *teacozy.Info
-	//Confirm  *teacozy.Menu
+	style.Frame
+	Model    list.Model
+	Input    textarea.Model
+	view     viewport.Model
+	Hash     map[string]string
 	Changed  bool
 	SaveForm SaveForm
 	confirm  bool
+	//Info     *teacozy.Info
+	//Confirm  *teacozy.Menu
 }
 
 func New() Form {
-	w, h := util.TermSize()
 	form := Form{
-		width:  w,
-		height: h,
 		Fields: NewFields(),
+		Frame:  style.DefaultFrameStyle(),
 	}
 
 	return form
@@ -52,11 +49,12 @@ func (m *Form) InitList() {
 	m.Model = list.New(
 		m.Fields.Items(),
 		itemDelegate(),
-		m.width,
-		m.height,
+		m.Width(),
+		m.Height(),
 	)
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
+	m.Model.Styles = style.ListStyles()
 }
 
 func (m *Form) Start() {
@@ -119,9 +117,9 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	//case UpdateStatusMsg:
 	//cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
-		m.width = msg.Width - 1
-		m.height = msg.Height - 1
-		//m.Frame.SetSize(msg.Width-1, msg.Height-2)
+		//m.width = msg.Width - 1
+		//m.height = msg.Height - 1
+		m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 	case EditFormItemMsg:
 		cur := m.Model.SelectedItem().(*Field)
@@ -167,7 +165,7 @@ func (m *Form) Init() tea.Cmd {
 func (m Form) View() string {
 	var (
 		sections    []string
-		availHeight = m.height
+		availHeight = m.Height()
 		field       string
 	)
 
@@ -185,7 +183,7 @@ func (m Form) View() string {
 		}
 
 		//m.Frame.SetSize(m.Frame.Width(), availHeight)
-		m.Model.SetSize(m.width, availHeight)
+		m.Model.SetSize(m.Width(), availHeight)
 		content := m.Model.View()
 		sections = append(sections, content)
 
