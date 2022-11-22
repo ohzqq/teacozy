@@ -80,7 +80,9 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					//field.Set(val)
 					//item := NewItem().SetData(field)
 					cur.Set(val)
-					cmds = append(cmds, ItemChangedCmd(cur))
+					m.Changed = true
+					//cmds = append(cmds, m.ItemChangedCmd(cur))
+					cmds = append(cmds, cur.ChangedCmd())
 				}
 				m.Input.Blur()
 			}
@@ -122,10 +124,8 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
-	case ItemChangedMsg:
+	case SetItemMsg:
 		idx := m.Model.Index()
-		msg.Item.Changed = true
-		m.Changed = true
 		m.Model.SetItem(idx, msg.Item)
 	case SetItemsMsg:
 		m.Model.SetItems(msg.Items)
@@ -147,6 +147,14 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+func (m *Form) ItemChangedCmd(item *Item) tea.Cmd {
+	return func() tea.Msg {
+		item.Changed()
+		m.Changed = true
+		return SetItemMsg{Item: item}
+	}
 }
 
 func (m *Form) Init() tea.Cmd {

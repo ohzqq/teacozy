@@ -291,6 +291,14 @@ func SortItemsCmd(items []*Item) tea.Cmd {
 	}
 }
 
+type SetItemMsg struct{ *Item }
+
+func SetItemCmd(item *Item) tea.Cmd {
+	return func() tea.Msg {
+		return SetItemMsg{Item: item}
+	}
+}
+
 type SetItemsMsg struct{ Items []list.Item }
 
 func SetItemsCmd(items []list.Item) tea.Cmd {

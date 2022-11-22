@@ -2,6 +2,7 @@ package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Item struct {
@@ -14,7 +15,7 @@ type Item struct {
 	Level        int
 	Parent       *Item
 	Children     Items
-	Changed      bool
+	changed      bool
 	key          string
 	value        string
 	hasFields    bool
@@ -122,8 +123,19 @@ func (i Item) Keys() []string {
 }
 
 func (i *Item) Set(content string) {
-	//i.Data.Set(content)
 	i.value = content
+}
+
+func (i *Item) Changed() *Item {
+	i.changed = true
+	return i
+}
+
+func (i *Item) ChangedCmd() tea.Cmd {
+	return func() tea.Msg {
+		i.Changed()
+		return ItemChangedMsg{Item: i}
+	}
 }
 
 func (i *Item) Save() {
@@ -133,7 +145,7 @@ func (i *Item) Save() {
 }
 
 func (i *Item) Undo() {
-	i.Changed = false
+	i.changed = false
 	i.value = i.Data.Value()
 }
 

@@ -342,7 +342,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 		content = fmt.Sprintf("%s: %s", key, content)
 	}
 
-	if curItem.Changed {
+	if curItem.changed {
 		content = "*" + content
 	}
 
