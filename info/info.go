@@ -19,12 +19,13 @@ type Info struct {
 	content   []string
 	Frame     style.Frame
 	Data      teacozy.FormData
-	//Style     FieldStyle
+	Style     style.Field
 }
 
 func New(data teacozy.FormData) *Info {
 	return &Info{
-		Data: data,
+		Data:  data,
+		Style: style.DefaultFieldStyles(),
 	}
 }
 
@@ -35,13 +36,11 @@ func (i Info) RenderData() string {
 
 		var line []string
 		if !i.HideKeys {
-			k := fd.Key()
-			//k := i.Style.Key.Render(field.Key())
+			k := i.Style.Key.Render(fd.Key())
 			line = append(line, k, ": ")
 		}
 
-		//v := i.Style.Value.Render(field.Value())
-		v := fd.Value()
+		v := i.Style.Value.Render(fd.Value())
 		line = append(line, v)
 
 		l := strings.Join(line, "")
