@@ -53,6 +53,23 @@ func (i *Fields) Items() []list.Item {
 	return li
 }
 
+func (f Fields) Get(key string) teacozy.FieldData {
+	for _, field := range f.Data {
+		if field.Key() == key {
+			return field
+		}
+	}
+	return nil
+}
+
+func (f Fields) Keys() []string {
+	var keys []string
+	for _, field := range f.Data {
+		keys = append(keys, field.Key())
+	}
+	return keys
+}
+
 type Field struct {
 	key     string
 	value   string
