@@ -56,6 +56,7 @@ func (m *Form) InitList() {
 		m.height,
 	)
 	m.Model.SetShowStatusBar(false)
+	m.Model.SetShowHelp(false)
 }
 
 func (m *Form) Start() {
