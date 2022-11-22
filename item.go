@@ -15,6 +15,8 @@ type Item struct {
 	Parent       *Item
 	Children     Items
 	Changed      bool
+	key          string
+	value        string
 	hasFields    bool
 	Fields       *Fields
 	Data         FieldData
@@ -50,6 +52,8 @@ func (i *Item) SetMultiSelect() *Item {
 }
 
 func (i *Item) SetData(data FieldData) *Item {
+	i.key = data.Key()
+	i.value = data.Value()
 	i.Data = data
 	i.Fields = NewFields().Add(data)
 	return i
@@ -59,11 +63,13 @@ func (i *Item) SetKey(key string) *Item {
 	if field, ok := i.Data.(*Field); ok {
 		field.key = key
 	}
+	i.key = key
 	return i
 }
 
 func (i *Item) SetValue(val string) *Item {
 	i.Data.Set(val)
+	i.value = val
 	return i
 }
 

@@ -10,28 +10,42 @@ import (
 type Form struct {
 	Frame
 	*Items
-	Model     list.Model
-	Input     textarea.Model
-	Info      *Info
-	Fields    *Fields
-	Confirm   *Menu
-	Title     string
-	Changed   bool
-	OldFields *Fields
-	confirm   bool
-	SaveForm  SaveForm
-	Hash      map[string]string
-	Style     list.Styles
+	Model    list.Model
+	Input    textarea.Model
+	Info     *Info
+	Fields   *Fields
+	Confirm  *Menu
+	Title    string
+	Changed  bool
+	confirm  bool
+	SaveForm SaveForm
+	Hash     map[string]string
+	Style    list.Styles
+}
+
+func NewForms(items *Items) *Form {
+	m := Form{
+		SaveForm: SaveFormAsHash,
+		Frame:    DefaultFrameStyle(),
+		Items:    items,
+		Confirm:  ConfirmMenu(),
+	}
+	m.Frame.MinHeight = 10
+
+	//m.Confirm.AddContent(m.Fields.String())
+
+	m.Model = NewListModel(m.Frame.Width(), m.Frame.Height(), m.Items)
+
+	return &m
 }
 
 func NewForm(fields *Fields) *Form {
 	m := Form{
-		SaveForm:  SaveFormAsHash,
-		Frame:     DefaultFrameStyle(),
-		Items:     NewItems().SetShowKeys(),
-		Fields:    fields,
-		OldFields: NewFields().SetData(fields),
-		Confirm:   ConfirmMenu(),
+		SaveForm: SaveFormAsHash,
+		Frame:    DefaultFrameStyle(),
+		Items:    NewItems().SetShowKeys(),
+		Fields:   fields,
+		Confirm:  ConfirmMenu(),
 	}
 	m.Frame.MinHeight = 10
 

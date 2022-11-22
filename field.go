@@ -20,15 +20,17 @@ type FieldData interface {
 
 type Fields struct {
 	Model     viewport.Model
-	hideKeys  bool
 	IsVisible bool
+	hideKeys  bool
 	Style     FieldStyle
 	Data      []FieldData
+	data      *Items
 }
 
 func NewFields() *Fields {
 	return &Fields{
 		Style: fieldStyle,
+		data:  NewItems(),
 	}
 }
 
@@ -39,8 +41,10 @@ func DisplayFields(fields *Fields, w, h int) *Info {
 }
 
 func (f *Fields) NewField(key, val string) *Fields {
-	item := NewField(key, val)
-	f.Data = append(f.Data, item)
+	field := NewField(key, val)
+	f.Data = append(f.Data, field)
+	item := NewItem().SetKey(key).SetValue(val)
+	f.data.Add(item)
 	return f
 }
 
@@ -53,9 +57,16 @@ func (f Fields) HasData() bool {
 	return len(f.Data) > 0
 }
 
+func (f Fields) Items() *Items {
+	return f.data
+}
+
 func (f *Fields) SetData(data FormData) *Fields {
 	for _, key := range data.Keys() {
-		f.Data = append(f.Data, data.Get(key))
+		fd := data.Get(key)
+		f.Data = append(f.Data, fd)
+		item := NewItem().SetData(fd)
+		f.data.Add(item)
 	}
 	return f
 }
@@ -117,8 +128,10 @@ func (i Fields) String() string {
 }
 
 type Field struct {
-	key   string
-	value string
+	hideKeys bool
+	Style    FieldStyle
+	key      string
+	value    string
 }
 
 func NewField(key, val string) *Field {
