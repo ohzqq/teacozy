@@ -43,7 +43,7 @@ func DisplayFields(fields *Fields, w, h int) *Info {
 func (f *Fields) NewField(key, val string) *Fields {
 	field := NewField(key, val)
 	f.Data = append(f.Data, field)
-	item := NewItem().SetKey(key).SetValue(val)
+	item := NewItem().SetData(field)
 	f.data.Add(item)
 	return f
 }

@@ -74,12 +74,13 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.Input.Focused() {
 			if Keys.SaveAndExit.Matches(msg) {
 				cur := m.Model.SelectedItem().(*Item)
-				field := cur.Data
+				//field := cur.Data
 				val := m.Input.Value()
-				if original := field.Value(); original != val {
-					field.Set(val)
-					item := NewItem().SetData(field)
-					cmds = append(cmds, ItemChangedCmd(item))
+				if original := cur.Value(); original != val {
+					//field.Set(val)
+					//item := NewItem().SetData(field)
+					cur.Set(val)
+					cmds = append(cmds, ItemChangedCmd(cur))
 				}
 				m.Input.Blur()
 			}
@@ -132,12 +133,13 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.confirm = false
 	case ConfirmMenuMsg:
 		if msg == true {
+			m.SaveChanges()
 			cmds = append(cmds, SaveFormCmd(m.SaveForm))
 		} else {
+			m.UndoChanges()
 			m.Changed = false
 			cmds = append(cmds, ExitFormCmd())
 		}
-
 	case SaveAndExitFormMsg:
 		cmds = append(cmds, msg.Save(m))
 		cmds = append(cmds, FormChangedCmd())

@@ -87,6 +87,20 @@ func (i Items) All() []*Item {
 	return i.items
 }
 
+func (i *Items) SaveChanges() *Items {
+	for _, item := range i.All() {
+		item.Save()
+	}
+	return i
+}
+
+func (i *Items) UndoChanges() *Items {
+	for _, item := range i.All() {
+		item.Undo()
+	}
+	return i
+}
+
 func (i *Items) AllItems() []list.Item {
 	var li []list.Item
 	for _, item := range i.flat {

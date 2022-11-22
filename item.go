@@ -67,12 +67,6 @@ func (i *Item) SetKey(key string) *Item {
 	return i
 }
 
-func (i *Item) SetValue(val string) *Item {
-	i.Data.Set(val)
-	i.value = val
-	return i
-}
-
 func (i Item) ListDepth() int {
 	depth := 0
 	if i.HasChildren() {
@@ -127,20 +121,33 @@ func (i Item) Keys() []string {
 	return i.Fields.Keys()
 }
 
-func (i Item) Value() string {
-	return i.Data.Value()
+func (i *Item) Set(content string) {
+	//i.Data.Set(content)
+	i.value = content
 }
 
-func (i *Item) Set(content string) {
-	i.Data.Set(content)
+func (i *Item) Save() {
+	if i.value != i.Data.Value() {
+		i.Data.Set(i.value)
+	}
+}
+
+func (i *Item) Undo() {
+	i.Changed = false
+	i.value = i.Data.Value()
+}
+
+func (i Item) Value() string {
+	//return i.Data.Value()
+	return i.value
 }
 
 func (i Item) FilterValue() string {
-	return i.Data.Value()
+	return i.value
 }
 
 func (i Item) Key() string {
-	return i.Data.Key()
+	return i.key
 }
 
 func (i Item) String() string {
