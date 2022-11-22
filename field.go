@@ -24,6 +24,7 @@ type Fields struct {
 	hideKeys  bool
 	Style     FieldStyle
 	Data      []FieldData
+	fields    []*Field
 	data      *Items
 }
 
@@ -62,11 +63,14 @@ func (f Fields) Items() *Items {
 }
 
 func (f *Fields) SetData(data FormData) *Fields {
-	for _, key := range data.Keys() {
+	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
 		item := NewItem().SetData(fd)
 		f.data.Add(item)
+		field := NewField(fd.Key(), fd.Value())
+		field.idx = i
+		f.fields = append(f.fields, field)
 	}
 	return f
 }
@@ -130,8 +134,10 @@ func (i Fields) String() string {
 type Field struct {
 	hideKeys bool
 	Style    FieldStyle
+	idx      int
 	key      string
 	value    string
+	changed  bool
 }
 
 func NewField(key, val string) *Field {
