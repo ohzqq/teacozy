@@ -1,4 +1,4 @@
-package key
+package keymap
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -147,23 +147,64 @@ var Keys = KeyMap{
 }
 
 var (
-	DeselectAll = NewKey("V", "deselect all items")
-	EditField   = NewKey("e", "edit meta")
-	Enter       = NewKey("enter", "select item")
-	ExitScreen  = NewKey("q", "exit screen")
-	FullScreen  = NewKey("f", "full screen")
-	HelpKey     = NewKey("?", "help")
-	InfoKey     = NewKey("i", "view item meta")
-	MenuKey     = NewKey("m", "menu")
-	PrevScreen  = NewKey("p", "prev screen")
-	Quit        = Key{
-		Binding: key.NewBinding(
-			key.WithKeys("ctrl+c", "esc", "Q"),
-			key.WithHelp("ctrl+c/esc", "quit"),
-		)}
-	SaveAndExit    = NewKey("ctrl+w", "save and exit")
-	ToggleAllItems = NewKey("v", "select all")
-	SortList       = NewKey("o", "sort")
-	ToggleItem     = NewKey("space", "toggle")
-	ToggleItemList = NewKey("x", "toggle item list")
+	DeselectAll = key.NewBinding(
+		key.WithKeys("V"),
+		key.WithHelp("V", "deselect all items"),
+	)
+	EditField = key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit meta"),
+	)
+	Enter = key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "select item"),
+	)
+	ExitScreen = key.NewBinding(
+		key.WithKeys("q"),
+		key.WithHelp("q", "exit screen"),
+	)
+	FullScreen = key.NewBinding(
+		key.WithKeys("f"),
+		key.WithHelp("f", "full screen"),
+	)
+	HelpKey = key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "help"),
+	)
+	InfoKey = key.NewBinding(
+		key.WithKeys("i"),
+		key.WithHelp("i", "view item meta"),
+	)
+	MenuKey = key.NewBinding(
+		key.WithKeys("m"),
+		key.WithHelp("m", "menu"),
+	)
+	PrevScreen = key.NewBinding(
+		key.WithKeys("p"),
+		key.WithHelp("p", "prev screen"),
+	)
+	Quit = key.NewBinding(
+		key.WithKeys("ctrl+c", "esc", "Q"),
+		key.WithHelp("ctrl+c/esc", "quit"),
+	)
+	SaveAndExit = key.NewBinding(
+		key.WithKeys("ctrl+w"),
+		key.WithHelp("ctrl+w", "save and exit"),
+	)
+	ToggleAllItems = key.NewBinding(
+		key.WithKeys("v"),
+		key.WithHelp("v", "select all"),
+	)
+	SortList = key.NewBinding(
+		key.WithKeys("o"),
+		key.WithHelp("o", "sort"),
+	)
+	ToggleItem = key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("space", "toggle"),
+	)
+	ToggleItemList = key.NewBinding(
+		key.WithKeys("x"),
+		key.WithHelp("x", "toggle item list"),
+	)
 )
