@@ -12,8 +12,15 @@ import (
 )
 
 type Info struct {
-	teacozy.Info
-	Style Style
+	Model    viewport.Model
+	HideKeys bool
+	Visible  bool
+	Editable bool
+	Content  []string
+	Title    string
+	Data     teacozy.FormData
+	Frame    style.Frame
+	Style    Style
 }
 
 type Style struct {
@@ -27,9 +34,7 @@ func New(data teacozy.FormData) *Info {
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
 	}
 	return &Info{
-		Info: teacozy.Info{
-			Data: data,
-		},
+		Data:  data,
 		Style: s,
 	}
 }
@@ -83,7 +88,7 @@ func (i *Info) SetSize(w, h int) *Info {
 }
 
 func (i *Info) SetContent(content string) *Info {
-	i.Content = append(i.Content, content)
+	i.Content = []string{content}
 	return i
 }
 

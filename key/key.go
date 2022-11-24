@@ -11,10 +11,6 @@ type Key struct {
 	//Cmd MenuFunc
 }
 
-type KeyMap struct {
-	teacozy.KeyMap
-}
-
 func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
 	return key.Matches(msg, bind...)
 }
@@ -35,6 +31,14 @@ func NewBinding(k, help string) key.Binding {
 		key.WithKeys(k),
 		key.WithHelp(k, help),
 	)
+}
+
+func (k Key) Binding() key.Binding {
+	return k.key.Binding
+}
+
+func (k Key) Cmd() teacozy.MenuFunc {
+	return k.key.Cmd
 }
 
 func (k *Key) SetCmd(cmd teacozy.MenuFunc) *Key {
@@ -60,68 +64,39 @@ func (i Key) String() string {
 	return i.key.Binding.Help().Key + ": " + i.key.Binding.Help().Desc
 }
 
+type KeyMap map[string]*Key
+
+func NewKeyMap() KeyMap {
+	m := make(KeyMap)
+	return m
+}
+
+func (k KeyMap) New(key, help string) {
+	bind := NewKey(key, help)
+	k[key] = bind
+}
+
+func (k KeyMap) Add(key *Key) {
+	k[key.Key()] = key
+}
+
 func (k KeyMap) FullHelp() *teacozy.Info {
 	return teacozy.NewInfo().SetData(k)
 }
 
 func (k KeyMap) Get(name string) teacozy.FieldData {
-	var key teacozy.Key
-	switch name {
-	case "Deselect All Items":
-		key = k.DeselectAll
-	case "Edit Field":
-		key = k.EditField
-	case "Enter":
-		key = k.Enter
-	case "Exit Screen":
-		key = k.ExitScreen
-	case "Full Screen":
-		key = k.FullScreen
-	case "Help":
-		key = k.Help
-	case "Item Meta":
-		key = k.Info
-	case "Main Menu":
-		key = k.Menu
-	case "Prev Screen":
-		key = k.PrevScreen
-	case "Quit":
-		key = k.Quit
-	case "Save And Exit":
-		key = k.SaveAndExit
-	case "Select All":
-		key = k.ToggleAllItems
-	case "Sort List":
-		key = k.SortList
-	case "Toggle Item":
-		key = k.ToggleItem
-	case "Toggle Item List":
-		key = k.ToggleItemList
-	}
-	return key
+	return k[name]
 }
 
 func (k KeyMap) Keys() []string {
-	return []string{
-		"Toggle Item",
-		"Quit",
-		"Save And Exit",
-		"Edit Field",
-		"Enter",
-		"Full Screen",
-		"Item Meta",
-		"Main Menu",
-		"Sort List",
-		"Prev Screen",
-		"Exit Screen",
-		"Deselect All Items",
-		"Toggle All Items",
-		"Toggle Item List",
-		"Help",
+	var keys []string
+	for name, _ := range k {
+		keys = append(keys, name)
 	}
+	return keys
 }
 
-var Map = teacozy.KeyMap{
+var Map = teacozy.KeysMap{
 	DeselectAll:    teacozy.Key{Binding: DeselectAll},
 	EditField:      teacozy.Key{Binding: EditField},
 	Enter:          teacozy.Key{Binding: Enter},

@@ -42,6 +42,8 @@ func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
 }
 
 // menu commands
+type CmdFunc func(m tea.Model) tea.Cmd
+
 type MenuFunc func(m tea.Model) tea.Cmd
 
 type UpdateMenuContentMsg string
