@@ -34,3 +34,8 @@ func itemDelegate() list.DefaultDelegate {
 
 	return d
 }
+
+var (
+	Yes = keybind.NewBinding("y", "yes")
+	No  = keybind.NewBinding("n", "no")
+)

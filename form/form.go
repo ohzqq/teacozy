@@ -56,8 +56,6 @@ func (m *Form) InitModel() {
 	m.Model.Styles = style.ListStyles()
 
 	m.Info = info.New(m.Fields)
-	m.confirm = true
-	m.Info.Show()
 }
 
 func (m *Form) Start() {
@@ -96,18 +94,32 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case m.confirm:
 				switch {
+				case key.Matches(msg, key.SaveAndExit):
+					m.Info.SetTitle(`save and exit? y\n`)
+					m.Info.Show()
+					m.confirm = true
+				case key.Matches(msg, Yes):
+					m.Info.SetTitle("")
+					m.SaveChanges()
+					m.Info.Hide()
+					m.confirm = false
+				case key.Matches(msg, No):
+					m.UndoChanges()
+					m.Info.SetTitle("")
+					m.Info.Hide()
+					m.confirm = false
+				case key.Matches(msg, key.EditField):
+					m.confirm = false
 				case key.Matches(msg, key.ToggleAllItems):
 					m.confirm = !m.confirm
 					m.Info.Toggle()
 				case key.Matches(msg, key.PrevScreen):
 					m.Info.Hide()
-					//cmds = append(cmds, HideMenuCmd())
+					m.confirm = false
 				}
 				var mod tea.Model
 				mod, cmd = m.Info.Update(msg)
 				m.Info = mod.(*info.Info)
-				//m.Confirm = mod.(*Menu)
-				//m.Info, cmd = m.Info.Update(msg)
 				cmds = append(cmds, cmd)
 			default:
 				switch {
@@ -141,11 +153,9 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
-	case SetItemMsg:
+	case teacozy.SetListItemMsg:
 		idx := m.Model.Index()
-		m.Model.SetItem(idx, msg.Field)
-	//case HideMenuMsg:
-	//  m.confirm = false
+		m.Model.SetItem(idx, msg.Item)
 	//case ConfirmMenuMsg:
 	//  if msg == true {
 	//    m.SaveChanges()
@@ -168,7 +178,7 @@ func (m *Form) FieldChanged(item *Field) tea.Cmd {
 	return func() tea.Msg {
 		item.Changed()
 		m.Changed = true
-		return SetItemMsg{Field: item}
+		return teacozy.SetListItemMsg{Item: item}
 	}
 }
 

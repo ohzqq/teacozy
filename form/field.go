@@ -93,7 +93,6 @@ func (i *Field) SetData(data teacozy.FieldData) {
 
 func (i *Field) SetKey(key string) {
 	if field, ok := i.Data.(*Field); ok {
-		//field.SetKey(key)
 		field.key = key
 	}
 	i.key = key
@@ -102,10 +101,8 @@ func (i *Field) SetKey(key string) {
 func (i *Field) SetValue(val string) {
 	if field, ok := i.Data.(*Field); ok {
 		field.Set(val)
-		//field.value = val
 	}
 	i.value = val
-	//i.Set(val)
 }
 
 func (i *Field) Changed() {
