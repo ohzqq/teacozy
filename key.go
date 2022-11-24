@@ -7,13 +7,13 @@ import (
 )
 
 type Key struct {
-	Bind key.Binding
-	Cmd  MenuFunc
+	key.Binding
+	Cmd MenuFunc
 }
 
 func NewKey(k, h string) *Key {
 	return &Key{
-		Bind: key.NewBinding(
+		Binding: key.NewBinding(
 			key.WithKeys(k),
 			key.WithHelp(k, h),
 		),
@@ -26,21 +26,21 @@ func (k *Key) SetCmd(cmd MenuFunc) *Key {
 }
 
 func (k Key) Matches(msg tea.KeyMsg) bool {
-	return key.Matches(msg, k.Bind)
+	return key.Matches(msg, k.Binding)
 }
 
 func (i Key) Key() string {
-	return i.Bind.Help().Key
+	return i.Binding.Help().Key
 }
 
 func (i Key) Value() string {
-	return i.Bind.Help().Desc
+	return i.Binding.Help().Desc
 }
 
 func (i Key) Set(v string) {}
 
 func (i Key) String() string {
-	return i.Bind.Help().Key + ": " + i.Bind.Help().Desc
+	return i.Binding.Help().Key + ": " + i.Binding.Help().Desc
 }
 
 func NewKeyBind(k, help string) key.Binding {
@@ -143,21 +143,21 @@ func (k keys) Keys() []string {
 }
 
 var Keys = keys{
-	DeselectAll:    Key{Bind: DeselectAll},
-	EditField:      Key{Bind: EditField},
-	Enter:          Key{Bind: Enter},
-	ExitScreen:     Key{Bind: ExitScreen},
-	FullScreen:     Key{Bind: FullScreen},
-	Help:           Key{Bind: HelpKey},
-	Info:           Key{Bind: InfoKey},
-	Menu:           Key{Bind: MenuKey},
-	PrevScreen:     Key{Bind: PrevScreen},
-	Quit:           Key{Bind: Quit},
-	SaveAndExit:    Key{Bind: SaveAndExit},
-	ToggleAllItems: Key{Bind: ToggleAllItems},
-	SortList:       Key{Bind: SortList},
-	ToggleItem:     Key{Bind: ToggleItem},
-	ToggleItemList: Key{Bind: ToggleItemList},
+	DeselectAll:    Key{Binding: DeselectAll},
+	EditField:      Key{Binding: EditField},
+	Enter:          Key{Binding: Enter},
+	ExitScreen:     Key{Binding: ExitScreen},
+	FullScreen:     Key{Binding: FullScreen},
+	Help:           Key{Binding: HelpKey},
+	Info:           Key{Binding: InfoKey},
+	Menu:           Key{Binding: MenuKey},
+	PrevScreen:     Key{Binding: PrevScreen},
+	Quit:           Key{Binding: Quit},
+	SaveAndExit:    Key{Binding: SaveAndExit},
+	ToggleAllItems: Key{Binding: ToggleAllItems},
+	SortList:       Key{Binding: SortList},
+	ToggleItem:     Key{Binding: ToggleItem},
+	ToggleItemList: Key{Binding: ToggleItemList},
 }
 
 var (
