@@ -9,16 +9,16 @@ import (
 )
 
 type Info struct {
-	Model     viewport.Model
-	HideKeys  bool
-	IsVisible bool
-	Editable  bool
-	id        int
-	content   []string
-	Style     FieldStyle
-	Frame     Frame
-	Data      FormData
-	Fields    *Fields
+	Model    viewport.Model
+	HideKeys bool
+	Visible  bool
+	Editable bool
+	Content  []string
+	Title    string
+	Style    FieldStyle
+	Frame    Frame
+	Data     FormData
+	Fields   *Fields
 }
 
 func NewInfo() *Info {
@@ -58,12 +58,12 @@ func (i *Info) SetSize(w, h int) *Info {
 }
 
 func (i *Info) SetContent(content string) *Info {
-	i.content = append(i.content, content)
+	i.Content = append(i.Content, content)
 	return i
 }
 
 func (i *Info) AddContent(content ...string) *Info {
-	i.content = append(i.content, content...)
+	i.Content = append(i.Content, content...)
 	return i
 }
 
@@ -105,7 +105,7 @@ func (m *Info) Init() tea.Cmd {
 
 func (m *Info) View() string {
 	content := m.Fields.String()
-	if c := m.content; len(m.content) > 0 {
+	if c := m.Content; len(m.Content) > 0 {
 		content = strings.Join(c, "\n")
 	}
 	m.Model.SetContent(content)

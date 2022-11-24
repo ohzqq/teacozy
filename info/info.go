@@ -12,15 +12,8 @@ import (
 )
 
 type Info struct {
-	Model    viewport.Model
-	HideKeys bool
-	visible  bool
-	Editable bool
-	content  []string
-	title    string
-	Frame    style.Frame
-	Data     teacozy.FormData
-	Style    Style
+	teacozy.Info
+	Style Style
 }
 
 type Style struct {
@@ -34,7 +27,9 @@ func New(data teacozy.FormData) *Info {
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
 	}
 	return &Info{
-		Data:  data,
+		Info: teacozy.Info{
+			Data: data,
+		},
 		Style: s,
 	}
 }
@@ -45,15 +40,15 @@ func (i *Info) SetData(data teacozy.FormData) *Info {
 }
 
 func (i *Info) SetTitle(title string) *Info {
-	i.title = title
+	i.Title = title
 	return i
 }
 
 func (i Info) RenderData() string {
 	var info []string
 
-	if i.title != "" {
-		t := i.Style.Title.Render(i.title)
+	if i.Title != "" {
+		t := i.Style.Title.Render(i.Title)
 		info = append(info, t)
 	}
 
@@ -88,29 +83,25 @@ func (i *Info) SetSize(w, h int) *Info {
 }
 
 func (i *Info) SetContent(content string) *Info {
-	i.content = append(i.content, content)
+	i.Content = append(i.Content, content)
 	return i
 }
 
 func (i *Info) AddContent(content ...string) *Info {
-	i.content = append(i.content, content...)
+	i.Content = append(i.Content, content...)
 	return i
 }
 
 func (i *Info) Show() {
-	i.visible = true
+	i.Visible = true
 }
 
 func (i *Info) Hide() {
-	i.visible = false
+	i.Visible = false
 }
 
 func (i *Info) Toggle() {
-	i.visible = !i.visible
-}
-
-func (i Info) Visible() bool {
-	return i.visible
+	i.Visible = !i.Visible
 }
 
 //func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
@@ -157,9 +148,9 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	if m.Visible() {
+	if m.Visible {
 		content := m.RenderData()
-		if c := m.content; len(m.content) > 0 {
+		if c := m.Content; len(m.Content) > 0 {
 			content = strings.Join(c, "\n")
 		}
 		m.Model.SetContent(content)
