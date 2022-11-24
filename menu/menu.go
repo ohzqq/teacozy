@@ -2,7 +2,6 @@ package menu
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 )
@@ -24,14 +23,8 @@ func (m Menus) Del(key string) {
 
 type Menu struct {
 	*info.Info
-	Toggle    *key.Key
-	Label     string
-	content   string
-	show      bool
-	style     lipgloss.Style
-	IsFocused bool
-	KeyMap    key.KeyMap
-	Items     []*key.Key
+	Toggle *key.Key
+	KeyMap key.KeyMap
 }
 
 func New(toggle, help string, keymap key.KeyMap) *Menu {
@@ -40,6 +33,7 @@ func New(toggle, help string, keymap key.KeyMap) *Menu {
 	}
 	m.SetToggle(toggle, help)
 	m.Info = info.New(keymap)
+	m.Show()
 	return &m
 }
 
@@ -65,16 +59,7 @@ func (m *Menu) AddKey(key *key.Key) *Menu {
 	return m
 }
 
-func (m *Menu) SetLabel(l string) *Menu {
-	m.Label = l
-	return m
-}
-
 func (m *Menu) SetToggle(toggle, help string) *Menu {
-	//m.Toggle = key.NewBinding(
-	//  key.WithKeys(toggle),
-	//  key.WithHelp(toggle, help),
-	//)
 	m.Toggle = key.NewKey(toggle, help)
 	return m
 }
@@ -84,30 +69,33 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case m.Toggle.Matches(msg):
-			m.show = false
-			cmds = append(cmds, HideMenuCmd())
+			m.Info.Toggle()
 		default:
 			for _, item := range m.KeyMap.All() {
 				if key.Matches(msg, item.Binding()) {
-					m.show = false
+					m.Hide()
 					cmds = append(cmds, item.Cmd()(m))
 					cmds = append(cmds, HideMenuCmd())
 				}
 			}
-			m.show = false
+			m.Hide()
 			cmds = append(cmds, HideMenuCmd())
 		}
 	case UpdateMenuContentMsg:
 		m.Info.SetContent(string(msg))
 	}
+
 	var i tea.Model
 	i, cmd = m.Info.Update(msg)
-	m.Info = i.(*info.Info)
 	cmds = append(cmds, cmd)
+
+	m.Info = i.(*info.Info)
+
 	return m, tea.Batch(cmds...)
 }
 
