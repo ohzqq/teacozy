@@ -33,7 +33,6 @@ func New(toggle, help string, keymap key.KeyMap) *Menu {
 	}
 	m.SetToggle(toggle, help)
 	m.Info = info.New(keymap)
-	m.Show()
 	return &m
 }
 
