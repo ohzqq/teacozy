@@ -285,7 +285,7 @@ func (m *TUI) UpdateMenu(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		default:
 			for _, item := range m.CurrentMenu.Items {
-				if key.Matches(msg, item.Bind) {
+				if key.Matches(msg, item.Binding) {
 					m.HideMenu()
 					cmds = append(cmds, item.Cmd(m))
 				}

@@ -22,7 +22,7 @@ func NewHelp(keys ...Key) Help {
 func (h Help) ShortHelp() []key.Binding {
 	var keys []key.Binding
 	for _, key := range h.keys {
-		keys = append(keys, key.Bind)
+		keys = append(keys, key.Binding)
 	}
 	return keys
 }

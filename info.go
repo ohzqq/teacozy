@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/keybind"
 )
 
 type Info struct {
@@ -80,13 +79,13 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, keybind.HelpKey):
+		case key.Matches(msg, HelpKey):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, keybind.ExitScreen):
+		case key.Matches(msg, ExitScreen):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, keybind.PrevScreen):
+		case key.Matches(msg, PrevScreen):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, keybind.SaveAndExit):
+		case key.Matches(msg, SaveAndExit):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd(m.Fields))
 			}

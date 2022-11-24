@@ -3,12 +3,11 @@ package info
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/keybind"
+	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -127,17 +126,17 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, keybind.EditField):
+		case key.Matches(msg, key.EditField):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd())
 			}
-		case key.Matches(msg, keybind.InfoKey):
+		case key.Matches(msg, key.InfoKey):
 			m.Toggle()
-		case key.Matches(msg, keybind.HelpKey):
+		case key.Matches(msg, key.HelpKey):
 			fallthrough
-		case key.Matches(msg, keybind.ExitScreen):
+		case key.Matches(msg, key.ExitScreen):
 			fallthrough
-		case key.Matches(msg, keybind.PrevScreen):
+		case key.Matches(msg, key.PrevScreen):
 			cmds = append(cmds, HideInfoCmd())
 		}
 	case tea.WindowSizeMsg:

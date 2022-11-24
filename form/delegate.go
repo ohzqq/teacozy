@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/keybind"
+	keybind "github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
