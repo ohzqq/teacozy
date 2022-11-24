@@ -1,33 +1,37 @@
 package teacozy
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Info struct {
-	Model     viewport.Model
-	HideKeys  bool
-	IsVisible bool
-	Editable  bool
-	id        int
-	Style     FieldStyle
-	Frame     Frame
-	Data      FormData
-	Fields    *Fields
+	Model    viewport.Model
+	HideKeys bool
+	Visible  bool
+	Editable bool
+	Content  []string
+	Title    string
+	Style    FieldStyle
+	Frame    Frame
+	Data     FormData
+	Fields   *Fields
 }
 
 func NewInfo() *Info {
 	info := Info{
 		Fields: NewFields(),
 		Frame:  DefaultWidgetStyle(),
+		Style:  fieldStyle,
 	}
 	info.Model = viewport.New(info.Frame.Width(), info.Frame.Height())
 	return &info
 }
 
-func NewForm() *Info {
+func NewInfoForm() *Info {
 	info := NewInfo()
 	info.Editable = true
 	return info
@@ -43,8 +47,23 @@ func (i *Info) SetData(data FormData) *Info {
 	return i
 }
 
+func (i *Info) SetHeight(h int) *Info {
+	i.Model = viewport.New(i.Frame.Width(), h)
+	return i
+}
+
 func (i *Info) SetSize(w, h int) *Info {
 	i.Model = viewport.New(w, h)
+	return i
+}
+
+func (i *Info) SetContent(content string) *Info {
+	i.Content = append(i.Content, content)
+	return i
+}
+
+func (i *Info) AddContent(content ...string) *Info {
+	i.Content = append(i.Content, content...)
 	return i
 }
 
@@ -60,9 +79,13 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, Keys.ExitScreen):
+		case key.Matches(msg, HelpKey):
 			cmds = append(cmds, HideInfoCmd())
-		case key.Matches(msg, Keys.EditField):
+		case key.Matches(msg, ExitScreen):
+			cmds = append(cmds, HideInfoCmd())
+		case key.Matches(msg, PrevScreen):
+			cmds = append(cmds, HideInfoCmd())
+		case key.Matches(msg, SaveAndExit):
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd(m.Fields))
 			}
@@ -81,6 +104,10 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	m.Model.SetContent(m.Fields.String())
+	content := m.Fields.String()
+	if c := m.Content; len(m.Content) > 0 {
+		content = strings.Join(c, "\n")
+	}
+	m.Model.SetContent(content)
 	return m.Model.View()
 }

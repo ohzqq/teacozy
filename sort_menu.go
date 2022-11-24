@@ -1,41 +1,50 @@
 package teacozy
 
 import (
+	"sort"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type DefaultMenus struct {
-	Menus Menus
-	*Menu
-}
-
-func DefaultTuiMenus() DefaultMenus {
-	menu := DefaultMenus{
-		Menus: make(Menus),
-		Menu:  DefaultMenu().SetToggle("?", "Menu").SetLabel("Menu"),
-	}
-	sort := SortListMenu()
-	menu.Menus.Set("sort list", sort)
-
-	fn := func(ui *TUI) tea.Cmd {
-		return UpdateStatusCmd("poot")
-	}
-	menu.NewKey("o", "sort list", fn)
-	menu.Menus.Set("default", menu.Menu)
-	return menu
-}
-
-func GoToMenuCmd(m *Menu) MenuFunc {
-	return func(ui *TUI) tea.Cmd {
-		return ChangeMenuCmd(m)
-	}
-}
-
 func SortListMenu() *Menu {
-	m := DefaultMenu().SetToggle("o", "sort list").SetLabel("sort list")
-	fn := func(ui *TUI) tea.Cmd {
-		return UpdateStatusCmd(m.Label)
-	}
-	m.NewKey("t", "test", fn)
+	m := DefaultMenu().SetToggle("o", "sort by").SetLabel("sort by")
+	m.NewKey("k", "key (asc)", SortListByKey("asc"))
+	m.NewKey("K", "key (desc)", SortListByKey("desc"))
+	m.NewKey("v", "value (asc)", SortListByValue("asc"))
+	m.NewKey("V", "value (desc)", SortListByValue("desc"))
 	return m
+}
+
+func SortListByValue(order string) MenuFunc {
+	return func(m tea.Model) tea.Cmd {
+		ui := m.(*TUI)
+		main := ui.Main.(*List)
+		items := main.Items.All()
+		sort.SliceStable(items,
+			func(i, j int) bool {
+				if order == "asc" {
+					return items[i].Value() < items[j].Value()
+				}
+				return items[j].Value() < items[i].Value()
+			},
+		)
+		return SortItemsCmd(items)
+	}
+}
+
+func SortListByKey(order string) MenuFunc {
+	return func(m tea.Model) tea.Cmd {
+		ui := m.(*TUI)
+		main := ui.Main.(*List)
+		items := main.Items.All()
+		sort.SliceStable(items,
+			func(i, j int) bool {
+				if order == "asc" {
+					return items[i].Key() < items[j].Key()
+				}
+				return items[j].Key() < items[i].Key()
+			},
+		)
+		return SortItemsCmd(items)
+	}
 }

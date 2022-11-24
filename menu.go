@@ -2,6 +2,7 @@ package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -16,20 +17,22 @@ func (m Menus) Set(key string, menu *Menu) Menus {
 	return m
 }
 
+func (m Menus) Del(key string) {
+	delete(m, key)
+}
+
 type Menu struct {
-	Model     *Info
-	width     int
+	*Info
 	Toggle    key.Binding
-	height    int
 	Label     string
 	content   string
 	show      bool
 	style     lipgloss.Style
 	IsFocused bool
-	Items     []MenuItem
+	Items     []*Key
 }
 
-func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
+func NewMenu(l string, toggle key.Binding, items ...*Key) *Menu {
 	m := DefaultMenu().SetKeys(items...)
 	m.Label = l
 	m.Toggle = toggle
@@ -38,18 +41,18 @@ func NewMenu(l string, toggle key.Binding, items ...MenuItem) *Menu {
 
 func DefaultMenu() *Menu {
 	m := Menu{
-		Model: NewInfo(),
+		Info: NewInfo(),
 	}
 	return &m
 }
 
-func (m Menu) Get(k string) MenuItem {
+func (m Menu) Get(k string) *Key {
 	for _, item := range m.Items {
 		if k == item.Key() {
 			return item
 		}
 	}
-	return MenuItem{}
+	return &Key{}
 }
 
 func (m Menu) Keys() []string {
@@ -60,22 +63,22 @@ func (m Menu) Keys() []string {
 	return keys
 }
 
-func (m *Menu) SetKeys(keys ...MenuItem) *Menu {
+func (m *Menu) SetKeys(keys ...*Key) *Menu {
 	m.Items = keys
 	for _, k := range keys {
-		m.Model.Fields.Add(k)
+		m.Info.Fields.Add(k)
 	}
 	return m
 }
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
-	key := NewMenuItem(k, h, cmd)
+	key := NewKey(k, h).SetCmd(cmd)
 	m.AddKey(key)
 	return m
 }
 
-func (m *Menu) AddKey(key MenuItem) *Menu {
-	m.Model.Fields.Add(key)
+func (m *Menu) AddKey(key *Key) *Menu {
+	m.Info.Fields.Add(key)
 	m.Items = append(m.Items, key)
 	return m
 }
@@ -90,32 +93,36 @@ func (m *Menu) SetToggle(toggle, help string) *Menu {
 	return m
 }
 
-func (m *Menu) View() string {
-	return m.Model.View()
-}
-
-type MenuItem struct {
-	KeyBind key.Binding
-	Cmd     MenuFunc
-}
-
-func NewMenuItem(k, h string, cmd MenuFunc) MenuItem {
-	return MenuItem{
-		KeyBind: NewKeyBind(k, h),
-		Cmd:     cmd,
+func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.Toggle):
+			m.show = false
+			cmds = append(cmds, HideMenuCmd())
+		default:
+			for _, item := range m.Items {
+				if key.Matches(msg, item.Binding) {
+					m.show = false
+					cmds = append(cmds, item.Cmd(m))
+					cmds = append(cmds, HideMenuCmd())
+				}
+			}
+			m.show = false
+			cmds = append(cmds, HideMenuCmd())
+		}
 	}
+	m.Info, cmd = m.Info.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
-func (i MenuItem) Key() string {
-	return i.KeyBind.Help().Key
-}
+func (m Menu) Init() tea.Cmd { return nil }
 
-func (i MenuItem) Value() string {
-	return i.KeyBind.Help().Desc
-}
-
-func (i MenuItem) Set(v string) {}
-
-func (i MenuItem) String() string {
-	return i.KeyBind.Help().Key + ": " + i.KeyBind.Help().Desc
+func (m *Menu) View() string {
+	return m.Info.View()
 }

@@ -2,21 +2,25 @@ package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Item struct {
-	idx               int
-	IsSelected        bool
-	ListOpen          bool
-	IsHidden          bool
-	MultiSelect       bool
-	hasFields         bool
-	Level             int
-	List              Items
-	TotalSubListItems int
-	Changed           bool
-	Fields            *Fields
-	Data              FieldData
+	idx          int
+	IsHidden     bool
+	IsSelected   bool
+	MultiSelect  bool
+	ShowChildren bool
+	showKey      bool
+	Level        int
+	Parent       *Item
+	Children     Items
+	changed      bool
+	key          string
+	value        string
+	hasFields    bool
+	Fields       *Fields
+	Data         FieldData
 }
 
 func NewItem() *Item {
@@ -49,6 +53,8 @@ func (i *Item) SetMultiSelect() *Item {
 }
 
 func (i *Item) SetData(data FieldData) *Item {
+	i.key = data.Key()
+	i.value = data.Value()
 	i.Data = data
 	i.Fields = NewFields().Add(data)
 	return i
@@ -58,20 +64,16 @@ func (i *Item) SetKey(key string) *Item {
 	if field, ok := i.Data.(*Field); ok {
 		field.key = key
 	}
-	return i
-}
-
-func (i *Item) SetValue(val string) *Item {
-	i.Data.Set(val)
+	i.key = key
 	return i
 }
 
 func (i Item) ListDepth() int {
 	depth := 0
-	if i.HasList() {
+	if i.HasChildren() {
 		depth++
-		for _, item := range i.List.items {
-			if item.HasList() {
+		for _, item := range i.Children.flat {
+			if item.HasChildren() {
 				depth++
 			}
 		}
@@ -79,20 +81,28 @@ func (i Item) ListDepth() int {
 	return depth
 }
 
-func (i Item) ListLength() int {
-	return len(i.Flatten())
+func (i Item) HasChildren() bool {
+	has := len(i.Children.flat) > 0
+	return has
 }
 
-func (i Item) Flatten() []*Item {
+func (i Item) TotalChildren() int {
+	if i.HasChildren() {
+		return len(i.Children.flat)
+	}
+	return 0
+}
+
+func (i *Item) Flatten() []*Item {
 	var items []*Item
-	if i.HasList() {
-		for _, item := range i.List.items {
+	if i.HasChildren() {
+		for _, item := range i.Children.flat {
 			if i.MultiSelect {
 				item.SetMultiSelect()
 			}
 			item.IsHidden = true
 			items = append(items, item)
-			if item.HasList() {
+			if item.HasChildren() {
 				items = append(items, item.Flatten()...)
 			}
 		}
@@ -112,25 +122,52 @@ func (i Item) Keys() []string {
 	return i.Fields.Keys()
 }
 
-func (i Item) Value() string {
-	return i.Data.Value()
+func (i *Item) Set(content string) {
+	i.value = content
 }
 
-func (i *Item) Set(content string) {
-	i.Data.Set(content)
+func (i *Item) Changed() *Item {
+	i.changed = true
+	return i
+}
+
+func (i *Item) ChangedCmd() tea.Cmd {
+	return func() tea.Msg {
+		i.Changed()
+		return ItemChangedMsg{Item: i}
+	}
+}
+
+func (i *Item) Save() {
+	if i.value != i.Data.Value() {
+		i.Data.Set(i.value)
+	}
+}
+
+func (i *Item) Undo() {
+	i.changed = false
+	i.value = i.Data.Value()
+}
+
+func (i Item) Value() string {
+	//return i.Data.Value()
+	return i.value
 }
 
 func (i Item) FilterValue() string {
-	return i.Data.Value()
+	return i.value
 }
 
 func (i Item) Key() string {
-	return i.Data.Key()
+	return i.key
 }
 
-func (i Item) HasList() bool {
-	has := len(i.List.items) > 0
-	return has
+func (i Item) String() string {
+	var item string
+	if i.showKey {
+		item = i.Key() + ": "
+	}
+	return item + i.Value()
 }
 
 func (i *Item) Edit() textarea.Model {
@@ -140,31 +177,23 @@ func (i *Item) Edit() textarea.Model {
 	return input
 }
 
-func (i Item) Prefix() string {
-	if i.HasList() {
-		if i.ListOpen {
-			return closeSub
-		}
-		return openSub
-	}
-
-	if i.MultiSelect {
-		if i.IsSelected {
-			return check
-		}
-		return uncheck
-	}
-
-	return dash
-}
-
 func (i *Item) ToggleSelected() *Item {
 	i.IsSelected = !i.IsSelected
 	return i
 }
 
+func (i *Item) Select() *Item {
+	i.IsSelected = true
+	return i
+}
+
+func (i *Item) Deselect() *Item {
+	i.IsSelected = false
+	return i
+}
+
 func (i *Item) ToggleList() *Item {
-	i.ListOpen = !i.ListOpen
+	i.ShowChildren = !i.ShowChildren
 	return i
 }
 
@@ -179,12 +208,12 @@ func (i *Item) Hide() *Item {
 }
 
 func (i *Item) Open() *Item {
-	i.ListOpen = true
+	i.ShowChildren = true
 	return i
 }
 
 func (i *Item) Close() *Item {
-	i.ListOpen = false
+	i.ShowChildren = false
 	return i
 }
 

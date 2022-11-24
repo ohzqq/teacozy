@@ -14,6 +14,14 @@ func SetFocusedViewCmd(v string) tea.Cmd {
 	}
 }
 
+type ActionMenuMsg struct{}
+
+func ActionMenuCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ActionMenuMsg{}
+	}
+}
+
 type ItemChangedMsg struct {
 	*Item
 }
@@ -24,8 +32,19 @@ func ItemChangedCmd(item *Item) tea.Cmd {
 	}
 }
 
+func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
+	return func() tea.Msg {
+		if ui.fullScreen {
+			return tea.EnterAltScreen()
+		}
+		return tea.ExitAltScreen()
+	}
+}
+
 // menu commands
-type MenuFunc func(m *TUI) tea.Cmd
+type CmdFunc func(m tea.Model) tea.Cmd
+
+type MenuFunc func(m tea.Model) tea.Cmd
 
 type UpdateMenuContentMsg string
 
@@ -53,6 +72,12 @@ func ShowMenuCmd(menu *Menu) tea.Cmd {
 
 type ChangeMenuMsg struct{ *Menu }
 
+func GoToMenuCmd(menu *Menu) MenuFunc {
+	return func(m tea.Model) tea.Cmd {
+		return ChangeMenuCmd(menu)
+	}
+}
+
 func ChangeMenuCmd(menu *Menu) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeMenuMsg{Menu: menu}
@@ -62,13 +87,30 @@ func ChangeMenuCmd(menu *Menu) tea.Cmd {
 // form commands
 type SaveFormFunc func(m *List) tea.Cmd
 
+type SaveForm func(m *Form) tea.Cmd
+
 type SaveAndExitFormMsg struct {
-	Save SaveFormFunc
+	Exit SaveFormFunc
+	Save SaveForm
 }
 
 func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
 	return func() tea.Msg {
+		return SaveAndExitFormMsg{Exit: fn}
+	}
+}
+
+func SaveFormCmd(fn SaveForm) tea.Cmd {
+	return func() tea.Msg {
 		return SaveAndExitFormMsg{Save: fn}
+	}
+}
+
+type ExitFormMsg struct{}
+
+func ExitFormCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ExitFormMsg{}
 	}
 }
 
@@ -77,7 +119,18 @@ type SaveFormAsHashMsg struct{}
 func SaveFormAsHashCmd(m *List) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
-		for _, item := range m.Items.All() {
+		for _, item := range m.Items.Flat() {
+			m.Hash[item.Key()] = item.Value()
+		}
+		return SaveFormAsHashMsg{}
+	}
+	return fn
+}
+
+func SaveFormAsHash(m *Form) tea.Cmd {
+	fn := func() tea.Msg {
+		m.Hash = make(map[string]string)
+		for _, item := range m.Items.Flat() {
 			m.Hash[item.Key()] = item.Value()
 		}
 		return SaveFormAsHashMsg{}
@@ -103,6 +156,22 @@ type FormChangedMsg struct {
 func FormChangedCmd() tea.Cmd {
 	return func() tea.Msg {
 		return FormChangedMsg{}
+	}
+}
+
+type ConfirmMenuMsg bool
+
+func ConfirmMenuCmd(confirm bool) tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmMenuMsg(confirm)
+	}
+}
+
+type ConfirmFormSaveMsg struct{}
+
+func ConfirmFormSaveCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmFormSaveMsg{}
 	}
 }
 
@@ -134,11 +203,11 @@ func EditInfoCmd(f *Fields) tea.Cmd {
 }
 
 // item commands
-type ToggleItemListMsg struct{ *Item }
+type ToggleItemChildrenMsg struct{ *Item }
 
-func ToggleItemListCmd(item *Item) tea.Cmd {
+func ToggleItemChildrenCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
-		return ToggleItemListMsg{Item: item}
+		return ToggleItemChildrenMsg{Item: item}
 	}
 }
 
@@ -175,6 +244,15 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
+type ExitSelectionsListMsg struct{}
+
+func (m *List) ExitSelectionsListCmd() tea.Cmd {
+	return func() tea.Msg {
+		m.SelectionList = false
+		return ExitSelectionsListMsg{}
+	}
+}
+
 func ToggleAllItemsCmd(l *List) {
 	l.Items.ToggleAllSelectedItems()
 }
@@ -187,6 +265,18 @@ func UpdateVisibleItemsCmd(opt string) tea.Cmd {
 	}
 }
 
+func (m *List) ShowVisibleItemsCmd() tea.Cmd {
+	return func() tea.Msg {
+		return UpdateVisibleItemsMsg("visible")
+	}
+}
+
+func (m *List) ShowSelectedItemsCmd() tea.Cmd {
+	return func() tea.Msg {
+		return UpdateVisibleItemsMsg("selected")
+	}
+}
+
 type UpdateStatusMsg struct{ Msg string }
 
 func UpdateStatusCmd(status string) tea.Cmd {
@@ -195,11 +285,19 @@ func UpdateStatusCmd(status string) tea.Cmd {
 	}
 }
 
-type SortItemsMsg struct{ Items []list.Item }
+type SortItemsMsg struct{ Items []*Item }
 
-func SortItemsCmd(items []list.Item) tea.Cmd {
+func SortItemsCmd(items []*Item) tea.Cmd {
 	return func() tea.Msg {
 		return SortItemsMsg{Items: items}
+	}
+}
+
+type SetItemMsg struct{ *Item }
+
+func SetItemCmd(item *Item) tea.Cmd {
+	return func() tea.Msg {
+		return SetItemMsg{Item: item}
 	}
 }
 

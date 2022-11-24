@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/padding"
@@ -21,6 +20,7 @@ const (
 )
 
 type Items struct {
+	flat        []*Item
 	items       []*Item
 	MultiSelect bool
 	ShowKeys    bool
@@ -34,6 +34,7 @@ func NewItems() *Items {
 }
 
 func (i *Items) SetItems(items ...*Item) *Items {
+	i.flat = items
 	i.items = items
 	return i
 }
@@ -46,18 +47,19 @@ func (i *Items) List() list.Model {
 }
 
 func (i *Items) Add(item *Item) *Items {
+	i.flat = append(i.flat, item)
 	i.items = append(i.items, item)
 	return i
 }
 
 func (i *Items) Set(idx int, item *Item) {
-	i.items[idx] = item
+	i.flat[idx] = item
 }
 
 func (i *Items) Process() {
 	var items []*Item
 	idx := 0
-	for _, item := range i.All() {
+	for _, item := range i.items {
 		if i.MultiSelect {
 			item.SetMultiSelect()
 		}
@@ -67,54 +69,57 @@ func (i *Items) Process() {
 		item.idx = idx
 		items = append(items, item)
 		for _, sub := range item.Flatten() {
+			sub.Parent = item
 			idx++
 			sub.idx = idx
 			items = append(items, sub)
 		}
 		idx++
 	}
-	i.items = items
+	i.flat = items
+}
+
+func (i Items) Flat() []*Item {
+	return i.flat
 }
 
 func (i Items) All() []*Item {
 	return i.items
 }
 
+func (i *Items) SaveChanges() *Items {
+	for _, item := range i.All() {
+		item.Save()
+	}
+	return i
+}
+
+func (i *Items) UndoChanges() *Items {
+	for _, item := range i.All() {
+		item.Undo()
+	}
+	return i
+}
+
 func (i *Items) AllItems() []list.Item {
 	var li []list.Item
-	for _, item := range i.items {
+	for _, item := range i.flat {
 		li = append(li, item)
 	}
 	return li
 }
 
-func (i Items) Display(opt string) []list.Item {
-	var items []list.Item
-	switch opt {
-	case "selected":
-		items = i.Selections()
-		//for _, item := range i.Selections() {
-		//  items = append(items, item)
-		//}
-
-	case "all":
-		items = i.AllItems()
-	default:
-		items = i.Visible()
-	}
-	return items
-}
-
 func (i Items) Visible() []list.Item {
 	var items []list.Item
 	level := 0
-	for _, item := range i.All() {
+	for _, item := range i.Flat() {
 		if !item.IsHidden {
 			items = append(items, item)
 		}
-		if item.HasList() && item.ListOpen {
+		if item.HasChildren() && item.ShowChildren {
 			level++
 			for _, sub := range i.GetItemList(item) {
+				sub.Parent = item
 				sub.Hide()
 				sub.SetLevel(level)
 				items = append(items, sub)
@@ -126,7 +131,7 @@ func (i Items) Visible() []list.Item {
 
 func (i Items) Selections() []list.Item {
 	var items []list.Item
-	for _, item := range i.All() {
+	for _, item := range i.Flat() {
 		if item.IsSelected {
 			items = append(items, item)
 		}
@@ -136,32 +141,43 @@ func (i Items) Selections() []list.Item {
 
 func (i Items) Get(item list.Item) *Item {
 	idx := item.(*Item).Index()
-	return i.items[idx]
+	return i.flat[idx]
 }
 
 func (i Items) GetItemByIndex(idx int) *Item {
 	var item *Item
-	if idx < len(i.items) {
-		item = i.items[idx]
+	if idx < len(i.flat) {
+		item = i.flat[idx]
 	}
 	return item
 }
 
 func (i *Items) ToggleSelectedItem(idx int) {
 	li := i.GetItemByIndex(idx).ToggleSelected()
-	i.items[li.Index()] = li
+	i.flat[li.Index()] = li
 }
 
 func (i *Items) ToggleAllSelectedItems() {
-	for _, item := range i.items {
+	for _, item := range i.flat {
 		item.ToggleSelected()
 	}
 }
 
+func (i *Items) SelectAllItems() {
+	for _, item := range i.flat {
+		item.Select()
+	}
+}
+
+func (i *Items) DeselectAllItems() {
+	for _, item := range i.flat {
+		item.Deselect()
+	}
+}
 func (i *Items) OpenAllItemLists() {
 	for _, item := range i.AllItems() {
 		li := item.(*Item)
-		if li.HasList() {
+		if li.HasChildren() {
 			i.OpenItemList(li.Index())
 		}
 	}
@@ -169,7 +185,7 @@ func (i *Items) OpenAllItemLists() {
 
 func (i *Items) OpenItemList(idx int) {
 	li := i.GetItemByIndex(idx)
-	li.ListOpen = true
+	li.ShowChildren = true
 	i.Set(li.Index(), li)
 
 	for _, sub := range i.GetItemList(li) {
@@ -180,13 +196,13 @@ func (i *Items) OpenItemList(idx int) {
 
 func (i *Items) CloseItemList(idx int) {
 	li := i.GetItemByIndex(idx)
-	li.ListOpen = false
+	li.ShowChildren = false
 	i.Set(li.Index(), li)
 
 	for _, sub := range i.GetItemList(li) {
 		sub.Hide()
 		i.Set(sub.Index(), sub)
-		if sub.HasList() {
+		if sub.HasChildren() {
 			i.CloseItemList(sub.Index())
 		}
 	}
@@ -195,9 +211,9 @@ func (i *Items) CloseItemList(idx int) {
 func (i Items) GetItemList(item list.Item) []*Item {
 	var items []*Item
 	li := item.(*Item)
-	if li.HasList() {
-		t := len(li.List.items)
-		items = i.items[li.idx+1 : li.idx+t+1]
+	if li.HasChildren() {
+		t := li.TotalChildren()
+		items = i.flat[li.idx+1 : li.idx+t+1]
 	}
 	return items
 }
@@ -212,6 +228,7 @@ func (d *Items) SetMultiSelect() *Items {
 	return d
 }
 
+// Item Delegate Interface
 func (d Items) Height() int {
 	return 1
 }
@@ -223,41 +240,42 @@ func (d Items) Spacing() int {
 func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (
 		curItem *Item
-		cmds    []tea.Cmd
 	)
 
 	sel := m.SelectedItem()
 	if item, ok := sel.(*Item); ok {
 		curItem = d.GetItemByIndex(item.Index())
 	}
-	//switch i := m.SelectedItem().(type) {
-	//case *Item:
-	//  curItem = i
-	//}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, Keys.Info):
+		case Keys.Info.Matches(msg):
 			if sel != nil {
 				if curItem.HasFields() {
-					cmds = append(cmds, ShowItemInfoCmd(curItem))
+					return ShowItemInfoCmd(curItem)
 				}
 			}
-		case key.Matches(msg, Keys.EditField):
-			cmds = append(cmds, EditFormItemCmd(curItem))
-		case key.Matches(msg, Keys.ToggleItem):
+		case Keys.EditField.Matches(msg):
+			return EditFormItemCmd(curItem)
+		case Keys.ToggleItemList.Matches(msg):
+			switch {
+			case curItem.HasChildren():
+				return ToggleItemChildrenCmd(curItem)
+			case curItem.IsSub():
+				return ToggleItemChildrenCmd(curItem.Parent)
+			}
+		case Keys.ToggleItem.Matches(msg):
 			m.CursorDown()
-			if curItem.HasList() {
-				return ToggleItemListCmd(curItem)
+			if curItem.HasChildren() {
+				return ToggleItemChildrenCmd(curItem)
 			}
 			if d.MultiSelect {
-				d.ToggleSelectedItem(curItem.Index())
-				//return ToggleSelectedItemCmd(curItem)
+				return ToggleSelectedItemCmd(curItem)
 			}
 		}
 	}
-	return tea.Batch(cmds...)
+	return nil
 }
 
 func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
@@ -310,9 +328,10 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 			prefix = check
 		}
 	}
-	if curItem.HasList() {
+
+	if curItem.HasChildren() {
 		prefix = openSub
-		if curItem.ListOpen {
+		if curItem.ShowChildren {
 			prefix = closeSub
 		}
 	}
@@ -323,7 +342,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 		content = fmt.Sprintf("%s: %s", key, content)
 	}
 
-	if curItem.Changed {
+	if curItem.changed {
 		content = "*" + content
 	}
 
