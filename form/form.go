@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -23,7 +24,7 @@ type Form struct {
 	Changed  bool
 	SaveForm SaveForm
 	confirm  bool
-	//Info     *teacozy.Info
+	Info     *info.Info
 	//Confirm  *teacozy.Menu
 }
 
@@ -38,6 +39,7 @@ func New() Form {
 
 func (m *Form) SetFields(fields *Fields) {
 	m.Fields = fields
+	m.Info = info.New(fields)
 }
 
 func (m *Form) SetFormData(fd teacozy.FormData) {
@@ -45,7 +47,7 @@ func (m *Form) SetFormData(fd teacozy.FormData) {
 	m.Fields.SetData(fd)
 }
 
-func (m *Form) InitList() {
+func (m *Form) InitModel() {
 	m.Model = list.New(
 		m.Fields.Items(),
 		itemDelegate(),
@@ -55,10 +57,11 @@ func (m *Form) InitList() {
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
+
 }
 
 func (m *Form) Start() {
-	m.InitList()
+	m.InitModel()
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -91,21 +94,28 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		} else {
 			switch {
+			case key.Matches(msg, key.ToggleAllItems):
+				m.confirm = !m.confirm
+				m.Info.Toggle()
 			case m.confirm:
-				//switch {
-				//case key.Matches(msg, keybind.PrevScreen):
-				//cmds = append(cmds, HideMenuCmd())
-				//}
-				//var mod tea.Model
-				//mod, cmd = m.Confirm.Update(msg)
+				m.Info.Show()
+				switch {
+				case key.Matches(msg, key.PrevScreen):
+					m.Info.Hide()
+					//cmds = append(cmds, HideMenuCmd())
+				}
+				var mod tea.Model
+				mod, cmd = m.Info.Update(msg)
+				m.Info = mod.(*info.Info)
 				//m.Confirm = mod.(*Menu)
-				//cmds = append(cmds, cmd)
+				cmds = append(cmds, cmd)
 			default:
 				switch {
 				case key.Matches(msg, key.SaveAndExit):
 					switch {
 					case m.Changed:
 						m.confirm = true
+						m.Info.Show()
 					default:
 						//cmds = append(cmds, ExitFormCmd())
 					}
@@ -170,10 +180,11 @@ func (m Form) View() string {
 	)
 
 	if m.confirm {
-		//info := m.Info.View()
+		m.Info.Show()
+		info := m.Info.View()
 		//info := m.Confirm.View()
-		//availHeight -= m.Info.Model.Height
-		//sections = append(sections, info)
+		availHeight -= m.Info.Frame.Height()
+		sections = append(sections, info)
 	} else {
 		if m.Input.Focused() {
 			iHeight := availHeight / 3

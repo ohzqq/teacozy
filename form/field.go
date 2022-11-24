@@ -27,6 +27,7 @@ func (f *Fields) SetData(data teacozy.FormData) {
 		field.SetKey(fd.Key())
 		field.SetValue(fd.Value())
 		field.idx = i
+		field.Data = field
 		f.fields = append(f.fields, field)
 	}
 }
@@ -104,8 +105,8 @@ func (i *Field) SetKey(key string) {
 
 func (i *Field) SetValue(val string) {
 	if field, ok := i.Data.(*Field); ok {
-		//field.Set(val)
-		field.value = val
+		field.Set(val)
+		//field.value = val
 	}
 	i.value = val
 	//i.Set(val)
