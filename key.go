@@ -63,7 +63,7 @@ func ListKeyMap() list.KeyMap {
 	return km
 }
 
-type keys struct {
+type KeyMap struct {
 	DeselectAll    Key
 	EditField      Key
 	Enter          Key
@@ -81,11 +81,11 @@ type keys struct {
 	ToggleItemList Key
 }
 
-func (k keys) FullHelp() *Info {
+func (k KeyMap) FullHelp() *Info {
 	return NewInfo().SetData(k)
 }
 
-func (k keys) Get(name string) FieldData {
+func (k KeyMap) Get(name string) FieldData {
 	var key Key
 	switch name {
 	case "Deselect All Items":
@@ -122,7 +122,7 @@ func (k keys) Get(name string) FieldData {
 	return key
 }
 
-func (k keys) Keys() []string {
+func (k KeyMap) Keys() []string {
 	return []string{
 		"Toggle Item",
 		"Quit",
@@ -142,7 +142,7 @@ func (k keys) Keys() []string {
 	}
 }
 
-var Keys = keys{
+var Keys = KeyMap{
 	DeselectAll:    Key{Binding: DeselectAll},
 	EditField:      Key{Binding: EditField},
 	Enter:          Key{Binding: Enter},

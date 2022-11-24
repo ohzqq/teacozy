@@ -3,14 +3,13 @@ package form
 import (
 	"log"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/keybind"
+	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -78,7 +77,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		if m.Input.Focused() {
-			if key.Matches(msg, keybind.SaveAndExit) {
+			if key.Matches(msg, key.SaveAndExit) {
 				cur := m.Model.SelectedItem().(*Field)
 				val := m.Input.Value()
 				if original := cur.Value(); original != val {
@@ -103,7 +102,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				//cmds = append(cmds, cmd)
 			default:
 				switch {
-				case key.Matches(msg, keybind.SaveAndExit):
+				case key.Matches(msg, key.SaveAndExit):
 					switch {
 					case m.Changed:
 						m.confirm = true

@@ -1,39 +1,32 @@
-package keymap
+package key
 
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy"
 )
 
 type Key struct {
-	key.Binding
-	Cmd MenuFunc
+	key teacozy.Key
+	//Cmd MenuFunc
 }
 
 type KeyMap struct {
-	DeselectAll    Key
-	EditField      Key
-	Enter          Key
-	ExitScreen     Key
-	FullScreen     Key
-	Help           Key
-	Info           Key
-	Menu           Key
-	PrevScreen     Key
-	Quit           Key
-	SaveAndExit    Key
-	ToggleAllItems Key
-	SortList       Key
-	ToggleItem     Key
-	ToggleItemList Key
+	teacozy.KeyMap
+}
+
+func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
+	return key.Matches(msg, bind...)
 }
 
 func NewKey(k, h string) *Key {
 	return &Key{
-		Binding: key.NewBinding(
-			key.WithKeys(k),
-			key.WithHelp(k, h),
-		),
+		key: teacozy.Key{
+			Binding: key.NewBinding(
+				key.WithKeys(k),
+				key.WithHelp(k, h),
+			),
+		},
 	}
 }
 
@@ -44,35 +37,35 @@ func NewBinding(k, help string) key.Binding {
 	)
 }
 
-func (k *Key) SetCmd(cmd MenuFunc) *Key {
-	k.Cmd = cmd
+func (k *Key) SetCmd(cmd teacozy.MenuFunc) *Key {
+	k.key.Cmd = cmd
 	return k
 }
 
 func (k Key) Matches(msg tea.KeyMsg) bool {
-	return key.Matches(msg, k.Binding)
+	return key.Matches(msg, k.key.Binding)
 }
 
 func (i Key) Key() string {
-	return i.Binding.Help().Key
+	return i.key.Binding.Help().Key
 }
 
 func (i Key) Value() string {
-	return i.Binding.Help().Desc
+	return i.key.Binding.Help().Desc
 }
 
 func (i Key) Set(v string) {}
 
 func (i Key) String() string {
-	return i.Binding.Help().Key + ": " + i.Binding.Help().Desc
+	return i.key.Binding.Help().Key + ": " + i.key.Binding.Help().Desc
 }
 
-func (k KeyMap) FullHelp() *Info {
-	return NewInfo().SetData(k)
+func (k KeyMap) FullHelp() *teacozy.Info {
+	return teacozy.NewInfo().SetData(k)
 }
 
-func (k KeyMap) Get(name string) FieldData {
-	var key Key
+func (k KeyMap) Get(name string) teacozy.FieldData {
+	var key teacozy.Key
 	switch name {
 	case "Deselect All Items":
 		key = k.DeselectAll
@@ -128,22 +121,22 @@ func (k KeyMap) Keys() []string {
 	}
 }
 
-var Keys = KeyMap{
-	DeselectAll:    Key{Binding: DeselectAll},
-	EditField:      Key{Binding: EditField},
-	Enter:          Key{Binding: Enter},
-	ExitScreen:     Key{Binding: ExitScreen},
-	FullScreen:     Key{Binding: FullScreen},
-	Help:           Key{Binding: HelpKey},
-	Info:           Key{Binding: InfoKey},
-	Menu:           Key{Binding: MenuKey},
-	PrevScreen:     Key{Binding: PrevScreen},
-	Quit:           Key{Binding: Quit},
-	SaveAndExit:    Key{Binding: SaveAndExit},
-	ToggleAllItems: Key{Binding: ToggleAllItems},
-	SortList:       Key{Binding: SortList},
-	ToggleItem:     Key{Binding: ToggleItem},
-	ToggleItemList: Key{Binding: ToggleItemList},
+var Map = teacozy.KeyMap{
+	DeselectAll:    teacozy.Key{Binding: DeselectAll},
+	EditField:      teacozy.Key{Binding: EditField},
+	Enter:          teacozy.Key{Binding: Enter},
+	ExitScreen:     teacozy.Key{Binding: ExitScreen},
+	FullScreen:     teacozy.Key{Binding: FullScreen},
+	Help:           teacozy.Key{Binding: HelpKey},
+	Info:           teacozy.Key{Binding: InfoKey},
+	Menu:           teacozy.Key{Binding: MenuKey},
+	PrevScreen:     teacozy.Key{Binding: PrevScreen},
+	Quit:           teacozy.Key{Binding: Quit},
+	SaveAndExit:    teacozy.Key{Binding: SaveAndExit},
+	ToggleAllItems: teacozy.Key{Binding: ToggleAllItems},
+	SortList:       teacozy.Key{Binding: SortList},
+	ToggleItem:     teacozy.Key{Binding: ToggleItem},
+	ToggleItemList: teacozy.Key{Binding: ToggleItemList},
 }
 
 var (
