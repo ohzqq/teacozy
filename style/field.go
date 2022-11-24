@@ -1,6 +1,9 @@
 package style
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
+)
 
 type Field struct {
 	Key   lipgloss.Style
@@ -9,7 +12,7 @@ type Field struct {
 
 func DefaultFieldStyles() Field {
 	return Field{
-		Key:   lipgloss.NewStyle().Foreground(Color.Blue),
-		Value: lipgloss.NewStyle().Foreground(Color.DefaultFg),
+		Key:   lipgloss.NewStyle().Foreground(color.Blue),
+		Value: lipgloss.NewStyle().Foreground(color.Foreground),
 	}
 }

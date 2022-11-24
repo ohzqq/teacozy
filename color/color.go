@@ -32,8 +32,25 @@ func Set(color, val string) {
 		Red = lipgloss.Color(val)
 	case "white":
 		White = lipgloss.Color(val)
-	case "Yellow":
+	case "yellow":
 		Yellow = lipgloss.Color(val)
+	}
+}
+
+func Colors() []string {
+	return []string{
+		"foreground",
+		"background",
+		"black",
+		"blue",
+		"cyan",
+		"green",
+		"grey",
+		"pink",
+		"purple",
+		"red",
+		"white",
+		"yellow",
 	}
 }
 

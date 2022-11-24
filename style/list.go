@@ -3,6 +3,7 @@ package style
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
 )
 
 const (
@@ -11,8 +12,8 @@ const (
 )
 
 func ListStyles() list.Styles {
-	verySubduedColor := Color.Grey
-	subduedColor := Color.White
+	verySubduedColor := color.Grey
+	subduedColor := color.White
 
 	var s list.Styles
 
@@ -20,37 +21,37 @@ func ListStyles() list.Styles {
 		Padding(0, 0, 0, 0)
 
 	s.Title = lipgloss.NewStyle().
-		Background(Color.Purple).
-		Foreground(Color.Black).
+		Background(color.Purple).
+		Foreground(color.Black).
 		Padding(0, 1)
 
 	s.Spinner = lipgloss.NewStyle().
-		Foreground(Color.Cyan)
+		Foreground(color.Cyan)
 
 	s.FilterPrompt = lipgloss.NewStyle().
-		Foreground(Color.Pink)
+		Foreground(color.Pink)
 
 	s.FilterCursor = lipgloss.NewStyle().
-		Foreground(Color.Yellow)
+		Foreground(color.Yellow)
 
 	s.DefaultFilterCharacterMatch = lipgloss.NewStyle().
 		Underline(true)
 
 	s.StatusBar = lipgloss.NewStyle().
-		Foreground(Color.Blue).
+		Foreground(color.Blue).
 		Padding(0, 0, 1, 2)
 
 	s.StatusEmpty = lipgloss.NewStyle().
 		Foreground(subduedColor)
 
 	s.StatusBarActiveFilter = lipgloss.NewStyle().
-		Foreground(Color.Purple)
+		Foreground(color.Purple)
 
 	s.StatusBarFilterCount = lipgloss.NewStyle().
 		Foreground(verySubduedColor)
 
 	s.NoItems = lipgloss.NewStyle().
-		Foreground(Color.Grey)
+		Foreground(color.Grey)
 
 	s.ArabicPagination = lipgloss.NewStyle().
 		Foreground(subduedColor)
@@ -62,7 +63,7 @@ func ListStyles() list.Styles {
 		Padding(1, 0, 0, 2)
 
 	s.ActivePaginationDot = lipgloss.NewStyle().
-		Foreground(Color.Pink).
+		Foreground(color.Pink).
 		SetString(Bullet)
 
 	s.InactivePaginationDot = lipgloss.NewStyle().

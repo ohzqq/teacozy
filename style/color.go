@@ -2,7 +2,7 @@ package style
 
 import "github.com/charmbracelet/lipgloss"
 
-type color struct {
+type Colour struct {
 	DefaultFg lipgloss.Color
 	DefaultBg lipgloss.Color
 	Black     lipgloss.Color
@@ -17,7 +17,7 @@ type color struct {
 	Yellow    lipgloss.Color
 }
 
-var Color = color{
+var Color = Colour{
 	DefaultFg: lipgloss.Color("#FFBF00"),
 	DefaultBg: lipgloss.Color("#262626"),
 	Black:     lipgloss.Color("#262626"),
@@ -32,6 +32,6 @@ var Color = color{
 	Yellow:    lipgloss.Color("#FFFFAF"),
 }
 
-func DefaultColors() color {
+func DefaultColors() Colour {
 	return Color
 }

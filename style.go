@@ -101,34 +101,34 @@ func CalculateHeight(min, height int) int {
 }
 
 type Color struct {
-	DefaultFg lipgloss.Color
-	DefaultBg lipgloss.Color
-	Black     lipgloss.Color
-	Blue      lipgloss.Color
-	Cyan      lipgloss.Color
-	Green     lipgloss.Color
-	Grey      lipgloss.Color
-	Pink      lipgloss.Color
-	Purple    lipgloss.Color
-	Red       lipgloss.Color
-	White     lipgloss.Color
-	Yellow    lipgloss.Color
+	Foreground lipgloss.Color
+	Background lipgloss.Color
+	Black      lipgloss.Color
+	Blue       lipgloss.Color
+	Cyan       lipgloss.Color
+	Green      lipgloss.Color
+	Grey       lipgloss.Color
+	Pink       lipgloss.Color
+	Purple     lipgloss.Color
+	Red        lipgloss.Color
+	White      lipgloss.Color
+	Yellow     lipgloss.Color
 }
 
 func DefaultColors() Color {
 	return Color{
-		DefaultFg: color.Foreground,
-		DefaultBg: color.Background,
-		Black:     color.Black,
-		Blue:      color.Blue,
-		Cyan:      color.Cyan,
-		Green:     color.Green,
-		Grey:      color.Grey,
-		Pink:      color.Pink,
-		Purple:    color.Purple,
-		Red:       color.Red,
-		White:     color.White,
-		Yellow:    color.Yellow,
+		Foreground: color.Foreground,
+		Background: color.Background,
+		Black:      color.Black,
+		Blue:       color.Blue,
+		Cyan:       color.Cyan,
+		Green:      color.Green,
+		Grey:       color.Grey,
+		Pink:       color.Pink,
+		Purple:     color.Purple,
+		Red:        color.Red,
+		White:      color.White,
+		Yellow:     color.Yellow,
 	}
 }
 
@@ -155,10 +155,10 @@ type ItemStyle struct {
 
 func ItemStyles() ItemStyle {
 	var s ItemStyle
-	s.NormalItem = lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg)
-	s.CurrentItem = lipgloss.NewStyle().Foreground(DefaultColors().Green).Reverse(true)
-	s.SelectedItem = lipgloss.NewStyle().Foreground(DefaultColors().Grey)
-	s.SubItem = lipgloss.NewStyle().Foreground(DefaultColors().Purple)
+	s.NormalItem = lipgloss.NewStyle().Foreground(color.Foreground)
+	s.CurrentItem = lipgloss.NewStyle().Foreground(color.Green).Reverse(true)
+	s.SelectedItem = lipgloss.NewStyle().Foreground(color.Grey)
+	s.SubItem = lipgloss.NewStyle().Foreground(color.Purple)
 	return s
 }
 
@@ -170,8 +170,8 @@ func FrameStyle() lipgloss.Style {
 }
 
 func ListStyles() list.Styles {
-	verySubduedColor := DefaultColors().Grey
-	subduedColor := DefaultColors().White
+	verySubduedColor := color.Grey
+	subduedColor := color.White
 
 	var s list.Styles
 
@@ -179,18 +179,18 @@ func ListStyles() list.Styles {
 		Padding(0, 0, 0, 0)
 
 	s.Title = lipgloss.NewStyle().
-		Background(DefaultColors().Purple).
-		Foreground(DefaultColors().Black).
+		Background(color.Purple).
+		Foreground(color.Black).
 		Padding(0, 1)
 
 	s.Spinner = lipgloss.NewStyle().
-		Foreground(DefaultColors().Cyan)
+		Foreground(color.Cyan)
 
 	s.FilterPrompt = lipgloss.NewStyle().
-		Foreground(DefaultColors().Pink)
+		Foreground(color.Pink)
 
 	s.FilterCursor = lipgloss.NewStyle().
-		Foreground(DefaultColors().Yellow)
+		Foreground(color.Yellow)
 
 	s.DefaultFilterCharacterMatch = lipgloss.NewStyle().
 		Underline(true)
@@ -203,13 +203,13 @@ func ListStyles() list.Styles {
 		Foreground(subduedColor)
 
 	s.StatusBarActiveFilter = lipgloss.NewStyle().
-		Foreground(DefaultColors().Purple)
+		Foreground(color.Purple)
 
 	s.StatusBarFilterCount = lipgloss.NewStyle().
 		Foreground(verySubduedColor)
 
 	s.NoItems = lipgloss.NewStyle().
-		Foreground(DefaultColors().Grey)
+		Foreground(color.Grey)
 
 	s.ArabicPagination = lipgloss.NewStyle().
 		Foreground(subduedColor)
@@ -221,7 +221,7 @@ func ListStyles() list.Styles {
 		Padding(1, 0, 0, 2)
 
 	s.ActivePaginationDot = lipgloss.NewStyle().
-		Foreground(DefaultColors().Pink).
+		Foreground(color.Pink).
 		SetString(Bullet)
 
 	s.InactivePaginationDot = lipgloss.NewStyle().
@@ -236,8 +236,8 @@ func ListStyles() list.Styles {
 }
 
 var fieldStyle = FieldStyle{
-	Key:   lipgloss.NewStyle().Foreground(DefaultColors().Blue),
-	Value: lipgloss.NewStyle().Foreground(DefaultColors().DefaultFg),
+	Key:   lipgloss.NewStyle().Foreground(color.Blue),
+	Value: lipgloss.NewStyle().Foreground(color.Foreground),
 }
 
 type FieldStyle struct {
