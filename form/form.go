@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
@@ -19,7 +18,6 @@ type Form struct {
 	style.Frame
 	Model    list.Model
 	Input    textarea.Model
-	view     viewport.Model
 	Hash     map[string]string
 	Changed  bool
 	SaveForm SaveForm
@@ -39,7 +37,6 @@ func New() Form {
 
 func (m *Form) SetFields(fields *Fields) {
 	m.Fields = fields
-	m.Info = info.New(fields)
 }
 
 func (m *Form) SetFormData(fd teacozy.FormData) {
@@ -58,6 +55,9 @@ func (m *Form) InitModel() {
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
 
+	m.Info = info.New(m.Fields)
+	m.confirm = true
+	m.Info.Show()
 }
 
 func (m *Form) Start() {
@@ -94,12 +94,11 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		} else {
 			switch {
-			case key.Matches(msg, key.ToggleAllItems):
-				m.confirm = !m.confirm
-				m.Info.Toggle()
 			case m.confirm:
-				m.Info.Show()
 				switch {
+				case key.Matches(msg, key.ToggleAllItems):
+					m.confirm = !m.confirm
+					m.Info.Toggle()
 				case key.Matches(msg, key.PrevScreen):
 					m.Info.Hide()
 					//cmds = append(cmds, HideMenuCmd())
@@ -108,9 +107,13 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				mod, cmd = m.Info.Update(msg)
 				m.Info = mod.(*info.Info)
 				//m.Confirm = mod.(*Menu)
+				//m.Info, cmd = m.Info.Update(msg)
 				cmds = append(cmds, cmd)
 			default:
 				switch {
+				case key.Matches(msg, key.ToggleAllItems):
+					m.confirm = !m.confirm
+					m.Info.Toggle()
 				case key.Matches(msg, key.SaveAndExit):
 					switch {
 					case m.Changed:
@@ -131,6 +134,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.height = msg.Height - 1
 		m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
+		m.Info.SetSize(msg.Width-1, msg.Height-2)
 	case EditFormItemMsg:
 		cur := m.Model.SelectedItem().(*Field)
 		m.Input = textarea.New()
@@ -180,11 +184,11 @@ func (m Form) View() string {
 	)
 
 	if m.confirm {
-		m.Info.Show()
 		info := m.Info.View()
 		//info := m.Confirm.View()
-		availHeight -= m.Info.Frame.Height()
-		sections = append(sections, info)
+		return info
+		//availHeight -= m.Info.Frame.Height()
+		//sections = append(sections, info)
 	} else {
 		if m.Input.Focused() {
 			iHeight := availHeight / 3

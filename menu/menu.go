@@ -91,6 +91,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var i tea.Model
 	i, cmd = m.Info.Update(msg)
+	//m.Info, cmd = m.Info.Update(msg)
 	cmds = append(cmds, cmd)
 
 	m.Info = i.(*info.Info)
