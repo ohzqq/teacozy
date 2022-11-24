@@ -44,7 +44,7 @@ func New(toggle, help string, keymap key.KeyMap) *Menu {
 }
 
 func (m Menu) Get(k string) *key.Key {
-	for _, item := range m.KeyMap {
+	for _, item := range m.KeyMap.All() {
 		if k == item.Key() {
 			return item
 		}
@@ -54,7 +54,7 @@ func (m Menu) Get(k string) *key.Key {
 
 func (m Menu) Keys() []string {
 	var keys []string
-	for _, item := range m.KeyMap {
+	for _, item := range m.KeyMap.All() {
 		keys = append(keys, item.Key())
 	}
 	return keys
@@ -91,7 +91,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.show = false
 			cmds = append(cmds, HideMenuCmd())
 		default:
-			for _, item := range m.KeyMap {
+			for _, item := range m.KeyMap.All() {
 				if key.Matches(msg, item.Binding()) {
 					m.show = false
 					cmds = append(cmds, item.Cmd()(m))

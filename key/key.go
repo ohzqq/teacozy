@@ -64,34 +64,45 @@ func (i Key) String() string {
 	return i.key.Binding.Help().Key + ": " + i.key.Binding.Help().Desc
 }
 
-type KeyMap map[string]*Key
+type KeyMap struct {
+	keys []*Key
+}
 
 func NewKeyMap() KeyMap {
-	m := make(KeyMap)
-	return m
+	return KeyMap{}
 }
 
-func (k KeyMap) New(key, help string) {
+func (k KeyMap) All() []*Key {
+	return k.keys
+}
+
+func (k *KeyMap) New(key, help string) {
 	bind := NewKey(key, help)
-	k[key] = bind
+	k.Add(bind)
 }
 
-func (k KeyMap) Add(key *Key) {
-	k[key.Key()] = key
+func (k *KeyMap) Add(key *Key) {
+	k.keys = append(k.keys, key)
 }
 
-func (k KeyMap) FullHelp() *teacozy.Info {
-	return teacozy.NewInfo().SetData(k)
-}
+//func (k KeyMap) FullHelp() *info.Info {
+//  return info.NewInfo().SetData(k)
+//}
 
 func (k KeyMap) Get(name string) teacozy.FieldData {
-	return k[name]
+	var key *Key
+	for _, bind := range k.keys {
+		if bind.Key() == name {
+			key = bind
+		}
+	}
+	return key
 }
 
 func (k KeyMap) Keys() []string {
 	var keys []string
-	for name, _ := range k {
-		keys = append(keys, name)
+	for _, bind := range k.keys {
+		keys = append(keys, bind.Key())
 	}
 	return keys
 }
