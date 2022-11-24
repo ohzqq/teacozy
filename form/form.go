@@ -1,6 +1,7 @@
 package form
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -16,35 +17,22 @@ import (
 type Form struct {
 	*Fields
 	style.Frame
-	Model    list.Model
-	Input    textarea.Model
-	Hash     map[string]string
-	Changed  bool
-	SaveForm SaveForm
-	confirm  bool
-	Info     *info.Info
-	//Confirm  *teacozy.Menu
+	Model        list.Model
+	Input        textarea.Model
+	Hash         map[string]string
+	Changed      bool
+	view         bool
+	Info         *info.Info
+	SaveFormFunc SaveFormFunc
 }
 
-func New() Form {
-	form := Form{
-		Fields: NewFields(),
-		Frame:  style.DefaultFrameStyle(),
+func New(fields *Fields) Form {
+	m := Form{
+		Fields:       fields,
+		Frame:        style.DefaultFrameStyle(),
+		SaveFormFunc: SaveFormAsHash,
 	}
 
-	return form
-}
-
-func (m *Form) SetFields(fields *Fields) {
-	m.Fields = fields
-}
-
-func (m *Form) SetFormData(fd teacozy.FormData) {
-	m.Fields = NewFields()
-	m.Fields.SetData(fd)
-}
-
-func (m *Form) InitModel() {
 	m.Model = list.New(
 		m.Fields.Items(),
 		itemDelegate(),
@@ -56,15 +44,20 @@ func (m *Form) InitModel() {
 	m.Model.Styles = style.ListStyles()
 
 	m.Info = info.New(m.Fields)
+
+	return m
+}
+
+func (m *Form) SetFields(fields *Fields) {
+	m.Fields = fields
 }
 
 func (m *Form) Start() {
-	m.InitModel()
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
-	//fmt.Printf("%+V\n", m.Hash)
+	fmt.Printf("%+V\n", m.Hash)
 }
 
 func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -92,30 +85,27 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		} else {
 			switch {
-			case m.confirm:
+			case m.view:
 				switch {
+				case key.Matches(msg, key.ToggleAllItems):
+					m.view = !m.view
+					m.Info.Toggle()
 				case key.Matches(msg, key.SaveAndExit):
 					m.Info.SetTitle(`save and exit? y\n`)
-					m.Info.Show()
-					m.confirm = true
+					cmds = append(cmds, ViewFormCmd())
 				case key.Matches(msg, Yes):
 					m.Info.SetTitle("")
 					m.SaveChanges()
-					m.Info.Hide()
-					m.confirm = false
+					cmds = append(cmds, HideFormCmd())
+					cmds = append(cmds, SaveAndExitFormCmd())
 				case key.Matches(msg, No):
 					m.UndoChanges()
 					m.Info.SetTitle("")
-					m.Info.Hide()
-					m.confirm = false
+					cmds = append(cmds, HideFormCmd())
 				case key.Matches(msg, key.EditField):
-					m.confirm = false
-				case key.Matches(msg, key.ToggleAllItems):
-					m.confirm = !m.confirm
-					m.Info.Toggle()
+					cmds = append(cmds, HideFormCmd())
 				case key.Matches(msg, key.PrevScreen):
-					m.Info.Hide()
-					m.confirm = false
+					cmds = append(cmds, HideFormCmd())
 				}
 				var mod tea.Model
 				mod, cmd = m.Info.Update(msg)
@@ -124,13 +114,12 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			default:
 				switch {
 				case key.Matches(msg, key.ToggleAllItems):
-					m.confirm = !m.confirm
+					m.view = !m.view
 					m.Info.Toggle()
 				case key.Matches(msg, key.SaveAndExit):
 					switch {
 					case m.Changed:
-						m.confirm = true
-						m.Info.Show()
+						cmds = append(cmds, ViewFormCmd())
 					default:
 						//cmds = append(cmds, ExitFormCmd())
 					}
@@ -139,11 +128,9 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-	//case UpdateStatusMsg:
-	//cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
+	case teacozy.UpdateStatusMsg:
+		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
-		//m.width = msg.Width - 1
-		//m.height = msg.Height - 1
 		m.Frame.SetSize(msg.Width-1, msg.Height-2)
 		m.Model.SetSize(msg.Width-1, msg.Height-2)
 		m.Info.SetSize(msg.Width-1, msg.Height-2)
@@ -156,19 +143,15 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case teacozy.SetListItemMsg:
 		idx := m.Model.Index()
 		m.Model.SetItem(idx, msg.Item)
-	//case ConfirmMenuMsg:
-	//  if msg == true {
-	//    m.SaveChanges()
-	//    cmds = append(cmds, SaveFormCmd(m.SaveFormFunc))
-	//  } else {
-	//    m.UndoChanges()
-	//    m.Changed = false
-	//    cmds = append(cmds, ExitFormCmd())
-	//  }
+	case ViewFormMsg:
+		m.view = true
+		m.Info.Show()
+	case HideFormMsg:
+		m.Info.Hide()
+		m.view = false
 	case SaveAndExitFormMsg:
-		cmds = append(cmds, msg.Save(m))
+		cmds = append(cmds, m.SaveFormFunc(m))
 		cmds = append(cmds, FormChangedCmd())
-		//cmds = append(cmds, tea.Quit)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -193,7 +176,7 @@ func (m Form) View() string {
 		field       string
 	)
 
-	if m.confirm {
+	if m.view {
 		info := m.Info.View()
 		//info := m.Confirm.View()
 		return info

@@ -7,34 +7,15 @@ import (
 
 type SaveFormFunc func(m *Form) tea.Cmd
 
-type SaveForm func(m *Form) tea.Cmd
-
 type SaveAndExitFormMsg struct {
-	Exit SaveFormFunc
-	Save SaveForm
+	Save SaveFormFunc
 }
 
-func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
+func SaveAndExitFormCmd() tea.Cmd {
 	return func() tea.Msg {
-		return SaveAndExitFormMsg{Exit: fn}
+		return SaveAndExitFormMsg{}
 	}
 }
-
-func SaveFormCmd(fn SaveForm) tea.Cmd {
-	return func() tea.Msg {
-		return SaveAndExitFormMsg{Save: fn}
-	}
-}
-
-type ExitFormMsg struct{}
-
-func ExitFormCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ExitFormMsg{}
-	}
-}
-
-type SaveFormAsHashMsg struct{}
 
 func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
@@ -45,6 +26,30 @@ func SaveFormAsHash(m *Form) tea.Cmd {
 		return SaveFormAsHashMsg{}
 	}
 	return fn
+}
+
+type ExitFormMsg struct{}
+
+func ExitFormCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ExitFormMsg{}
+	}
+}
+
+type ViewFormMsg struct{}
+
+func ViewFormCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ViewFormMsg{}
+	}
+}
+
+type HideFormMsg struct{}
+
+func HideFormCmd() tea.Cmd {
+	return func() tea.Msg {
+		return HideFormMsg{}
+	}
 }
 
 type EditFormItemMsg struct {
@@ -81,13 +86,5 @@ type ConfirmFormSaveMsg struct{}
 func ConfirmFormSaveCmd() tea.Cmd {
 	return func() tea.Msg {
 		return ConfirmFormSaveMsg{}
-	}
-}
-
-type SetItemMsg struct{ *Field }
-
-func SetItemCmd(item *Field) tea.Cmd {
-	return func() tea.Msg {
-		return SetItemMsg{Field: item}
 	}
 }

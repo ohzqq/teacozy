@@ -85,9 +85,17 @@ func (k *KeyMap) Add(key *Key) {
 	k.keys = append(k.keys, key)
 }
 
-//func (k KeyMap) FullHelp() *info.Info {
-//  return info.NewInfo().SetData(k)
-//}
+func (k KeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{}
+}
+
+func (k KeyMap) ShortHelp() []key.Binding {
+	var keys []key.Binding
+	for _, bind := range k.keys {
+		keys = append(keys, bind.Binding())
+	}
+	return keys
+}
 
 func (k KeyMap) Get(name string) teacozy.FieldData {
 	var key *Key
