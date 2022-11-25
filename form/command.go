@@ -17,6 +17,8 @@ func SaveAndExitFormCmd() tea.Cmd {
 	}
 }
 
+type SaveFormAsHashMsg struct{}
+
 func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
