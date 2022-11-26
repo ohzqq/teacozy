@@ -53,7 +53,7 @@ func (i *Item) SetMultiSelect() *Item {
 }
 
 func (i *Item) SetData(data Field) *Item {
-	i.key = data.Key()
+	i.key = data.Name()
 	i.value = data.Content()
 	i.Data = data
 	i.Fields = NewFields().Add(data)
@@ -158,14 +158,14 @@ func (i Item) FilterValue() string {
 	return i.value
 }
 
-func (i Item) Key() string {
+func (i Item) Name() string {
 	return i.key
 }
 
 func (i Item) String() string {
 	var item string
 	if i.showKey {
-		item = i.Key() + ": "
+		item = i.Name() + ": "
 	}
 	return item + i.Value()
 }

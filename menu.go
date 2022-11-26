@@ -48,7 +48,7 @@ func DefaultMenu() *Menu {
 
 func (m Menu) Get(k string) *Key {
 	for _, item := range m.Items {
-		if k == item.Key() {
+		if k == item.Name() {
 			return item
 		}
 	}
@@ -58,7 +58,7 @@ func (m Menu) Get(k string) *Key {
 func (m Menu) Keys() []string {
 	var keys []string
 	for _, item := range m.Items {
-		keys = append(keys, item.Key())
+		keys = append(keys, item.Name())
 	}
 	return keys
 }

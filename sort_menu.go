@@ -40,9 +40,9 @@ func SortListByKey(order string) MenuFunc {
 		sort.SliceStable(items,
 			func(i, j int) bool {
 				if order == "asc" {
-					return items[i].Key() < items[j].Key()
+					return items[i].Name() < items[j].Name()
 				}
-				return items[j].Key() < items[i].Key()
+				return items[j].Name() < items[i].Name()
 			},
 		)
 		return SortItemsCmd(items)

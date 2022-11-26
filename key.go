@@ -29,7 +29,7 @@ func (k Key) Matches(msg tea.KeyMsg) bool {
 	return key.Matches(msg, k.Binding)
 }
 
-func (i Key) Key() string {
+func (i Key) Name() string {
 	return i.Binding.Help().Key
 }
 

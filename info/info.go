@@ -62,7 +62,7 @@ func (i Info) RenderData() string {
 
 		var line []string
 		if !i.HideKeys {
-			k := i.Style.Key.Render(fd.Key())
+			k := i.Style.Key.Render(fd.Name())
 			line = append(line, k, ": ")
 		}
 

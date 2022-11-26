@@ -24,7 +24,7 @@ func (f *Fields) SetData(data teacozy.Fields) {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
 		field := NewField()
-		field.SetKey(fd.Key())
+		field.SetKey(fd.Name())
 		field.SetValue(fd.Content())
 		field.idx = i
 		field.Data = field
@@ -56,7 +56,7 @@ func (i *Fields) Items() []list.Item {
 
 func (f Fields) Get(key string) teacozy.Field {
 	for _, field := range f.Data {
-		if field.Key() == key {
+		if field.Name() == key {
 			return field
 		}
 	}
@@ -66,7 +66,7 @@ func (f Fields) Get(key string) teacozy.Field {
 func (f Fields) Keys() []string {
 	var keys []string
 	for _, field := range f.Data {
-		keys = append(keys, field.Key())
+		keys = append(keys, field.Name())
 	}
 	return keys
 }
@@ -88,9 +88,9 @@ func NewField() *Field {
 }
 
 func (i *Field) SetData(data teacozy.Field) {
-	i.key = data.Key()
+	i.key = data.Name()
 	i.value = data.Content()
-	i.data = teacozy.NewField(data.Key(), data.Content())
+	i.data = teacozy.NewField(data.Name(), data.Content())
 	i.Data = data
 }
 
@@ -107,7 +107,7 @@ func (i *Field) Update() {
 	i.Changed = true
 }
 
-func (i Field) Key() string {
+func (i Field) Name() string {
 	return i.key
 }
 

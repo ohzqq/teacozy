@@ -56,7 +56,7 @@ func (f *FormData) SetData(data Fields) *FormData {
 		f.Data = append(f.Data, fd)
 		item := NewItem().SetData(fd)
 		f.data.Add(item)
-		field := NewField(fd.Key(), fd.Content())
+		field := NewField(fd.Name(), fd.Content())
 		field.idx = i
 		f.fields = append(f.fields, field)
 	}
@@ -65,7 +65,7 @@ func (f *FormData) SetData(data Fields) *FormData {
 
 func (f FormData) Get(key string) Field {
 	for _, field := range f.Data {
-		if field.Key() == key {
+		if field.Name() == key {
 			return field
 		}
 	}
@@ -75,7 +75,7 @@ func (f FormData) Get(key string) Field {
 func (f FormData) Keys() []string {
 	var keys []string
 	for _, field := range f.Data {
-		keys = append(keys, field.Key())
+		keys = append(keys, field.Name())
 	}
 	return keys
 }
@@ -105,7 +105,7 @@ func (i FormData) String() string {
 	for _, field := range i.All() {
 		var line []string
 		if !i.hideKeys {
-			k := i.Style.Key.Render(field.Key())
+			k := i.Style.Key.Render(field.Name())
 			line = append(line, k, ": ")
 		}
 

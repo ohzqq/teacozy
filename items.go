@@ -338,7 +338,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 
 	if d.ShowKeys {
 		prefix = none
-		key := fieldStyle.Key.Render(curItem.Key())
+		key := fieldStyle.Key.Render(curItem.Name())
 		content = fmt.Sprintf("%s: %s", key, content)
 	}
 

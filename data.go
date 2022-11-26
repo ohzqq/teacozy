@@ -9,7 +9,7 @@ type Fields interface {
 
 type Field interface {
 	Content() string
-	Key() string
+	Name() string
 	Set(string)
 }
 
@@ -18,31 +18,31 @@ type FieldData struct {
 	Style    FieldStyle
 	idx      int
 	key      string
-	value    string
+	Value    string
 	changed  bool
 }
 
 func NewField(key, val string) *FieldData {
 	return &FieldData{
 		key:   key,
-		value: val,
+		Value: val,
 	}
 }
 
-func (i FieldData) Key() string {
+func (i FieldData) Name() string {
 	return i.key
 }
 
 func (i *FieldData) Content() string {
-	return i.value
+	return i.Value
 }
 
 func (i *FieldData) FilterValue() string {
-	return i.value
+	return i.Value
 }
 
 func (i *FieldData) Set(val string) {
-	i.value = val
+	i.Value = val
 }
 
 func SetKeyStyle(s lipgloss.Style) {
