@@ -6,19 +6,16 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/info"
-	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/menu"
 )
 
 type TUI struct {
-	Main              tea.Model
-	Alt               tea.Model
-	Input             textarea.Model
-	view              viewport.Model
-	prompt            textinput.Model
-	info              *info.Info
+	Main   tea.Model
+	Alt    tea.Model
+	Input  textarea.Model
+	view   viewport.Model
+	prompt textinput.Model
+	//info              *info.Info
 	Title             string
 	FocusedView       string
 	fullScreen        bool
@@ -33,28 +30,35 @@ type TUI struct {
 	width             int
 	height            int
 	Hash              map[string]string
-	Help              *info.Info
-	MainMenu          *menu.Menu
-	ActionMenu        *menu.Menu
-	Menus             menu.Menus
-	CurrentMenu       *menu.Menu
+	//Help              *info.Info
+	//MainMenu          *menu.Menu
+	//ActionMenu        *menu.Menu
+	//Menus             menu.Menus
+	//CurrentMenu       *menu.Menu
 	//ShortHelp         Help
 }
 
 func New(main *list.List) TUI {
 	ui := TUI{
 		Main:        main,
-		Menus:       make(menu.Menus),
 		FocusedView: "list",
 		Style:       DefaultStyle(),
-		MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
-		ActionMenu:  ActionMenu(),
-		showHelp:    true,
+		//Menus:       make(menu.Menus),
+		//MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
+		//ActionMenu:  ActionMenu(),
+		showHelp: true,
 	}
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
 }
+
+//func (l *TUI) AddMenu(menu *Menu) {
+//  k := key.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc).
+//    SetCmd(GoToMenuCmd(menu))
+//  l.MainMenu.AddKey(k)
+//  l.Menus[menu.Label] = menu
+//}
 
 func (ui *TUI) SetSize(w, h int) *TUI {
 	switch main := ui.Main.(type) {

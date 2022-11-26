@@ -23,6 +23,7 @@ func (m Menus) Del(key string) {
 
 type Menu struct {
 	*info.Info
+	Label  string
 	Toggle *key.Key
 	KeyMap key.KeyMap
 }
@@ -30,6 +31,7 @@ type Menu struct {
 func New(toggle, help string, keymap key.KeyMap) *Menu {
 	m := Menu{
 		KeyMap: keymap,
+		Label:  help,
 	}
 	m.SetToggle(toggle, help)
 	m.Info = info.New(keymap)
@@ -59,6 +61,7 @@ func (m *Menu) AddKey(key *key.Key) *Menu {
 }
 
 func (m *Menu) SetToggle(toggle, help string) *Menu {
+	m.Label = help
 	m.Toggle = key.NewKey(toggle, help)
 	return m
 }
