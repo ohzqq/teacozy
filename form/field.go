@@ -73,31 +73,36 @@ type Field struct {
 	value   string
 	Changed bool
 	idx     int
-	data    teacozy.FieldData
+	data    *teacozy.FieldData
 }
 
 func NewField(key, val string) *Field {
 	return &Field{
 		key:   key,
 		value: val,
-		data: teacozy.FieldData{
-			Key:   key,
-			Value: val,
-		},
+		data:  teacozy.NewField(key, val),
 	}
 }
 
 func (i *Field) SetData(data teacozy.Field) {
 	i.key = data.Name()
 	i.value = data.Content()
-	i.data = teacozy.FieldData{
-		Key:   data.Name(),
-		Value: data.Content(),
-	}
+	i.data = teacozy.NewField(data.Name(), data.Content())
 }
 
 func (i *Field) Update() {
 	i.Changed = true
+}
+
+func (i *Field) Save() {
+	if i.Content() != i.data.Val {
+		i.data.Val = i.value
+	}
+}
+
+func (i *Field) Undo() {
+	i.Changed = false
+	i.Set(i.data.Val)
 }
 
 // To satisfy field interface
@@ -107,6 +112,10 @@ func (i Field) Name() string {
 
 func (i Field) Content() string {
 	return i.value
+}
+
+func (i *Field) Set(val string) {
+	i.value = val
 }
 
 // To satisfy list item interface
@@ -120,19 +129,4 @@ func (i Field) Description() string {
 
 func (i Field) FilterValue() string {
 	return i.value
-}
-
-func (i *Field) Set(val string) {
-	i.value = val
-}
-
-func (i *Field) Save() {
-	if i.Content() != i.data.Value {
-		i.data.Value = i.value
-	}
-}
-
-func (i *Field) Undo() {
-	i.Changed = false
-	i.Set(i.data.Value)
 }

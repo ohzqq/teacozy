@@ -62,7 +62,7 @@ func (i *Item) SetData(data Field) *Item {
 
 func (i *Item) SetKey(key string) *Item {
 	if field, ok := i.Data.(*FieldData); ok {
-		field.Key = key
+		field.label = key
 	}
 	i.key = key
 	return i
