@@ -33,14 +33,16 @@ func New(data teacozy.Fields) *Info {
 		Field: style.DefaultFieldStyles(),
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
 	}
-	return &Info{
-		Data:  data,
+	info := &Info{
 		Style: s,
 	}
+	info.SetData(data)
+	return info
 }
 
 func (i *Info) SetData(data teacozy.Fields) *Info {
 	i.Data = data
+	i.AddContent(i.RenderData(data)...)
 	return i
 }
 
@@ -49,7 +51,34 @@ func (i *Info) SetTitle(title string) *Info {
 	return i
 }
 
-func (i Info) RenderData() string {
+func (i Info) RenderData(data teacozy.Fields) []string {
+	var info []string
+
+	if i.Title != "" {
+		t := i.Style.Title.Render(i.Title)
+		info = append(info, t)
+	}
+
+	for _, key := range data.Keys() {
+		fd := data.Get(key)
+
+		var line []string
+		if !i.HideKeys {
+			k := i.Style.Key.Render(fd.Name())
+			line = append(line, k, ": ")
+		}
+
+		v := i.Style.Value.Render(fd.Content())
+		line = append(line, v)
+
+		l := strings.Join(line, "")
+		info = append(info, l)
+	}
+
+	return info
+}
+
+func (i Info) Render() []string {
 	var info []string
 
 	if i.Title != "" {
@@ -73,7 +102,7 @@ func (i Info) RenderData() string {
 		info = append(info, l)
 	}
 
-	return strings.Join(info, "\n")
+	return info
 }
 
 func (i *Info) SetHeight(h int) *Info {
@@ -154,11 +183,7 @@ func (m *Info) Init() tea.Cmd {
 
 func (m *Info) View() string {
 	if m.Visible {
-		content := m.RenderData()
-		if c := m.Content; len(m.Content) > 0 {
-			content = strings.Join(c, "\n")
-		}
-		m.Model.SetContent(content)
+		m.Model.SetContent(strings.Join(m.Content, "\n"))
 		return m.Model.View()
 	}
 	return ""

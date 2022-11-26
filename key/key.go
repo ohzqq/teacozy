@@ -7,8 +7,9 @@ import (
 )
 
 type Key struct {
-	key teacozy.Key
-	//Cmd MenuFunc
+	key key.Binding
+	//key teacozy.Key
+	cmd teacozy.MenuFunc
 }
 
 func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
@@ -17,12 +18,12 @@ func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
 
 func NewKey(k, h string) *Key {
 	return &Key{
-		key: teacozy.Key{
-			Binding: key.NewBinding(
-				key.WithKeys(k),
-				key.WithHelp(k, h),
-			),
-		},
+		//key: teacozy.Key{
+		key: key.NewBinding(
+			key.WithKeys(k),
+			key.WithHelp(k, h),
+		),
+		//},
 	}
 }
 
@@ -34,34 +35,34 @@ func NewBinding(k, help string) key.Binding {
 }
 
 func (k Key) Binding() key.Binding {
-	return k.key.Binding
+	return k.key
 }
 
 func (k Key) Cmd() teacozy.MenuFunc {
-	return k.key.Cmd
+	return k.cmd
 }
 
 func (k *Key) SetCmd(cmd teacozy.MenuFunc) *Key {
-	k.key.Cmd = cmd
+	k.cmd = cmd
 	return k
 }
 
 func (k Key) Matches(msg tea.KeyMsg) bool {
-	return key.Matches(msg, k.key.Binding)
+	return key.Matches(msg, k.key)
 }
 
 func (i Key) Name() string {
-	return i.key.Binding.Help().Key
+	return i.key.Help().Key
 }
 
 func (i Key) Content() string {
-	return i.key.Binding.Help().Desc
+	return i.key.Help().Desc
 }
 
 func (i Key) Set(v string) {}
 
 func (i Key) String() string {
-	return i.key.Binding.Help().Key + ": " + i.key.Binding.Help().Desc
+	return i.key.Help().Key + ": " + i.key.Help().Desc
 }
 
 type KeyMap struct {
@@ -83,6 +84,11 @@ func (k *KeyMap) New(key, help string) {
 
 func (k *KeyMap) Add(key *Key) {
 	k.keys = append(k.keys, key)
+}
+
+func (k *KeyMap) AddBind(kb key.Binding) {
+	bind := &Key{key: kb}
+	k.Add(bind)
 }
 
 func (k KeyMap) FullHelp() [][]key.Binding {
@@ -115,23 +121,23 @@ func (k KeyMap) Keys() []string {
 	return keys
 }
 
-var Map = teacozy.KeysMap{
-	DeselectAll:    teacozy.Key{Binding: DeselectAll},
-	EditField:      teacozy.Key{Binding: EditField},
-	Enter:          teacozy.Key{Binding: Enter},
-	ExitScreen:     teacozy.Key{Binding: ExitScreen},
-	FullScreen:     teacozy.Key{Binding: FullScreen},
-	Help:           teacozy.Key{Binding: HelpKey},
-	Info:           teacozy.Key{Binding: InfoKey},
-	Menu:           teacozy.Key{Binding: MenuKey},
-	PrevScreen:     teacozy.Key{Binding: PrevScreen},
-	Quit:           teacozy.Key{Binding: Quit},
-	SaveAndExit:    teacozy.Key{Binding: SaveAndExit},
-	ToggleAllItems: teacozy.Key{Binding: ToggleAllItems},
-	SortList:       teacozy.Key{Binding: SortList},
-	ToggleItem:     teacozy.Key{Binding: ToggleItem},
-	ToggleItemList: teacozy.Key{Binding: ToggleItemList},
-}
+//var Map = teacozy.KeysMap{
+//  DeselectAll:    teacozy.Key{Binding: DeselectAll},
+//  EditField:      teacozy.Key{Binding: EditField},
+//  Enter:          teacozy.Key{Binding: Enter},
+//  ExitScreen:     teacozy.Key{Binding: ExitScreen},
+//  FullScreen:     teacozy.Key{Binding: FullScreen},
+//  Help:           teacozy.Key{Binding: HelpKey},
+//  Info:           teacozy.Key{Binding: InfoKey},
+//  Menu:           teacozy.Key{Binding: MenuKey},
+//  PrevScreen:     teacozy.Key{Binding: PrevScreen},
+//  Quit:           teacozy.Key{Binding: Quit},
+//  SaveAndExit:    teacozy.Key{Binding: SaveAndExit},
+//  ToggleAllItems: teacozy.Key{Binding: ToggleAllItems},
+//  SortList:       teacozy.Key{Binding: SortList},
+//  ToggleItem:     teacozy.Key{Binding: ToggleItem},
+//  ToggleItemList: teacozy.Key{Binding: ToggleItemList},
+//}
 
 var (
 	DeselectAll = key.NewBinding(

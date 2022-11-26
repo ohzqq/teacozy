@@ -58,6 +58,13 @@ func New(main *list.List) TUI {
 	return ui
 }
 
+//func (l *TUI) AddMenu(menu *menu.Menu) {
+//  k := key.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc).
+//    SetCmd(GoToMenuCmd(menu))
+//  l.MainMenu.AddKey(k)
+//  l.Menus[menu.Label] = menu
+//}
+
 func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd   tea.Cmd
@@ -281,13 +288,6 @@ func (m *TUI) View() string {
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }
-
-//func (l *TUI) AddMenu(menu *Menu) {
-//  k := key.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc).
-//    SetCmd(GoToMenuCmd(menu))
-//  l.MainMenu.AddKey(k)
-//  l.Menus[menu.Label] = menu
-//}
 
 func (m *TUI) Start() *TUI {
 	p := tea.NewProgram(m)

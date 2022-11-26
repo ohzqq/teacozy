@@ -1,41 +1,37 @@
-//go:build ignore
-
 package tui
 
 import (
 	"github.com/charmbracelet/bubbles/help"
-	bubblekey "github.com/charmbracelet/bubbles/key"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/list"
 )
 
 type Help struct {
 	help.Model
-	keys []key.Key
+	*info.Info
+	keys     []key.Key
+	ListKeys key.KeyMap
+	KeyMap   key.KeyMap
 }
 
-func NewHelp(keys ...key.Key) Help {
+func NewHelp() Help {
 	m := help.New()
 	m.ShowAll = false
-	return Help{
-		Model: m,
-		keys:  keys,
+	h := Help{
+		Model:    m,
+		KeyMap:   key.NewKeyMap(),
+		ListKeys: key.NewKeyMap(),
 	}
+	h.Info = info.New(h.KeyMap)
+	h.ListNavigation()
+	h.Info.AddContent("List Nav")
+	h.Info.SetData(h.ListKeys)
+	return h
 }
 
-func (h Help) ShortHelp() []bubblekey.Binding {
-	var keys []bubblekey.Binding
-	for _, key := range h.keys {
-		keys = append(keys, bubblekey.Binding)
-	}
-	return keys
-}
-
-func (h Help) FullHelp() [][]bubblekey.Binding {
-	var keys [][]bubblekey.Binding
-	keys = append(keys, h.ShortHelp())
-	return keys
-}
-
-func (h Help) View() string {
-	return h.Model.View(h)
+func (h *Help) ListNavigation() {
+	lk := list.ListKeyMap()
+	h.ListKeys.AddBind(lk.CursorUp)
+	h.ListKeys.AddBind(lk.CursorDown)
 }
