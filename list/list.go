@@ -1,6 +1,8 @@
 package list
 
 import (
+	"fmt"
+
 	bubblekey "github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -28,7 +30,7 @@ func NewList() *List {
 		Frame: style.DefaultFrameStyle(),
 		Items: NewItems(),
 	}
-	//m.SetAction(PrintItems)
+	m.SetAction(PrintItems)
 	m.Frame.MinHeight = 10
 	return &m
 }
@@ -234,4 +236,11 @@ func ListKeyMap() list.KeyMap {
 		bubblekey.WithHelp("ctrl+c", "quit"),
 	)
 	return km
+}
+
+func PrintItems(items ...*Item) tea.Cmd {
+	for _, i := range items {
+		fmt.Println(i.Content())
+	}
+	return tea.Quit
 }
