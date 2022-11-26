@@ -36,12 +36,11 @@ func New(data teacozy.Fields) *Info {
 	info := &Info{
 		Style: s,
 	}
-	info.SetData(data)
+	info.AddFields(data)
 	return info
 }
 
-func (i *Info) SetData(data teacozy.Fields) *Info {
-	i.Data = data
+func (i *Info) AddFields(data teacozy.Fields) *Info {
 	i.AddContent(i.RenderData(data)...)
 	return i
 }
@@ -61,33 +60,6 @@ func (i Info) RenderData(data teacozy.Fields) []string {
 
 	for _, key := range data.Keys() {
 		fd := data.Get(key)
-
-		var line []string
-		if !i.HideKeys {
-			k := i.Style.Key.Render(fd.Name())
-			line = append(line, k, ": ")
-		}
-
-		v := i.Style.Value.Render(fd.Content())
-		line = append(line, v)
-
-		l := strings.Join(line, "")
-		info = append(info, l)
-	}
-
-	return info
-}
-
-func (i Info) Render() []string {
-	var info []string
-
-	if i.Title != "" {
-		t := i.Style.Title.Render(i.Title)
-		info = append(info, t)
-	}
-
-	for _, key := range i.Data.Keys() {
-		fd := i.Data.Get(key)
 
 		var line []string
 		if !i.HideKeys {

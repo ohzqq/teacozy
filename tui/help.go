@@ -19,19 +19,19 @@ func NewHelp() Help {
 	m := help.New()
 	m.ShowAll = false
 	h := Help{
-		Model:    m,
-		KeyMap:   key.NewKeyMap(),
-		ListKeys: key.NewKeyMap(),
+		Model:  m,
+		KeyMap: key.NewKeyMap(),
 	}
 	h.Info = info.New(h.KeyMap)
 	h.ListNavigation()
-	h.Info.AddContent("List Nav")
-	h.Info.SetData(h.ListKeys)
 	return h
 }
 
 func (h *Help) ListNavigation() {
 	lk := list.ListKeyMap()
-	h.ListKeys.AddBind(lk.CursorUp)
-	h.ListKeys.AddBind(lk.CursorDown)
+	km := key.NewKeyMap()
+	km.AddBind(lk.CursorUp)
+	km.AddBind(lk.CursorDown)
+	h.Info.AddContent("List Nav")
+	h.Info.AddFields(km)
 }

@@ -8,7 +8,6 @@ import (
 
 type Key struct {
 	key key.Binding
-	//key teacozy.Key
 	cmd teacozy.MenuFunc
 }
 
@@ -18,12 +17,10 @@ func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
 
 func NewKey(k, h string) *Key {
 	return &Key{
-		//key: teacozy.Key{
 		key: key.NewBinding(
 			key.WithKeys(k),
 			key.WithHelp(k, h),
 		),
-		//},
 	}
 }
 
