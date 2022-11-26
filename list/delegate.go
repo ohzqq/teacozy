@@ -77,6 +77,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 		itemStyle = d.Style.Sub
 	}
 	itemStyle = itemStyle.Copy().Margin(0, 1, 0, curItem.Level)
+
 	fmt.Fprintf(w, itemStyle.Render(curItem.Prefix()+content))
 }
 

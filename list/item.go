@@ -1,7 +1,6 @@
 package list
 
 import (
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/style"
@@ -73,22 +72,6 @@ func (i Item) Prefix() string {
 	}
 
 	return prefix
-}
-
-func (i Item) Style(current bool) lipgloss.Style {
-	var lip lipgloss.Style
-	switch {
-	case i.IsSelected:
-		lip = i.style.Selected
-	case i.IsSub():
-		lip = i.style.Sub
-	default:
-		lip = i.style.Normal
-	}
-	if current {
-		lip = i.style.Current
-	}
-	return lip.Copy().Margin(0, 1, 0, i.Level)
 }
 
 func (i Item) Index() int {
