@@ -35,6 +35,7 @@ type TUI struct {
 	width             int
 	height            int
 	Hash              map[string]string
+	Help              Help
 	//Help              *info.Info
 	//MainMenu          *menu.Menu
 	//ActionMenu        *menu.Menu
@@ -48,6 +49,7 @@ func New(main *list.List) TUI {
 		Main:        main,
 		FocusedView: "list",
 		Style:       DefaultStyle(),
+		Help:        NewHelp(),
 		//Menus:       make(menu.Menus),
 		//MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
 		//ActionMenu:  ActionMenu(),
