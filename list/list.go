@@ -194,8 +194,10 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ToggleItemChildrenMsg:
 		switch msg.ShowChildren {
 		case true:
+			m.Model.Select(msg.Index())
 			m.Items.CloseItemList(msg.Index())
 		default:
+			m.Model.CursorDown()
 			m.Items.OpenItemList(msg.Index())
 		}
 		cmds = append(cmds, m.ShowVisibleItemsCmd())
