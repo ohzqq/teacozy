@@ -99,7 +99,7 @@ func (i *Field) SetKey(key string) {
 }
 
 func (i *Field) SetValue(val string) {
-	i.data.Set(val)
+	i.data.Value = val
 	i.value = val
 }
 
@@ -132,12 +132,12 @@ func (i *Field) Set(val string) {
 }
 
 func (i *Field) Save() {
-	if i.Content() != i.Data.Content() {
-		i.Data.Set(i.value)
+	if i.Content() != i.data.Value {
+		i.data.Value = i.value
 	}
 }
 
 func (i *Field) Undo() {
 	i.Changed = false
-	i.Set(i.Data.Content())
+	i.Set(i.data.Value)
 }

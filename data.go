@@ -17,20 +17,20 @@ type FieldData struct {
 	hideKeys bool
 	Style    FieldStyle
 	idx      int
-	key      string
+	Key      string
 	Value    string
 	changed  bool
 }
 
 func NewField(key, val string) *FieldData {
 	return &FieldData{
-		key:   key,
+		Key:   key,
 		Value: val,
 	}
 }
 
 func (i FieldData) Name() string {
-	return i.key
+	return i.Key
 }
 
 func (i *FieldData) Content() string {
