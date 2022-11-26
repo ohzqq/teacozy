@@ -19,12 +19,12 @@ type Items struct {
 	items       []*Item
 	MultiSelect bool
 	ShowKeys    bool
-	styles      style.ItemStyle
+	Style       style.ItemStyle
 }
 
 func NewItems() *Items {
 	return &Items{
-		styles: style.ItemStyles(),
+		Style: style.ItemStyles(),
 	}
 }
 

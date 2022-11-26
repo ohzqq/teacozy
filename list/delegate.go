@@ -48,7 +48,6 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 
 func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	var (
-		iStyle  = &d.styles
 		content string
 		curItem *Item
 	)
@@ -60,7 +59,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 	}
 
 	if m.Width() > 0 {
-		textwidth := uint(m.Width() - iStyle.Current.GetPaddingLeft() - iStyle.Current.GetPaddingRight())
+		textwidth := uint(m.Width() - d.Style.Current.GetPaddingLeft() - d.Style.Current.GetPaddingRight())
 		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
 	}
 
@@ -68,8 +67,17 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 		isCurrent = index == m.Index()
 	)
 
-	s := curItem.Style(isCurrent)
-	fmt.Fprintf(w, s.Render(curItem.Prefix()+content))
+	itemStyle := d.Style.Normal
+	switch {
+	case isCurrent:
+		itemStyle = d.Style.Current
+	case curItem.IsSelected:
+		itemStyle = d.Style.Selected
+	case curItem.IsSub():
+		itemStyle = d.Style.Sub
+	}
+	itemStyle = itemStyle.Copy().Margin(0, 1, 0, curItem.Level)
+	fmt.Fprintf(w, itemStyle.Render(curItem.Prefix()+content))
 }
 
 func (d Items) Height() int {

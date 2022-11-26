@@ -24,12 +24,12 @@ type Items struct {
 	items       []*Item
 	MultiSelect bool
 	ShowKeys    bool
-	styles      ItemStyle
+	Style       ItemStyle
 }
 
 func NewItems() *Items {
 	return &Items{
-		styles: ItemStyles(),
+		Style: ItemStyles(),
 	}
 }
 
@@ -280,7 +280,7 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 
 func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	var (
-		iStyle  = &d.styles
+		iStyle  = &d.Style
 		content string
 		curItem *Item
 	)

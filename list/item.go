@@ -91,16 +91,6 @@ func (i Item) Style(current bool) lipgloss.Style {
 	return lip.Copy().Margin(0, 1, 0, i.Level)
 }
 
-func (i Item) Render(current, key bool) string {
-	var (
-		s    = i.Style(current).Copy().Margin(0, 1, 0, i.Level)
-		p    = i.Prefix()
-		text = i.Content()
-	)
-
-	return s.Render(p + text)
-}
-
 func (i Item) Index() int {
 	return i.idx
 }
