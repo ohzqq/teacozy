@@ -14,18 +14,20 @@ func NewFields() *Fields {
 	return &Fields{}
 }
 
-func (f *Fields) Add(field *Field) {
+func (f *Fields) Add(fd teacozy.Field) {
+	field := NewField(fd)
 	f.fields = append(f.fields, field)
-	f.Data = append(f.Data, field)
+	f.Data = append(f.Data, fd)
 }
 
 func (f *Fields) SetData(data teacozy.Fields) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
-		field := NewField(fd.Name(), fd.Content())
-		field.idx = i
-		f.fields = append(f.fields, field)
+		field := teacozy.NewField(fd.Name(), fd.Content())
+		ff := NewField(field)
+		ff.idx = i
+		f.fields = append(f.fields, ff)
 	}
 }
 
@@ -52,7 +54,7 @@ func (i *Fields) Items() []list.Item {
 }
 
 func (f Fields) Get(key string) teacozy.Field {
-	for _, field := range f.Data {
+	for _, field := range f.fields {
 		if field.Name() == key {
 			return field
 		}
@@ -62,7 +64,7 @@ func (f Fields) Get(key string) teacozy.Field {
 
 func (f Fields) Keys() []string {
 	var keys []string
-	for _, field := range f.Data {
+	for _, field := range f.fields {
 		keys = append(keys, field.Name())
 	}
 	return keys
@@ -76,18 +78,12 @@ type Field struct {
 	data    *teacozy.FieldData
 }
 
-func NewField(key, val string) *Field {
+func NewField(data teacozy.Field) *Field {
 	return &Field{
-		key:   key,
-		value: val,
-		data:  teacozy.NewField(key, val),
+		key:   data.Name(),
+		value: data.Content(),
+		data:  teacozy.NewField(data.Name(), data.Content()),
 	}
-}
-
-func (i *Field) SetData(data teacozy.Field) {
-	i.key = data.Name()
-	i.value = data.Content()
-	i.data = teacozy.NewField(data.Name(), data.Content())
 }
 
 func (i *Field) Update() {
