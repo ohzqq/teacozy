@@ -1,18 +1,24 @@
 package list
 
-//type ActionFunc func(items ...*Item) tea.Cmd
+import (
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/style"
+)
 
-//type List struct {
-//  Model         list.Model
-//  Title         string
-//  SelectionList bool
-//  ActionFunc    ActionFunc
-//  Hash          map[string]string
-//  Style         list.Styles
-//  id            int
-//  style.Frame
-//  *Items
-//}
+type ActionFunc func(items ...*Item) tea.Cmd
+
+type List struct {
+	Model         list.Model
+	Title         string
+	SelectionList bool
+	ActionFunc    ActionFunc
+	Hash          map[string]string
+	Style         list.Styles
+	id            int
+	style.Frame
+	*Items
+}
 
 //func NewList() *List {
 //  m := List{
