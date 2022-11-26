@@ -21,7 +21,7 @@ type SaveFormAsHashMsg struct{}
 func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
-		for _, item := range m.Fields.Data {
+		for _, item := range m.Fields.fields {
 			m.Hash[item.Name()] = item.Content()
 		}
 		return SaveFormAsHashMsg{}

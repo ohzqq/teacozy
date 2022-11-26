@@ -7,7 +7,6 @@ import (
 
 type Fields struct {
 	fields []*Field
-	Data   []teacozy.Field
 }
 
 func NewFields() *Fields {
@@ -17,13 +16,11 @@ func NewFields() *Fields {
 func (f *Fields) Add(fd teacozy.Field) {
 	field := NewField(fd)
 	f.fields = append(f.fields, field)
-	f.Data = append(f.Data, fd)
 }
 
 func (f *Fields) SetData(data teacozy.Fields) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
-		f.Data = append(f.Data, fd)
 		field := teacozy.NewField(fd.Name(), fd.Content())
 		ff := NewField(field)
 		ff.idx = i
