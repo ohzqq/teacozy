@@ -14,9 +14,9 @@ type Item struct {
 	ListLevels   int
 	Level        int
 	Parent       *Item
-	//Children     Items
-	hasFields bool
-	Meta      *form.Fields
+	Children     Items
+	hasFields    bool
+	Meta         *form.Fields
 	teacozy.Field
 }
 
@@ -85,51 +85,51 @@ func (i *Item) Hide() *Item {
 }
 
 // Sublist methods
-//func (i *Item) Flatten() []*Item {
-//  var items []*Item
-//  depth := 0
-//  if i.HasChildren() {
-//    depth++
-//    for _, item := range i.Children.flat {
-//      if i.MultiSelect {
-//        item.SetMultiSelect()
-//      }
-//      item.IsHidden = true
-//      items = append(items, item)
-//      if item.HasChildren() {
-//        depth++
-//        items = append(items, item.Flatten()...)
-//      }
-//    }
-//  }
-//  i.ListLevels = depth
-//  return items
-//}
+func (i *Item) Flatten() []*Item {
+	var items []*Item
+	depth := 0
+	if i.HasChildren() {
+		depth++
+		for _, item := range i.Children.flat {
+			if i.MultiSelect {
+				item.SetMultiSelect()
+			}
+			item.IsHidden = true
+			items = append(items, item)
+			if item.HasChildren() {
+				depth++
+				items = append(items, item.Flatten()...)
+			}
+		}
+	}
+	i.ListLevels = depth
+	return items
+}
 
-//func (i Item) ListDepth() int {
-//  depth := 0
-//  if i.HasChildren() {
-//    depth++
-//    for _, item := range i.Children.flat {
-//      if item.HasChildren() {
-//        depth++
-//      }
-//    }
-//  }
-//  return depth
-//}
+func (i Item) ListDepth() int {
+	depth := 0
+	if i.HasChildren() {
+		depth++
+		for _, item := range i.Children.flat {
+			if item.HasChildren() {
+				depth++
+			}
+		}
+	}
+	return depth
+}
 
-//func (i Item) HasChildren() bool {
-//  has := len(i.Children.flat) > 0
-//  return has
-//}
+func (i Item) HasChildren() bool {
+	has := len(i.Children.flat) > 0
+	return has
+}
 
-//func (i Item) TotalChildren() int {
-//  if i.HasChildren() {
-//    return len(i.Children.flat)
-//  }
-//  return 0
-//}
+func (i Item) TotalChildren() int {
+	if i.HasChildren() {
+		return len(i.Children.flat)
+	}
+	return 0
+}
 
 func (i *Item) ToggleList() *Item {
 	i.ShowChildren = !i.ShowChildren
