@@ -14,7 +14,7 @@ type Item struct {
 	ListLevels   int
 	Level        int
 	Parent       *Item
-	Children     Items
+	Children     *Items
 	hasFields    bool
 	Meta         *form.Fields
 	teacozy.Field
@@ -22,8 +22,9 @@ type Item struct {
 
 func NewItem(item teacozy.Field) *Item {
 	return &Item{
-		Field: item,
-		Meta:  form.NewFields(),
+		Field:    item,
+		Meta:     form.NewFields(),
+		Children: NewItems(),
 	}
 }
 
