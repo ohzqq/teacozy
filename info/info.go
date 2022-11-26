@@ -18,7 +18,7 @@ type Info struct {
 	Editable bool
 	Content  []string
 	Title    string
-	Data     teacozy.FormData
+	Data     teacozy.Fields
 	Frame    style.Frame
 	Style    Style
 }
@@ -28,7 +28,7 @@ type Style struct {
 	Title lipgloss.Style
 }
 
-func New(data teacozy.FormData) *Info {
+func New(data teacozy.Fields) *Info {
 	s := Style{
 		Field: style.DefaultFieldStyles(),
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
@@ -39,7 +39,7 @@ func New(data teacozy.FormData) *Info {
 	}
 }
 
-func (i *Info) SetData(data teacozy.FormData) *Info {
+func (i *Info) SetData(data teacozy.Fields) *Info {
 	i.Data = data
 	return i
 }

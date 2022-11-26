@@ -55,7 +55,7 @@ func HideFormCmd() tea.Cmd {
 }
 
 type EditFormItemMsg struct {
-	Data teacozy.FieldData
+	Data teacozy.Field
 	*Field
 }
 

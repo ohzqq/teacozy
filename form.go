@@ -13,7 +13,7 @@ type Form struct {
 	Model    list.Model
 	Input    textarea.Model
 	Info     *Info
-	Fields   *Fields
+	Fields   *FormData
 	Confirm  *Menu
 	Title    string
 	Changed  bool
@@ -39,7 +39,7 @@ func NewForms(items *Items) *Form {
 	return &m
 }
 
-func NewForm(fields *Fields) *Form {
+func NewForm(fields *FormData) *Form {
 	m := Form{
 		SaveForm: SaveFormAsHash,
 		Frame:    DefaultFrameStyle(),

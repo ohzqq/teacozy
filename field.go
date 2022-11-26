@@ -7,41 +7,30 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type FormData interface {
-	Get(string) FieldData
-	Keys() []string
-}
-
-type FieldData interface {
-	Value() string
-	Key() string
-	Set(string)
-}
-
-type Fields struct {
+type FormData struct {
 	Model     viewport.Model
 	IsVisible bool
 	hideKeys  bool
 	Style     FieldStyle
-	Data      []FieldData
-	fields    []*Field
+	Data      []Field
+	fields    []*FieldData
 	data      *Items
 }
 
-func NewFields() *Fields {
-	return &Fields{
+func NewFields() *FormData {
+	return &FormData{
 		Style: fieldStyle,
 		data:  NewItems(),
 	}
 }
 
-func DisplayFields(fields *Fields, w, h int) *Info {
+func DisplayFields(fields *FormData, w, h int) *Info {
 	info := NewInfo().SetData(fields)
 	info.SetSize(w, h)
 	return info
 }
 
-func (f *Fields) NewField(key, val string) *Fields {
+func (f *FormData) NewField(key, val string) *FormData {
 	field := NewField(key, val)
 	f.Data = append(f.Data, field)
 	item := NewItem().SetData(field)
@@ -49,20 +38,20 @@ func (f *Fields) NewField(key, val string) *Fields {
 	return f
 }
 
-func (f *Fields) Add(field FieldData) *Fields {
+func (f *FormData) Add(field Field) *FormData {
 	f.Data = append(f.Data, field)
 	return f
 }
 
-func (f Fields) HasData() bool {
+func (f FormData) HasData() bool {
 	return len(f.Data) > 0
 }
 
-func (f Fields) Items() *Items {
+func (f FormData) Items() *Items {
 	return f.data
 }
 
-func (f *Fields) SetData(data FormData) *Fields {
+func (f *FormData) SetData(data Fields) *FormData {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
@@ -75,7 +64,7 @@ func (f *Fields) SetData(data FormData) *Fields {
 	return f
 }
 
-func (f Fields) Get(key string) FieldData {
+func (f FormData) Get(key string) Field {
 	for _, field := range f.Data {
 		if field.Key() == key {
 			return field
@@ -84,7 +73,7 @@ func (f Fields) Get(key string) FieldData {
 	return nil
 }
 
-func (f Fields) Keys() []string {
+func (f FormData) Keys() []string {
 	var keys []string
 	for _, field := range f.Data {
 		keys = append(keys, field.Key())
@@ -92,7 +81,7 @@ func (f Fields) Keys() []string {
 	return keys
 }
 
-func (f *Fields) Edit() *List {
+func (f *FormData) Edit() *List {
 	form := NewList().SetTitle("edit")
 	if len(f.Data) > 0 {
 		for _, field := range f.All() {
@@ -103,16 +92,16 @@ func (f *Fields) Edit() *List {
 	return form.Edit()
 }
 
-func (f Fields) All() []FieldData {
+func (f FormData) All() []Field {
 	return f.Data
 }
 
-func (f *Fields) HideKeys() *Fields {
+func (f *FormData) HideKeys() *FormData {
 	f.hideKeys = true
 	return f
 }
 
-func (i Fields) String() string {
+func (i FormData) String() string {
 	var info []string
 	for _, field := range i.All() {
 		var line []string
@@ -131,7 +120,7 @@ func (i Fields) String() string {
 	return strings.Join(info, "\n")
 }
 
-type Field struct {
+type FieldData struct {
 	hideKeys bool
 	Style    FieldStyle
 	idx      int
@@ -140,26 +129,26 @@ type Field struct {
 	changed  bool
 }
 
-func NewField(key, val string) *Field {
-	return &Field{
+func NewField(key, val string) *FieldData {
+	return &FieldData{
 		key:   key,
 		value: val,
 	}
 }
 
-func (i Field) Key() string {
+func (i FieldData) Key() string {
 	return i.key
 }
 
-func (i *Field) Value() string {
+func (i *FieldData) Value() string {
 	return i.value
 }
 
-func (i *Field) FilterValue() string {
+func (i *FieldData) FilterValue() string {
 	return i.value
 }
 
-func (i *Field) Set(val string) {
+func (i *FieldData) Set(val string) {
 	i.value = val
 }
 

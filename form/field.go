@@ -7,7 +7,7 @@ import (
 
 type Fields struct {
 	fields []*Field
-	Data   []teacozy.FieldData
+	Data   []teacozy.Field
 }
 
 func NewFields() *Fields {
@@ -19,7 +19,7 @@ func (f *Fields) Add(field *Field) {
 	f.Data = append(f.Data, field)
 }
 
-func (f *Fields) SetData(data teacozy.FormData) {
+func (f *Fields) SetData(data teacozy.Fields) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
@@ -54,7 +54,7 @@ func (i *Fields) Items() []list.Item {
 	return li
 }
 
-func (f Fields) Get(key string) teacozy.FieldData {
+func (f Fields) Get(key string) teacozy.Field {
 	for _, field := range f.Data {
 		if field.Key() == key {
 			return field
@@ -76,7 +76,7 @@ type Field struct {
 	value   string
 	changed bool
 	idx     int
-	Data    teacozy.FieldData
+	Data    teacozy.Field
 }
 
 func NewField() *Field {
@@ -85,7 +85,7 @@ func NewField() *Field {
 	}
 }
 
-func (i *Field) SetData(data teacozy.FieldData) {
+func (i *Field) SetData(data teacozy.Field) {
 	i.key = data.Key()
 	i.value = data.Value()
 	i.Data = data

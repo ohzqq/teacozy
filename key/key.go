@@ -97,7 +97,7 @@ func (k KeyMap) ShortHelp() []key.Binding {
 	return keys
 }
 
-func (k KeyMap) Get(name string) teacozy.FieldData {
+func (k KeyMap) Get(name string) teacozy.Field {
 	var key *Key
 	for _, bind := range k.keys {
 		if bind.Key() == name {

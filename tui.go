@@ -28,7 +28,7 @@ type TUI struct {
 	showHelp          bool
 	showConfirm       bool
 	currentListItem   int
-	currentItemFields *Fields
+	currentItemFields *FormData
 	Style             TUIStyle
 	width             int
 	height            int

@@ -19,13 +19,13 @@ type Item struct {
 	key          string
 	value        string
 	hasFields    bool
-	Fields       *Fields
-	Data         FieldData
+	Fields       *FormData
+	Data         Field
 }
 
 func NewItem() *Item {
 	return &Item{
-		Data:   &Field{},
+		Data:   &FieldData{},
 		Fields: NewFields(),
 	}
 }
@@ -39,7 +39,7 @@ func (i Item) HasFields() bool {
 	return i.Fields.HasData()
 }
 
-func (i *Item) SetFields(f *Fields) {
+func (i *Item) SetFields(f *FormData) {
 	i.Fields = f
 }
 
@@ -52,7 +52,7 @@ func (i *Item) SetMultiSelect() *Item {
 	return i
 }
 
-func (i *Item) SetData(data FieldData) *Item {
+func (i *Item) SetData(data Field) *Item {
 	i.key = data.Key()
 	i.value = data.Value()
 	i.Data = data
@@ -61,7 +61,7 @@ func (i *Item) SetData(data FieldData) *Item {
 }
 
 func (i *Item) SetKey(key string) *Item {
-	if field, ok := i.Data.(*Field); ok {
+	if field, ok := i.Data.(*FieldData); ok {
 		field.key = key
 	}
 	i.key = key
@@ -114,7 +114,7 @@ func (i Item) Index() int {
 	return i.idx
 }
 
-func (i Item) Get(key string) FieldData {
+func (i Item) Get(key string) Field {
 	return i.Fields.Get(key)
 }
 

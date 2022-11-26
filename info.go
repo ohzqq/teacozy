@@ -17,8 +17,8 @@ type Info struct {
 	Title    string
 	Style    FieldStyle
 	Frame    Frame
-	Data     FormData
-	Fields   *Fields
+	Data     Fields
+	Fields   *FormData
 }
 
 func NewInfo() *Info {
@@ -37,9 +37,9 @@ func NewInfoForm() *Info {
 	return info
 }
 
-func (i *Info) SetData(data FormData) *Info {
+func (i *Info) SetData(data Fields) *Info {
 	fields := NewFields().SetData(data)
-	if f, ok := data.(*Fields); ok {
+	if f, ok := data.(*FormData); ok {
 		fields = f
 	}
 	i.Data = data

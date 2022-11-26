@@ -139,7 +139,7 @@ func SaveFormAsHash(m *Form) tea.Cmd {
 }
 
 type EditFormItemMsg struct {
-	Data FieldData
+	Data Field
 	*Item
 }
 
@@ -193,12 +193,14 @@ func ShowInfoCmd() tea.Cmd {
 }
 
 type EditInfoMsg struct {
-	*Fields
+	*FormData
 }
 
-func EditInfoCmd(f *Fields) tea.Cmd {
+func EditInfoCmd(f *FormData) tea.Cmd {
 	return func() tea.Msg {
-		return EditInfoMsg{Fields: f}
+		return EditInfoMsg{
+			FormData: f,
+		}
 	}
 }
 

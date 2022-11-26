@@ -87,7 +87,7 @@ func (k KeysMap) FullHelp() *Info {
 	return NewInfo().SetData(k)
 }
 
-func (k KeysMap) Get(name string) FieldData {
+func (k KeysMap) Get(name string) Field {
 	var key Key
 	switch name {
 	case "Deselect All Items":
