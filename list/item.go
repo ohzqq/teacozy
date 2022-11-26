@@ -1,8 +1,10 @@
 package list
 
 import (
+	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/style"
 )
 
 type Item struct {
@@ -11,11 +13,13 @@ type Item struct {
 	IsSelected   bool
 	MultiSelect  bool
 	ShowChildren bool
+	ShowKey      bool
 	ListLevels   int
 	Level        int
 	Parent       *Item
 	Children     *Items
 	hasFields    bool
+	style        style.ItemStyle
 	Meta         *form.Fields
 	teacozy.Field
 }
@@ -25,6 +29,7 @@ func NewItem(item teacozy.Field) *Item {
 		Field:    item,
 		Meta:     form.NewFields(),
 		Children: NewItems(),
+		style:    style.ItemStyles(),
 	}
 }
 
@@ -51,6 +56,51 @@ func (i Item) FilterValue() string {
 }
 
 // Item methods
+func (i Item) Prefix() string {
+	prefix := dash
+	if i.MultiSelect {
+		prefix = uncheck
+		if i.IsSelected {
+			prefix = check
+		}
+	}
+
+	if i.HasChildren() {
+		prefix = openSub
+		if i.ShowChildren {
+			prefix = closeSub
+		}
+	}
+
+	return prefix
+}
+
+func (i Item) Style(current bool) lipgloss.Style {
+	var lip lipgloss.Style
+	switch {
+	case i.IsSelected:
+		lip = i.style.Selected
+	case i.IsSub():
+		lip = i.style.Sub
+	default:
+		lip = i.style.Normal
+	}
+	if current {
+		lip = i.style.Current
+	}
+	return lip.Copy().Margin(0, 1, 0, i.Level)
+}
+
+func (i Item) Render(current, key bool) string {
+	var (
+		s    = i.Style(current).Copy().Margin(0, 1, 0, i.Level)
+		p    = i.Prefix()
+		text = i.Content()
+	)
+
+	return s.Render(p + text)
+}
+
 func (i Item) Index() int {
 	return i.idx
 }

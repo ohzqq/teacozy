@@ -26,12 +26,6 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, key.InfoKey):
-			if sel != nil {
-				if curItem.HasMeta() {
-					return ShowItemInfoCmd(curItem)
-				}
-			}
 		case key.Matches(msg, key.ToggleItemList):
 			switch {
 			case curItem.HasChildren():
@@ -66,61 +60,16 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 	}
 
 	if m.Width() > 0 {
-		textwidth := uint(m.Width() - iStyle.CurrentItem.GetPaddingLeft() - iStyle.CurrentItem.GetPaddingRight())
+		textwidth := uint(m.Width() - iStyle.Current.GetPaddingLeft() - iStyle.Current.GetPaddingRight())
 		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
 	}
 
 	var (
-		isCurrent  = index == m.Index()
-		isSelected = curItem.IsSelected
+		isCurrent = index == m.Index()
 	)
 
-	render := iStyle.NormalItem.Render
-
-	if isCurrent {
-		render = func(s string) string {
-			return iStyle.CurrentItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
-		}
-	} else if isSelected {
-		render = func(s string) string {
-			return iStyle.SelectedItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
-		}
-	} else if curItem.IsSub() {
-		render = func(s string) string {
-			return iStyle.SubItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
-		}
-	} else {
-		render = func(s string) string {
-			return iStyle.NormalItem.Copy().Margin(0, 1, 0, curItem.Level).Render(s)
-		}
-	}
-
-	prefix := dash
-	if d.MultiSelect {
-		prefix = uncheck
-		if isSelected {
-			prefix = check
-		}
-	}
-
-	if curItem.HasChildren() {
-		prefix = openSub
-		if curItem.ShowChildren {
-			prefix = closeSub
-		}
-	}
-
-	if d.ShowKeys {
-		prefix = none
-		key := curItem.Name()
-		//key := fieldStyle.Key.Render(curItem.Name())
-		content = fmt.Sprintf("%s: %s", key, content)
-	}
-
-	content = prefix + content
-
-	fmt.Fprintf(w, render(content))
-	//fmt.Fprintf(w, "%d: %s", curItem.id, render(title))
+	s := curItem.Style(isCurrent)
+	fmt.Fprintf(w, s.Render(curItem.Prefix()+content))
 }
 
 func (d Items) Height() int {

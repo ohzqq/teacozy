@@ -7,18 +7,20 @@ import (
 )
 
 type ItemStyle struct {
-	NormalItem   lipgloss.Style
-	CurrentItem  lipgloss.Style
-	SelectedItem lipgloss.Style
-	SubItem      lipgloss.Style
+	Normal   lipgloss.Style
+	Current  lipgloss.Style
+	Selected lipgloss.Style
+	Sub      lipgloss.Style
+	Field
 }
 
 func ItemStyles() ItemStyle {
 	var s ItemStyle
-	s.NormalItem = lipgloss.NewStyle().Foreground(color.Foreground)
-	s.CurrentItem = lipgloss.NewStyle().Foreground(color.Green).Reverse(true)
-	s.SelectedItem = lipgloss.NewStyle().Foreground(color.Grey)
-	s.SubItem = lipgloss.NewStyle().Foreground(color.Purple)
+	s.Normal = lipgloss.NewStyle().Foreground(color.Foreground)
+	s.Current = lipgloss.NewStyle().Foreground(color.Green).Reverse(true)
+	s.Selected = lipgloss.NewStyle().Foreground(color.Grey)
+	s.Sub = lipgloss.NewStyle().Foreground(color.Purple)
+	s.Field = DefaultFieldStyles()
 	return s
 }
 
