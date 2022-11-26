@@ -23,11 +23,8 @@ func (f *Fields) SetData(data teacozy.Fields) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
 		f.Data = append(f.Data, fd)
-		field := NewField()
-		field.SetKey(fd.Name())
-		field.SetValue(fd.Content())
+		field := NewField(fd.Name(), fd.Content())
 		field.idx = i
-		field.Data = field
 		f.fields = append(f.fields, field)
 	}
 }
@@ -76,37 +73,34 @@ type Field struct {
 	value   string
 	Changed bool
 	idx     int
-	data    *teacozy.FieldData
-	Data    teacozy.Field
+	data    teacozy.FieldData
 }
 
-func NewField() *Field {
+func NewField(key, val string) *Field {
 	return &Field{
-		Data: &Field{},
-		data: &teacozy.FieldData{},
+		key:   key,
+		value: val,
+		data: teacozy.FieldData{
+			Key:   key,
+			Value: val,
+		},
 	}
 }
 
 func (i *Field) SetData(data teacozy.Field) {
 	i.key = data.Name()
 	i.value = data.Content()
-	i.data = teacozy.NewField(data.Name(), data.Content())
-	i.Data = data
-}
-
-func (i *Field) SetKey(key string) {
-	i.key = key
-}
-
-func (i *Field) SetValue(val string) {
-	i.data.Value = val
-	i.value = val
+	i.data = teacozy.FieldData{
+		Key:   data.Name(),
+		Value: data.Content(),
+	}
 }
 
 func (i *Field) Update() {
 	i.Changed = true
 }
 
+// To satisfy field interface
 func (i Field) Name() string {
 	return i.key
 }
@@ -115,6 +109,7 @@ func (i Field) Content() string {
 	return i.value
 }
 
+// To satisfy list item interface
 func (i Field) Title() string {
 	return i.key
 }

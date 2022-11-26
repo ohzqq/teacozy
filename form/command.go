@@ -2,7 +2,6 @@ package form
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy"
 )
 
 type SaveFormFunc func(m *Form) tea.Cmd
@@ -55,13 +54,12 @@ func HideFormCmd() tea.Cmd {
 }
 
 type EditFormItemMsg struct {
-	Data teacozy.Field
 	*Field
 }
 
 func EditFormItemCmd(item *Field) tea.Cmd {
 	return func() tea.Msg {
-		return EditFormItemMsg{Data: item.Data, Field: item}
+		return EditFormItemMsg{Field: item}
 	}
 }
 
