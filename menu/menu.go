@@ -40,7 +40,7 @@ func New(toggle, help string, keymap key.KeyMap) *Menu {
 
 func (m Menu) Get(k string) *key.Key {
 	for _, item := range m.KeyMap.All() {
-		if k == item.Key() {
+		if k == item.Name() {
 			return item
 		}
 	}
@@ -50,7 +50,7 @@ func (m Menu) Get(k string) *key.Key {
 func (m Menu) Keys() []string {
 	var keys []string
 	for _, item := range m.KeyMap.All() {
-		keys = append(keys, item.Key())
+		keys = append(keys, item.Name())
 	}
 	return keys
 }

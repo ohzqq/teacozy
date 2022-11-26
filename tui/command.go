@@ -2,7 +2,9 @@ package tui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/list"
+	"github.com/ohzqq/teacozy/menu"
 )
 
 // ui commands
@@ -23,10 +25,10 @@ func ActionMenuCmd() tea.Cmd {
 }
 
 type ItemChangedMsg struct {
-	*Item
+	*list.Item
 }
 
-func ItemChangedCmd(item *Item) tea.Cmd {
+func ItemChangedCmd(item *list.Item) tea.Cmd {
 	return func() tea.Msg {
 		return ItemChangedMsg{Item: item}
 	}
@@ -42,18 +44,6 @@ func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
 }
 
 // menu commands
-type CmdFunc func(m tea.Model) tea.Cmd
-
-type MenuFunc func(m tea.Model) tea.Cmd
-
-type UpdateMenuContentMsg string
-
-func UpdateMenuContentCmd(s string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateMenuContentMsg(s)
-	}
-}
-
 type HideMenuMsg struct{}
 
 func HideMenuCmd() tea.Cmd {
@@ -62,100 +52,25 @@ func HideMenuCmd() tea.Cmd {
 	}
 }
 
-type ShowMenuMsg struct{ *Menu }
+type ShowMenuMsg struct{ *menu.Menu }
 
-func ShowMenuCmd(menu *Menu) tea.Cmd {
+func ShowMenuCmd(menu *menu.Menu) tea.Cmd {
 	return func() tea.Msg {
 		return ShowMenuMsg{Menu: menu}
 	}
 }
 
-type ChangeMenuMsg struct{ *Menu }
+type ChangeMenuMsg struct{ *menu.Menu }
 
-func GoToMenuCmd(menu *Menu) MenuFunc {
+func GoToMenuCmd(menu *menu.Menu) teacozy.MenuFunc {
 	return func(m tea.Model) tea.Cmd {
 		return ChangeMenuCmd(menu)
 	}
 }
 
-func ChangeMenuCmd(menu *Menu) tea.Cmd {
+func ChangeMenuCmd(menu *menu.Menu) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeMenuMsg{Menu: menu}
-	}
-}
-
-// form commands
-type SaveFormFunc func(m *List) tea.Cmd
-
-type SaveForm func(m *Form) tea.Cmd
-
-type SaveAndExitFormMsg struct {
-	Exit SaveFormFunc
-	Save SaveForm
-}
-
-func SaveAndExitFormCmd(fn SaveFormFunc) tea.Cmd {
-	return func() tea.Msg {
-		return SaveAndExitFormMsg{Exit: fn}
-	}
-}
-
-func SaveFormCmd(fn SaveForm) tea.Cmd {
-	return func() tea.Msg {
-		return SaveAndExitFormMsg{Save: fn}
-	}
-}
-
-type ExitFormMsg struct{}
-
-func ExitFormCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ExitFormMsg{}
-	}
-}
-
-type SaveFormAsHashMsg struct{}
-
-func SaveFormAsHashCmd(m *List) tea.Cmd {
-	fn := func() tea.Msg {
-		m.Hash = make(map[string]string)
-		for _, item := range m.Items.Flat() {
-			m.Hash[item.Name()] = item.Value()
-		}
-		return SaveFormAsHashMsg{}
-	}
-	return fn
-}
-
-func SaveFormAsHash(m *Form) tea.Cmd {
-	fn := func() tea.Msg {
-		m.Hash = make(map[string]string)
-		for _, item := range m.Items.Flat() {
-			m.Hash[item.Name()] = item.Value()
-		}
-		return SaveFormAsHashMsg{}
-	}
-	return fn
-}
-
-type EditFormItemMsg struct {
-	Data Field
-	*Item
-}
-
-func EditFormItemCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return EditFormItemMsg{Data: item.Data, Item: item}
-	}
-}
-
-type FormChangedMsg struct {
-	*Item
-}
-
-func FormChangedCmd() tea.Cmd {
-	return func() tea.Msg {
-		return FormChangedMsg{}
 	}
 }
 
@@ -164,14 +79,6 @@ type ConfirmMenuMsg bool
 func ConfirmMenuCmd(confirm bool) tea.Cmd {
 	return func() tea.Msg {
 		return ConfirmMenuMsg(confirm)
-	}
-}
-
-type ConfirmFormSaveMsg struct{}
-
-func ConfirmFormSaveCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ConfirmFormSaveMsg{}
 	}
 }
 
@@ -193,10 +100,10 @@ func ShowInfoCmd() tea.Cmd {
 }
 
 type EditInfoMsg struct {
-	*FormData
+	*teacozy.FormData
 }
 
-func EditInfoCmd(f *FormData) tea.Cmd {
+func EditInfoCmd(f *teacozy.FormData) tea.Cmd {
 	return func() tea.Msg {
 		return EditInfoMsg{
 			FormData: f,
@@ -204,119 +111,11 @@ func EditInfoCmd(f *FormData) tea.Cmd {
 	}
 }
 
-// item commands
-type ToggleItemChildrenMsg struct{ *Item }
+type ShowItemInfoMsg struct{ *list.Item }
 
-func ToggleItemChildrenCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return ToggleItemChildrenMsg{Item: item}
-	}
-}
+func ShowItemInfoCmd(item *list.Item) tea.Cmd {
 
-type ToggleSelectedItemMsg struct{ *Item }
-
-func ToggleSelectedItemCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return ToggleSelectedItemMsg{Item: item}
-	}
-}
-
-type ShowItemInfoMsg struct{ *Item }
-
-func ShowItemInfoCmd(item *Item) tea.Cmd {
 	return func() tea.Msg {
 		return ShowItemInfoMsg{Item: item}
-	}
-}
-
-type EditItemValueMsg struct{ *Item }
-
-func EditItemValueCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return EditItemValueMsg{Item: item}
-	}
-}
-
-// list commands
-type ReturnSelectionsMsg struct{}
-
-func ReturnSelectionsCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
-	}
-}
-
-type ExitSelectionsListMsg struct{}
-
-func (m *List) ExitSelectionsListCmd() tea.Cmd {
-	return func() tea.Msg {
-		m.SelectionList = false
-		return ExitSelectionsListMsg{}
-	}
-}
-
-func ToggleAllItemsCmd(l *List) {
-	l.Items.ToggleAllSelectedItems()
-}
-
-type UpdateVisibleItemsMsg string
-
-func UpdateVisibleItemsCmd(opt string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateVisibleItemsMsg(opt)
-	}
-}
-
-func (m *List) ShowVisibleItemsCmd() tea.Cmd {
-	return func() tea.Msg {
-		return UpdateVisibleItemsMsg("visible")
-	}
-}
-
-func (m *List) ShowSelectedItemsCmd() tea.Cmd {
-	return func() tea.Msg {
-		return UpdateVisibleItemsMsg("selected")
-	}
-}
-
-type UpdateStatusMsg struct{ Msg string }
-
-func UpdateStatusCmd(status string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateStatusMsg{Msg: status}
-	}
-}
-
-type SortItemsMsg struct{ Items []*Item }
-
-func SortItemsCmd(items []*Item) tea.Cmd {
-	return func() tea.Msg {
-		return SortItemsMsg{Items: items}
-	}
-}
-
-type SetListItemMsg struct {
-	Item list.Item
-}
-
-func SetListItemCmd(item list.Item) tea.Cmd {
-	return func() tea.Msg {
-		return SetListItemMsg{Item: item}
-	}
-}
-
-type SetItemMsg struct{ *Item }
-
-func SetItemCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return SetItemMsg{Item: item}
-	}
-}
-
-type SetItemsMsg struct{ Items []list.Item }
-
-func SetItemsCmd(items []list.Item) tea.Cmd {
-	return func() tea.Msg {
-		return SetItemsMsg{Items: items}
 	}
 }

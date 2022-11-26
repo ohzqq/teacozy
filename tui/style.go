@@ -8,9 +8,9 @@ import (
 
 type Style struct {
 	List   list.Styles
-	Item   ItemStyle
-	Widget Frame
-	Frame  Frame
+	Item   style.ItemStyle
+	Widget style.Frame
+	Frame  style.Frame
 }
 
 func DefaultStyle() Style {
@@ -24,8 +24,8 @@ func DefaultStyle() Style {
 	return tui
 }
 
-func DefaultWidgetStyle() Frame {
-	return Frame{
+func DefaultWidgetStyle() style.Frame {
+	return style.Frame{
 		MinWidth:  util.TermWidth(),
 		MinHeight: util.TermHeight() / 4,
 	}
