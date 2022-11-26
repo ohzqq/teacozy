@@ -1,35 +1,20 @@
 package tui
 
 import (
-	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
+	"github.com/ohzqq/teacozy/menu"
 )
 
-type Help struct {
-	info     *info.Info
-	ListKeys key.KeyMap
-	key.KeyMap
+func NewHelp() *menu.Menu {
+	m := menu.New("?", "help", key.NewKeyMap())
+	return m
 }
 
-func NewHelp() Help {
-	h := Help{
-		KeyMap: key.NewKeyMap(),
-	}
-	h.info = info.New(h.KeyMap)
-	return h
-}
-
-func (h Help) Info() *info.Info {
-	h.ListNavigation()
-	return h.info
-}
-
-func (h *Help) ListNavigation() {
+func listKeyMap() key.KeyMap {
 	lk := list.ListKeyMap()
 	km := key.NewKeyMap()
 	km.AddBind(lk.CursorUp)
 	km.AddBind(lk.CursorDown)
-	h.info.AddContent("List Nav")
-	h.info.AddFields(km)
+	return km
 }

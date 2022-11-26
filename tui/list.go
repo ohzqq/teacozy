@@ -12,6 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
+	"github.com/ohzqq/teacozy/menu"
 )
 
 type TUI struct {
@@ -35,11 +36,11 @@ type TUI struct {
 	width             int
 	height            int
 	Hash              map[string]string
-	Help              Help
+	Help              *menu.Menu
 	//Help              *info.Info
-	//MainMenu          *menu.Menu
+	MainMenu *menu.Menu
 	//ActionMenu        *menu.Menu
-	//Menus             menu.Menus
+	Menus menu.Menus
 	//CurrentMenu       *menu.Menu
 	//ShortHelp         Help
 }
@@ -49,23 +50,24 @@ func New(main *list.List) TUI {
 		Main:        main,
 		FocusedView: "list",
 		Style:       DefaultStyle(),
-		Help:        NewHelp(),
-		//Menus:       make(menu.Menus),
-		//MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
+		Menus:       make(menu.Menus),
+		MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
 	}
+	help := menu.New("?", "help", key.NewKeyMap())
+	ui.AddMenu(help)
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
 }
 
-//func (l *TUI) AddMenu(menu *menu.Menu) {
-//  k := key.NewKey(menu.Toggle.Help().Key, menu.Toggle.Help().Desc).
-//    SetCmd(GoToMenuCmd(menu))
-//  l.MainMenu.AddKey(k)
-//  l.Menus[menu.Label] = menu
-//}
+func (l *TUI) AddMenu(menu *menu.Menu) {
+	k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content()).
+		SetCmd(GoToMenuCmd(menu))
+	l.MainMenu.AddKey(k)
+	l.Menus[menu.Label] = menu
+}
 
 func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
@@ -231,6 +233,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *TUI) Init() tea.Cmd {
+	help := m.Menus.Get("help")
+	help.AddContent("List Nav")
+	help.AddFields(listKeyMap())
 	return nil
 }
 
