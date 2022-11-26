@@ -139,7 +139,7 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cur := m.Model.SelectedItem().(*Item)
 				field := cur.Data
 				val := m.Input.Value()
-				if original := field.Value(); original != val {
+				if original := field.Content(); original != val {
 					field.Set(val)
 					item := NewItem().SetData(field)
 					cmds = append(cmds, ItemChangedCmd(item))

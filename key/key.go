@@ -54,7 +54,7 @@ func (i Key) Key() string {
 	return i.key.Binding.Help().Key
 }
 
-func (i Key) Value() string {
+func (i Key) Content() string {
 	return i.key.Binding.Help().Desc
 }
 

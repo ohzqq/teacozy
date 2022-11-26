@@ -66,7 +66,7 @@ func (i Info) RenderData() string {
 			line = append(line, k, ": ")
 		}
 
-		v := i.Style.Value.Render(fd.Value())
+		v := i.Style.Value.Render(fd.Content())
 		line = append(line, v)
 
 		l := strings.Join(line, "")

@@ -25,7 +25,7 @@ func (f *Fields) SetData(data teacozy.Fields) {
 		f.Data = append(f.Data, fd)
 		field := NewField()
 		field.SetKey(fd.Key())
-		field.SetValue(fd.Value())
+		field.SetValue(fd.Content())
 		field.idx = i
 		field.Data = field
 		f.fields = append(f.fields, field)
@@ -74,46 +74,44 @@ func (f Fields) Keys() []string {
 type Field struct {
 	key     string
 	value   string
-	changed bool
+	Changed bool
 	idx     int
+	data    *teacozy.FieldData
 	Data    teacozy.Field
 }
 
 func NewField() *Field {
 	return &Field{
 		Data: &Field{},
+		data: &teacozy.FieldData{},
 	}
 }
 
 func (i *Field) SetData(data teacozy.Field) {
 	i.key = data.Key()
-	i.value = data.Value()
+	i.value = data.Content()
+	i.data = teacozy.NewField(data.Key(), data.Content())
 	i.Data = data
 }
 
 func (i *Field) SetKey(key string) {
-	if field, ok := i.Data.(*Field); ok {
-		field.key = key
-	}
 	i.key = key
 }
 
 func (i *Field) SetValue(val string) {
-	if field, ok := i.Data.(*Field); ok {
-		field.Set(val)
-	}
+	i.data.Set(val)
 	i.value = val
 }
 
-func (i *Field) Changed() {
-	i.changed = true
+func (i *Field) Update() {
+	i.Changed = true
 }
 
 func (i Field) Key() string {
 	return i.key
 }
 
-func (i Field) Value() string {
+func (i Field) Content() string {
 	return i.value
 }
 
@@ -134,12 +132,12 @@ func (i *Field) Set(val string) {
 }
 
 func (i *Field) Save() {
-	if i.Value() != i.Data.Value() {
+	if i.Content() != i.Data.Content() {
 		i.Data.Set(i.value)
 	}
 }
 
 func (i *Field) Undo() {
-	i.changed = false
-	i.Set(i.Data.Value())
+	i.Changed = false
+	i.Set(i.Data.Content())
 }

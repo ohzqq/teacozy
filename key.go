@@ -33,7 +33,7 @@ func (i Key) Key() string {
 	return i.Binding.Help().Key
 }
 
-func (i Key) Value() string {
+func (i Key) Content() string {
 	return i.Binding.Help().Desc
 }
 

@@ -54,7 +54,7 @@ func (i *Item) SetMultiSelect() *Item {
 
 func (i *Item) SetData(data Field) *Item {
 	i.key = data.Key()
-	i.value = data.Value()
+	i.value = data.Content()
 	i.Data = data
 	i.Fields = NewFields().Add(data)
 	return i
@@ -139,14 +139,14 @@ func (i *Item) ChangedCmd() tea.Cmd {
 }
 
 func (i *Item) Save() {
-	if i.value != i.Data.Value() {
+	if i.value != i.Data.Content() {
 		i.Data.Set(i.value)
 	}
 }
 
 func (i *Item) Undo() {
 	i.changed = false
-	i.value = i.Data.Value()
+	i.value = i.Data.Content()
 }
 
 func (i Item) Value() string {

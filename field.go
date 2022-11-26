@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/viewport"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type FormData struct {
@@ -57,7 +56,7 @@ func (f *FormData) SetData(data Fields) *FormData {
 		f.Data = append(f.Data, fd)
 		item := NewItem().SetData(fd)
 		f.data.Add(item)
-		field := NewField(fd.Key(), fd.Value())
+		field := NewField(fd.Key(), fd.Content())
 		field.idx = i
 		f.fields = append(f.fields, field)
 	}
@@ -110,7 +109,7 @@ func (i FormData) String() string {
 			line = append(line, k, ": ")
 		}
 
-		v := i.Style.Value.Render(field.Value())
+		v := i.Style.Value.Render(field.Content())
 		line = append(line, v)
 
 		l := strings.Join(line, "")
@@ -118,44 +117,4 @@ func (i FormData) String() string {
 	}
 
 	return strings.Join(info, "\n")
-}
-
-type FieldData struct {
-	hideKeys bool
-	Style    FieldStyle
-	idx      int
-	key      string
-	value    string
-	changed  bool
-}
-
-func NewField(key, val string) *FieldData {
-	return &FieldData{
-		key:   key,
-		value: val,
-	}
-}
-
-func (i FieldData) Key() string {
-	return i.key
-}
-
-func (i *FieldData) Value() string {
-	return i.value
-}
-
-func (i *FieldData) FilterValue() string {
-	return i.value
-}
-
-func (i *FieldData) Set(val string) {
-	i.value = val
-}
-
-func SetKeyStyle(s lipgloss.Style) {
-	fieldStyle.Key = s
-}
-
-func SetValueStyle(s lipgloss.Style) {
-	fieldStyle.Value = s
 }
