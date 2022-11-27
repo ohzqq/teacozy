@@ -23,9 +23,9 @@ func (m Menus) Del(key string) {
 
 type Menu struct {
 	*info.Info
+	key.KeyMap
 	Label  string
 	Toggle *key.Key
-	KeyMap key.KeyMap
 }
 
 func New(toggle, help string, keymap key.KeyMap) *Menu {
@@ -34,7 +34,6 @@ func New(toggle, help string, keymap key.KeyMap) *Menu {
 		Label:  help,
 	}
 	m.SetToggle(toggle, help)
-	m.Info = info.New(keymap)
 	return &m
 }
 
@@ -102,7 +101,10 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Menu) Init() tea.Cmd { return nil }
+func (m Menu) Init() tea.Cmd {
+	m.Info = info.New(m.KeyMap)
+	return nil
+}
 
 func (m *Menu) View() string {
 	return m.Info.View()
