@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -14,19 +13,14 @@ import (
 
 type Info struct {
 	Model    viewport.Model
-	HideKeys bool
+	hideKeys bool
 	Visible  bool
 	Editable bool
 	Content  []string
-	Sections []Section
+	Sections []*Section
 	Title    string
 	Frame    style.Frame
 	Style    Style
-}
-
-type Section struct {
-	title  string
-	fields teacozy.Fields
 }
 
 type Style struct {
@@ -34,89 +28,35 @@ type Style struct {
 	Title lipgloss.Style
 }
 
-func New() *Info {
+func DefaultStyles() Style {
 	s := Style{
 		Field: style.DefaultFieldStyles(),
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
 	}
+	return s
+}
+
+func New() *Info {
 	info := &Info{
-		Style: s,
+		Style: DefaultStyles(),
 		Model: viewport.New(util.TermWidth(), util.TermHeight()),
 	}
-	info.ClearContent()
 	return info
 }
 
 func (i *Info) NewSection() *Section {
-	return &Section{}
-}
-
-func (s *Section) SetTitle(title string) *Section {
-	s.title = title
+	s := &Section{}
+	i.Sections = append(i.Sections, s)
 	return s
-}
-
-func (s *Section) SetFields(fields teacozy.Fields) *Section {
-	s.fields = fields
-	return s
-}
-
-func (i *Info) AddFields(data teacozy.Fields) *Info {
-	i.AddContent(i.RenderData(data)...)
-	return i
-}
-
-func (i *Info) ClearContent() *Info {
-	i.Content = []string{""}
-	return i
-}
-
-func (i *Info) SetContent(content string) *Info {
-	i.Content = []string{content}
-	return i
-}
-
-func (i *Info) AddContent(content ...string) *Info {
-	i.Content = append(i.Content, content...)
-	return i
 }
 
 func (i Info) Render() string {
-	content := strings.Join(i.Content, "\n")
-	i.Model.SetContent(content)
-	return content
-}
-
-func (i Info) RenderData(data teacozy.Fields) []string {
-	var info []string
-
-	if i.Title != "" {
-		t := i.Style.Title.Render(i.Title)
-		info = append(info, t)
+	var content []string
+	for _, section := range i.Sections {
+		content = append(content, section.Render(i.Style, i.hideKeys))
 	}
-
-	for _, key := range data.Keys() {
-		fd := data.Get(key)
-
-		var line []string
-		if !i.HideKeys {
-			k := i.Style.Key.Render(fd.Name())
-			line = append(line, k, ": ")
-		}
-
-		v := i.Style.Value.Render(fd.Content())
-		line = append(line, v)
-
-		l := strings.Join(line, "")
-		info = append(info, l)
-	}
-
-	return info
-}
-
-func (i *Info) SetTitle(title string) *Info {
-	i.Title = title
-	return i
+	c := strings.Join(content, "\n")
+	return c
 }
 
 func (i *Info) SetHeight(h int) *Info {
@@ -127,6 +67,11 @@ func (i *Info) SetHeight(h int) *Info {
 func (i *Info) SetSize(w, h int) *Info {
 	i.Frame.SetSize(w, h)
 	i.Model = viewport.New(w, h)
+	return i
+}
+
+func (i *Info) HideKeys() *Info {
+	i.hideKeys = true
 	return i
 }
 
@@ -186,6 +131,7 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
+	m.Model.SetContent(m.Render())
 	if m.Visible {
 		return m.Model.View()
 	}

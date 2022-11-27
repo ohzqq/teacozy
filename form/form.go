@@ -23,6 +23,7 @@ type Form struct {
 	Changed      bool
 	view         bool
 	Info         *info.Info
+	section      *info.Section
 	SaveFormFunc SaveFormFunc
 }
 
@@ -43,7 +44,8 @@ func New(fields *Fields) Form {
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
 
-	m.Info = info.New().AddFields(m.Fields)
+	m.Info = info.New()
+	m.section = m.Info.NewSection().SetFields(m.Fields)
 
 	return m
 }
@@ -91,16 +93,16 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.view = !m.view
 					m.Info.Toggle()
 				case key.Matches(msg, key.SaveAndExit):
-					m.Info.SetTitle(`save and exit? y\n`)
+					m.section.SetTitle(`save and exit? y\n`)
 					cmds = append(cmds, ViewFormCmd())
 				case key.Matches(msg, Yes):
-					m.Info.SetTitle("")
+					m.section.SetTitle("")
 					m.SaveChanges()
 					cmds = append(cmds, HideFormCmd())
 					cmds = append(cmds, SaveAndExitFormCmd())
 				case key.Matches(msg, No):
 					m.UndoChanges()
-					m.Info.SetTitle("")
+					m.section.SetTitle("")
 					cmds = append(cmds, HideFormCmd())
 				case key.Matches(msg, key.EditField):
 					cmds = append(cmds, HideFormCmd())
