@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Info struct {
@@ -39,7 +38,7 @@ func DefaultStyles() Style {
 func New() *Info {
 	info := &Info{
 		Style: DefaultStyles(),
-		Model: viewport.New(util.TermWidth(), util.TermHeight()),
+		Frame: style.DefaultFrameStyle(),
 	}
 	return info
 }
@@ -56,17 +55,19 @@ func (i *Info) NewSection() *Section {
 }
 
 func (i *Info) Render() string {
+	var sections []string
+	for _, section := range i.Sections {
+		sections = append(sections, section.Render(i.Style, i.hideKeys))
+	}
+	content := strings.Join(sections, "\n")
+
 	if i.content != "" {
-		return i.content
+		content = i.content
 	}
 
-	var content []string
-	for _, section := range i.Sections {
-		content = append(content, section.Render(i.Style, i.hideKeys))
-	}
-	c := strings.Join(content, "\n")
-	i.Model.SetContent(c)
-	return c
+	i.Model = viewport.New(i.Frame.Width(), i.Frame.Height())
+	i.Model.SetContent(content)
+	return content
 }
 
 func (i *Info) SetHeight(h int) *Info {
@@ -76,7 +77,6 @@ func (i *Info) SetHeight(h int) *Info {
 
 func (i *Info) SetSize(w, h int) *Info {
 	i.Frame.SetSize(w, h)
-	i.Model = viewport.New(w, h)
 	return i
 }
 
