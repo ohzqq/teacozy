@@ -51,11 +51,11 @@ func New(main *list.List) TUI {
 		FocusedView: "list",
 		Style:       DefaultStyle(),
 		Menus:       make(menu.Menus),
-		MainMenu:    menu.New("m", "menu", key.NewKeyMap()),
+		MainMenu:    menu.New("m", "menu"),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
 	}
-	help := menu.New("?", "help", key.NewKeyMap())
+	help := menu.New("?", "help").SetKeyMap(ListKeyMap())
 	ui.AddMenu(help)
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
@@ -65,7 +65,7 @@ func New(main *list.List) TUI {
 func (l *TUI) AddMenu(menu *menu.Menu) {
 	k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content()).
 		SetCmd(GoToMenuCmd(menu))
-	l.MainMenu.AddKey(k)
+	l.MainMenu.Add(k)
 	l.Menus[menu.Label] = menu
 }
 
@@ -235,7 +235,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *TUI) Init() tea.Cmd {
 	help := m.Menus.Get("help")
 	help.AddContent("List Nav")
-	help.AddFields(listKeyMap())
+	help.AddFields(ListKeyMap())
 	return nil
 }
 

@@ -8,19 +8,6 @@ import (
 
 type Menus map[string]*Menu
 
-func (m Menus) Get(key string) *Menu {
-	return m[key]
-}
-
-func (m Menus) Set(key string, menu *Menu) Menus {
-	m[key] = menu
-	return m
-}
-
-func (m Menus) Del(key string) {
-	delete(m, key)
-}
-
 type Menu struct {
 	*info.Info
 	key.KeyMap
@@ -28,13 +15,29 @@ type Menu struct {
 	Toggle *key.Key
 }
 
-func New(toggle, help string, keymap key.KeyMap) *Menu {
+func New(toggle, help string) *Menu {
 	m := Menu{
-		KeyMap: keymap,
+		KeyMap: key.NewKeyMap(),
 		Label:  help,
 	}
 	m.SetToggle(toggle, help)
 	return &m
+}
+
+func (m *Menu) SetKeyMap(km key.KeyMap) *Menu {
+	m.KeyMap = km
+	return m
+}
+
+//func (m *Menu) AddKey(key *key.Key) *Menu {
+//  m.KeyMap.Add(key)
+//  return m
+//}
+
+func (m *Menu) SetToggle(toggle, help string) *Menu {
+	m.Label = help
+	m.Toggle = key.NewKey(toggle, help)
+	return m
 }
 
 func (m Menu) Get(k string) *key.Key {
@@ -52,17 +55,6 @@ func (m Menu) Keys() []string {
 		keys = append(keys, item.Name())
 	}
 	return keys
-}
-
-func (m *Menu) AddKey(key *key.Key) *Menu {
-	m.KeyMap.Add(key)
-	return m
-}
-
-func (m *Menu) SetToggle(toggle, help string) *Menu {
-	m.Label = help
-	m.Toggle = key.NewKey(toggle, help)
-	return m
 }
 
 func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -102,10 +94,22 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Menu) Init() tea.Cmd {
-	m.Info = info.New(m.KeyMap)
 	return nil
 }
 
 func (m *Menu) View() string {
 	return m.Info.View()
+}
+
+func (m Menus) Get(key string) *Menu {
+	return m[key]
+}
+
+func (m Menus) Set(key string, menu *Menu) Menus {
+	m[key] = menu
+	return m
+}
+
+func (m Menus) Del(key string) {
+	delete(m, key)
 }

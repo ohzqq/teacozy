@@ -21,7 +21,7 @@ func SortListMenu() *Menu {
 	km.Add(kDesc)
 	km.Add(vAsc)
 	km.Add(vDesc)
-	m := menu.New("o", "sort by", km)
+	m := menu.New("o", "sort by").SetKeyMap(km)
 	return m
 }
 

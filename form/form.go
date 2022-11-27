@@ -43,7 +43,7 @@ func New(fields *Fields) Form {
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
 
-	m.Info = info.New(m.Fields)
+	m.Info = info.New().AddFields(m.Fields)
 
 	return m
 }

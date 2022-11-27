@@ -7,11 +7,11 @@ import (
 )
 
 func NewHelp() *menu.Menu {
-	m := menu.New("?", "help", key.NewKeyMap())
+	m := menu.New("?", "help")
 	return m
 }
 
-func listKeyMap() key.KeyMap {
+func ListKeyMap() key.KeyMap {
 	lk := list.ListKeyMap()
 	km := key.NewKeyMap()
 	km.AddBind(lk.CursorUp)

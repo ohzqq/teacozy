@@ -9,6 +9,7 @@ import (
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Info struct {
@@ -17,10 +18,15 @@ type Info struct {
 	Visible  bool
 	Editable bool
 	Content  []string
+	Sections []Section
 	Title    string
-	Data     teacozy.Fields
 	Frame    style.Frame
 	Style    Style
+}
+
+type Section struct {
+	title  string
+	fields teacozy.Fields
 }
 
 type Style struct {
@@ -28,16 +34,31 @@ type Style struct {
 	Title lipgloss.Style
 }
 
-func New(data teacozy.Fields) *Info {
+func New() *Info {
 	s := Style{
 		Field: style.DefaultFieldStyles(),
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
 	}
 	info := &Info{
 		Style: s,
+		Model: viewport.New(util.TermWidth(), util.TermHeight()),
 	}
-	info.AddFields(data)
+	info.ClearContent()
 	return info
+}
+
+func (i *Info) NewSection() *Section {
+	return &Section{}
+}
+
+func (s *Section) SetTitle(title string) *Section {
+	s.title = title
+	return s
+}
+
+func (s *Section) SetFields(fields teacozy.Fields) *Section {
+	s.fields = fields
+	return s
 }
 
 func (i *Info) AddFields(data teacozy.Fields) *Info {
@@ -45,9 +66,25 @@ func (i *Info) AddFields(data teacozy.Fields) *Info {
 	return i
 }
 
-func (i *Info) SetTitle(title string) *Info {
-	i.Title = title
+func (i *Info) ClearContent() *Info {
+	i.Content = []string{""}
 	return i
+}
+
+func (i *Info) SetContent(content string) *Info {
+	i.Content = []string{content}
+	return i
+}
+
+func (i *Info) AddContent(content ...string) *Info {
+	i.Content = append(i.Content, content...)
+	return i
+}
+
+func (i Info) Render() string {
+	content := strings.Join(i.Content, "\n")
+	i.Model.SetContent(content)
+	return content
 }
 
 func (i Info) RenderData(data teacozy.Fields) []string {
@@ -77,6 +114,11 @@ func (i Info) RenderData(data teacozy.Fields) []string {
 	return info
 }
 
+func (i *Info) SetTitle(title string) *Info {
+	i.Title = title
+	return i
+}
+
 func (i *Info) SetHeight(h int) *Info {
 	i.SetSize(i.Frame.Width(), h)
 	return i
@@ -85,16 +127,6 @@ func (i *Info) SetHeight(h int) *Info {
 func (i *Info) SetSize(w, h int) *Info {
 	i.Frame.SetSize(w, h)
 	i.Model = viewport.New(w, h)
-	return i
-}
-
-func (i *Info) SetContent(content string) *Info {
-	i.Content = []string{content}
-	return i
-}
-
-func (i *Info) AddContent(content ...string) *Info {
-	i.Content = append(i.Content, content...)
 	return i
 }
 
@@ -155,7 +187,6 @@ func (m *Info) Init() tea.Cmd {
 
 func (m *Info) View() string {
 	if m.Visible {
-		m.Model.SetContent(strings.Join(m.Content, "\n"))
 		return m.Model.View()
 	}
 	return ""
