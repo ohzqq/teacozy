@@ -70,6 +70,9 @@ func (m *Menu) Update(ui *TUI, msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+//func (m *Menu) View() string {
+//}
+
 func (m *Menu) SetKeyMap(km key.KeyMap) *Menu {
 	m.KeyMap = km
 	return m

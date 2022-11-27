@@ -110,15 +110,15 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
-		case key.Matches(msg, key.HelpKey):
-			if focus == "help" {
-				cmds = append(cmds, HideInfoCmd())
-			} else {
-				h := m.Menus.Get("help")
-				m.CurrentMenu = h
-				m.info = h.Info
-				cmds = append(cmds, ShowInfoCmd())
-			}
+		//case key.Matches(msg, key.HelpKey):
+		//if focus == "help" {
+		//cmds = append(cmds, HideInfoCmd())
+		//} else {
+		//h := m.Menus.Get("help")
+		//m.CurrentMenu = h
+		//m.info = h.Info
+		//cmds = append(cmds, ShowInfoCmd())
+		//}
 		//case Keys.Menu.Matches(msg):
 		//if focus == "menu" {
 		//cmds = append(cmds, HideMenuCmd())
@@ -336,6 +336,7 @@ func (ui TUI) Height() int {
 
 func (l *TUI) ShowMenu() {
 	l.showMenu = true
+	l.CurrentMenu.Show()
 }
 
 func (l *TUI) HideMenu() {
