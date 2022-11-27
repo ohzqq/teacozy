@@ -10,18 +10,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/form"
+	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/menu"
 )
 
 type TUI struct {
-	Main   tea.Model
-	Alt    tea.Model
-	Input  textarea.Model
-	view   viewport.Model
-	prompt textinput.Model
-	//info              *info.Info
+	Main              tea.Model
+	Alt               tea.Model
+	Input             textarea.Model
+	view              viewport.Model
+	prompt            textinput.Model
+	info              *info.Info
 	Title             string
 	FocusedView       string
 	fullScreen        bool
@@ -109,13 +110,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
-			//case Keys.Help.Matches(msg):
-			//if focus == "help" {
-			//cmds = append(cmds, HideInfoCmd())
-			//} else {
-			//m.info = Keys.FullHelp()
-			//cmds = append(cmds, ShowInfoCmd())
-			//}
+		case key.Matches(msg, key.HelpKey):
+			if focus == "help" {
+				cmds = append(cmds, HideInfoCmd())
+			} else {
+				//m.info = Keys.FullHelp()
+				cmds = append(cmds, ShowInfoCmd())
+			}
 			//case Keys.Menu.Matches(msg):
 			//if focus == "menu" {
 			//cmds = append(cmds, HideMenuCmd())
@@ -234,8 +235,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *TUI) Init() tea.Cmd {
 	help := m.Menus.Get("help")
-	help.AddContent("List Nav")
-	help.AddFields(ListKeyMap())
+	help.NewSection().SetTitle("List Nav").SetFields(ListKeyMap())
 	return nil
 }
 

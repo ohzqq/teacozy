@@ -16,7 +16,7 @@ type Info struct {
 	hideKeys bool
 	Visible  bool
 	Editable bool
-	Content  []string
+	content  string
 	Sections []*Section
 	Title    string
 	Frame    style.Frame
@@ -44,18 +44,28 @@ func New() *Info {
 	return info
 }
 
+func (i *Info) SetContent(c string) *Info {
+	i.content = c
+	return i
+}
+
 func (i *Info) NewSection() *Section {
 	s := &Section{}
 	i.Sections = append(i.Sections, s)
 	return s
 }
 
-func (i Info) Render() string {
+func (i *Info) Render() string {
+	if i.content != "" {
+		return i.content
+	}
+
 	var content []string
 	for _, section := range i.Sections {
 		content = append(content, section.Render(i.Style, i.hideKeys))
 	}
 	c := strings.Join(content, "\n")
+	i.Model.SetContent(c)
 	return c
 }
 
@@ -131,7 +141,7 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	m.Model.SetContent(m.Render())
+	m.Render()
 	if m.Visible {
 		return m.Model.View()
 	}

@@ -17,6 +17,7 @@ type Menu struct {
 
 func New(toggle, help string) *Menu {
 	m := Menu{
+		Info:   info.New(),
 		KeyMap: key.NewKeyMap(),
 		Label:  help,
 	}
@@ -98,6 +99,7 @@ func (m Menu) Init() tea.Cmd {
 }
 
 func (m *Menu) View() string {
+	m.Info.NewSection().SetTitle(m.Label).SetFields(m.KeyMap)
 	return m.Info.View()
 }
 
