@@ -3,12 +3,10 @@ package key
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy"
 )
 
 type Key struct {
 	key key.Binding
-	cmd teacozy.MenuFunc
 }
 
 func Matches(msg tea.KeyMsg, bind ...key.Binding) bool {
@@ -33,15 +31,6 @@ func NewBinding(k, help string) key.Binding {
 
 func (k Key) Binding() key.Binding {
 	return k.key
-}
-
-func (k Key) Cmd() teacozy.MenuFunc {
-	return k.cmd
-}
-
-func (k *Key) SetCmd(cmd teacozy.MenuFunc) *Key {
-	k.cmd = cmd
-	return k
 }
 
 func (k Key) Matches(msg tea.KeyMsg) bool {

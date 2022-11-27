@@ -4,7 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/menu"
 )
 
 // ui commands
@@ -44,44 +43,6 @@ func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
 }
 
 // menu commands
-type HideMenuMsg struct{}
-
-func HideMenuCmd() tea.Cmd {
-	return func() tea.Msg {
-		return HideMenuMsg{}
-	}
-}
-
-type ShowMenuMsg struct{ *menu.Menu }
-
-func ShowMenuCmd(menu *menu.Menu) tea.Cmd {
-	return func() tea.Msg {
-		return ShowMenuMsg{Menu: menu}
-	}
-}
-
-type ChangeMenuMsg struct{ *menu.Menu }
-
-func GoToMenuCmd(menu *menu.Menu) teacozy.MenuFunc {
-	return func(m tea.Model) tea.Cmd {
-		return ChangeMenuCmd(menu)
-	}
-}
-
-func ChangeMenuCmd(menu *menu.Menu) tea.Cmd {
-	return func() tea.Msg {
-		return ChangeMenuMsg{Menu: menu}
-	}
-}
-
-type ConfirmMenuMsg bool
-
-func ConfirmMenuCmd(confirm bool) tea.Cmd {
-	return func() tea.Msg {
-		return ConfirmMenuMsg(confirm)
-	}
-}
-
 // info commands
 type HideInfoMsg struct{}
 

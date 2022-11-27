@@ -13,7 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/menu"
 )
 
 type TUI struct {
@@ -37,12 +36,12 @@ type TUI struct {
 	width             int
 	height            int
 	Hash              map[string]string
-	Help              *menu.Menu
+	Help              *Menu
 	//Help              *info.Info
-	MainMenu *menu.Menu
+	MainMenu *Menu
 	//ActionMenu        *menu.Menu
-	Menus       menu.Menus
-	CurrentMenu *menu.Menu
+	Menus       Menus
+	CurrentMenu *Menu
 	//ShortHelp         Help
 }
 
@@ -51,8 +50,8 @@ func New(main *list.List) TUI {
 		Main:        main,
 		FocusedView: "list",
 		Style:       DefaultStyle(),
-		Menus:       make(menu.Menus),
-		MainMenu:    menu.New("m", "menu"),
+		Menus:       make(Menus),
+		MainMenu:    NewMenu("m", "menu"),
 		info:        info.New(),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
@@ -64,10 +63,10 @@ func New(main *list.List) TUI {
 	return ui
 }
 
-func (l *TUI) AddMenu(menu *menu.Menu) {
-	k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content()).
-		SetCmd(GoToMenuCmd(menu))
-	l.MainMenu.Add(k)
+func (l *TUI) AddMenu(menu *Menu) {
+	//k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content()).
+	//SetCmd(GoToMenuCmd(menu))
+	//l.MainMenu.Add(k)
 	l.Menus[menu.Label] = menu
 }
 
@@ -229,11 +228,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
-				var model tea.Model
-				model, cmd = m.CurrentMenu.Update(msg)
-				m.CurrentMenu = model.(*menu.Menu)
-				cmds = append(cmds, cmd)
-				//cmds = append(cmds, m.UpdateMenu(msg))
+				cmds = append(cmds, m.CurrentMenu.Update(m, msg))
 			}
 		}
 	}
@@ -353,4 +348,12 @@ func (ui *TUI) ShowInfo() {
 
 func (l *TUI) HideInfo() {
 	l.showInfo = false
+}
+
+func ListKeyMap() key.KeyMap {
+	lk := list.ListKeyMap()
+	km := key.NewKeyMap()
+	km.AddBind(lk.CursorUp)
+	km.AddBind(lk.CursorDown)
+	return km
 }

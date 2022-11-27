@@ -53,6 +53,16 @@ func (k KeyMap) Get(name string) teacozy.Field {
 	return key
 }
 
+func (k KeyMap) GetKey(name string) *Key {
+	var key *Key
+	for _, bind := range k.keys {
+		if bind.Name() == name {
+			key = bind
+		}
+	}
+	return key
+}
+
 func (k KeyMap) Keys() []string {
 	var keys []string
 	for _, bind := range k.keys {
