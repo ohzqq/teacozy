@@ -77,12 +77,6 @@ func (m *Menu) SetKeyMap(km key.KeyMap) *Menu {
 	return m
 }
 
-func (m *Menu) SetToggle(toggle, help string) *Menu {
-	m.Label = help
-	m.Toggle = key.NewKey(toggle, help)
-	return m
-}
-
 func (m Menus) Get(key string) *Menu {
 	return m[key]
 }

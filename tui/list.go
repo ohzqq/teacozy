@@ -36,12 +36,11 @@ type TUI struct {
 	width             int
 	height            int
 	Hash              map[string]string
-	Help              *Menu
-	//Help              *info.Info
-	MainMenu *Menu
+	Help              Help
+	MainMenu          *Menu
+	Menus             Menus
+	CurrentMenu       *Menu
 	//ActionMenu        *menu.Menu
-	Menus       Menus
-	CurrentMenu *Menu
 	//ShortHelp         Help
 }
 
@@ -53,21 +52,21 @@ func New(main *list.List) TUI {
 		Menus:       make(Menus),
 		MainMenu:    NewMenu("m", "menu"),
 		info:        info.New(),
+		Help:        NewHelp(),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
 	}
-	help := NewMenu("?", "help").SetKeyMap(ListKeyMap())
-	ui.AddMenu(help)
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
 }
 
-func (l *TUI) AddMenu(menu *Menu) {
-	//k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content()).
+func (ui *TUI) AddMenu(menu *Menu) {
+	k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content())
+	ui.Help.Add(k)
 	//SetCmd(GoToMenuCmd(menu))
 	//l.MainMenu.Add(k)
-	l.Menus[menu.Label] = menu
+	ui.Menus[menu.Label] = menu
 }
 
 func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -110,15 +109,13 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, HideInfoCmd())
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
-		//case key.Matches(msg, key.HelpKey):
-		//if focus == "help" {
-		//cmds = append(cmds, HideInfoCmd())
-		//} else {
-		//h := m.Menus.Get("help")
-		//m.CurrentMenu = h
-		//m.info = h.Info
-		//cmds = append(cmds, ShowInfoCmd())
-		//}
+		case key.Matches(msg, key.HelpKey):
+			if focus == "help" {
+				cmds = append(cmds, HideInfoCmd())
+			} else {
+				m.info = m.Help.Info
+				cmds = append(cmds, ShowInfoCmd())
+			}
 		//case Keys.Menu.Matches(msg):
 		//if focus == "menu" {
 		//cmds = append(cmds, HideMenuCmd())
@@ -238,8 +235,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *TUI) Init() tea.Cmd {
-	help := m.Menus.Get("help")
-	help.NewSection().SetTitle("List Nav").SetFields(ListKeyMap())
+	m.Help.Render()
 	return nil
 }
 
@@ -264,14 +260,6 @@ func (m *TUI) View() string {
 			//m.info.SetHeight(2)
 		}
 		m.info.SetSize(m.Style.Widget.Width(), m.Style.Widget.Height())
-		widget = m.CurrentMenu.View()
-		availHeight -= widgetHeight
-	}
-
-	if m.showInfo {
-		if m.showConfirm {
-			//m.info.SetHeight(2)
-		}
 		widget = m.info.View()
 		availHeight -= widgetHeight
 	}
@@ -345,16 +333,10 @@ func (l *TUI) HideMenu() {
 
 func (ui *TUI) ShowInfo() {
 	ui.showInfo = true
+	//ui.info.Show()
 }
 
-func (l *TUI) HideInfo() {
-	l.showInfo = false
-}
-
-func ListKeyMap() key.KeyMap {
-	lk := list.ListKeyMap()
-	km := key.NewKeyMap()
-	km.AddBind(lk.CursorUp)
-	km.AddBind(lk.CursorDown)
-	return km
+func (ui *TUI) HideInfo() {
+	ui.showInfo = false
+	ui.info.Hide()
 }

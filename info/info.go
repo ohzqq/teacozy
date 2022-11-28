@@ -38,11 +38,17 @@ func DefaultStyles() Style {
 
 func New() *Info {
 	info := &Info{
-		Style:  DefaultStyles(),
-		Frame:  style.DefaultFrameStyle(),
-		Toggle: key.NewKey("i", "info"),
+		Style:   DefaultStyles(),
+		Frame:   style.DefaultFrameStyle(),
+		Toggle:  key.NewKey("i", "info"),
+		Visible: true,
 	}
 	return info
+}
+
+func (m *Info) SetToggle(toggle, help string) *Info {
+	m.Toggle = key.NewKey(toggle, help)
+	return m
 }
 
 func (i *Info) SetContent(c string) *Info {
@@ -127,6 +133,8 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
+	case ShowInfoMsg:
+		m.Show()
 	case HideInfoMsg:
 		m.Hide()
 	}
