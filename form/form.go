@@ -109,9 +109,10 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, key.PrevScreen):
 					cmds = append(cmds, HideFormCmd())
 				}
-				var mod tea.Model
-				mod, cmd = m.Info.Update(msg)
-				m.Info = mod.(*info.Info)
+				//var mod tea.Model
+				//mod, cmd = m.Info.Update(msg)
+				//m.Info = mod.(*info.Info)
+				m.Info, cmd = m.Info.Update(msg)
 				cmds = append(cmds, cmd)
 			default:
 				switch {

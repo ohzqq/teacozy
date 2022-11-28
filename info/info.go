@@ -105,8 +105,8 @@ func (i *Info) ToggleVisible() {
 	i.Visible = !i.Visible
 }
 
-//func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
-func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
+	//func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd

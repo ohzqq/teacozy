@@ -66,11 +66,11 @@ func (m *Menu) Update(ui *TUI, msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
-	var model tea.Model
-	model, cmd = m.Info.Update(msg)
+	//var model tea.Model
+	//model, cmd = m.Info.Update(msg)
+	//m.Info = model.(*info.Info)
+	m.Info, cmd = m.Info.Update(msg)
 	cmds = append(cmds, cmd)
-
-	m.Info = model.(*info.Info)
 
 	return tea.Batch(cmds...)
 }

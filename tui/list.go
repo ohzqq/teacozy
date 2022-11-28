@@ -128,11 +128,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			for _, menu := range m.Menus {
 				if menu.Toggle.Matches(msg) && len(menu.Keys()) > 0 {
-					//m.CurrentMenu = menu
-					//m.ShowMenu()
-					//cmds = append(cmds, HideInfoCmd())
 					cmds = append(cmds, ChangeMenuCmd(menu))
-					//cmds = append(cmds, SetFocusedViewCmd(label))
 				}
 			}
 		}
@@ -182,7 +178,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
 		m.FocusedView = string(msg)
-		//cmds = append(cmds, list.UpdateStatusCmd(focus))
+		cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
 	case ActionMenuMsg:
 		//m.CurrentMenu = m.ActionMenu
 		//m.ShowMenu()
@@ -218,9 +214,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
-		var model tea.Model
-		model, cmd = m.info.Update(msg)
-		m.info = model.(*info.Info)
+		//var model tea.Model
+		//model, cmd = m.info.Update(msg)
+		//m.info = model.(*info.Info)
+		m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
