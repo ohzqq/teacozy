@@ -20,7 +20,7 @@ type Info struct {
 	Title    string
 	Frame    style.Frame
 	Style    Style
-	Key      *key.Key
+	Toggle   *key.Key
 }
 
 type Style struct {
@@ -38,8 +38,9 @@ func DefaultStyles() Style {
 
 func New() *Info {
 	info := &Info{
-		Style: DefaultStyles(),
-		Frame: style.DefaultFrameStyle(),
+		Style:  DefaultStyles(),
+		Frame:  style.DefaultFrameStyle(),
+		Toggle: key.NewKey("i", "info"),
 	}
 	return info
 }
@@ -94,7 +95,7 @@ func (i *Info) Hide() {
 	i.Visible = false
 }
 
-func (i *Info) Toggle() {
+func (i *Info) ToggleVisible() {
 	i.Visible = !i.Visible
 }
 
@@ -115,8 +116,8 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd())
 			}
-		case m.Key.Matches(msg):
-			m.Toggle()
+		case m.Toggle.Matches(msg):
+			m.ToggleVisible()
 		case key.Matches(msg, key.HelpKey):
 			fallthrough
 		case key.Matches(msg, key.ExitScreen):

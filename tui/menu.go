@@ -14,20 +14,19 @@ type MenuFunc func(tea.Model) tea.Cmd
 type Menu struct {
 	*info.Info
 	key.KeyMap
-	Frame  style.Frame
-	funcs  map[string]MenuFunc
-	Label  string
-	Toggle *key.Key
+	Frame style.Frame
+	funcs map[string]MenuFunc
+	Label string
 }
 
 func NewMenu(k, h string) *Menu {
 	m := Menu{
 		Info:   info.New(),
 		Label:  h,
-		Toggle: key.NewKey(k, h),
 		KeyMap: key.NewKeyMap(),
 		funcs:  make(map[string]MenuFunc),
 	}
+	m.Info.Toggle = key.NewKey(k, h)
 	m.Frame = DefaultWidgetStyle()
 	return &m
 }

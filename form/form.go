@@ -91,7 +91,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, key.ToggleAllItems):
 					m.view = !m.view
-					m.Info.Toggle()
+					m.Info.ToggleVisible()
 				case key.Matches(msg, key.SaveAndExit):
 					m.section.SetTitle(`save and exit? y\n`)
 					cmds = append(cmds, ViewFormCmd())
@@ -117,7 +117,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch {
 				case key.Matches(msg, key.ToggleAllItems):
 					m.view = !m.view
-					m.Info.Toggle()
+					m.Info.ToggleVisible()
 				case key.Matches(msg, key.SaveAndExit):
 					switch {
 					case m.Changed:
