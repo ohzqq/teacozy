@@ -59,6 +59,7 @@ func New(main *list.List) TUI {
 		showHelp: true,
 	}
 	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
+	ui.CurrentMenu = ui.MainMenu
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
@@ -114,10 +115,18 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
-			if focus == "info" && m.info.Visible {
-				cmds = append(cmds, m.HideHelp())
+			if focus == "help" {
+				m.showFullHelp = false
+				m.showInfo = false
+				m.info.Hide()
+				cmds = append(cmds, SetFocusedViewCmd("list"))
 			} else {
-				cmds = append(cmds, m.ShowHelp())
+				m.info = m.Help.Info
+				//m.showFullHelp = true
+				//m.showInfo = true
+				//m.info.Show()
+				//cmds = append(cmds, SetFocusedViewCmd("info"))
+				cmds = append(cmds, ShowInfoCmd())
 			}
 		case m.MainMenu.Toggle.Matches(msg):
 			if focus == "menu" {
@@ -177,8 +186,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
+		cmds = append(cmds, list.UpdateStatusCmd(string(msg)))
 		m.FocusedView = string(msg)
-		cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
 	case ActionMenuMsg:
 		//m.CurrentMenu = m.ActionMenu
 		//m.ShowMenu()
@@ -214,6 +223,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
+		cmds = append(cmds, list.UpdateStatusCmd("info"))
 		//var model tea.Model
 		//model, cmd = m.info.Update(msg)
 		//m.info = model.(*info.Info)
@@ -267,6 +277,7 @@ func (m *TUI) View() string {
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
+
 		m.info.SetSize(widgetWidth, widgetHeight)
 		widget = m.info.View()
 		availHeight -= widgetHeight
@@ -337,6 +348,7 @@ func (l *TUI) ShowMenu() {
 
 func (l *TUI) HideMenu() {
 	l.showMenu = false
+	l.CurrentMenu.Hide()
 }
 
 func (ui *TUI) ShowHelp() tea.Cmd {
