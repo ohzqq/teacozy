@@ -147,7 +147,7 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.SelectionList = true
 				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-			case key.Matches(msg, key.DeselectAll):
+			case key.Matches(msg, key.UnToggleAllItems):
 				m.Items.DeselectAllItems()
 				cmds = append(cmds, m.ShowVisibleItemsCmd())
 			case key.Matches(msg, key.ToggleAllItems):

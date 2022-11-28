@@ -33,12 +33,12 @@ func (s *Frame) SetWidth(w int) {
 	s.width = w
 }
 
-func (s Frame) Width() int {
-	return util.CalculateWidth(s.MinWidth, s.width)
-}
-
 func (s *Frame) SetHeight(h int) {
 	s.height = h
+}
+
+func (s Frame) Width() int {
+	return util.CalculateWidth(s.MinWidth, s.width)
 }
 
 func (s Frame) Height() int {

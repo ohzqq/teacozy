@@ -13,6 +13,7 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
+	"github.com/ohzqq/teacozy/style"
 )
 
 type TUI struct {
@@ -29,6 +30,7 @@ type TUI struct {
 	showMenu          bool
 	showInfo          bool
 	showHelp          bool
+	showFullHelp      bool
 	showConfirm       bool
 	currentListItem   int
 	currentItemFields *teacozy.Fields
@@ -114,7 +116,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
 			if focus == "info" && m.info.Visible {
-				cmds = append(cmds, HideInfoCmd())
+				cmds = append(cmds, m.HideHelp())
 			} else {
 				cmds = append(cmds, m.ShowHelp())
 			}
@@ -269,10 +271,16 @@ func (m *TUI) View() string {
 	}
 
 	if m.showInfo {
+		ww := m.Style.Widget.Width()
+		wh := m.Style.Widget.Height()
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
-		m.info.SetSize(m.Style.Widget.Width(), m.Style.Widget.Height())
+		//if m.showFullHelp {
+		//  ww = m.Style.Frame.Width()
+		//  wh = m.Style.Frame.Height()
+		//}
+		m.info.SetSize(ww, wh)
 		widget = m.info.View()
 		availHeight -= widgetHeight
 	}
@@ -346,5 +354,13 @@ func (l *TUI) HideMenu() {
 
 func (ui *TUI) ShowHelp() tea.Cmd {
 	ui.info = ui.Help.Info
+	ui.showFullHelp = true
+	ui.Style.Widget = style.DefaultFrameStyle()
 	return ShowInfoCmd()
+}
+
+func (ui *TUI) HideHelp() tea.Cmd {
+	ui.showFullHelp = false
+	ui.Style.Widget = DefaultWidgetStyle()
+	return HideInfoCmd()
 }

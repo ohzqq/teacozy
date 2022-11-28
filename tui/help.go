@@ -15,8 +15,9 @@ type Help struct {
 func NewHelp() Help {
 	i := info.New()
 	i.Toggle = key.NewKey("?", "help")
-	km := key.NewKeyMap()
-	km.Add(i.Toggle)
+	km := KeyMap()
+	//km := key.NewKeyMap()
+	//km.Add(i.Toggle)
 	return Help{
 		Info:   i,
 		KeyMap: km,
