@@ -123,26 +123,10 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, EditInfoCmd())
 			}
 		case m.Toggle.Matches(msg):
-			if m.Visible {
-				m.Hide()
-				//cmds = append(cmds, HideInfoCmd())
-			} else {
-				m.Show()
-				//cmds = append(cmds, ShowInfoCmd())
-			}
-			//m.ToggleVisible()
-			//case key.Matches(msg, key.ExitScreen):
-			//fallthrough
-			//case key.Matches(msg, key.PrevScreen):
-			//m.Hide()
-			//cmds = append(cmds, HideInfoCmd())
+			m.ToggleVisible()
 		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
-	case ShowInfoMsg:
-		m.Show()
-	case HideInfoMsg:
-		m.Hide()
 	}
 
 	m.Model, cmd = m.Model.Update(msg)

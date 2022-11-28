@@ -127,7 +127,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if menu.Toggle.Matches(msg) && len(menu.Keys()) > 0 {
 					m.CurrentMenu = menu
 					m.ShowMenu()
-					m.HideInfo()
+					cmds = append(cmds, HideInfoCmd())
 					cmds = append(cmds, SetFocusedViewCmd(label))
 				}
 			}
@@ -156,10 +156,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//}
 		//cmds = append(cmds, ShowInfoCmd())
 	case HideInfoMsg:
-		m.HideInfo()
+		m.showInfo = false
+		m.info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowInfoMsg:
-		m.ShowInfo()
+		m.showInfo = true
+		m.info.Show()
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
 	case ChangeMenuMsg:
@@ -167,7 +169,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, ShowMenuCmd(m.CurrentMenu))
 	case ShowMenuMsg:
 		m.ShowMenu()
-		m.HideInfo()
+		cmds = append(cmds, HideInfoCmd())
 		//cmds = append(cmds, SetFocusedViewCmd(m.CurrentMenu.Label))
 	case HideMenuMsg:
 		m.HideMenu()
@@ -329,14 +331,4 @@ func (l *TUI) ShowMenu() {
 
 func (l *TUI) HideMenu() {
 	l.showMenu = false
-}
-
-func (ui *TUI) ShowInfo() {
-	ui.showInfo = true
-	ui.info.Show()
-}
-
-func (ui *TUI) HideInfo() {
-	ui.showInfo = false
-	ui.info.Hide()
 }
