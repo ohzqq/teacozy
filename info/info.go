@@ -73,7 +73,6 @@ func (i *Info) Render() string {
 		content = i.content
 	}
 
-	i.Model = viewport.New(i.Frame.Width(), i.Frame.Height())
 	i.Model.SetContent(content)
 	return content
 }
@@ -85,6 +84,7 @@ func (i *Info) SetHeight(h int) *Info {
 
 func (i *Info) SetSize(w, h int) *Info {
 	i.Frame.SetSize(w, h)
+	i.Model = viewport.New(i.Frame.Width(), i.Frame.Height())
 	return i
 }
 

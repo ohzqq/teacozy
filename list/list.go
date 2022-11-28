@@ -25,10 +25,11 @@ type List struct {
 	*Items
 }
 
-func NewList() *List {
+func NewList(title string) *List {
 	m := List{
 		Frame: style.DefaultFrameStyle(),
 		Items: NewItems(),
+		Title: title,
 	}
 	m.SetAction(PrintItems)
 	m.Frame.MinHeight = 10
@@ -64,6 +65,7 @@ func (m *List) Edit() *List {
 func (m *List) SetModel() *List {
 	m.Items.Process()
 	m.Model = NewListModel(m.Width(), m.Height(), m.Items)
+	m.Model.Title = m.Title
 	return m
 }
 

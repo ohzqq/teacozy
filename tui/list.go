@@ -13,7 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type TUI struct {
@@ -82,6 +81,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
@@ -217,13 +217,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch focus {
-	//case "menu":
-	//cmds = append(cmds, m.CurrentMenu.Update(m, msg))
 	case "info":
 		var model tea.Model
 		model, cmd = m.info.Update(msg)
-		cmds = append(cmds, cmd)
 		m.info = model.(*info.Info)
+		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
 		case *list.List:
@@ -236,13 +234,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
-				cmds = append(cmds, list.UpdateStatusCmd(focus))
 				cmds = append(cmds, m.CurrentMenu.Update(m, msg))
 			}
 		}
 	}
 
-	//cmds = append(cmds, UpdateStatusCmd(m.FocusedView))
 	return m, tea.Batch(cmds...)
 }
 
@@ -271,8 +267,6 @@ func (m *TUI) View() string {
 	}
 
 	if m.showInfo {
-		//ww := m.Style.Widget.Width()
-		//wh := m.Style.Widget.Height()
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
@@ -351,7 +345,7 @@ func (l *TUI) HideMenu() {
 func (ui *TUI) ShowHelp() tea.Cmd {
 	ui.info = ui.Help.Info
 	ui.showFullHelp = true
-	ui.Style.Widget = style.DefaultFrameStyle()
+	//ui.Style.Widget = style.DefaultFrameStyle()
 	return ShowInfoCmd()
 }
 

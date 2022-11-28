@@ -29,14 +29,6 @@ func (h *Help) Render() {
 	h.NewSection().SetTitle("Navigation").SetFields(ListKeyMap())
 }
 
-type ShowHelpMsg struct{}
-
-func ShowHelpCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ShowHelpMsg{}
-	}
-}
-
 func GoToHelp(m tea.Model) tea.Cmd {
 	if ui, ok := m.(*TUI); ok {
 		return ui.ShowHelp()
