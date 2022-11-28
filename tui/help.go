@@ -1,6 +1,7 @@
 package tui
 
 import (
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
@@ -25,6 +26,21 @@ func NewHelp() Help {
 func (h *Help) Render() {
 	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
 	h.NewSection().SetTitle("Navigation").SetFields(ListKeyMap())
+}
+
+type ShowHelpMsg struct{}
+
+func ShowHelpCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ShowHelpMsg{}
+	}
+}
+
+func GoToHelp(m tea.Model) tea.Cmd {
+	if ui, ok := m.(*TUI); ok {
+		return ui.ShowHelp()
+	}
+	return nil
 }
 
 func ListKeyMap() key.KeyMap {

@@ -17,7 +17,7 @@ func (k KeyMap) All() []*Key {
 	return k.keys
 }
 
-func (k *KeyMap) New(key, help string) {
+func (k *KeyMap) NewKey(key, help string) {
 	bind := NewKey(key, help)
 	k.Add(bind)
 }
