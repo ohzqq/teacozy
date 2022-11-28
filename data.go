@@ -13,7 +13,6 @@ type Field interface {
 
 type FieldData struct {
 	hideKeys bool
-	Style    FieldStyle
 	idx      int
 	label    string
 	Val      string

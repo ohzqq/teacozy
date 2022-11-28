@@ -20,6 +20,7 @@ type Info struct {
 	Title    string
 	Frame    style.Frame
 	Style    Style
+	Key      *key.Key
 }
 
 type Style struct {
@@ -114,7 +115,7 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Editable {
 				cmds = append(cmds, EditInfoCmd())
 			}
-		case key.Matches(msg, key.InfoKey):
+		case m.Key.Matches(msg):
 			m.Toggle()
 		case key.Matches(msg, key.HelpKey):
 			fallthrough

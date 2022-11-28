@@ -31,7 +31,7 @@ type TUI struct {
 	showHelp          bool
 	showConfirm       bool
 	currentListItem   int
-	currentItemFields *teacozy.FormData
+	currentItemFields *teacozy.Fields
 	Style             Style
 	width             int
 	height            int

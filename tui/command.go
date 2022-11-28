@@ -61,13 +61,13 @@ func ShowInfoCmd() tea.Cmd {
 }
 
 type EditInfoMsg struct {
-	*teacozy.FormData
+	Fields *teacozy.Fields
 }
 
-func EditInfoCmd(f *teacozy.FormData) tea.Cmd {
+func EditInfoCmd(f *teacozy.Fields) tea.Cmd {
 	return func() tea.Msg {
 		return EditInfoMsg{
-			FormData: f,
+			Fields: f,
 		}
 	}
 }
