@@ -59,7 +59,6 @@ func New(main *list.List) TUI {
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
 	}
-	ui.Help.Add(mk)
 	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
@@ -235,12 +234,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Main, cmd = m.Main.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
-		//for label, _ := range m.Menus {
-		//if focus == label {
-		cmds = append(cmds, list.UpdateStatusCmd(focus))
-		cmds = append(cmds, m.CurrentMenu.Update(m, msg))
-		//}
-		//}
+		for label, _ := range m.Menus {
+			if focus == label {
+				cmds = append(cmds, list.UpdateStatusCmd(focus))
+				cmds = append(cmds, m.CurrentMenu.Update(m, msg))
+			}
+		}
 	}
 
 	//cmds = append(cmds, UpdateStatusCmd(m.FocusedView))
@@ -257,6 +256,7 @@ func (m *TUI) View() string {
 	var (
 		sections     []string
 		availHeight  = m.Height()
+		widgetWidth  = m.Style.Widget.Width()
 		widgetHeight = m.Style.Widget.Height()
 	)
 
@@ -265,22 +265,18 @@ func (m *TUI) View() string {
 	var widget string
 
 	if m.showMenu {
-		m.CurrentMenu.SetSize(m.Style.Widget.Width(), m.Style.Widget.Height())
+		m.CurrentMenu.SetSize(widgetWidth, widgetHeight)
 		widget = m.CurrentMenu.View()
 		availHeight -= widgetHeight
 	}
 
 	if m.showInfo {
-		ww := m.Style.Widget.Width()
-		wh := m.Style.Widget.Height()
+		//ww := m.Style.Widget.Width()
+		//wh := m.Style.Widget.Height()
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
-		//if m.showFullHelp {
-		//  ww = m.Style.Frame.Width()
-		//  wh = m.Style.Frame.Height()
-		//}
-		m.info.SetSize(ww, wh)
+		m.info.SetSize(widgetWidth, widgetHeight)
 		widget = m.info.View()
 		availHeight -= widgetHeight
 	}
