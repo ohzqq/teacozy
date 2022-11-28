@@ -110,7 +110,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
-			if focus == "help" {
+			if focus == "info" && m.info.Visible {
 				cmds = append(cmds, HideInfoCmd())
 			} else {
 				m.info = m.Help.Info
@@ -333,7 +333,7 @@ func (l *TUI) HideMenu() {
 
 func (ui *TUI) ShowInfo() {
 	ui.showInfo = true
-	//ui.info.Show()
+	ui.info.Show()
 }
 
 func (ui *TUI) HideInfo() {

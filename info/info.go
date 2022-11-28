@@ -41,7 +41,7 @@ func New() *Info {
 		Style:   DefaultStyles(),
 		Frame:   style.DefaultFrameStyle(),
 		Toggle:  key.NewKey("i", "info"),
-		Visible: true,
+		Visible: false,
 	}
 	return info
 }
@@ -123,13 +123,19 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, EditInfoCmd())
 			}
 		case m.Toggle.Matches(msg):
-			m.ToggleVisible()
-		case key.Matches(msg, key.HelpKey):
-			fallthrough
-		case key.Matches(msg, key.ExitScreen):
-			fallthrough
-		case key.Matches(msg, key.PrevScreen):
-			cmds = append(cmds, HideInfoCmd())
+			if m.Visible {
+				m.Hide()
+				//cmds = append(cmds, HideInfoCmd())
+			} else {
+				m.Show()
+				//cmds = append(cmds, ShowInfoCmd())
+			}
+			//m.ToggleVisible()
+			//case key.Matches(msg, key.ExitScreen):
+			//fallthrough
+			//case key.Matches(msg, key.PrevScreen):
+			//m.Hide()
+			//cmds = append(cmds, HideInfoCmd())
 		}
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
