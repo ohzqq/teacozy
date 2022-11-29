@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
@@ -11,15 +10,13 @@ import (
 type Help struct {
 	*info.Info
 	key.KeyMap
-	Model viewport.Model
 }
 
 func NewHelp() Help {
 	i := info.New()
+	i.Show()
 	i.Toggle = key.NewKey("?", "help")
 	km := KeyMap()
-	i.NewSection().SetTitle("Help").SetFields(km)
-	i.NewSection().SetTitle("Navigation").SetFields(ListKeyMap())
 	//km := key.NewKeyMap()
 	//km.Add(i.Toggle)
 	return Help{
@@ -28,34 +25,14 @@ func NewHelp() Help {
 	}
 }
 
-func (h Help) View() string {
-	h.Model.SetContent(h.Info.Render())
-	return h.Model.View()
+func (h *Help) Render() string {
+	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
+	h.NewSection().SetTitle("Navigation").SetFields(ListKeyMap())
+	return h.Info.Render()
 }
 
-func (m Help) Update(msg tea.Msg) (Help, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == tea.KeyCtrlC.String() {
-			cmds = append(cmds, tea.Quit)
-		}
-		switch {
-		case key.Matches(msg, key.HelpKey):
-			m.Info.Hide()
-			//cmds = append(cmds, ToggleHelpCmd())
-		}
-	}
-
-	//m.Model = m.Info.Model
-	m.Model, cmd = m.Info.Model.Update(msg)
-	cmds = append(cmds, cmd)
-	return m, tea.Batch(cmds...)
-}
+//func (m *Help) Update(msg tea.Msg) (*Help, tea.Cmd) {
+//}
 
 func GoToHelp(m tea.Model) tea.Cmd {
 	if ui, ok := m.(*TUI); ok {
