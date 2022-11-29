@@ -9,7 +9,8 @@ import (
 
 type Help struct {
 	*info.Info
-	key.KeyMap
+	KeyMap  key.KeyMap
+	ListNav key.KeyMap
 }
 
 func NewHelp() Help {
@@ -20,14 +21,15 @@ func NewHelp() Help {
 	//km := key.NewKeyMap()
 	//km.Add(i.Toggle)
 	return Help{
-		Info:   i,
-		KeyMap: km,
+		Info:    i,
+		KeyMap:  km,
+		ListNav: ListKeyMap(),
 	}
 }
 
 func (h *Help) Render() string {
 	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
-	h.NewSection().SetTitle("Navigation").SetFields(ListKeyMap())
+	h.NewSection().SetTitle("Navigation").SetFields(h.ListNav)
 	return h.Info.Render()
 }
 

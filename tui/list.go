@@ -30,6 +30,7 @@ type TUI struct {
 	view              viewport.Model
 	prompt            textinput.Model
 	Info              *info.Info
+	info              *Info
 	state             state
 	Title             string
 	FocusedView       string
@@ -65,11 +66,13 @@ func New(main *list.List) TUI {
 		MainMenu:    NewMenu(mk),
 		Info:        info.New(),
 		Help:        NewHelp(),
+		info:        NewInfo(),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
 	}
 	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
 	ui.CurrentMenu = ui.MainMenu
+	ui.info.Help = ui.Help
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
@@ -77,7 +80,7 @@ func New(main *list.List) TUI {
 
 func (ui *TUI) AddMenu(menu *Menu) {
 	k := key.NewKey(menu.Toggle.Name(), menu.Toggle.Content())
-	ui.Help.Add(k)
+	ui.Help.KeyMap.Add(k)
 	//SetCmd(GoToMenuCmd(menu))
 	//l.MainMenu.Add(k)
 	ui.Menus[menu.Label] = menu
@@ -126,10 +129,14 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
-			m.Info = m.Help.Info
-			cmds = append(cmds, info.ShowInfoCmd())
+			m.Info = m.info.Info
+			cmds = append(cmds, m.ShowHelp())
+			//m.Info = m.Help.Info
+			//cmds = append(cmds, info.ToggleVisibleCmd())
+			//cmds = append(cmds, info.ShowInfoCmd())
+			//m.showFullHelp = true
 			//cmds = append(cmds, list.UpdateStatusCmd("porot"))
-			cmds = append(cmds, SetFocusedViewCmd("info"))
+			//cmds = append(cmds, SetFocusedViewCmd("info"))
 		case m.MainMenu.Toggle.Matches(msg):
 			if focus == "menu" {
 				cmds = append(cmds, HideMenuCmd())
@@ -166,6 +173,16 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.currentItemFields = item
 		//}
 		//cmds = append(cmds, ShowInfoCmd())
+	case ToggleHelpMsg:
+		if m.showFullHelp {
+			//m.info.showHelp = false
+			cmds = append(cmds, m.HideHelp())
+			//cmds = append(cmds, info.HideInfoCmd())
+		} else {
+			//m.info.showHelp = true
+			//m.info.Help = m.Help
+			cmds = append(cmds, m.ShowHelp())
+		}
 	case info.ToggleVisibleMsg:
 		if m.Info.Visible {
 			cmds = append(cmds, info.HideInfoCmd())
@@ -174,9 +191,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case info.HideInfoMsg:
 		m.Info.Hide()
+		m.info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case info.ShowInfoMsg:
 		m.Info.Show()
+		m.info.Show()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
 		m.HideMenu()
 	case ChangeMenuMsg:
@@ -227,6 +246,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch focus {
+	case "help":
+		m.Help.Info, cmd = m.Help.Info.Update(msg)
+		cmds = append(cmds, cmd)
 	case "info":
 		//var model tea.Model
 		//model, cmd = m.Info.Update(msg)
@@ -234,9 +256,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.Info, cmd = m.Info.Update(msg)
 		//cmds = append(cmds, cmd)
 
-		m.view = m.Info.Model
-		m.view.SetContent(m.Info.Render())
-		m.view, cmd = m.view.Update(msg)
+		m.info, cmd = m.info.Update(msg)
+		//m.view = m.Info.Model
+		//m.view.SetContent(m.Info.Render())
+		//m.view, cmd = m.view.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
@@ -287,7 +310,7 @@ func (m *TUI) View() string {
 		availHeight -= widgetHeight
 	}
 
-	if m.Info.Visible {
+	if m.showInfo {
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
@@ -295,6 +318,15 @@ func (m *TUI) View() string {
 		m.Info.SetSize(widgetWidth, widgetHeight)
 		widget = m.view.View()
 		//widget = m.Info.View()
+		availHeight -= widgetHeight
+	}
+
+	if m.showFullHelp {
+		m.info.Model = viewport.New(widgetWidth, widgetHeight)
+		//m.info.Model = viewport.New(m.Width(), m.Height())
+		m.info.showHelp = true
+		widget = m.info.View()
+		//widget = m.Help.View()
 		availHeight -= widgetHeight
 	}
 
@@ -312,7 +344,7 @@ func (m *TUI) View() string {
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	if m.showMenu || m.Info.Visible {
+	if m.showMenu || m.showInfo || m.showFullHelp {
 		sections = append(sections, widget)
 	}
 
@@ -370,11 +402,12 @@ func (ui *TUI) ShowHelp() tea.Cmd {
 	ui.Info = ui.Help.Info
 	ui.showFullHelp = true
 	//ui.Style.Widget = style.DefaultFrameStyle()
-	return ShowInfoCmd()
+	ui.info.showHelp = true
+	return info.ShowInfoCmd()
 }
 
 func (ui *TUI) HideHelp() tea.Cmd {
 	ui.showFullHelp = false
 	ui.Style.Widget = DefaultWidgetStyle()
-	return HideInfoCmd()
+	return info.HideInfoCmd()
 }
