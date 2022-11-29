@@ -15,6 +15,7 @@ type Info struct {
 	hideKeys bool
 	Visible  bool
 	Editable bool
+	Focused  bool
 	content  string
 	Sections []*Section
 	Title    string
@@ -105,8 +106,8 @@ func (i *Info) ToggleVisible() {
 	i.Visible = !i.Visible
 }
 
-func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
-	//func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+//func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
+func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -123,9 +124,10 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 				cmds = append(cmds, EditInfoCmd())
 			}
 		case m.Toggle.Matches(msg):
-			//m.Hide()
-			m.ToggleVisible()
+			cmds = append(cmds, ToggleVisibleCmd())
 		}
+	case ToggleVisibleMsg:
+		m.ToggleVisible()
 	case tea.WindowSizeMsg:
 		m.Model = viewport.New(msg.Width-2, msg.Height-2)
 	}

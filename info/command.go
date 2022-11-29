@@ -5,6 +5,14 @@ import (
 )
 
 // info commands
+type ToggleVisibleMsg struct{}
+
+func ToggleVisibleCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ToggleVisibleMsg{}
+	}
+}
+
 type HideInfoMsg struct{}
 
 func HideInfoCmd() tea.Cmd {

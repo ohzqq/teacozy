@@ -21,7 +21,7 @@ type TUI struct {
 	Input             textarea.Model
 	view              viewport.Model
 	prompt            textinput.Model
-	info              *info.Info
+	Info              *info.Info
 	Title             string
 	FocusedView       string
 	fullScreen        bool
@@ -53,7 +53,7 @@ func New(main *list.List) TUI {
 		Style:       DefaultStyle(),
 		Menus:       make(Menus),
 		MainMenu:    NewMenu(mk),
-		info:        info.New(),
+		Info:        info.New(),
 		Help:        NewHelp(),
 		//ActionMenu:  ActionMenu(),
 		showHelp: true,
@@ -116,16 +116,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
 			if focus == "help" {
-				m.showFullHelp = false
-				m.showInfo = false
-				m.info.Hide()
-				cmds = append(cmds, SetFocusedViewCmd("list"))
+				cmds = append(cmds, HideInfoCmd())
 			} else {
-				m.info = m.Help.Info
-				//m.showFullHelp = true
-				//m.showInfo = true
-				//m.info.Show()
-				//cmds = append(cmds, SetFocusedViewCmd("info"))
+				m.Info = m.Help.Info
 				cmds = append(cmds, ShowInfoCmd())
 			}
 		case m.MainMenu.Toggle.Matches(msg):
@@ -164,13 +157,21 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.currentItemFields = item
 		//}
 		//cmds = append(cmds, ShowInfoCmd())
+	case info.ToggleVisibleMsg:
+		if m.Info.Visible {
+			cmds = append(cmds, HideInfoCmd())
+		} else {
+			cmds = append(cmds, ShowInfoCmd())
+		}
 	case HideInfoMsg:
+		m.Info.Focused = false
 		m.showInfo = false
-		m.info.Hide()
+		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowInfoMsg:
+		m.Info.Focused = true
 		m.showInfo = true
-		m.info.Show()
+		m.Info.Show()
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
 	case ChangeMenuMsg:
@@ -180,7 +181,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.showMenu = true
 		m.CurrentMenu.Show()
 		m.showInfo = false
-		m.info.Hide()
+		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd(m.CurrentMenu.Label))
 	case HideMenuMsg:
 		m.HideMenu()
@@ -223,11 +224,11 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
-		cmds = append(cmds, list.UpdateStatusCmd("info"))
-		//var model tea.Model
-		//model, cmd = m.info.Update(msg)
-		//m.info = model.(*info.Info)
-		m.info, cmd = m.info.Update(msg)
+		//cmds = append(cmds, list.UpdateStatusCmd("info"))
+		var model tea.Model
+		model, cmd = m.Info.Update(msg)
+		m.Info = model.(*info.Info)
+		//m.info, cmd = m.info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
@@ -246,6 +247,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	//cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
 	return m, tea.Batch(cmds...)
 }
 
@@ -278,8 +280,8 @@ func (m *TUI) View() string {
 			//m.info.SetHeight(2)
 		}
 
-		m.info.SetSize(widgetWidth, widgetHeight)
-		widget = m.info.View()
+		m.Info.SetSize(widgetWidth, widgetHeight)
+		widget = m.Info.View()
 		availHeight -= widgetHeight
 	}
 
@@ -352,7 +354,7 @@ func (l *TUI) HideMenu() {
 }
 
 func (ui *TUI) ShowHelp() tea.Cmd {
-	ui.info = ui.Help.Info
+	ui.Info = ui.Help.Info
 	ui.showFullHelp = true
 	//ui.Style.Widget = style.DefaultFrameStyle()
 	return ShowInfoCmd()
