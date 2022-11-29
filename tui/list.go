@@ -115,12 +115,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, key.Quit):
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
-			if focus == "help" {
-				cmds = append(cmds, HideInfoCmd())
-			} else {
-				m.Info = m.Help.Info
-				cmds = append(cmds, ShowInfoCmd())
-			}
+			m.Info = m.Help.Info
+			cmds = append(cmds, ShowInfoCmd())
 		case m.MainMenu.Toggle.Matches(msg):
 			if focus == "menu" {
 				cmds = append(cmds, HideMenuCmd())
