@@ -15,17 +15,16 @@ type Info struct {
 	hideKeys bool
 	Visible  bool
 	Editable bool
-	Focused  bool
 	content  string
 	Sections []*Section
 	Title    string
-	Frame    style.Frame
 	Style    Style
 	Toggle   *key.Key
 }
 
 type Style struct {
 	style.Field
+	style.Frame
 	Title lipgloss.Style
 }
 
@@ -33,6 +32,7 @@ func DefaultStyles() Style {
 	s := Style{
 		Field: style.DefaultFieldStyles(),
 		Title: lipgloss.NewStyle().Foreground(style.Color.Pink),
+		Frame: style.DefaultFrameStyle(),
 	}
 	return s
 }
@@ -40,10 +40,10 @@ func DefaultStyles() Style {
 func New() *Info {
 	info := &Info{
 		Style:   DefaultStyles(),
-		Frame:   style.DefaultFrameStyle(),
 		Toggle:  key.NewKey("i", "info"),
 		Visible: false,
 	}
+	info.Model = viewport.New(info.Style.Width(), info.Style.Height())
 	return info
 }
 
@@ -74,18 +74,17 @@ func (i *Info) Render() string {
 		content = i.content
 	}
 
-	i.Model.SetContent(content)
 	return content
 }
 
 func (i *Info) SetHeight(h int) *Info {
-	i.SetSize(i.Frame.Width(), h)
+	i.SetSize(i.Style.Width(), h)
 	return i
 }
 
 func (i *Info) SetSize(w, h int) *Info {
-	i.Frame.SetSize(w, h)
-	i.Model = viewport.New(i.Frame.Width(), i.Frame.Height())
+	i.Style.SetSize(w, h)
+	i.Model = viewport.New(i.Style.Width(), i.Style.Height())
 	return i
 }
 
@@ -129,7 +128,7 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 	case ToggleVisibleMsg:
 		m.ToggleVisible()
 	case tea.WindowSizeMsg:
-		m.Model = viewport.New(msg.Width-2, msg.Height-2)
+		m.SetSize(msg.Width-2, msg.Height-2)
 	}
 
 	m.Model, cmd = m.Model.Update(msg)
@@ -145,7 +144,7 @@ func (m *Info) Init() tea.Cmd {
 
 func (m *Info) View() string {
 	if m.Visible {
-		m.Render()
+		m.Model.SetContent(m.Render())
 		return m.Model.View()
 	}
 	return ""

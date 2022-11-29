@@ -170,13 +170,9 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, ShowInfoCmd())
 		}
 	case HideInfoMsg:
-		m.Info.Focused = false
-		//m.showInfo = false
 		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowInfoMsg:
-		m.Info.Focused = true
-		//m.showInfo = true
 		m.Info.Show()
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
@@ -186,15 +182,15 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ShowMenuMsg:
 		m.showMenu = true
 		m.CurrentMenu.Show()
-		m.showInfo = false
 		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd(m.CurrentMenu.Label))
 	case HideMenuMsg:
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
-		cmds = append(cmds, list.UpdateStatusCmd(string(msg)))
+		//cmds = append(cmds, list.UpdateStatusCmd(string(msg)))
 		m.FocusedView = string(msg)
+		cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
 	case ActionMenuMsg:
 		//m.CurrentMenu = m.ActionMenu
 		//m.ShowMenu()
@@ -230,25 +226,24 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "info":
-		//cmds = append(cmds, list.UpdateStatusCmd("info"))
 		//var model tea.Model
 		//model, cmd = m.Info.Update(msg)
 		//m.Info = model.(*info.Info)
 		m.Info, cmd = m.Info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		//  switch main := m.Main.(type) {
-		//  case *list.List:
-		//    if main.SelectionList {
-		//      cmds = append(cmds, ActionMenuCmd())
-		//    }
-		//    var li tea.Model
-		//    li, cmd = main.Update(msg)
-		//    cmds = append(cmds, cmd)
-		//    m.Main = li
-		//  }
-		m.Main, cmd = m.Main.Update(msg)
-		cmds = append(cmds, cmd)
+		switch main := m.Main.(type) {
+		case *list.List:
+			if main.SelectionList {
+				cmds = append(cmds, ActionMenuCmd())
+			}
+			//    var li tea.Model
+			//    li, cmd = main.Update(msg)
+			//    cmds = append(cmds, cmd)
+			//    m.Main = li
+			m.Main, cmd = m.Main.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	default:
 		for label, _ := range m.Menus {
 			if focus == label {
