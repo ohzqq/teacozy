@@ -123,8 +123,10 @@ func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 				cmds = append(cmds, EditInfoCmd())
 			}
 		case m.Toggle.Matches(msg):
+			//cmds = append(cmds, HideInfoCmd())
 			cmds = append(cmds, ToggleVisibleCmd())
 		}
+		//fmt.Println(msg.String())
 	case ToggleVisibleMsg:
 		m.ToggleVisible()
 	case tea.WindowSizeMsg:
@@ -143,9 +145,10 @@ func (m *Info) Init() tea.Cmd {
 }
 
 func (m *Info) View() string {
-	if m.Visible {
-		m.Model.SetContent(m.Render())
-		return m.Model.View()
-	}
-	return ""
+	//if m.Visible {
+	m.Model.SetContent(m.Render())
+	c := m.Model.View()
+	return c
+	//}
+	//return ""
 }

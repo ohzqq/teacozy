@@ -42,6 +42,14 @@ func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
 	}
 }
 
+type ToggleHelpMsg struct{}
+
+func ToggleHelpCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ToggleHelpMsg{}
+	}
+}
+
 // menu commands
 // info commands
 type HideInfoMsg struct{}

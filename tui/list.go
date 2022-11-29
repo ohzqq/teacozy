@@ -92,7 +92,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
+		//cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
@@ -110,6 +110,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//if m.showMenu {
 		//cmds = append(cmds, m.UpdateMenu(msg))
 		//}
+
 		switch {
 		case key.Matches(msg, key.PrevScreen):
 			if main := m.Main.(*list.List); main.SelectionList {
@@ -126,19 +127,21 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		case key.Matches(msg, key.HelpKey):
 			m.Info = m.Help.Info
-			cmds = append(cmds, ShowInfoCmd())
+			cmds = append(cmds, info.ShowInfoCmd())
+			//cmds = append(cmds, list.UpdateStatusCmd("porot"))
+			cmds = append(cmds, SetFocusedViewCmd("info"))
 		case m.MainMenu.Toggle.Matches(msg):
 			if focus == "menu" {
 				cmds = append(cmds, HideMenuCmd())
 			} else {
 				cmds = append(cmds, ChangeMenuCmd(m.MainMenu))
 			}
-		default:
-			for _, menu := range m.Menus {
-				if menu.Toggle.Matches(msg) && len(menu.Keys()) > 0 {
-					cmds = append(cmds, ChangeMenuCmd(menu))
-				}
-			}
+			//default:
+			//  for _, menu := range m.Menus {
+			//    if menu.Toggle.Matches(msg) && len(menu.Keys()) > 0 {
+			//      cmds = append(cmds, ChangeMenuCmd(menu))
+			//    }
+			//  }
 		}
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
@@ -165,17 +168,17 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//cmds = append(cmds, ShowInfoCmd())
 	case info.ToggleVisibleMsg:
 		if m.Info.Visible {
-			cmds = append(cmds, HideInfoCmd())
+			cmds = append(cmds, info.HideInfoCmd())
 		} else {
-			cmds = append(cmds, ShowInfoCmd())
+			cmds = append(cmds, info.ShowInfoCmd())
 		}
-	case HideInfoMsg:
+	case info.HideInfoMsg:
 		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
-	case ShowInfoMsg:
+	case info.ShowInfoMsg:
 		m.Info.Show()
-		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
+		m.HideMenu()
 	case ChangeMenuMsg:
 		m.CurrentMenu = msg.Menu
 		cmds = append(cmds, ShowMenuCmd(m.CurrentMenu))
@@ -188,9 +191,8 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case SetFocusedViewMsg:
-		//cmds = append(cmds, list.UpdateStatusCmd(string(msg)))
 		m.FocusedView = string(msg)
-		cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
+		//cmds = append(cmds, list.UpdateStatusCmd(string(msg)))
 	case ActionMenuMsg:
 		//m.CurrentMenu = m.ActionMenu
 		//m.ShowMenu()
@@ -229,7 +231,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//var model tea.Model
 		//model, cmd = m.Info.Update(msg)
 		//m.Info = model.(*info.Info)
-		m.Info, cmd = m.Info.Update(msg)
+		//m.Info, cmd = m.Info.Update(msg)
+		//cmds = append(cmds, cmd)
+
+		m.view = m.Info.Model
+		m.view.SetContent(m.Info.Render())
+		m.view, cmd = m.view.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
@@ -252,7 +259,7 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	//cmds = append(cmds, list.UpdateStatusCmd(m.FocusedView))
+	//cmds = append(cmds, list.UpdateStatusCmd(focus))
 	return m, tea.Batch(cmds...)
 }
 
@@ -286,7 +293,8 @@ func (m *TUI) View() string {
 		}
 
 		m.Info.SetSize(widgetWidth, widgetHeight)
-		widget = m.Info.View()
+		widget = m.view.View()
+		//widget = m.Info.View()
 		availHeight -= widgetHeight
 	}
 
