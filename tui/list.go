@@ -15,6 +15,14 @@ import (
 	"github.com/ohzqq/teacozy/list"
 )
 
+type state int
+
+const (
+	mainModel state = iota
+	formModel
+	infoModel
+)
+
 type TUI struct {
 	Main              tea.Model
 	Alt               tea.Model
@@ -22,6 +30,7 @@ type TUI struct {
 	view              viewport.Model
 	prompt            textinput.Model
 	Info              *info.Info
+	state             state
 	Title             string
 	FocusedView       string
 	fullScreen        bool
@@ -50,6 +59,7 @@ func New(main *list.List) TUI {
 	ui := TUI{
 		Main:        main,
 		FocusedView: "list",
+		state:       mainModel,
 		Style:       DefaultStyle(),
 		Menus:       make(Menus),
 		MainMenu:    NewMenu(mk),
@@ -161,12 +171,12 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case HideInfoMsg:
 		m.Info.Focused = false
-		m.showInfo = false
+		//m.showInfo = false
 		m.Info.Hide()
 		cmds = append(cmds, SetFocusedViewCmd("list"))
 	case ShowInfoMsg:
 		m.Info.Focused = true
-		m.showInfo = true
+		//m.showInfo = true
 		m.Info.Show()
 		m.HideMenu()
 		cmds = append(cmds, SetFocusedViewCmd("info"))
@@ -221,18 +231,22 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch focus {
 	case "info":
 		//cmds = append(cmds, list.UpdateStatusCmd("info"))
-		var model tea.Model
-		model, cmd = m.Info.Update(msg)
-		m.Info = model.(*info.Info)
-		//m.info, cmd = m.info.Update(msg)
+		//var model tea.Model
+		//model, cmd = m.Info.Update(msg)
+		//m.Info = model.(*info.Info)
+		m.Info, cmd = m.Info.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
-		switch main := m.Main.(type) {
-		case *list.List:
-			if main.SelectionList {
-				cmds = append(cmds, ActionMenuCmd())
-			}
-		}
+		//  switch main := m.Main.(type) {
+		//  case *list.List:
+		//    if main.SelectionList {
+		//      cmds = append(cmds, ActionMenuCmd())
+		//    }
+		//    var li tea.Model
+		//    li, cmd = main.Update(msg)
+		//    cmds = append(cmds, cmd)
+		//    m.Main = li
+		//  }
 		m.Main, cmd = m.Main.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
@@ -271,7 +285,7 @@ func (m *TUI) View() string {
 		availHeight -= widgetHeight
 	}
 
-	if m.showInfo {
+	if m.Info.Visible {
 		if m.showConfirm {
 			//m.info.SetHeight(2)
 		}
@@ -295,7 +309,7 @@ func (m *TUI) View() string {
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	if m.showMenu || m.showInfo {
+	if m.showMenu || m.Info.Visible {
 		sections = append(sections, widget)
 	}
 

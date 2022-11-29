@@ -122,6 +122,7 @@ func (m *List) SelectedItem() *Item {
 	return cur
 }
 
+//func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -164,8 +165,6 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, ReturnSelectionsCmd())
 			}
 		}
-		m.Model, cmd = m.Model.Update(msg)
-		cmds = append(cmds, cmd)
 	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
@@ -207,6 +206,8 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.ShowVisibleItemsCmd())
 	}
 
+	m.Model, cmd = m.Model.Update(msg)
+	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
 
