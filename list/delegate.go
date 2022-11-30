@@ -27,19 +27,37 @@ func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, key.ToggleItemList):
+			var i *Item
 			switch {
 			case curItem.HasChildren():
-				return ToggleItemChildrenCmd(curItem)
+				i = curItem
 			case curItem.IsSub():
-				return ToggleItemChildrenCmd(curItem.Parent)
+				i = curItem.Parent
 			}
+			switch i.ShowChildren {
+			case true:
+				m.Select(i.Index())
+				d.CloseItemList(i.Index())
+			default:
+				m.CursorDown()
+				d.OpenItemList(i.Index())
+			}
+			m.SetItems(d.Visible())
 		case key.Matches(msg, key.ToggleItem):
 			m.CursorDown()
 			if curItem.HasChildren() {
-				return ToggleItemChildrenCmd(curItem)
+				switch curItem.ShowChildren {
+				case true:
+					m.Select(curItem.Index())
+					d.CloseItemList(curItem.Index())
+				default:
+					m.CursorDown()
+					d.OpenItemList(curItem.Index())
+				}
+				m.SetItems(d.Visible())
 			}
 			if d.MultiSelect {
-				return ToggleSelectedItemCmd(curItem)
+				d.ToggleSelectedItem(curItem.Index())
 			}
 		}
 	}
