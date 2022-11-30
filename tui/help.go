@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
@@ -9,6 +10,7 @@ import (
 
 type Help struct {
 	*info.Info
+	view    viewport.Model
 	KeyMap  key.KeyMap
 	ListNav key.KeyMap
 }
@@ -20,11 +22,14 @@ func NewHelp() Help {
 	km := KeyMap()
 	//km := key.NewKeyMap()
 	//km.Add(i.Toggle)
-	return Help{
+	h := Help{
 		Info:    i,
 		KeyMap:  km,
 		ListNav: ListKeyMap(),
 	}
+	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
+	h.NewSection().SetTitle("Navigation").SetFields(h.ListNav)
+	return h
 }
 
 func (h *Help) Render() string {

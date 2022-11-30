@@ -3,18 +3,25 @@ package tui
 import (
 	"log"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/info"
+	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
 )
 
 type Tui struct {
-	Main tea.Model
-	//Info   *info.Info
-	Style  Style
-	state  state
-	width  int
-	height int
+	state        state
+	Main         tea.Model
+	info         viewport.Model
+	showInfo     bool
+	Info         *info.Info
+	Help         Help
+	showFullHelp bool
+	Style        Style
+	width        int
+	height       int
 }
 
 func NewTui(main *list.List) Tui {
@@ -22,8 +29,10 @@ func NewTui(main *list.List) Tui {
 		Main:  main,
 		state: mainModel,
 		Style: DefaultStyle(),
-		//Info:  info.New(),
+		Help:  NewHelp(),
+		Info:  info.New(),
 	}
+	ui.info = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
 	return ui
 }
 
@@ -34,6 +43,10 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case info.HideInfoMsg:
+		m.showInfo = false
+		m.Info.Hide()
+		m.state = mainModel
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
@@ -46,6 +59,13 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch m.state {
 		case mainModel:
+			switch {
+			case key.Matches(msg, key.HelpKey):
+				m.state = infoModel
+				m.Info = m.Help.Info
+				m.showInfo = true
+				m.showFullHelp = true
+			}
 			switch main := m.Main.(type) {
 			case *list.List:
 				if main.SelectionList {
@@ -54,6 +74,9 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Main, cmd = m.Main.Update(msg)
 				cmds = append(cmds, cmd)
 			}
+		case infoModel:
+			m.Info, cmd = m.Info.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 	default:
 		switch m.state {
@@ -66,40 +89,43 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Main, cmd = m.Main.Update(msg)
 				cmds = append(cmds, cmd)
 			}
+		case infoModel:
+			m.Info, cmd = m.Info.Update(msg)
+			cmds = append(cmds, cmd)
 		}
+
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func updateList(msg tea.Msg, m *list.List) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	var li tea.Model
-	li, cmd = m.Update(msg)
-	cmds = append(cmds, cmd)
-
-	//switch msg := msg.(type) {
-	//case tea.KeyMsg:
-	//}
-
-	return li, tea.Batch(cmds...)
-}
-
 func (m Tui) View() string {
 	var (
-		sections    []string
-		availHeight = m.Height()
-		//widgetWidth  = m.Style.Widget.Width()
-		//widgetHeight = m.Style.Widget.Height()
+		sections     []string
+		availHeight  = m.Height()
+		widgetWidth  = m.Style.Widget.Width()
+		widgetHeight = m.Style.Widget.Height()
 	)
 	m.SetSize(m.Width(), availHeight)
 
+	var widget string
+	if m.showInfo {
+		m.Info.SetSize(widgetWidth, widgetHeight)
+		if m.showFullHelp {
+			//m.info = viewport.New(m.Width(), m.Height())
+			//m.Help.Info.Model.SetContent(m.Help.Render())
+			//m.Help.Render()
+			widget = m.Info.View()
+		}
+		availHeight -= widgetHeight
+	}
+
 	content := m.Main.View()
 	sections = append(sections, content)
+
+	if m.showFullHelp {
+		sections = append(sections, widget)
+	}
 
 	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
 }

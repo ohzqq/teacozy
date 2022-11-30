@@ -21,6 +21,7 @@ const (
 	mainModel state = iota
 	formModel
 	infoModel
+	helpModel
 )
 
 type TUI struct {
