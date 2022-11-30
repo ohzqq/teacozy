@@ -256,10 +256,10 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.Info, cmd = m.Info.Update(msg)
 		//cmds = append(cmds, cmd)
 
-		m.info, cmd = m.info.Update(msg)
+		//m.info, cmd = m.info.Update(msg)
 		//m.view = m.Info.Model
-		//m.view.SetContent(m.Info.Render())
-		//m.view, cmd = m.view.Update(msg)
+		m.view.SetContent(m.Help.Render())
+		m.view, cmd = m.view.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {
@@ -323,9 +323,12 @@ func (m *TUI) View() string {
 
 	if m.showFullHelp {
 		m.info.Model = viewport.New(widgetWidth, widgetHeight)
+		m.view = viewport.New(widgetWidth, widgetHeight)
+		m.view.SetContent(m.Help.Render())
 		//m.info.Model = viewport.New(m.Width(), m.Height())
 		m.info.showHelp = true
-		widget = m.info.View()
+		//widget = m.info.View()
+		widget = m.view.View()
 		//widget = m.Help.View()
 		availHeight -= widgetHeight
 	}
