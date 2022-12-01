@@ -248,19 +248,19 @@ func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch focus {
 	case "help":
-		m.Help.Info, cmd = m.Help.Info.Update(msg)
-		cmds = append(cmds, cmd)
-	case "info":
-		//var model tea.Model
-		//model, cmd = m.Info.Update(msg)
-		//m.Info = model.(*info.Info)
-		//m.Info, cmd = m.Info.Update(msg)
+		//m.Help.Info, cmd = m.Help.Info.Update(msg)
 		//cmds = append(cmds, cmd)
+	case "info":
+		var model tea.Model
+		model, cmd = m.Info.Update(msg)
+		m.Info = model.(*info.Info)
+		//m.Info, cmd = m.Info.Update(msg)
+		cmds = append(cmds, cmd)
 
 		//m.info, cmd = m.info.Update(msg)
 		//m.view = m.Info.Model
-		m.view.SetContent(m.Help.Render())
-		m.view, cmd = m.view.Update(msg)
+		//m.view.SetContent(m.Help.Render())
+		//m.view, cmd = m.view.Update(msg)
 		cmds = append(cmds, cmd)
 	case "list":
 		switch main := m.Main.(type) {

@@ -27,8 +27,6 @@ func NewHelp() Help {
 		KeyMap:  km,
 		ListNav: ListKeyMap(),
 	}
-	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
-	h.NewSection().SetTitle("Navigation").SetFields(h.ListNav)
 	return h
 }
 

@@ -14,9 +14,10 @@ import (
 type Tui struct {
 	state        state
 	Main         tea.Model
-	info         viewport.Model
+	view         viewport.Model
 	showInfo     bool
 	Info         *info.Info
+	info         *Info
 	Help         Help
 	showFullHelp bool
 	Style        Style
@@ -31,8 +32,9 @@ func NewTui(main *list.List) Tui {
 		Style: DefaultStyle(),
 		Help:  NewHelp(),
 		Info:  info.New(),
+		info:  NewInfo(),
 	}
-	ui.info = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
+	ui.view = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
 	return ui
 }
 
@@ -58,6 +60,10 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch m.state {
+		case infoModel:
+			//return updateInfo(msg, m)
+			m.view, cmd = updateInfo(msg, m)
+			cmds = append(cmds, cmd)
 		case mainModel:
 			switch {
 			case key.Matches(msg, key.HelpKey):
@@ -65,18 +71,18 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Info = m.Help.Info
 				m.showInfo = true
 				m.showFullHelp = true
-			}
-			switch main := m.Main.(type) {
-			case *list.List:
-				if main.SelectionList {
-					cmds = append(cmds, ActionMenuCmd())
+				cmds = append(cmds, list.UpdateStatusCmd("info"))
+			default:
+				switch main := m.Main.(type) {
+				case *list.List:
+					if main.SelectionList {
+						cmds = append(cmds, ActionMenuCmd())
+					}
+					m.Main, cmd = m.Main.Update(msg)
+					cmds = append(cmds, list.UpdateStatusCmd("list"))
+					cmds = append(cmds, cmd)
 				}
-				m.Main, cmd = m.Main.Update(msg)
-				cmds = append(cmds, cmd)
 			}
-		case infoModel:
-			m.Info, cmd = m.Info.Update(msg)
-			cmds = append(cmds, cmd)
 		}
 	default:
 		switch m.state {
@@ -87,11 +93,13 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, ActionMenuCmd())
 				}
 				m.Main, cmd = m.Main.Update(msg)
+				cmds = append(cmds, list.UpdateStatusCmd("list"))
 				cmds = append(cmds, cmd)
 			}
 		case infoModel:
-			m.Info, cmd = m.Info.Update(msg)
+			m.view, cmd = updateInfo(msg, m)
 			cmds = append(cmds, cmd)
+			//return updateInfo(msg, m)
 		}
 
 	}
@@ -112,10 +120,10 @@ func (m Tui) View() string {
 	if m.showInfo {
 		m.Info.SetSize(widgetWidth, widgetHeight)
 		if m.showFullHelp {
-			//m.info = viewport.New(m.Width(), m.Height())
+			//m.view = viewport.New(m.Width(), m.Height())
 			//m.Help.Info.Model.SetContent(m.Help.Render())
 			//m.Help.Render()
-			widget = m.Info.View()
+			widget = m.view.View()
 		}
 		availHeight -= widgetHeight
 	}
@@ -123,7 +131,11 @@ func (m Tui) View() string {
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	if m.showFullHelp {
+	//if m.showFullHelp {
+	//  sections = append(sections, widget)
+	//}
+
+	if m.showInfo {
 		sections = append(sections, widget)
 	}
 
