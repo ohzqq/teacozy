@@ -34,6 +34,16 @@ func NewHelp() Help {
 //func (m *Help) Update(msg tea.Msg) (*Help, tea.Cmd) {
 //}
 
+func GoToHelpView(m tea.Model) tea.Cmd {
+	if ui, ok := m.(*Tui); ok {
+		ui.state = helpModel
+		ui.showFullHelp = true
+		ui.view = ui.Help.Info.Model
+		return info.UpdateContentCmd(ui.Help.Render())
+	}
+	return nil
+}
+
 func GoToHelp(m tea.Model) tea.Cmd {
 	if ui, ok := m.(*TUI); ok {
 		return ui.ShowHelp()

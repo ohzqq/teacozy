@@ -23,7 +23,7 @@ func MainMenu() *Menu {
 	toggle := key.NewKey("m", "menu")
 	m := NewMenu(toggle)
 	m.SetSize(m.Frame.Width(), m.Frame.Height())
-	m.NewKey("?", "help", GoToHelp)
+	m.NewKey("?", "help", GoToHelpView)
 	m.NewSection().SetTitle("Main menu").SetFields(m.KeyMap)
 	return m
 }
@@ -45,13 +45,13 @@ func NewMenu(toggle *key.Key) *Menu {
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
 	m.KeyMap.NewKey(k, h)
-	m.funcs[h] = cmd
+	m.funcs[k] = cmd
 	return m
 }
 
 func (m *Menu) AddKey(k *key.Key, cmd MenuFunc) *Menu {
 	m.KeyMap.Add(k)
-	m.funcs[k.Content()] = cmd
+	m.funcs[k.Name()] = cmd
 	return m
 }
 
@@ -69,16 +69,11 @@ func (m *Tui) updateMenu(msg tea.Msg) tea.Cmd {
 		for _, name := range m.CurrentMenu.Keys() {
 			if kb := m.CurrentMenu.GetKey(name); kb.Matches(msg) {
 				fn := m.CurrentMenu.funcs[name]
-				cmds = append(cmds, fn(m))
-				//cmds = append(cmds, HideMenuCmd())
-				cmds = append(cmds, info.HideInfoCmd())
+				return fn(m)
 			}
 			cmds = append(cmds, info.HideInfoCmd())
-			//cmds = append(cmds, HideMenuCmd())
 		}
 	}
-	//cmd = m.updateInfo(msg, m.CurrentMenu.Info)
-	//cmds = append(cmds, cmd)
 
 	cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 	return tea.Batch(cmds...)
