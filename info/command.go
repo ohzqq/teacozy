@@ -21,6 +21,16 @@ func HideInfoCmd() tea.Cmd {
 	}
 }
 
+type UpdateContentMsg struct {
+	Content string
+}
+
+func UpdateContentCmd(content string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateContentMsg{Content: content}
+	}
+}
+
 type ShowInfoMsg struct{}
 
 func ShowInfoCmd() tea.Cmd {

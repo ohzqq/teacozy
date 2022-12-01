@@ -17,7 +17,6 @@ type Tui struct {
 	view         viewport.Model
 	showInfo     bool
 	Info         *info.Info
-	info         *Info
 	Help         Help
 	showFullHelp bool
 	Style        Style
@@ -32,7 +31,6 @@ func NewTui(main *list.List) Tui {
 		Style: DefaultStyle(),
 		Help:  NewHelp(),
 		Info:  info.New(),
-		info:  NewInfo(),
 	}
 	ui.view = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
 	return ui
@@ -49,6 +47,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.showInfo = false
 		m.Info.Hide()
 		m.state = mainModel
+	case info.UpdateContentMsg:
+		m.view.SetContent(msg.Content)
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
@@ -60,15 +60,15 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch m.state {
-		case infoModel:
-			//return updateInfo(msg, m)
-			m.view, cmd = updateInfo(msg, m)
+		case infoModel, helpModel:
+			cmd = updateInfo(msg, &m)
+			cmds = append(cmds, cmd)
+			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
 		case mainModel:
 			switch {
 			case key.Matches(msg, key.HelpKey):
-				m.state = infoModel
-				m.Info = m.Help.Info
+				m.state = helpModel
 				m.showInfo = true
 				m.showFullHelp = true
 				cmds = append(cmds, list.UpdateStatusCmd("info"))
@@ -96,8 +96,10 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, list.UpdateStatusCmd("list"))
 				cmds = append(cmds, cmd)
 			}
-		case infoModel:
-			m.view, cmd = updateInfo(msg, m)
+		case infoModel, helpModel:
+			cmd = updateInfo(msg, &m)
+			cmds = append(cmds, cmd)
+			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
 			//return updateInfo(msg, m)
 		}

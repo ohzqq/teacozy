@@ -26,7 +26,7 @@ func NewInfo() *Info {
 	}
 }
 
-func updateInfo(msg tea.Msg, m Tui) (viewport.Model, tea.Cmd) {
+func updateInfo(msg tea.Msg, m *Tui) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -41,57 +41,18 @@ func updateInfo(msg tea.Msg, m Tui) (viewport.Model, tea.Cmd) {
 	}
 
 	var i tea.Model
-	m.Info.Model.SetContent(m.Info.Render())
-	i, cmd = m.Info.Update(msg)
-	m.Info = i.(*info.Info)
-	cmds = append(cmds, cmd)
-
-	//m.view = m.Info.Model
-	//m.view.SetContent(m.Info.Render())
-	m.view, cmd = m.view.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m.Info.Model, tea.Batch(cmds...)
-}
-
-func (m *Info) Update(msg tea.Msg, ui Tui) (*Info, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == tea.KeyCtrlC.String() {
-			cmds = append(cmds, tea.Quit)
-		}
-	case tea.WindowSizeMsg:
-		m.Model = viewport.New(msg.Width-2, msg.Height-2)
-	}
-
-	var model tea.Model
 	switch m.state {
-	case infoModel:
-		m.Model.SetContent(m.Info.Render())
-		model, cmd = ui.Info.Update(msg)
-		ui.Info = model.(*info.Info)
 	case helpModel:
-		m.Model.SetContent(m.Help.Render())
-		model, cmd = ui.Help.Info.Update(msg)
-		ui.Help.Info = model.(*info.Info)
+		i, cmd = m.Help.Update(msg)
+		cmds = append(cmds, cmd)
+		m.Help.Info = i.(*info.Info)
+		cmds = append(cmds, info.UpdateContentCmd(m.Help.Render()))
+	default:
+		i, cmd = m.Info.Update(msg)
+		cmds = append(cmds, cmd)
+		m.Info = i.(*info.Info)
+		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))
 	}
 
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
-}
-
-func (m Info) View() string {
-	var content string
-	if m.showHelp {
-		content = m.Help.Render()
-	}
-	m.Model.SetContent(content)
-	return m.Model.View()
+	return tea.Batch(cmds...)
 }
