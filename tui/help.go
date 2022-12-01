@@ -5,7 +5,6 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Help struct {
@@ -15,24 +14,17 @@ type Help struct {
 }
 
 func NewHelp() Help {
-	i := info.New().SetSize(util.TermWidth()-1, util.TermHeight()-1)
-	i.Show()
-	i.Toggle = key.NewKey("?", "help")
-	km := KeyMap()
-	//km := key.NewKeyMap()
-	//km.Add(i.Toggle)
 	h := Help{
-		Info:    i,
-		KeyMap:  km,
+		Info:    info.New(),
+		KeyMap:  KeyMap(),
 		ListNav: ListKeyMap(),
 	}
+	h.Show()
+	h.Toggle = KeyMap().GetKey("?")
 	h.NewSection().SetTitle("Help").SetFields(h.KeyMap)
 	h.NewSection().SetTitle("Navigation").SetFields(h.ListNav)
 	return h
 }
-
-//func (m *Help) Update(msg tea.Msg) (*Help, tea.Cmd) {
-//}
 
 func GoToHelpView(m tea.Model) tea.Cmd {
 	if ui, ok := m.(*Tui); ok {

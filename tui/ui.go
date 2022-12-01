@@ -69,9 +69,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		w := msg.Width - 1
 		h := msg.Height - 2
 		m.Style.Frame.SetSize(w, h)
-		//m.SetSize(w, h)
 	case tea.KeyMsg:
-		//cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
@@ -93,10 +91,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CurrentMenu = m.MainMenu
 				cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 			case key.Matches(msg, key.HelpKey):
-				m.state = helpModel
-				m.showFullHelp = true
-				m.view = m.Help.Info.Model
-				cmds = append(cmds, info.UpdateContentCmd(m.Help.Render()))
+				cmd = GoToHelpView(&m)
+				cmds = append(cmds, cmd)
 			default:
 				switch main := m.Main.(type) {
 				case *list.List:
@@ -104,7 +100,6 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						cmds = append(cmds, ActionMenuCmd())
 					}
 					m.Main, cmd = m.Main.Update(msg)
-					//cmds = append(cmds, list.UpdateStatusCmd("list"))
 					cmds = append(cmds, cmd)
 				}
 			}

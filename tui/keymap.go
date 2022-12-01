@@ -7,27 +7,10 @@ import (
 
 type keyMap struct {
 	key.KeyMap
-	keys map[string]Key
-}
-
-type Key struct {
-	*key.Key
-	Func MenuFunc
 }
 
 func DefaultKeyMap() keyMap {
 	return keyMap{KeyMap: KeyMap()}
-}
-
-func NewKeyMap(km key.KeyMap) keyMap {
-	keymap := keyMap{
-		keys: make(map[string]Key),
-	}
-	for _, name := range km.Keys() {
-		k := km.GetKey(name)
-		keymap.keys[k.Name()] = Key{Key: k}
-	}
-	return keymap
 }
 
 func (km keyMap) Key(msg tea.KeyMsg) *key.Key {

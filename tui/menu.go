@@ -23,7 +23,7 @@ func MainMenu() *Menu {
 	toggle := key.NewKey("m", "menu")
 	m := NewMenu(toggle)
 	m.SetSize(m.Frame.Width(), m.Frame.Height())
-	m.NewKey("?", "help", GoToHelpView)
+	m.AddKey(KeyMap().GetKey("?"), GoToHelpView)
 	m.NewSection().SetTitle("Main menu").SetFields(m.KeyMap)
 	return m
 }
@@ -35,9 +35,6 @@ func NewMenu(toggle *key.Key) *Menu {
 		KeyMap: key.NewKeyMap(),
 		funcs:  make(map[string]MenuFunc),
 	}
-	//for _, name := range m.Keys() {
-	//  kb := m.GetKey(name)
-	//}
 	m.Info.Toggle = toggle
 	m.Frame = DefaultWidgetStyle()
 	return &m
