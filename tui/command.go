@@ -33,7 +33,7 @@ func ItemChangedCmd(item *list.Item) tea.Cmd {
 	}
 }
 
-func (ui *TUI) ToggleFullScreenCmd() tea.Cmd {
+func (ui *Tui) ToggleFullScreenCmd() tea.Cmd {
 	return func() tea.Msg {
 		if ui.fullScreen {
 			return tea.EnterAltScreen()
@@ -52,22 +52,6 @@ func ToggleHelpCmd() tea.Cmd {
 
 // menu commands
 // info commands
-type HideInfoMsg struct{}
-
-func HideInfoCmd() tea.Cmd {
-	return func() tea.Msg {
-		return HideInfoMsg{}
-	}
-}
-
-type ShowInfoMsg struct{}
-
-func ShowInfoCmd() tea.Cmd {
-	return func() tea.Msg {
-		return ShowInfoMsg{}
-	}
-}
-
 type EditInfoMsg struct {
 	Fields *teacozy.Fields
 }

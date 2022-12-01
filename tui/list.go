@@ -1,3 +1,5 @@
+//go:build ignore
+
 package tui
 
 import (
@@ -13,17 +15,6 @@ import (
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
-)
-
-type state int
-
-const (
-	mainModel state = iota
-	formModel
-	infoModel
-	helpModel
-	viewModel
-	menuModel
 )
 
 type TUI struct {

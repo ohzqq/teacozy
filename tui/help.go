@@ -36,13 +36,6 @@ func GoToHelpView(m tea.Model) tea.Cmd {
 	return nil
 }
 
-func GoToHelp(m tea.Model) tea.Cmd {
-	if ui, ok := m.(*TUI); ok {
-		return ui.ShowHelp()
-	}
-	return nil
-}
-
 func ListKeyMap() key.KeyMap {
 	lk := list.ListKeyMap()
 	km := key.NewKeyMap()

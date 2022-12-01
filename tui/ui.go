@@ -11,6 +11,17 @@ import (
 	"github.com/ohzqq/teacozy/list"
 )
 
+type state int
+
+const (
+	mainModel state = iota
+	formModel
+	infoModel
+	helpModel
+	viewModel
+	menuModel
+)
+
 type Tui struct {
 	width        int
 	height       int
@@ -29,6 +40,7 @@ type Tui struct {
 	MainMenu     *Menu
 	Menus        Menus
 	CurrentMenu  *Menu
+	fullScreen   bool
 }
 
 func NewTui(main *list.List) Tui {

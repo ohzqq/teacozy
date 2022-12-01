@@ -79,40 +79,6 @@ func (m Menu) GetInfo() *info.Info {
 	return m.Info
 }
 
-func (m *Menu) Update(ui *TUI, msg tea.Msg) tea.Cmd {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case m.Toggle.Matches(msg):
-			cmds = append(cmds, HideMenuCmd())
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		default:
-			for _, name := range m.Keys() {
-				if kb := m.GetKey(name); kb.Matches(msg) {
-					fn := m.funcs[name]
-					cmds = append(cmds, fn(ui))
-					cmds = append(cmds, HideMenuCmd())
-				}
-			}
-			cmds = append(cmds, HideMenuCmd())
-			cmds = append(cmds, SetFocusedViewCmd("list"))
-		}
-	}
-
-	var model tea.Model
-	model, cmd = m.Info.Update(msg)
-	m.Info = model.(*info.Info)
-	//m.Info, cmd = m.Info.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return tea.Batch(cmds...)
-}
-
 func (m *Menu) View() string {
 	return m.Info.View()
 }
