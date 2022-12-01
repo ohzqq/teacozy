@@ -63,8 +63,6 @@ func (m *Tui) updateMenu(msg tea.Msg) tea.Cmd {
 	)
 
 	switch msg := msg.(type) {
-	//case info.HideInfoMsg:
-	//case info.UpdateContentMsg:
 	case tea.KeyMsg:
 		for _, name := range m.CurrentMenu.Keys() {
 			if kb := m.CurrentMenu.GetKey(name); kb.Matches(msg) {
