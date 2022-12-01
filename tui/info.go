@@ -1,62 +1,57 @@
 package tui
 
 import (
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/info"
-	"github.com/ohzqq/teacozy/key"
 )
 
-type infoState int
-
-type Info struct {
-	*info.Info
-	Model    viewport.Model
-	Help     Help
-	Toggle   *key.Key
-	showHelp bool
-	state    state
-}
-
-func NewInfo() *Info {
-	i := info.New()
-	return &Info{
-		Info:  i,
-		state: infoModel,
-	}
-}
-
-func (ui *Tui) updateInfo(msg tea.Msg, m *info.Info) tea.Cmd {
+func (m *Tui) updateInfo(msg tea.Msg, nfo *info.Info) tea.Cmd {
 	var (
 		cmd   tea.Cmd
 		cmds  []tea.Cmd
 		model tea.Model
 	)
 
-	model, cmd = m.Update(msg)
-	cmds = append(cmds, cmd)
-
-	switch ui.state {
-	case infoModel:
-		ui.Info = model.(*info.Info)
-		cmds = append(cmds, info.UpdateContentCmd(ui.Info.Render()))
-	case helpModel:
-		ui.Help.Info = model.(*info.Info)
-		cmds = append(cmds, info.UpdateContentCmd(ui.Help.Render()))
+	switch msg := msg.(type) {
+	case info.HideInfoMsg:
+		m.showInfo = false
+		m.showFullHelp = false
+		m.state = mainModel
+	case info.UpdateContentMsg:
+		m.view.SetContent(msg.Content)
+	case tea.KeyMsg:
+		//cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
+		if msg.String() == tea.KeyCtrlC.String() {
+			cmds = append(cmds, tea.Quit)
+		}
 	}
 
+	model, cmd = nfo.Update(msg)
+	cmds = append(cmds, cmd)
+
+	switch m.state {
+	case infoModel:
+		m.Info = model.(*info.Info)
+		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))
+	case helpModel:
+		m.Help.Info = model.(*info.Info)
+		cmds = append(cmds, info.UpdateContentCmd(m.Help.Render()))
+	}
+
+	m.view, cmd = m.view.Update(msg)
+	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
 
-func (ui *Tui) viewInfo() string {
-	var (
-		widgetWidth  = ui.Style.Widget.Width()
-		widgetHeight = ui.Style.Widget.Height()
-	)
-	ui.view = viewport.New(widgetWidth, widgetHeight)
-	switch ui.state {
-	case infoModel:
-	case helpModel:
+type Info struct {
+	*info.Info
+	showHelp   bool
+	fullScreen bool
+}
+
+func NewInfo() *Info {
+	i := info.New()
+	return &Info{
+		Info: i,
 	}
-	return ui.Info.View()
 }

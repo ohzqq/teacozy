@@ -17,6 +17,7 @@ type Tui struct {
 	view         viewport.Model
 	showInfo     bool
 	Info         *info.Info
+	info         *Info
 	Help         Help
 	showFullHelp bool
 	Style        Style
@@ -44,12 +45,6 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-	case info.HideInfoMsg:
-		m.showInfo = false
-		m.showFullHelp = false
-		m.state = mainModel
-	case info.UpdateContentMsg:
-		m.view.SetContent(msg.Content)
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
@@ -64,12 +59,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case infoModel:
 			cmd = m.updateInfo(msg, m.Info)
 			cmds = append(cmds, cmd)
-			m.view, cmd = m.view.Update(msg)
-			cmds = append(cmds, cmd)
 		case helpModel:
 			cmd = m.updateInfo(msg, m.Help.Info)
-			cmds = append(cmds, cmd)
-			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
 		case mainModel:
 			switch {
@@ -77,6 +68,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = helpModel
 				m.showFullHelp = true
 				m.view = m.Help.Info.Model
+				cmds = append(cmds, info.UpdateContentCmd(m.Help.Render()))
 			default:
 				switch main := m.Main.(type) {
 				case *list.List:
@@ -104,12 +96,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case infoModel:
 			cmd = m.updateInfo(msg, m.Info)
 			cmds = append(cmds, cmd)
-			m.view, cmd = m.view.Update(msg)
-			cmds = append(cmds, cmd)
 		case helpModel:
 			cmd = m.updateInfo(msg, m.Help.Info)
-			cmds = append(cmds, cmd)
-			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
 		}
 
@@ -125,25 +113,20 @@ func (m Tui) View() string {
 		//widgetWidth  = m.Style.Widget.Width()
 		//widgetHeight = m.Style.Widget.Height()
 	)
-	m.SetSize(m.Width(), availHeight)
 
-	var widget string
 	if m.showFullHelp {
-		widget = m.view.View()
-		availHeight -= lipgloss.Height(widget)
+		return m.view.View()
 	}
 
+	var widget string
 	if m.showInfo {
 		widget = m.view.View()
 		availHeight -= lipgloss.Height(widget)
 	}
 
+	m.SetSize(m.Width(), availHeight)
 	content := m.Main.View()
 	sections = append(sections, content)
-
-	if m.showFullHelp {
-		sections = append(sections, widget)
-	}
 
 	if m.showInfo {
 		sections = append(sections, widget)

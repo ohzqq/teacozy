@@ -74,7 +74,6 @@ func New(main *list.List) TUI {
 	}
 	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
 	ui.CurrentMenu = ui.MainMenu
-	ui.info.Help = ui.Help
 	//ui.SetHelp(Keys.SortList, Keys.Menu, Keys.Help)
 	//ui.AddMenu(SortListMenu())
 	return ui
