@@ -112,28 +112,28 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CurrentMenu = m.ActionMenu
 				cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 			default:
+				var model tea.Model
 				switch main := m.Main.(type) {
 				case *list.List:
 					if main.SelectionList {
 						cmds = append(cmds, ActionMenuCmd())
 					}
-					m.Main, cmd = m.Main.Update(msg)
+					model, cmd = main.Update(msg)
 					cmds = append(cmds, cmd)
 				}
+				m.Main = model
 			}
 		}
 	default:
 		switch m.state {
 		case mainModel:
+			var model tea.Model
 			switch main := m.Main.(type) {
 			case *list.List:
-				if main.SelectionList {
-					cmds = append(cmds, ActionMenuCmd())
-				}
-				m.Main, cmd = m.Main.Update(msg)
-				//cmds = append(cmds, list.UpdateStatusCmd("list"))
+				model, cmd = main.Update(msg)
 				cmds = append(cmds, cmd)
 			}
+			m.Main = model
 		case infoModel:
 			cmd = m.updateInfo(msg, m.Info)
 			cmds = append(cmds, cmd)
