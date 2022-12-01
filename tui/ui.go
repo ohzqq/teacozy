@@ -33,6 +33,7 @@ func NewTui(main *list.List) Tui {
 		Info:  info.New(),
 	}
 	ui.view = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
+	ui.view.SetContent(ui.Help.Render())
 	return ui
 }
 
@@ -45,7 +46,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case info.HideInfoMsg:
 		m.showInfo = false
-		m.Info.Hide()
+		m.showFullHelp = false
 		m.state = mainModel
 	case info.UpdateContentMsg:
 		m.view.SetContent(msg.Content)
@@ -60,8 +61,13 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch m.state {
-		case infoModel, helpModel:
-			cmd = updateInfo(msg, &m)
+		case infoModel:
+			cmd = m.updateInfo(msg, m.Info)
+			cmds = append(cmds, cmd)
+			m.view, cmd = m.view.Update(msg)
+			cmds = append(cmds, cmd)
+		case helpModel:
+			cmd = m.updateInfo(msg, m.Help.Info)
 			cmds = append(cmds, cmd)
 			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
@@ -69,9 +75,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case key.Matches(msg, key.HelpKey):
 				m.state = helpModel
-				m.showInfo = true
 				m.showFullHelp = true
-				cmds = append(cmds, list.UpdateStatusCmd("info"))
+				m.view = m.Help.Info.Model
 			default:
 				switch main := m.Main.(type) {
 				case *list.List:
@@ -96,12 +101,16 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, list.UpdateStatusCmd("list"))
 				cmds = append(cmds, cmd)
 			}
-		case infoModel, helpModel:
-			cmd = updateInfo(msg, &m)
+		case infoModel:
+			cmd = m.updateInfo(msg, m.Info)
 			cmds = append(cmds, cmd)
 			m.view, cmd = m.view.Update(msg)
 			cmds = append(cmds, cmd)
-			//return updateInfo(msg, m)
+		case helpModel:
+			cmd = m.updateInfo(msg, m.Help.Info)
+			cmds = append(cmds, cmd)
+			m.view, cmd = m.view.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 
 	}
@@ -111,31 +120,30 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Tui) View() string {
 	var (
-		sections     []string
-		availHeight  = m.Height()
-		widgetWidth  = m.Style.Widget.Width()
-		widgetHeight = m.Style.Widget.Height()
+		sections    []string
+		availHeight = m.Height()
+		//widgetWidth  = m.Style.Widget.Width()
+		//widgetHeight = m.Style.Widget.Height()
 	)
 	m.SetSize(m.Width(), availHeight)
 
 	var widget string
+	if m.showFullHelp {
+		widget = m.view.View()
+		availHeight -= lipgloss.Height(widget)
+	}
+
 	if m.showInfo {
-		m.Info.SetSize(widgetWidth, widgetHeight)
-		if m.showFullHelp {
-			//m.view = viewport.New(m.Width(), m.Height())
-			//m.Help.Info.Model.SetContent(m.Help.Render())
-			//m.Help.Render()
-			widget = m.view.View()
-		}
-		availHeight -= widgetHeight
+		widget = m.view.View()
+		availHeight -= lipgloss.Height(widget)
 	}
 
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	//if m.showFullHelp {
-	//  sections = append(sections, widget)
-	//}
+	if m.showFullHelp {
+		sections = append(sections, widget)
+	}
 
 	if m.showInfo {
 		sections = append(sections, widget)

@@ -22,6 +22,7 @@ const (
 	formModel
 	infoModel
 	helpModel
+	viewModel
 )
 
 type TUI struct {
