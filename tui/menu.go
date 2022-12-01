@@ -19,14 +19,17 @@ type Menu struct {
 	Label string
 }
 
-func NewMenu(k *key.Key) *Menu {
+func NewMenu(toggle *key.Key) *Menu {
 	m := Menu{
 		Info:   info.New(),
-		Label:  k.Content(),
+		Label:  toggle.Content(),
 		KeyMap: key.NewKeyMap(),
 		funcs:  make(map[string]MenuFunc),
 	}
-	m.Info.Toggle = k
+	//for _, name := range m.Keys() {
+	//  kb := m.GetKey(name)
+	//}
+	m.Info.Toggle = toggle
 	m.Frame = DefaultWidgetStyle()
 	return &m
 }
@@ -43,11 +46,42 @@ func (m *Menu) AddKey(k *key.Key, cmd MenuFunc) *Menu {
 	return m
 }
 
+func (m *Tui) updateMenu(msg tea.Msg) tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+		//model tea.Model
+	)
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		for _, name := range m.CurrentMenu.Keys() {
+			if kb := m.CurrentMenu.GetKey(name); kb.Matches(msg) {
+				fn := m.CurrentMenu.funcs[name]
+				cmds = append(cmds, fn(m))
+				//cmds = append(cmds, HideMenuCmd())
+			}
+			cmds = append(cmds, info.HideInfoCmd())
+			//cmds = append(cmds, HideMenuCmd())
+		}
+	}
+	cmd = m.updateInfo(msg, m.CurrentMenu.Info)
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
+}
+
+func (m Menu) GetInfo() *info.Info {
+	m.NewSection().SetTitle("opts").SetFields(m.KeyMap)
+	return m.Info
+}
+
 func (m *Menu) Update(ui *TUI, msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -66,6 +100,7 @@ func (m *Menu) Update(ui *TUI, msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, SetFocusedViewCmd("list"))
 		}
 	}
+
 	var model tea.Model
 	model, cmd = m.Info.Update(msg)
 	m.Info = model.(*info.Info)

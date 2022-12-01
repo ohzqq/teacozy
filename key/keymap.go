@@ -2,6 +2,7 @@ package key
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy"
 )
 
@@ -20,6 +21,10 @@ func (k KeyMap) All() []*Key {
 func (k *KeyMap) NewKey(key, help string) {
 	bind := NewKey(key, help)
 	k.Add(bind)
+}
+
+func (k KeyMap) Matches(msg tea.KeyMsg) bool {
+	return k.GetKey(msg.String()).Matches(msg)
 }
 
 func (k *KeyMap) Add(key *Key) {

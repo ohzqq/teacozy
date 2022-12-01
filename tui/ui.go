@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -12,7 +13,11 @@ import (
 )
 
 type Tui struct {
+	width        int
+	height       int
 	state        state
+	Style        Style
+	KeyMap       keyMap
 	Main         tea.Model
 	view         viewport.Model
 	showInfo     bool
@@ -20,21 +25,27 @@ type Tui struct {
 	info         *Info
 	Help         Help
 	showFullHelp bool
-	Style        Style
-	width        int
-	height       int
+	showMenu     bool
+	MainMenu     *Menu
+	Menus        Menus
+	CurrentMenu  *Menu
 }
 
 func NewTui(main *list.List) Tui {
+	mk := key.NewKey("m", "menu")
 	ui := Tui{
-		Main:  main,
-		state: mainModel,
-		Style: DefaultStyle(),
-		Help:  NewHelp(),
-		Info:  info.New(),
+		Main:     main,
+		KeyMap:   DefaultKeyMap(),
+		state:    mainModel,
+		Style:    DefaultStyle(),
+		Help:     NewHelp(),
+		Info:     info.New(),
+		Menus:    make(Menus),
+		MainMenu: NewMenu(mk),
 	}
 	ui.view = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
-	ui.view.SetContent(ui.Help.Render())
+	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
+	ui.CurrentMenu = ui.MainMenu
 	return ui
 }
 
@@ -45,6 +56,12 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case info.HideInfoMsg:
+		m.showInfo = false
+		m.showFullHelp = false
+		m.state = mainModel
+	case info.UpdateContentMsg:
+		m.view.SetContent(msg.Content)
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
@@ -62,8 +79,16 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case helpModel:
 			cmd = m.updateInfo(msg, m.Help.Info)
 			cmds = append(cmds, cmd)
+		case menuModel:
+			cmd = m.updateMenu(msg)
+			cmds = append(cmds, cmd)
 		case mainModel:
 			switch {
+			case key.Matches(msg, key.MenuKey):
+				m.state = menuModel
+				m.showMenu = true
+				m.CurrentMenu = m.MainMenu
+				cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 			case key.Matches(msg, key.HelpKey):
 				m.state = helpModel
 				m.showFullHelp = true
@@ -76,7 +101,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						cmds = append(cmds, ActionMenuCmd())
 					}
 					m.Main, cmd = m.Main.Update(msg)
-					cmds = append(cmds, list.UpdateStatusCmd("list"))
+					//cmds = append(cmds, list.UpdateStatusCmd("list"))
 					cmds = append(cmds, cmd)
 				}
 			}
@@ -90,7 +115,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, ActionMenuCmd())
 				}
 				m.Main, cmd = m.Main.Update(msg)
-				cmds = append(cmds, list.UpdateStatusCmd("list"))
+				//cmds = append(cmds, list.UpdateStatusCmd("list"))
 				cmds = append(cmds, cmd)
 			}
 		case infoModel:
@@ -98,6 +123,9 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		case helpModel:
 			cmd = m.updateInfo(msg, m.Help.Info)
+			cmds = append(cmds, cmd)
+		case menuModel:
+			cmd = m.updateMenu(msg)
 			cmds = append(cmds, cmd)
 		}
 
@@ -124,11 +152,17 @@ func (m Tui) View() string {
 		availHeight -= lipgloss.Height(widget)
 	}
 
+	if m.showMenu {
+		widget = m.view.View()
+		availHeight -= lipgloss.Height(widget)
+		fmt.Println(widget)
+	}
+
 	m.SetSize(m.Width(), availHeight)
 	content := m.Main.View()
 	sections = append(sections, content)
 
-	if m.showInfo {
+	if m.showInfo || m.showMenu {
 		sections = append(sections, widget)
 	}
 

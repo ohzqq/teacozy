@@ -13,14 +13,7 @@ func (m *Tui) updateInfo(msg tea.Msg, nfo *info.Info) tea.Cmd {
 	)
 
 	switch msg := msg.(type) {
-	case info.HideInfoMsg:
-		m.showInfo = false
-		m.showFullHelp = false
-		m.state = mainModel
-	case info.UpdateContentMsg:
-		m.view.SetContent(msg.Content)
 	case tea.KeyMsg:
-		//cmds = append(cmds, list.UpdateStatusCmd(msg.String()))
 		if msg.String() == tea.KeyCtrlC.String() {
 			cmds = append(cmds, tea.Quit)
 		}
@@ -30,6 +23,9 @@ func (m *Tui) updateInfo(msg tea.Msg, nfo *info.Info) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	switch m.state {
+	case menuModel:
+		m.CurrentMenu.Info = model.(*info.Info)
+		cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.GetInfo().Render()))
 	case infoModel:
 		m.Info = model.(*info.Info)
 		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))

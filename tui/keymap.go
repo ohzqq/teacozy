@@ -1,9 +1,26 @@
 package tui
 
-import "github.com/ohzqq/teacozy/key"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/key"
+)
 
 type keyMap struct {
 	key.KeyMap
+	keys []Key
+}
+
+type Key struct {
+	*key.Key
+	Func MenuFunc
+}
+
+func DefaultKeyMap() keyMap {
+	return keyMap{KeyMap: KeyMap()}
+}
+
+func (km keyMap) Key(msg tea.KeyMsg) *key.Key {
+	return km.GetKey(msg.String())
 }
 
 func KeyMap() key.KeyMap {

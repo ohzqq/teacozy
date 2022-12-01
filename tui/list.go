@@ -23,6 +23,7 @@ const (
 	infoModel
 	helpModel
 	viewModel
+	menuModel
 )
 
 type TUI struct {
