@@ -25,13 +25,10 @@ func (m *Tui) updateInfo(msg tea.Msg, nfo *info.Info) tea.Cmd {
 	switch m.state {
 	case menuModel:
 		m.CurrentMenu.Info = model.(*info.Info)
-		cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.GetInfo().Render()))
+		//cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 	case infoModel:
 		m.Info = model.(*info.Info)
 		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))
-	case helpModel:
-		m.Help.Info = model.(*info.Info)
-		cmds = append(cmds, info.UpdateContentCmd(m.Help.Render()))
 	}
 
 	m.view, cmd = m.view.Update(msg)

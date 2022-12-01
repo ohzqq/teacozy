@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -20,6 +19,7 @@ type Tui struct {
 	KeyMap       keyMap
 	Main         tea.Model
 	view         viewport.Model
+	widget       viewport.Model
 	showInfo     bool
 	Info         *info.Info
 	info         *Info
@@ -32,7 +32,6 @@ type Tui struct {
 }
 
 func NewTui(main *list.List) Tui {
-	mk := key.NewKey("m", "menu")
 	ui := Tui{
 		Main:     main,
 		KeyMap:   DefaultKeyMap(),
@@ -41,10 +40,10 @@ func NewTui(main *list.List) Tui {
 		Help:     NewHelp(),
 		Info:     info.New(),
 		Menus:    make(Menus),
-		MainMenu: NewMenu(mk),
+		MainMenu: MainMenu(),
 	}
-	ui.view = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
-	ui.MainMenu.AddKey(ui.Help.Toggle, GoToHelp)
+	ui.view = viewport.New(ui.Width(), ui.Height())
+	ui.widget = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
 	ui.CurrentMenu = ui.MainMenu
 	return ui
 }
@@ -59,9 +58,11 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case info.HideInfoMsg:
 		m.showInfo = false
 		m.showFullHelp = false
+		m.showMenu = false
 		m.state = mainModel
 	case info.UpdateContentMsg:
 		m.view.SetContent(msg.Content)
+		m.widget.SetContent(msg.Content)
 	case tea.WindowSizeMsg:
 		w := msg.Width - 1
 		h := msg.Height - 2
@@ -153,9 +154,8 @@ func (m Tui) View() string {
 	}
 
 	if m.showMenu {
-		widget = m.view.View()
+		widget = m.widget.View()
 		availHeight -= lipgloss.Height(widget)
-		fmt.Println(widget)
 	}
 
 	m.SetSize(m.Width(), availHeight)

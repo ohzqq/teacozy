@@ -19,6 +19,15 @@ type Menu struct {
 	Label string
 }
 
+func MainMenu() *Menu {
+	toggle := key.NewKey("m", "menu")
+	m := NewMenu(toggle)
+	m.SetSize(m.Frame.Width(), m.Frame.Height())
+	m.NewKey("?", "help", GoToHelp)
+	m.NewSection().SetTitle("Main menu").SetFields(m.KeyMap)
+	return m
+}
+
 func NewMenu(toggle *key.Key) *Menu {
 	m := Menu{
 		Info:   info.New(),
@@ -48,26 +57,30 @@ func (m *Menu) AddKey(k *key.Key, cmd MenuFunc) *Menu {
 
 func (m *Tui) updateMenu(msg tea.Msg) tea.Cmd {
 	var (
-		cmd  tea.Cmd
+		//cmd  tea.Cmd
 		cmds []tea.Cmd
 		//model tea.Model
 	)
 
 	switch msg := msg.(type) {
+	//case info.HideInfoMsg:
+	//case info.UpdateContentMsg:
 	case tea.KeyMsg:
 		for _, name := range m.CurrentMenu.Keys() {
 			if kb := m.CurrentMenu.GetKey(name); kb.Matches(msg) {
 				fn := m.CurrentMenu.funcs[name]
 				cmds = append(cmds, fn(m))
 				//cmds = append(cmds, HideMenuCmd())
+				cmds = append(cmds, info.HideInfoCmd())
 			}
 			cmds = append(cmds, info.HideInfoCmd())
 			//cmds = append(cmds, HideMenuCmd())
 		}
 	}
-	cmd = m.updateInfo(msg, m.CurrentMenu.Info)
-	cmds = append(cmds, cmd)
+	//cmd = m.updateInfo(msg, m.CurrentMenu.Info)
+	//cmds = append(cmds, cmd)
 
+	cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 	return tea.Batch(cmds...)
 }
 
