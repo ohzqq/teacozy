@@ -33,26 +33,27 @@ type Tui struct {
 	widget       viewport.Model
 	showInfo     bool
 	Info         *info.Info
-	info         *Info
 	Help         Help
 	showFullHelp bool
 	showMenu     bool
 	MainMenu     *Menu
 	Menus        Menus
 	CurrentMenu  *Menu
+	ActionMenu   *Menu
 	fullScreen   bool
 }
 
 func NewTui(main *list.List) Tui {
 	ui := Tui{
-		Main:     main,
-		KeyMap:   DefaultKeyMap(),
-		state:    mainModel,
-		Style:    DefaultStyle(),
-		Help:     NewHelp(),
-		Info:     info.New(),
-		Menus:    make(Menus),
-		MainMenu: MainMenu(),
+		Main:       main,
+		KeyMap:     DefaultKeyMap(),
+		state:      mainModel,
+		Style:      DefaultStyle(),
+		Help:       NewHelp(),
+		Info:       info.New(),
+		Menus:      make(Menus),
+		MainMenu:   MainMenu(),
+		ActionMenu: ActionMenu(),
 	}
 	ui.view = viewport.New(ui.Width(), ui.Height())
 	ui.widget = viewport.New(ui.Style.Widget.Width(), ui.Style.Widget.Height())
@@ -105,6 +106,11 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, key.HelpKey):
 				cmd = GoToHelpView(&m)
 				cmds = append(cmds, cmd)
+			case key.Matches(msg, key.NewBinding("a", "action")):
+				m.state = menuModel
+				m.showMenu = true
+				m.CurrentMenu = m.ActionMenu
+				cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 			default:
 				switch main := m.Main.(type) {
 				case *list.List:

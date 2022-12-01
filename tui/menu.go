@@ -1,9 +1,12 @@
 package tui
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -26,6 +29,30 @@ func MainMenu() *Menu {
 	m.AddKey(KeyMap().GetKey("?"), GoToHelpView)
 	m.NewSection().SetTitle("Main menu").SetFields(m.KeyMap)
 	return m
+}
+
+func ActionMenu() *Menu {
+	toggle := key.NewKey("a", "action")
+	m := NewMenu(toggle)
+	m.SetSize(m.Frame.Width(), m.Frame.Height())
+	m.NewKey("P", "print", PrintItemsMenuFunc)
+	m.NewSection().SetTitle("Action menu").SetFields(m.KeyMap)
+	return m
+}
+
+func PrintItems(items ...*list.Item) tea.Cmd {
+	for _, i := range items {
+		fmt.Println(i.Content())
+	}
+	return tea.Quit
+}
+
+func PrintItemsMenuFunc(m tea.Model) tea.Cmd {
+	ui := m.(*Tui)
+	main := ui.Main.(*list.List)
+	ui.state = mainModel
+	main.SetAction(PrintItems)
+	return list.ReturnSelectionsCmd()
 }
 
 func NewMenu(toggle *key.Key) *Menu {
@@ -72,11 +99,6 @@ func (m *Tui) updateMenu(msg tea.Msg) tea.Cmd {
 
 	cmds = append(cmds, info.UpdateContentCmd(m.CurrentMenu.Render()))
 	return tea.Batch(cmds...)
-}
-
-func (m Menu) GetInfo() *info.Info {
-	m.NewSection().SetTitle("opts").SetFields(m.KeyMap)
-	return m.Info
 }
 
 func (m *Menu) View() string {
