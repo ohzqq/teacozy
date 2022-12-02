@@ -12,8 +12,50 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
+const (
+	bullet   = "•"
+	ellipsis = "…"
+)
+
 type ItemDelegate struct {
 	list.DefaultDelegate
+	items *Items
+	Style style.ItemStyle
+}
+
+func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	var (
+		content string
+		curItem *Item
+	)
+
+	switch i := listItem.(type) {
+	case *Item:
+		curItem = i
+		content = i.Content()
+	}
+
+	if m.Width() > 0 {
+		textwidth := uint(m.Width() - d.Style.Current.GetPaddingLeft() - d.Style.Current.GetPaddingRight())
+		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
+	}
+
+	var (
+		isCurrent = index == m.Index()
+	)
+
+	itemStyle := d.Style.Normal
+	switch {
+	case isCurrent:
+		itemStyle = d.Style.Current
+	case curItem.IsSelected:
+		itemStyle = d.Style.Selected
+	case curItem.IsSub():
+		itemStyle = d.Style.Sub
+	}
+	itemStyle = itemStyle.Copy().Margin(0, 1, 0, curItem.Level)
+
+	fmt.Fprintf(w, itemStyle.Render(curItem.Prefix()+content))
 }
 
 func NewItemDelegate(items *Items) ItemDelegate {
@@ -38,6 +80,8 @@ func NewItemDelegate(items *Items) ItemDelegate {
 					i = curItem
 				case curItem.IsSub():
 					i = curItem.Parent
+				default:
+					return nil
 				}
 				switch i.ShowChildren {
 				case true:
@@ -74,6 +118,8 @@ func NewItemDelegate(items *Items) ItemDelegate {
 
 	return ItemDelegate{
 		DefaultDelegate: d,
+		items:           items,
+		Style:           style.ItemStyles(),
 	}
 }
 
