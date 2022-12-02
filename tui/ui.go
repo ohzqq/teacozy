@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/list"
@@ -27,8 +28,10 @@ type Tui struct {
 	height       int
 	state        state
 	Style        Style
+	fullScreen   bool
 	KeyMap       keyMap
 	Main         tea.Model
+	Alt          tea.Model
 	view         viewport.Model
 	widget       viewport.Model
 	showInfo     bool
@@ -40,7 +43,7 @@ type Tui struct {
 	Menus        Menus
 	CurrentMenu  *Menu
 	ActionMenu   *Menu
-	fullScreen   bool
+	Form         *form.Form
 }
 
 func NewTui(main *list.List) Tui {
