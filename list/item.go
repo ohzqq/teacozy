@@ -54,6 +54,14 @@ func (i Item) FilterValue() string {
 	return i.Content()
 }
 
+func (i Item) Description() string {
+	return i.Content()
+}
+
+func (i Item) Title() string {
+	return i.Prefix() + i.Content()
+}
+
 // Item methods
 func (i Item) Prefix() string {
 	prefix := dash

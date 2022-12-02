@@ -12,6 +12,71 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
+type ItemDelegate struct {
+	list.DefaultDelegate
+}
+
+func NewItemDelegate(items *Items) ItemDelegate {
+	d := list.NewDefaultDelegate()
+	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
+		var (
+			curItem *Item
+		)
+
+		sel := m.SelectedItem()
+		if item, ok := sel.(*Item); ok {
+			curItem = items.GetItemByIndex(item.Index())
+		}
+
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch {
+			case key.Matches(msg, key.ToggleItemList):
+				var i *Item
+				switch {
+				case curItem.HasChildren():
+					i = curItem
+				case curItem.IsSub():
+					i = curItem.Parent
+				}
+				switch i.ShowChildren {
+				case true:
+					m.Select(i.Index())
+					items.CloseItemList(i.Index())
+				default:
+					m.CursorDown()
+					items.OpenItemList(i.Index())
+				}
+				m.SetItems(items.Visible())
+			case key.Matches(msg, key.ToggleItem):
+				m.CursorDown()
+				if curItem.HasChildren() {
+					switch curItem.ShowChildren {
+					case true:
+						m.Select(curItem.Index())
+						items.CloseItemList(curItem.Index())
+					default:
+						m.CursorDown()
+						items.OpenItemList(curItem.Index())
+					}
+					m.SetItems(items.Visible())
+				}
+				if items.MultiSelect {
+					items.ToggleSelectedItem(curItem.Index())
+				}
+			}
+		}
+		return nil
+	}
+	d.ShowDescription = false
+	d.SetSpacing(0)
+	d.Styles = style.NewDefaultItemStyles()
+
+	return ItemDelegate{
+		DefaultDelegate: d,
+	}
+}
+
 // Item Delegate Interface
 func (d *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var (

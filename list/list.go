@@ -37,7 +37,7 @@ func NewList(title string) *List {
 }
 
 func NewListModel(w, h int, items *Items) list.Model {
-	l := list.New(items.Visible(), items, w, h)
+	l := list.New(items.Visible(), NewItemDelegate(items), w, h)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.KeyMap = ListKeyMap()
