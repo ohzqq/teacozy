@@ -74,8 +74,9 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case ShowItemInfoMsg:
 		m.Info = msg.Item.Meta.Info
+		cmds = append(cmds, list.UpdateStatusCmd("item info"))
+		cmds = append(cmds, info.UpdateContentCmd(msg.Item.Meta.Info.Render()))
 		m.state = infoModel
-		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))
 	case ChangeMenuMsg:
 		m.CurrentMenu = msg.Menu
 	case info.HideInfoMsg:

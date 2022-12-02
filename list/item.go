@@ -34,13 +34,14 @@ func NewItem(item teacozy.Field) *Item {
 }
 
 func (i *Item) SetMeta(meta teacozy.Fields) {
+	i.hasFields = true
 	fields := form.NewFields()
 	fields.SetData(meta)
 	i.Meta = form.New(fields)
 }
 
 func (i Item) HasMeta() bool {
-	return len(i.Meta.Keys()) > 0
+	return i.hasFields
 }
 
 // Satisfy Fields interface
