@@ -13,22 +13,7 @@ import (
 
 func NewItemDelegate(items *Items) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
-	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
-		var (
-			curItem *Item
-		)
-
-		sel := m.SelectedItem()
-		if item, ok := sel.(*Item); ok {
-			curItem = items.GetItemByIndex(item.Index())
-		}
-
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			curItem.Update(msg, items, m)
-		}
-		return nil
-	}
+	d.UpdateFunc = items.UpdateItem()
 	d.ShowDescription = false
 	d.SetSpacing(0)
 	d.Styles = style.NewDefaultItemStyles()

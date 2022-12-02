@@ -67,7 +67,6 @@ func EditInfoCmd(f *teacozy.Fields) tea.Cmd {
 type ShowItemInfoMsg struct{ *list.Item }
 
 func ShowItemInfoCmd(item *list.Item) tea.Cmd {
-
 	return func() tea.Msg {
 		return ShowItemInfoMsg{Item: item}
 	}

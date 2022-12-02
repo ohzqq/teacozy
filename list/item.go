@@ -9,8 +9,6 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type ItemUpdateFunc func(*Item, *Items, *list.Model) tea.Cmd
-
 type Item struct {
 	idx          int
 	IsHidden     bool
@@ -24,24 +22,17 @@ type Item struct {
 	Children     *Items
 	hasFields    bool
 	style        style.ItemStyle
-	Meta         *form.Fields
+	Meta         form.Form
 	UpdateFuncs  map[*key.Key]ItemUpdateFunc
 	teacozy.Field
 }
 
 func NewItem(item teacozy.Field) *Item {
 	i := &Item{
-		Field:       item,
-		Meta:        form.NewFields(),
-		Children:    NewItems(),
-		style:       style.ItemStyles(),
-		UpdateFuncs: make(map[*key.Key]ItemUpdateFunc),
+		Field:    item,
+		Children: NewItems(),
+		style:    style.ItemStyles(),
 	}
-
-	x := key.NewKey("x", "toggle item list")
-	t := key.NewKey(" ", "toggle")
-	i.UpdateFuncs[x] = ToggleItemList
-	i.UpdateFuncs[t] = ToggleItem
 
 	return i
 }
@@ -56,7 +47,9 @@ func (i *Item) Update(msg tea.KeyMsg, items *Items, m *list.Model) tea.Cmd {
 }
 
 func (i *Item) SetMeta(meta teacozy.Fields) {
-	i.Meta.SetData(meta)
+	fields := form.NewFields()
+	fields.SetData(meta)
+	i.Meta = form.New(fields)
 }
 
 func (i Item) HasMeta() bool {

@@ -2,6 +2,8 @@ package list
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -20,12 +22,27 @@ type Items struct {
 	MultiSelect bool
 	ShowKeys    bool
 	Style       style.ItemStyle
+	UpdateFuncs map[*key.Key]ItemUpdateFunc
 	list.DefaultDelegate
+}
+
+type ItemUpdateFunc func(*Item, *Items, *list.Model) tea.Cmd
+
+func DefaultItemFuncs() map[*key.Key]ItemUpdateFunc {
+	x := key.NewKey("x", "toggle item list")
+	t := key.NewKey(" ", "toggle")
+
+	funcs := make(map[*key.Key]ItemUpdateFunc)
+	funcs[x] = ToggleItemList
+	funcs[t] = ToggleItem
+
+	return funcs
 }
 
 func NewItems() *Items {
 	items := &Items{
-		Style: style.ItemStyles(),
+		Style:       style.ItemStyles(),
+		UpdateFuncs: DefaultItemFuncs(),
 	}
 	items.DefaultDelegate = NewItemDelegate(items)
 
@@ -34,8 +51,45 @@ func NewItems() *Items {
 
 func (i *Items) SetItems(items ...*Item) *Items {
 	i.flat = items
-	i.items = items
+	for _, item := range items {
+		item.UpdateFuncs = i.UpdateFuncs
+		i.items = append(i.items, item)
+	}
 	return i
+}
+
+func (i *Items) SetUpdateFuncs(funcs map[*key.Key]ItemUpdateFunc) *Items {
+	i.UpdateFuncs = funcs
+	return i
+}
+
+func (i *Items) AddUpdateFunc(k, h string, fn ItemUpdateFunc) *Items {
+	kp := key.NewKey(k, h)
+	i.UpdateFuncs[kp] = fn
+	return i
+}
+
+func (i *Items) UpdateItem() func(msg tea.Msg, m *list.Model) tea.Cmd {
+	return func(msg tea.Msg, m *list.Model) tea.Cmd {
+		var (
+			curItem *Item
+		)
+
+		sel := m.SelectedItem()
+		if item, ok := sel.(*Item); ok {
+			curItem = i.GetItemByIndex(item.Index())
+		}
+
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			for k, fn := range i.UpdateFuncs {
+				if k.Matches(msg) {
+					return fn(curItem, i, m)
+				}
+			}
+		}
+		return nil
+	}
 }
 
 func (i *Items) Process() {
@@ -75,6 +129,7 @@ func (i *Items) AllItems() []list.Item {
 }
 
 func (i *Items) Add(item *Item) *Items {
+	item.UpdateFuncs = i.UpdateFuncs
 	i.flat = append(i.flat, item)
 	i.items = append(i.items, item)
 	return i
