@@ -20,12 +20,16 @@ type Items struct {
 	MultiSelect bool
 	ShowKeys    bool
 	Style       style.ItemStyle
+	list.DefaultDelegate
 }
 
 func NewItems() *Items {
-	return &Items{
+	items := &Items{
 		Style: style.ItemStyles(),
 	}
+	items.DefaultDelegate = NewItemDelegate(items)
+
+	return items
 }
 
 func (i *Items) SetItems(items ...*Item) *Items {
