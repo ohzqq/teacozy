@@ -51,10 +51,7 @@ func NewItems() *Items {
 
 func (i *Items) SetItems(items ...*Item) *Items {
 	i.flat = items
-	for _, item := range items {
-		item.UpdateFuncs = i.UpdateFuncs
-		i.items = append(i.items, item)
-	}
+	i.items = items
 	return i
 }
 
@@ -69,27 +66,25 @@ func (i *Items) AddUpdateFunc(k, h string, fn ItemUpdateFunc) *Items {
 	return i
 }
 
-func (i *Items) UpdateItem() func(msg tea.Msg, m *list.Model) tea.Cmd {
-	return func(msg tea.Msg, m *list.Model) tea.Cmd {
-		var (
-			curItem *Item
-		)
+func (i *Items) UpdateItem(msg tea.Msg, m *list.Model) tea.Cmd {
+	var (
+		curItem *Item
+	)
 
-		sel := m.SelectedItem()
-		if item, ok := sel.(*Item); ok {
-			curItem = i.GetItemByIndex(item.Index())
-		}
+	sel := m.SelectedItem()
+	if item, ok := sel.(*Item); ok {
+		curItem = i.GetItemByIndex(item.Index())
+	}
 
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			for k, fn := range i.UpdateFuncs {
-				if k.Matches(msg) {
-					return fn(curItem, i, m)
-				}
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		for k, fn := range i.UpdateFuncs {
+			if k.Matches(msg) {
+				return fn(curItem, i, m)
 			}
 		}
-		return nil
 	}
+	return nil
 }
 
 func (i *Items) Process() {
@@ -129,7 +124,6 @@ func (i *Items) AllItems() []list.Item {
 }
 
 func (i *Items) Add(item *Item) *Items {
-	item.UpdateFuncs = i.UpdateFuncs
 	i.flat = append(i.flat, item)
 	i.items = append(i.items, item)
 	return i

@@ -1,11 +1,8 @@
 package list
 
 import (
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/form"
-	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -23,7 +20,6 @@ type Item struct {
 	hasFields    bool
 	style        style.ItemStyle
 	Meta         form.Form
-	UpdateFuncs  map[*key.Key]ItemUpdateFunc
 	teacozy.Field
 }
 
@@ -35,15 +31,6 @@ func NewItem(item teacozy.Field) *Item {
 	}
 
 	return i
-}
-
-func (i *Item) Update(msg tea.KeyMsg, items *Items, m *list.Model) tea.Cmd {
-	for k, fn := range i.UpdateFuncs {
-		if k.Matches(msg) {
-			return fn(i, items, m)
-		}
-	}
-	return nil
 }
 
 func (i *Item) SetMeta(meta teacozy.Fields) {

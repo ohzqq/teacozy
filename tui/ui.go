@@ -47,6 +47,7 @@ type Tui struct {
 }
 
 func NewTui(main *list.List) Tui {
+	main.AddUpdateFunc("i", "item meta", ShowItemMeta)
 	ui := Tui{
 		Main:       main,
 		KeyMap:     DefaultKeyMap(),
@@ -74,6 +75,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ShowItemInfoMsg:
 		m.Info = msg.Item.Meta.Info
 		m.state = infoModel
+		cmds = append(cmds, info.UpdateContentCmd(m.Info.Render()))
 	case ChangeMenuMsg:
 		m.CurrentMenu = msg.Menu
 	case info.HideInfoMsg:

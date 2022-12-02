@@ -13,7 +13,7 @@ import (
 
 func NewItemDelegate(items *Items) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
-	d.UpdateFunc = items.UpdateItem()
+	d.UpdateFunc = items.UpdateItem
 	d.ShowDescription = false
 	d.SetSpacing(0)
 	d.Styles = style.NewDefaultItemStyles()
