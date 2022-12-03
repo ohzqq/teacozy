@@ -13,7 +13,7 @@ type Item struct {
 
 func ShowItemMeta(curItem *list.Item, items *list.Items, m *bubblelist.Model) tea.Cmd {
 	if curItem.HasMeta() {
-		return ShowItemInfoCmd(curItem)
+		return ShowItemMetaCmd(curItem)
 	}
 	return nil
 }

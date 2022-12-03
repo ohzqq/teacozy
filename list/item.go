@@ -38,6 +38,7 @@ func (i *Item) SetMeta(meta teacozy.Fields) {
 	fields := form.NewFields()
 	fields.SetData(meta)
 	i.Meta = form.New(fields)
+	i.Meta.Info.SetTitle("Meta")
 }
 
 func (i Item) HasMeta() bool {

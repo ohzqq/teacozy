@@ -64,10 +64,18 @@ func EditInfoCmd(f *teacozy.Fields) tea.Cmd {
 	}
 }
 
-type ShowItemInfoMsg struct{ *list.Item }
+type EditItemMetaMsg struct{ *list.Item }
 
-func ShowItemInfoCmd(item *list.Item) tea.Cmd {
+func EditItemMetaCmd(item *list.Item) tea.Cmd {
 	return func() tea.Msg {
-		return ShowItemInfoMsg{Item: item}
+		return EditItemMetaMsg{Item: item}
+	}
+}
+
+type ShowItemMetaMsg struct{ *list.Item }
+
+func ShowItemMetaCmd(item *list.Item) tea.Cmd {
+	return func() tea.Msg {
+		return ShowItemMetaMsg{Item: item}
 	}
 }

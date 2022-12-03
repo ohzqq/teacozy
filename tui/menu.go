@@ -22,6 +22,18 @@ type Menu struct {
 	Label string
 }
 
+func NewMenu(toggle *key.Key) *Menu {
+	m := Menu{
+		Info:   info.New(),
+		Label:  toggle.Content(),
+		KeyMap: key.NewKeyMap(),
+		funcs:  make(map[string]MenuFunc),
+	}
+	m.Info.Toggle = toggle
+	m.Frame = DefaultWidgetStyle()
+	return &m
+}
+
 func MainMenu() *Menu {
 	toggle := key.NewKey("m", "menu")
 	m := NewMenu(toggle)
@@ -40,6 +52,23 @@ func ActionMenu() *Menu {
 	return m
 }
 
+func EditItemMetaMenu(item *list.Item) *Menu {
+	toggle := key.NewKey("i", "action")
+	m := NewMenu(toggle)
+	//item.Meta.Info.Title = "Meta (e: edit)"
+	m.Info = item.Meta.Info
+	m.SetSize(m.Frame.Width(), m.Frame.Height())
+	m.NewKey("e", "edit", EditItemMeta(item))
+	return m
+}
+
+func EditItemMeta(item *list.Item) MenuFunc {
+	fn := func(m tea.Model) tea.Cmd {
+		return EditItemMetaCmd(item)
+	}
+	return fn
+}
+
 func PrintItems(items ...*list.Item) tea.Cmd {
 	for _, i := range items {
 		fmt.Println(i.Content())
@@ -53,18 +82,6 @@ func PrintItemsMenuFunc(m tea.Model) tea.Cmd {
 	ui.state = mainModel
 	main.SetAction(PrintItems)
 	return list.ReturnSelectionsCmd()
-}
-
-func NewMenu(toggle *key.Key) *Menu {
-	m := Menu{
-		Info:   info.New(),
-		Label:  toggle.Content(),
-		KeyMap: key.NewKeyMap(),
-		funcs:  make(map[string]MenuFunc),
-	}
-	m.Info.Toggle = toggle
-	m.Frame = DefaultWidgetStyle()
-	return &m
 }
 
 func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {

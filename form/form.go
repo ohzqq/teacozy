@@ -45,6 +45,7 @@ func New(fields *Fields) Form {
 	m.Model.Styles = style.ListStyles()
 
 	m.Info = info.New()
+	m.Info.Editable = true
 	m.section = m.Info.NewSection().SetFields(m.Fields)
 
 	return m

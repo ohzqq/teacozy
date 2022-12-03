@@ -72,11 +72,20 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-	case ShowItemInfoMsg:
-		m.Info = msg.Item.Meta.Info
-		cmds = append(cmds, list.UpdateStatusCmd("item info"))
-		cmds = append(cmds, info.UpdateContentCmd(msg.Item.Meta.Info.Render()))
-		m.state = infoModel
+	case EditItemMetaMsg:
+		m.Alt = m.Main
+		m.Main = &msg.Item.Meta
+		cmds = append(cmds, info.HideInfoCmd())
+		m.state = mainModel
+	case ShowItemMetaMsg:
+		//m.Info = msg.Item.Meta.Info
+		m.CurrentMenu = EditItemMetaMenu(msg.Item)
+		//m.showInfo = true
+		m.showMenu = true
+		content := msg.Item.Meta.Info.Render()
+		cmds = append(cmds, info.UpdateContentCmd(content))
+		m.state = menuModel
+		//m.state = formModel
 	case ChangeMenuMsg:
 		m.CurrentMenu = msg.Menu
 	case info.HideInfoMsg:
@@ -96,6 +105,24 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch m.state {
+		case formModel:
+			if m.showInfo {
+				cmd = m.updateInfo(msg, m.Info)
+				cmds = append(cmds, cmd)
+			} else {
+				switch {
+				case key.Matches(msg, key.EditField):
+					m.showInfo = false
+				default:
+					var model tea.Model
+					switch main := m.Alt.(type) {
+					case *form.Form:
+						model, cmd = main.Update(msg)
+						cmds = append(cmds, cmd)
+					}
+					m.Main = model
+				}
+			}
 		case infoModel:
 			cmd = m.updateInfo(msg, m.Info)
 			cmds = append(cmds, cmd)
@@ -129,6 +156,9 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					model, cmd = main.Update(msg)
 					cmds = append(cmds, cmd)
+				case *form.Form:
+					model, cmd = main.Update(msg)
+					cmds = append(cmds, cmd)
 				}
 				m.Main = model
 			}
@@ -152,6 +182,12 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case menuModel:
 			cmd = m.updateMenu(msg)
 			cmds = append(cmds, cmd)
+		case formModel:
+			if m.showInfo {
+				cmd = m.updateInfo(msg, m.Info)
+				cmds = append(cmds, cmd)
+			} else {
+			}
 		}
 
 	}
@@ -173,7 +209,7 @@ func (m Tui) View() string {
 
 	var widget string
 	if m.showInfo {
-		widget = m.view.View()
+		widget = m.widget.View()
 		availHeight -= lipgloss.Height(widget)
 	}
 

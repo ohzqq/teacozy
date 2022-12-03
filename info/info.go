@@ -17,7 +17,7 @@ type Info struct {
 	Editable bool
 	content  string
 	Sections []*Section
-	Title    string
+	title    string
 	Style    Style
 	Toggle   *key.Key
 }
@@ -52,6 +52,15 @@ func (m *Info) SetToggle(toggle, help string) *Info {
 	return m
 }
 
+func (i Info) Title() string {
+	return i.title
+}
+
+func (i *Info) SetTitle(title string) *Info {
+	i.title = title
+	return i
+}
+
 func (i *Info) SetContent(c string) *Info {
 	i.content = c
 	return i
@@ -65,6 +74,10 @@ func (i *Info) NewSection() *Section {
 
 func (i *Info) Render() string {
 	var sections []string
+	if i.title != "" {
+		title := i.Style.Title.Render(i.Title())
+		sections = append(sections, title)
+	}
 	for _, section := range i.Sections {
 		sections = append(sections, section.Render(i.Style, i.hideKeys))
 	}
