@@ -6,8 +6,8 @@ type Fields interface {
 }
 
 type Field interface {
-	Content() string
-	Name() string
+	Value() string
+	Key() string
 	Set(string)
 }
 
@@ -26,11 +26,11 @@ func NewField(key, val string) *FieldData {
 	}
 }
 
-func (i FieldData) Name() string {
+func (i FieldData) Key() string {
 	return i.label
 }
 
-func (i *FieldData) Content() string {
+func (i *FieldData) Value() string {
 	return i.Val
 }
 

@@ -56,15 +56,15 @@ func (i Item) Keys() []string {
 
 // Satisfy list.Item interface
 func (i Item) FilterValue() string {
-	return i.Content()
+	return i.Value()
 }
 
 func (i Item) Description() string {
-	return i.Content()
+	return i.Value()
 }
 
 func (i Item) Title() string {
-	return i.Prefix() + i.Content()
+	return i.Prefix() + i.Value()
 }
 
 // Item methods

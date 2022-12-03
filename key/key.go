@@ -37,11 +37,11 @@ func (k Key) Matches(msg tea.KeyMsg) bool {
 	return key.Matches(msg, k.key)
 }
 
-func (i Key) Name() string {
+func (i Key) Key() string {
 	return i.key.Help().Key
 }
 
-func (i Key) Content() string {
+func (i Key) Value() string {
 	return i.key.Help().Desc
 }
 

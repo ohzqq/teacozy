@@ -51,7 +51,7 @@ func (k KeyMap) ShortHelp() []key.Binding {
 func (k KeyMap) Get(name string) teacozy.Field {
 	var key *Key
 	for _, bind := range k.keys {
-		if bind.Name() == name {
+		if bind.Key() == name {
 			key = bind
 		}
 	}
@@ -61,7 +61,7 @@ func (k KeyMap) Get(name string) teacozy.Field {
 func (k KeyMap) GetKey(name string) *Key {
 	var key *Key
 	for _, bind := range k.keys {
-		if bind.Name() == name {
+		if bind.Key() == name {
 			key = bind
 		}
 	}
@@ -71,7 +71,7 @@ func (k KeyMap) GetKey(name string) *Key {
 func (k KeyMap) Keys() []string {
 	var keys []string
 	for _, bind := range k.keys {
-		keys = append(keys, bind.Name())
+		keys = append(keys, bind.Key())
 	}
 	return keys
 }

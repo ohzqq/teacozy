@@ -76,7 +76,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if key.Matches(msg, key.SaveAndExit) {
 				cur := m.Model.SelectedItem().(*Field)
 				val := m.Input.Value()
-				if original := cur.Content(); original != val {
+				if original := cur.Value(); original != val {
 					cur.Set(val)
 					m.Changed = true
 					m.Info.SetSections(m.Fields.PreviewChanges())
@@ -143,7 +143,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case EditFormItemMsg:
 		cur := m.Model.SelectedItem().(*Field)
 		m.Input = textarea.New()
-		m.Input.SetValue(cur.Content())
+		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
 	case teacozy.SetListItemMsg:

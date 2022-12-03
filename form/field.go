@@ -22,7 +22,7 @@ func (f *Fields) Add(fd teacozy.Field) {
 func (f *Fields) SetData(data teacozy.Fields) {
 	for i, key := range data.Keys() {
 		fd := data.Get(key)
-		field := teacozy.NewField(fd.Name(), fd.Content())
+		field := teacozy.NewField(fd.Key(), fd.Value())
 		ff := NewField(field)
 		ff.idx = i
 		f.fields = append(f.fields, ff)
@@ -61,7 +61,7 @@ func (i *Fields) Items() []list.Item {
 
 func (f Fields) Get(key string) teacozy.Field {
 	for _, field := range f.fields {
-		if field.Name() == key {
+		if field.Key() == key {
 			return field
 		}
 	}
@@ -71,7 +71,7 @@ func (f Fields) Get(key string) teacozy.Field {
 func (f Fields) Keys() []string {
 	var keys []string
 	for _, field := range f.fields {
-		keys = append(keys, field.Name())
+		keys = append(keys, field.Key())
 	}
 	return keys
 }
@@ -86,9 +86,9 @@ type Field struct {
 
 func NewField(data teacozy.Field) *Field {
 	return &Field{
-		key:   data.Name(),
-		value: data.Content(),
-		data:  teacozy.NewField(data.Name(), data.Content()),
+		key:   data.Key(),
+		value: data.Value(),
+		data:  teacozy.NewField(data.Key(), data.Value()),
 	}
 }
 
@@ -97,7 +97,7 @@ func (i *Field) Update() {
 }
 
 func (i *Field) Save() {
-	if i.Content() != i.data.Val {
+	if i.Value() != i.data.Val {
 		i.data.Val = i.value
 	}
 }
@@ -108,11 +108,11 @@ func (i *Field) Undo() {
 }
 
 // To satisfy field interface
-func (i Field) Name() string {
+func (i Field) Key() string {
 	return i.key
 }
 
-func (i Field) Content() string {
+func (i Field) Value() string {
 	return i.value
 }
 

@@ -243,7 +243,7 @@ func ListKeyMap() list.KeyMap {
 
 func PrintItems(items ...*Item) tea.Cmd {
 	for _, i := range items {
-		fmt.Println(i.Content())
+		fmt.Println(i.Value())
 	}
 	return tea.Quit
 }

@@ -25,7 +25,7 @@ type Menu struct {
 func NewMenu(toggle *key.Key) *Menu {
 	m := Menu{
 		Info:   info.New(),
-		Label:  toggle.Content(),
+		Label:  toggle.Value(),
 		KeyMap: key.NewKeyMap(),
 		funcs:  make(map[string]MenuFunc),
 	}
@@ -71,7 +71,7 @@ func EditItemMeta(item *list.Item) MenuFunc {
 
 func PrintItems(items ...*list.Item) tea.Cmd {
 	for _, i := range items {
-		fmt.Println(i.Content())
+		fmt.Println(i.Value())
 	}
 	return tea.Quit
 }
@@ -92,7 +92,7 @@ func (m *Menu) NewKey(k, h string, cmd MenuFunc) *Menu {
 
 func (m *Menu) AddKey(k *key.Key, cmd MenuFunc) *Menu {
 	m.KeyMap.Add(k)
-	m.funcs[k.Name()] = cmd
+	m.funcs[k.Key()] = cmd
 	return m
 }
 

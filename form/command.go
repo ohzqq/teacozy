@@ -22,7 +22,7 @@ func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
 		m.Hash = make(map[string]string)
 		for _, item := range m.Fields.fields {
-			m.Hash[item.Name()] = item.Content()
+			m.Hash[item.Key()] = item.Value()
 		}
 		return SaveFormAsHashMsg{}
 	}

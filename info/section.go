@@ -25,8 +25,8 @@ func (s *Section) SetFields(fields teacozy.Fields) *Section {
 	for _, key := range fields.Keys() {
 		fd := fields.Get(key)
 
-		s.keys = append(s.keys, fd.Name())
-		s.values = append(s.values, fd.Content())
+		s.keys = append(s.keys, fd.Key())
+		s.values = append(s.values, fd.Value())
 	}
 	return s
 }
