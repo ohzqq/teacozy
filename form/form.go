@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/info"
 	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/style"
@@ -134,7 +133,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-	case teacozy.UpdateStatusMsg:
+	case UpdateStatusMsg:
 		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
 		m.Frame.SetSize(msg.Width-1, msg.Height-2)
@@ -146,7 +145,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Input.SetValue(cur.Value())
 		m.Input.ShowLineNumbers = false
 		m.Input.Focus()
-	case teacozy.SetListItemMsg:
+	case SetListItemMsg:
 		idx := m.Model.Index()
 		m.Model.SetItem(idx, msg.Item)
 	case ViewFormMsg:
@@ -166,7 +165,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Form) FieldChanged(item *Field) tea.Cmd {
 	return func() tea.Msg {
 		item.Update()
-		return teacozy.SetListItemMsg{Item: item}
+		return SetListItemMsg{Item: item}
 	}
 }
 
