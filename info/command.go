@@ -40,7 +40,7 @@ func ShowInfoCmd() tea.Cmd {
 }
 
 type EditInfoMsg struct {
-	//Data teacozy.FormData
+	//Data data.FormData
 }
 
 func EditInfoCmd() tea.Cmd {

@@ -2,7 +2,7 @@ package form
 
 import (
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/data"
 	"github.com/ohzqq/teacozy/info"
 )
 
@@ -14,15 +14,15 @@ func NewFields() *Fields {
 	return &Fields{}
 }
 
-func (f *Fields) Add(fd teacozy.Field) {
+func (f *Fields) Add(fd data.Field) {
 	field := NewField(fd)
 	f.fields = append(f.fields, field)
 }
 
-func (f *Fields) SetData(data teacozy.Fields) {
-	for i, key := range data.Keys() {
-		fd := data.Get(key)
-		field := teacozy.NewField(fd.Key(), fd.Value())
+func (f *Fields) SetData(fields data.Fields) {
+	for i, key := range fields.Keys() {
+		fd := fields.Get(key)
+		field := data.NewField(fd.Key(), fd.Value())
 		ff := NewField(field)
 		ff.idx = i
 		f.fields = append(f.fields, ff)
@@ -59,7 +59,7 @@ func (i *Fields) Items() []list.Item {
 	return li
 }
 
-func (f Fields) Get(key string) teacozy.Field {
+func (f Fields) Get(key string) data.Field {
 	for _, field := range f.fields {
 		if field.Key() == key {
 			return field
@@ -81,14 +81,14 @@ type Field struct {
 	value   string
 	Changed bool
 	idx     int
-	data    *teacozy.FieldData
+	data    *data.FieldData
 }
 
-func NewField(data teacozy.Field) *Field {
+func NewField(field data.Field) *Field {
 	return &Field{
-		key:   data.Key(),
-		value: data.Value(),
-		data:  teacozy.NewField(data.Key(), data.Value()),
+		key:   field.Key(),
+		value: field.Value(),
+		data:  data.NewField(field.Key(), field.Value()),
 	}
 }
 

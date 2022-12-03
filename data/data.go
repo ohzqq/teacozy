@@ -1,4 +1,4 @@
-package teacozy
+package data
 
 type Fields interface {
 	Get(string) Field
@@ -13,7 +13,6 @@ type Field interface {
 
 type FieldData struct {
 	hideKeys bool
-	idx      int
 	label    string
 	Val      string
 	changed  bool

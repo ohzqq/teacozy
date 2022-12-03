@@ -3,7 +3,7 @@ package info
 import (
 	"strings"
 
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/data"
 )
 
 type Section struct {
@@ -21,7 +21,7 @@ func (s *Section) SetTitle(title string) *Section {
 	return s
 }
 
-func (s *Section) SetFields(fields teacozy.Fields) *Section {
+func (s *Section) SetFields(fields data.Fields) *Section {
 	for _, key := range fields.Keys() {
 		fd := fields.Get(key)
 

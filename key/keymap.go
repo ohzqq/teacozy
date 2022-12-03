@@ -3,7 +3,7 @@ package key
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/data"
 )
 
 type KeyMap struct {
@@ -48,7 +48,7 @@ func (k KeyMap) ShortHelp() []key.Binding {
 	return keys
 }
 
-func (k KeyMap) Get(name string) teacozy.Field {
+func (k KeyMap) Get(name string) data.Field {
 	var key *Key
 	for _, bind := range k.keys {
 		if bind.Key() == name {
@@ -75,24 +75,6 @@ func (k KeyMap) Keys() []string {
 	}
 	return keys
 }
-
-//var Map = teacozy.KeysMap{
-//  DeselectAll:    teacozy.Key{Binding: DeselectAll},
-//  EditField:      teacozy.Key{Binding: EditField},
-//  Enter:          teacozy.Key{Binding: Enter},
-//  ExitScreen:     teacozy.Key{Binding: ExitScreen},
-//  FullScreen:     teacozy.Key{Binding: FullScreen},
-//  Help:           teacozy.Key{Binding: HelpKey},
-//  Info:           teacozy.Key{Binding: InfoKey},
-//  Menu:           teacozy.Key{Binding: MenuKey},
-//  PrevScreen:     teacozy.Key{Binding: PrevScreen},
-//  Quit:           teacozy.Key{Binding: Quit},
-//  SaveAndExit:    teacozy.Key{Binding: SaveAndExit},
-//  ToggleAllItems: teacozy.Key{Binding: ToggleAllItems},
-//  SortList:       teacozy.Key{Binding: SortList},
-//  ToggleItem:     teacozy.Key{Binding: ToggleItem},
-//  ToggleItemList: teacozy.Key{Binding: ToggleItemList},
-//}
 
 var (
 	ToggleItem = key.NewBinding(

@@ -1,7 +1,7 @@
 package list
 
 import (
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/data"
 	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -20,10 +20,10 @@ type Item struct {
 	hasFields    bool
 	style        style.ItemStyle
 	Meta         form.Form
-	teacozy.Field
+	data.Field
 }
 
-func NewItem(item teacozy.Field) *Item {
+func NewItem(item data.Field) *Item {
 	i := &Item{
 		Field:    item,
 		Children: NewItems(),
@@ -33,7 +33,7 @@ func NewItem(item teacozy.Field) *Item {
 	return i
 }
 
-func (i *Item) SetMeta(meta teacozy.Fields) {
+func (i *Item) SetMeta(meta data.Fields) {
 	i.hasFields = true
 	fields := form.NewFields()
 	fields.SetData(meta)
@@ -46,7 +46,7 @@ func (i Item) HasMeta() bool {
 }
 
 // Satisfy Fields interface
-func (i Item) Get(key string) teacozy.Field {
+func (i Item) Get(key string) data.Field {
 	return i.Meta.Get(key)
 }
 
