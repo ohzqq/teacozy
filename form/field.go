@@ -33,6 +33,10 @@ func (f *Fields) PreviewChanges() *info.Section {
 	return info.NewSection().SetFields(f)
 }
 
+func (f *Fields) ConfirmChanges() *info.Section {
+	return f.PreviewChanges().SetTitle(`save and exit? y\n`)
+}
+
 func (f *Fields) SaveChanges() *Fields {
 	for _, item := range f.fields {
 		item.Save()

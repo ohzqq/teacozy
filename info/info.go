@@ -66,6 +66,16 @@ func (i *Info) SetContent(c string) *Info {
 	return i
 }
 
+func (i *Info) SetSections(sections ...*Section) *Info {
+	i.Sections = sections
+	return i
+}
+
+func (i *Info) AddSections(sections ...*Section) *Info {
+	i.Sections = append(i.Sections, sections...)
+	return i
+}
+
 func (i *Info) NewSection() *Section {
 	s := &Section{}
 	i.Sections = append(i.Sections, s)

@@ -43,8 +43,8 @@ func New(fields *Fields) Form {
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
-	m.Info = info.New()
-	m.section = m.Info.NewSection().SetFields(fields)
+	m.section = info.NewSection().SetFields(fields)
+	m.Info = info.New().SetSections(m.section)
 	m.Info.Editable = true
 
 	return m
@@ -52,8 +52,6 @@ func New(fields *Fields) Form {
 
 func (m *Form) SetFields(fields *Fields) {
 	m.Fields = fields
-	m.Info = info.New()
-	m.section = m.Info.NewSection().SetFields(fields)
 }
 
 func (m *Form) Start() {
@@ -81,6 +79,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if original := cur.Content(); original != val {
 					cur.Set(val)
 					m.Changed = true
+					m.Info.SetSections(m.Fields.PreviewChanges())
 					cmds = append(cmds, m.FieldChanged(cur))
 				}
 				m.Input.Blur()
@@ -95,17 +94,18 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.view = !m.view
 					m.Info.ToggleVisible()
 				case key.Matches(msg, key.SaveAndExit):
-					m.section.SetTitle(`save and exit? y\n`)
+					m.Info.SetSections(m.Fields.ConfirmChanges())
 					cmds = append(cmds, ViewFormCmd())
 				case key.Matches(msg, Yes):
-					m.section.SetTitle("")
-					m.SetFields(m.Fields)
+					s := m.Info.Sections[0]
+					s.SetTitle("")
+					m.section = s
 					m.SaveChanges()
 					cmds = append(cmds, HideFormCmd())
 					cmds = append(cmds, SaveAndExitFormCmd())
 				case key.Matches(msg, No):
+					m.Info.SetSections(m.section)
 					m.UndoChanges()
-					m.section.SetTitle("")
 					cmds = append(cmds, HideFormCmd())
 				case key.Matches(msg, key.EditField):
 					cmds = append(cmds, HideFormCmd())
