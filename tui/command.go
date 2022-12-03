@@ -2,7 +2,7 @@ package tui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/data"
 	"github.com/ohzqq/teacozy/list"
 )
 
@@ -53,10 +53,10 @@ func ToggleHelpCmd() tea.Cmd {
 // menu commands
 // info commands
 type EditInfoMsg struct {
-	Fields *teacozy.Fields
+	Fields *data.Fields
 }
 
-func EditInfoCmd(f *teacozy.Fields) tea.Cmd {
+func EditInfoCmd(f *data.Fields) tea.Cmd {
 	return func() tea.Msg {
 		return EditInfoMsg{
 			Fields: f,
