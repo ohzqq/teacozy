@@ -12,6 +12,10 @@ type Section struct {
 	values []string
 }
 
+func NewSection() *Section {
+	return &Section{}
+}
+
 func (s *Section) SetTitle(title string) *Section {
 	s.title = title
 	return s

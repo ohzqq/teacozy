@@ -3,6 +3,7 @@ package form
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/info"
 )
 
 type Fields struct {
@@ -28,11 +29,15 @@ func (f *Fields) SetData(data teacozy.Fields) {
 	}
 }
 
-func (i *Fields) SaveChanges() *Fields {
-	for _, item := range i.fields {
+func (f *Fields) PreviewChanges() *info.Section {
+	return info.NewSection().SetFields(f)
+}
+
+func (f *Fields) SaveChanges() *Fields {
+	for _, item := range f.fields {
 		item.Save()
 	}
-	return i
+	return f
 }
 
 func (i *Fields) UndoChanges() *Fields {

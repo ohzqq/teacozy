@@ -43,16 +43,17 @@ func New(fields *Fields) Form {
 	m.Model.SetShowStatusBar(false)
 	m.Model.SetShowHelp(false)
 	m.Model.Styles = style.ListStyles()
-
 	m.Info = info.New()
+	m.section = m.Info.NewSection().SetFields(fields)
 	m.Info.Editable = true
-	m.section = m.Info.NewSection().SetFields(m.Fields)
 
 	return m
 }
 
 func (m *Form) SetFields(fields *Fields) {
 	m.Fields = fields
+	m.Info = info.New()
+	m.section = m.Info.NewSection().SetFields(fields)
 }
 
 func (m *Form) Start() {
@@ -60,7 +61,7 @@ func (m *Form) Start() {
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+V\n", m.Hash)
+	fmt.Println(m.Hash)
 }
 
 func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -98,6 +99,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, ViewFormCmd())
 				case key.Matches(msg, Yes):
 					m.section.SetTitle("")
+					m.SetFields(m.Fields)
 					m.SaveChanges()
 					cmds = append(cmds, HideFormCmd())
 					cmds = append(cmds, SaveAndExitFormCmd())
@@ -164,7 +166,6 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Form) FieldChanged(item *Field) tea.Cmd {
 	return func() tea.Msg {
 		item.Update()
-		m.Changed = true
 		return teacozy.SetListItemMsg{Item: item}
 	}
 }

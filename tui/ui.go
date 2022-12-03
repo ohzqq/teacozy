@@ -72,6 +72,8 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case form.FormChangedMsg:
+		m.Main = m.Alt
 	case EditItemMetaMsg:
 		m.Alt = m.Main
 		m.Main = &msg.Item.Meta
@@ -120,7 +122,7 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						model, cmd = main.Update(msg)
 						cmds = append(cmds, cmd)
 					}
-					m.Main = model
+					m.Alt = model
 				}
 			}
 		case infoModel:
@@ -171,6 +173,9 @@ func (m Tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case *list.List:
 				model, cmd = main.Update(msg)
 				cmds = append(cmds, cmd)
+			case *form.Form:
+				model, cmd = main.Update(msg)
+				cmds = append(cmds, cmd)
 			}
 			m.Main = model
 		case infoModel:
@@ -219,7 +224,13 @@ func (m Tui) View() string {
 	}
 
 	m.SetSize(m.Width(), availHeight)
-	content := m.Main.View()
+	var content string
+	switch m.state {
+	//case formModel:
+	//content = m.Alt.View()
+	default:
+		content = m.Main.View()
+	}
 	sections = append(sections, content)
 
 	if m.showInfo || m.showMenu {
