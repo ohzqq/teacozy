@@ -64,7 +64,7 @@ func (i Item) Description() string {
 }
 
 func (i Item) Title() string {
-	return i.Prefix() + i.Value()
+	return i.Key()
 }
 
 // Item methods

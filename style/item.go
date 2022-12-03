@@ -17,7 +17,7 @@ type ItemStyle struct {
 func ItemStyles() ItemStyle {
 	var s ItemStyle
 	s.Normal = lipgloss.NewStyle().Foreground(color.Foreground)
-	s.Current = lipgloss.NewStyle().Foreground(color.Green).Reverse(true)
+	s.Current = lipgloss.NewStyle().Foreground(color.Green)
 	s.Selected = lipgloss.NewStyle().Foreground(color.Grey)
 	s.Sub = lipgloss.NewStyle().Foreground(color.Purple)
 	s.Field = DefaultFieldStyles()

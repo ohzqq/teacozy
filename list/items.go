@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	check    string = "[x] "
-	uncheck  string = "[ ] "
-	dash     string = "- "
-	openSub  string = `[+] `
-	closeSub string = `[-] `
+	check    string = "[x]"
+	uncheck  string = "[ ]"
+	dash     string = " > "
+	openSub  string = `[+]`
+	closeSub string = `[-]`
 	none     string = ``
 )
 

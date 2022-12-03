@@ -3,9 +3,12 @@ package list
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/indent"
 	"github.com/muesli/reflow/padding"
 	"github.com/muesli/reflow/truncate"
 	"github.com/ohzqq/teacozy/style"
@@ -24,6 +27,7 @@ func NewItemDelegate(items *Items) list.DefaultDelegate {
 func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	var (
 		content string
+		desc    string
 		curItem *Item
 	)
 
@@ -31,29 +35,58 @@ func (d Items) Render(w io.Writer, m list.Model, index int, listItem list.Item) 
 	case *Item:
 		curItem = i
 		content = i.Title()
+		desc = i.Description()
 	}
 
 	if m.Width() > 0 {
 		textwidth := uint(m.Width() - d.Style.Current.GetPaddingLeft() - d.Style.Current.GetPaddingRight())
 		content = padding.String(truncate.StringWithTail(content, textwidth, style.Ellipsis), textwidth)
+
+		if d.ShowDescription {
+			var lines []string
+			for i, line := range strings.Split(desc, "\n") {
+				if i >= d.Height()-1 {
+					break
+				}
+				lines = append(lines, truncate.StringWithTail(line, textwidth, style.Ellipsis))
+			}
+			desc = strings.Join(lines, "\n")
+		}
 	}
 
 	var (
-		isCurrent = index == m.Index()
+		isCurrent   = index == m.Index()
+		prefix      = curItem.Prefix()
+		prefixWidth = lipgloss.Width(prefix)
 	)
 
-	itemStyle := d.Style.Normal
 	switch {
 	case isCurrent:
-		itemStyle = d.Style.Current
+		s := d.Style.Current.Copy().Reverse(true)
+		prefix = s.Render(prefix)
 	case curItem.IsSelected:
-		itemStyle = d.Style.Selected
+		s := d.Style.Selected
+		prefix = s.Render(prefix)
+		content = s.Render(content)
+		desc = s.Render(desc)
 	case curItem.IsSub():
-		itemStyle = d.Style.Sub
+		s := d.Style.Sub
+		prefix = s.Render(prefix)
+	default:
+		s := d.Style.Normal
+		prefix = d.Style.Current.Render(prefix)
+		content = s.Render(content)
+		desc = s.Render(desc)
 	}
-	itemStyle = itemStyle.Copy().Margin(0, 1, 0, curItem.Level)
+	prefix = indent.String(prefix, uint(curItem.Level))
 
-	fmt.Fprintf(w, itemStyle.Render(content))
+	if d.ShowDescription && !curItem.HasChildren() {
+		desc = indent.String(desc, uint(curItem.Level+prefixWidth))
+		fmt.Fprintf(w, "%s%s\n%s", prefix, content, desc)
+		return
+	}
+
+	fmt.Fprintf(w, "%s%s", prefix, content)
 }
 
 func ToggleItem(curItem *Item, items *Items, m *list.Model) tea.Cmd {
