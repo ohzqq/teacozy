@@ -118,6 +118,8 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			default:
 				switch {
+				case key.Matches(msg, key.PrevScreen):
+					cmds = append(cmds, ExitFormCmd())
 				case key.Matches(msg, key.ToggleAllItems):
 					m.view = !m.view
 					m.Info.ToggleVisible()
