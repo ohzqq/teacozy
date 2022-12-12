@@ -126,7 +126,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					case m.Changed:
 						cmds = append(cmds, ViewFormCmd())
 					default:
-						//cmds = append(cmds, ExitFormCmd())
+						cmds = append(cmds, ExitFormCmd())
 					}
 				}
 				m.Model, cmd = m.Model.Update(msg)
