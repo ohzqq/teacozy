@@ -122,7 +122,7 @@ func (m *List) SelectedItem() *Item {
 	return cur
 }
 
-//func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
+// func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -186,6 +186,9 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var items []*Item
 		for _, sel := range m.Selections() {
 			items = append(items, m.Get(sel))
+		}
+		if len(items) == 0 {
+			items = []*Item{m.SelectedItem()}
 		}
 		cmds = append(cmds, m.ActionFunc(items...))
 	case SortItemsMsg:
