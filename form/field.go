@@ -44,19 +44,37 @@ func (f *Fields) SaveChanges() *Fields {
 	return f
 }
 
-func (i *Fields) UndoChanges() *Fields {
-	for _, item := range i.fields {
+func (f *Fields) UndoChanges() *Fields {
+	for _, item := range f.fields {
 		item.Undo()
 	}
-	return i
+	return f
 }
 
-func (i *Fields) Items() []list.Item {
+func (f *Fields) Items() []list.Item {
 	var li []list.Item
-	for _, item := range i.fields {
+	for _, item := range f.fields {
 		li = append(li, item)
 	}
 	return li
+}
+
+func (f *Fields) StringMap() map[string]string {
+	hash := make(map[string]string)
+	for _, item := range f.fields {
+		hash[item.Key()] = item.Value()
+	}
+	return hash
+}
+
+func (f *Fields) StringMapChanges() map[string]string {
+	hash := make(map[string]string)
+	for _, item := range f.fields {
+		if item.Changed {
+			hash[item.Key()] = item.Value()
+		}
+	}
+	return hash
 }
 
 func (f Fields) Get(key string) data.Field {
@@ -92,43 +110,43 @@ func NewField(field data.Field) *Field {
 	}
 }
 
-func (i *Field) Update() {
-	i.Changed = true
+func (f *Field) Update() {
+	f.Changed = true
 }
 
-func (i *Field) Save() {
-	if i.Value() != i.data.Val {
-		i.data.Val = i.value
+func (f *Field) Save() {
+	if f.Value() != f.data.Val {
+		f.data.Val = f.value
 	}
 }
 
-func (i *Field) Undo() {
-	i.Changed = false
-	i.Set(i.data.Val)
+func (f *Field) Undo() {
+	f.Changed = false
+	f.Set(f.data.Val)
 }
 
 // To satisfy field interface
-func (i Field) Key() string {
-	return i.key
+func (f Field) Key() string {
+	return f.key
 }
 
-func (i Field) Value() string {
-	return i.value
+func (f Field) Value() string {
+	return f.value
 }
 
-func (i *Field) Set(val string) {
-	i.value = val
+func (f *Field) Set(val string) {
+	f.value = val
 }
 
 // To satisfy list item interface
-func (i Field) Title() string {
-	return i.key
+func (f Field) Title() string {
+	return f.key
 }
 
-func (i Field) Description() string {
-	return i.value
+func (f Field) Description() string {
+	return f.value
 }
 
-func (i Field) FilterValue() string {
-	return i.value
+func (f Field) FilterValue() string {
+	return f.value
 }

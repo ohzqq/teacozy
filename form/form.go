@@ -114,7 +114,6 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var mod tea.Model
 				mod, cmd = m.Info.Update(msg)
 				m.Info = mod.(*info.Info)
-				//m.Info, cmd = m.Info.Update(msg)
 				cmds = append(cmds, cmd)
 			default:
 				switch {
@@ -157,7 +156,7 @@ func (m *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Info.Hide()
 		m.view = false
 	case SaveAndExitFormMsg:
-		cmds = append(cmds, m.SaveFormFunc(m))
+		cmds = append(cmds, m.SaveForm())
 		cmds = append(cmds, FormChangedCmd())
 	}
 
@@ -184,10 +183,7 @@ func (m Form) View() string {
 
 	if m.view {
 		info := m.Info.View()
-		//info := m.Confirm.View()
 		return info
-		//availHeight -= m.Info.Frame.Height()
-		//sections = append(sections, info)
 	} else {
 		if m.Input.Focused() {
 			iHeight := availHeight / 3
@@ -196,7 +192,6 @@ func (m Form) View() string {
 			availHeight -= iHeight
 		}
 
-		//m.Frame.SetSize(m.Frame.Width(), availHeight)
 		m.Model.SetSize(m.Width(), availHeight)
 		content := m.Model.View()
 		sections = append(sections, content)

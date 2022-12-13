@@ -29,21 +29,38 @@ type SaveAndExitFormMsg struct {
 	Save SaveFormFunc
 }
 
+func (f *Form) SaveForm(funcs ...SaveFormFunc) tea.Cmd {
+	fn := SaveChangesAsHash
+	if len(funcs) > 0 {
+		fn = funcs[0]
+	}
+	return fn(f)
+}
+
 func SaveAndExitFormCmd() tea.Cmd {
 	return func() tea.Msg {
-		return SaveAndExitFormMsg{}
+		return SaveAndExitFormMsg{
+			Save: SaveChangesAsHash,
+		}
 	}
 }
 
-type SaveFormAsHashMsg struct{}
+type SaveFormAsHashMsg struct {
+	Hash map[string]string
+}
 
 func SaveFormAsHash(m *Form) tea.Cmd {
 	fn := func() tea.Msg {
-		m.Hash = make(map[string]string)
-		for _, item := range m.Fields.fields {
-			m.Hash[item.Key()] = item.Value()
-		}
-		return SaveFormAsHashMsg{}
+		m.Hash = m.Fields.StringMap()
+		return SaveFormAsHashMsg{Hash: m.Hash}
+	}
+	return fn
+}
+
+func SaveChangesAsHash(m *Form) tea.Cmd {
+	fn := func() tea.Msg {
+		m.Hash = m.Fields.StringMapChanges()
+		return SaveFormAsHashMsg{Hash: m.Hash}
 	}
 	return fn
 }
