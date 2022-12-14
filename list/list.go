@@ -183,14 +183,18 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ToggleSelectedItemMsg:
 		m.Items.ToggleSelectedItem(msg.Index())
 	case ReturnSelectionsMsg:
-		var items []*Item
-		for _, sel := range m.Selections() {
-			items = append(items, m.Get(sel))
+		if len(m.Selections()) == 0 {
+			cmds = append(cmds, m.ShowVisibleItemsCmd())
+		} else {
+			var items []*Item
+			for _, sel := range m.Selections() {
+				items = append(items, m.Get(sel))
+			}
+			if len(items) == 0 {
+				items = []*Item{m.SelectedItem()}
+			}
+			cmds = append(cmds, m.ActionFunc(items...))
 		}
-		if len(items) == 0 {
-			items = []*Item{m.SelectedItem()}
-		}
-		cmds = append(cmds, m.ActionFunc(items...))
 	case SortItemsMsg:
 		m.Items.SetItems(msg.Items...)
 		m.Items.Process()
