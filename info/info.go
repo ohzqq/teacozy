@@ -128,7 +128,7 @@ func (i *Info) ToggleVisible() {
 	i.Visible = !i.Visible
 }
 
-//func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
+//         func (m *Info) Update(msg tea.Msg) (*Info, tea.Cmd) {
 func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -148,9 +148,6 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.Toggle.Matches(msg):
 			cmds = append(cmds, HideInfoCmd())
 		}
-
-	case tea.WindowSizeMsg:
-		m.SetSize(msg.Width-2, msg.Height-2)
 	}
 
 	m.Model, cmd = m.Model.Update(msg)
