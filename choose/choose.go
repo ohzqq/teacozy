@@ -32,6 +32,7 @@ type model struct {
 }
 
 type item struct {
+	key      string
 	text     string
 	selected bool
 	order    int
