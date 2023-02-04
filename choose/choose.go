@@ -127,9 +127,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// If the user hasn't selected any items in a multi-select.
 		// Then we select the item that they have pressed enter on. If they
 		// have selected items, then we simply return them.
-		if m.numSelected < 1 {
-			m.Items[m.Index].Selected = true
-		}
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 	}
@@ -203,6 +200,9 @@ func DeselectAllItemsCmd(m *Model) tea.Cmd {
 
 func ReturnSelectionsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
+		if m.numSelected < 1 {
+			m.Items[m.Index].Selected = true
+		}
 		for _, item := range m.Items {
 			if item.Selected {
 				sel := map[string]string{item.Key: item.Text}

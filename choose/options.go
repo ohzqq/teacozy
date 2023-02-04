@@ -45,6 +45,23 @@ func New(o Options) *Model {
 		tm.Height = 10
 	}
 
+	tm.Items = make([]Item, len(o.Options))
+
+	for i, thing := range o.Options {
+		for k, option := range thing {
+			tm.Items[i] = Item{
+				Key:      k,
+				Text:     option,
+				Selected: false,
+				Order:    i,
+			}
+		}
+	}
+
+	if len(tm.Items) == 1 {
+		tm.Limit = 1
+	}
+
 	// We don't need to display prefixes if we are only picking one option.
 	// Simply displaying the cursor is enough.
 	if tm.Limit == 1 && !o.NoLimit {
@@ -59,18 +76,6 @@ func New(o Options) *Model {
 		tm.Limit = len(o.Options)
 	}
 
-	tm.Items = make([]Item, len(o.Options))
-
-	for i, thing := range o.Options {
-		for k, option := range thing {
-			tm.Items[i] = Item{
-				Key:      k,
-				Text:     option,
-				Selected: false,
-				Order:    i,
-			}
-		}
-	}
 	// Use the pagination model to display the current and total number of
 	// pages.
 	pager := paginator.New()
