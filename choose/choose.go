@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mattn/go-runewidth"
+	"github.com/ohzqq/teacozy/keymap"
 )
 
 type model struct {
@@ -40,6 +41,23 @@ type item struct {
 
 func (m model) Init() tea.Cmd { return nil }
 
+func (m *model) KeyMap() keymap.KeyMap {
+	return keymap.KeyMap{
+		keymap.NewBinding(
+			keymap.WithKeys("v"),
+			keymap.WithCmd(SelectAllItemsCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("V"),
+			keymap.WithCmd(DeselectAllItemsCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys(" "),
+			keymap.WithCmd(SelectItemCmd(m)),
+		),
+	}
+}
+
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -48,16 +66,19 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		return m, nil
 	case tea.KeyMsg:
+		for _, k := range m.KeyMap() {
+			if k.Matches(msg) {
+				cmd := k.Cmd
+				cmds = append(cmds, cmd)
+			}
+		}
 		cmd = m.HandleKeys(msg)
 		cmds = append(cmds, cmd)
 	case ReturnSelectionsMsg:
-		for _, item := range m.Items {
-			if item.selected {
-				m.Selected = append(m.Selected, item)
-			}
-		}
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
+	case BreakMsg:
+		break
 	}
 
 	m.paginator, cmd = m.paginator.Update(msg)
@@ -104,37 +125,12 @@ func (m *model) HandleKeys(msg tea.KeyMsg) tea.Cmd {
 		m.Index = 0
 		m.paginator.Page = 0
 	case "a":
-		if m.Limit <= 1 {
-			break
-		}
-		for i := range m.Items {
-			if m.numSelected >= m.Limit {
-				break // do not exceed given limit
-			}
-			if m.Items[i].selected {
-				continue
-			}
-			m.Items[i].selected = true
-			m.Items[i].order = m.currentOrder
-			m.numSelected++
-			m.currentOrder++
-		}
-	case "A":
-		if m.Limit <= 1 {
-			break
-		}
-		for i := range m.Items {
-			m.Items[i].selected = false
-			m.Items[i].order = 0
-		}
-		m.numSelected = 0
-		m.currentOrder = 0
 	case "ctrl+c", "esc", "q":
 		m.aborted = true
 		m.Quitting = true
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-	case " ", "tab", "x":
+	case "tab", "x":
 		if m.Limit == 1 {
 			break // no op
 		}
@@ -156,7 +152,7 @@ func (m *model) HandleKeys(msg tea.KeyMsg) tea.Cmd {
 		if m.numSelected < 1 {
 			m.Items[m.Index].selected = true
 		}
-		cmd = ReturnSelectionsCmd()
+		cmd = ReturnSelectionsCmd(m)
 		cmds = append(cmds, cmd)
 
 	}
@@ -166,8 +162,70 @@ func (m *model) HandleKeys(msg tea.KeyMsg) tea.Cmd {
 
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd() tea.Cmd {
+type BreakMsg struct{}
+
+func SelectItemCmd(m *model) tea.Cmd {
 	return func() tea.Msg {
+		if m.Limit == 1 {
+			return nil
+		}
+
+		if m.Items[m.Index].selected {
+			m.Items[m.Index].selected = false
+			m.numSelected--
+		} else if m.numSelected < m.Limit {
+			m.Items[m.Index].selected = true
+			m.Items[m.Index].order = m.currentOrder
+			m.numSelected++
+			m.currentOrder++
+		}
+		return nil
+	}
+}
+
+func SelectAllItemsCmd(m *model) tea.Cmd {
+	return func() tea.Msg {
+		if m.Limit <= 1 {
+			return nil
+		}
+		for i := range m.Items {
+			if m.numSelected >= m.Limit {
+				break // do not exceed given limit
+			}
+			if m.Items[i].selected {
+				continue
+			}
+			m.Items[i].selected = true
+			m.Items[i].order = m.currentOrder
+			m.numSelected++
+			m.currentOrder++
+		}
+		return nil
+	}
+}
+
+func DeselectAllItemsCmd(m *model) tea.Cmd {
+	return func() tea.Msg {
+		if m.Limit <= 1 {
+			return nil
+		}
+		for i := range m.Items {
+			m.Items[i].selected = false
+			m.Items[i].order = 0
+		}
+		m.numSelected = 0
+		m.currentOrder = 0
+		return nil
+	}
+}
+
+func ReturnSelectionsCmd(m *model) tea.Cmd {
+	return func() tea.Msg {
+		for _, item := range m.Items {
+			if item.selected {
+				m.Selected = append(m.Selected, item)
+			}
+		}
 		return ReturnSelectionsMsg{}
 	}
 }
