@@ -23,7 +23,7 @@ import (
 type Model struct {
 	Options
 	Items        []Item
-	Selected     []Item
+	Selected     []map[string]string
 	Quitting     bool
 	KeyMap       func(m *Model) keymap.KeyMap
 	Index        int
@@ -205,7 +205,8 @@ func ReturnSelectionsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		for _, item := range m.Items {
 			if item.Selected {
-				m.Selected = append(m.Selected, item)
+				sel := map[string]string{item.Key: item.Text}
+				m.Selected = append(m.Selected, sel)
 			}
 		}
 		return ReturnSelectionsMsg{}
