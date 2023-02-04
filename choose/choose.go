@@ -20,11 +20,12 @@ import (
 	"github.com/ohzqq/teacozy/keymap"
 )
 
-type model struct {
+type Model struct {
 	Options
-	Items        []item
-	Selected     []item
+	Items        []Item
+	Selected     []Item
 	Quitting     bool
+	KeyMap       func(m *Model) keymap.KeyMap
 	Index        int
 	numSelected  int
 	currentOrder int
@@ -32,33 +33,76 @@ type model struct {
 	aborted      bool
 }
 
-type item struct {
-	key      string
-	text     string
-	selected bool
-	order    int
+type Item struct {
+	Key      string
+	Text     string
+	Selected bool
+	Order    int
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m Model) Init() tea.Cmd { return nil }
 
-func (m *model) KeyMap() keymap.KeyMap {
+func KeyMap(m *Model) keymap.KeyMap {
+	start, end := m.paginator.GetSliceBounds(len(m.Items))
 	return keymap.KeyMap{
 		keymap.NewBinding(
 			keymap.WithKeys("v"),
+			keymap.WithHelp("v", "select all"),
 			keymap.WithCmd(SelectAllItemsCmd(m)),
 		),
 		keymap.NewBinding(
 			keymap.WithKeys("V"),
+			keymap.WithHelp("V", "deselect all"),
 			keymap.WithCmd(DeselectAllItemsCmd(m)),
 		),
 		keymap.NewBinding(
 			keymap.WithKeys(" "),
+			keymap.WithHelp("space", "select item"),
 			keymap.WithCmd(SelectItemCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("down", "j"),
+			keymap.WithHelp("down/j", "move cursor down"),
+			keymap.WithCmd(DownCmd(m, end)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("up", "k"),
+			keymap.WithHelp("up/k", "move cursor up"),
+			keymap.WithCmd(UpCmd(m, start)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("right", "l"),
+			keymap.WithHelp("right/l", "next page"),
+			keymap.WithCmd(NextPageCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("left", "h"),
+			keymap.WithHelp("left/h", "prev page"),
+			keymap.WithCmd(PrevPageCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("G"),
+			keymap.WithHelp("G", "last item"),
+			keymap.WithCmd(BottomCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("g"),
+			keymap.WithHelp("g", "first item"),
+			keymap.WithCmd(TopCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("ctrl+c", "esc", "q"),
+			keymap.WithHelp("ctrl+c/esc/q", "quit"),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("enter"),
+			keymap.WithHelp("enter", "return selections"),
+			keymap.WithCmd(EnterCmd(m)),
 		),
 	}
 }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -66,19 +110,28 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		return m, nil
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap() {
+		switch keypress := msg.String(); keypress {
+		case "ctrl+c", "esc", "q":
+			m.aborted = true
+			m.Quitting = true
+			cmds = append(cmds, tea.Quit)
+		}
+		for _, k := range m.KeyMap(m) {
 			if k.Matches(msg) {
 				cmd := k.Cmd
 				cmds = append(cmds, cmd)
 			}
 		}
-		cmd = m.HandleKeys(msg)
-		cmds = append(cmds, cmd)
 	case ReturnSelectionsMsg:
+		m.Quitting = true
+		// If the user hasn't selected any items in a multi-select.
+		// Then we select the item that they have pressed enter on. If they
+		// have selected items, then we simply return them.
+		if m.numSelected < 1 {
+			m.Items[m.Index].Selected = true
+		}
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-	case BreakMsg:
-		break
 	}
 
 	m.paginator, cmd = m.paginator.Update(msg)
@@ -87,95 +140,20 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *model) HandleKeys(msg tea.KeyMsg) tea.Cmd {
-	var cmd tea.Cmd
-	var cmds []tea.Cmd
-
-	start, end := m.paginator.GetSliceBounds(len(m.Items))
-
-	switch keypress := msg.String(); keypress {
-	case "down", "j", "ctrl+j", "ctrl+n":
-		m.Index++
-		if m.Index >= len(m.Items) {
-			m.Index = 0
-			m.paginator.Page = 0
-		}
-		if m.Index >= end {
-			m.paginator.NextPage()
-		}
-	case "up", "k", "ctrl+k", "ctrl+p":
-		m.Index--
-		if m.Index < 0 {
-			m.Index = len(m.Items) - 1
-			m.paginator.Page = m.paginator.TotalPages - 1
-		}
-		if m.Index < start {
-			m.paginator.PrevPage()
-		}
-	case "right", "l", "ctrl+f":
-		m.Index = clamp(m.Index+m.Height, 0, len(m.Items)-1)
-		m.paginator.NextPage()
-	case "left", "h", "ctrl+b":
-		m.Index = clamp(m.Index-m.Height, 0, len(m.Items)-1)
-		m.paginator.PrevPage()
-	case "G":
-		m.Index = len(m.Items) - 1
-		m.paginator.Page = m.paginator.TotalPages - 1
-	case "g":
-		m.Index = 0
-		m.paginator.Page = 0
-	case "a":
-	case "ctrl+c", "esc", "q":
-		m.aborted = true
-		m.Quitting = true
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
-	case "tab", "x":
-		if m.Limit == 1 {
-			break // no op
-		}
-
-		if m.Items[m.Index].selected {
-			m.Items[m.Index].selected = false
-			m.numSelected--
-		} else if m.numSelected < m.Limit {
-			m.Items[m.Index].selected = true
-			m.Items[m.Index].order = m.currentOrder
-			m.numSelected++
-			m.currentOrder++
-		}
-	case "enter":
-		m.Quitting = true
-		// If the user hasn't selected any items in a multi-select.
-		// Then we select the item that they have pressed enter on. If they
-		// have selected items, then we simply return them.
-		if m.numSelected < 1 {
-			m.Items[m.Index].selected = true
-		}
-		cmd = ReturnSelectionsCmd(m)
-		cmds = append(cmds, cmd)
-
-	}
-
-	return tea.Batch(cmds...)
-}
-
 type ReturnSelectionsMsg struct{}
 
-type BreakMsg struct{}
-
-func SelectItemCmd(m *model) tea.Cmd {
+func SelectItemCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		if m.Limit == 1 {
 			return nil
 		}
 
-		if m.Items[m.Index].selected {
-			m.Items[m.Index].selected = false
+		if m.Items[m.Index].Selected {
+			m.Items[m.Index].Selected = false
 			m.numSelected--
 		} else if m.numSelected < m.Limit {
-			m.Items[m.Index].selected = true
-			m.Items[m.Index].order = m.currentOrder
+			m.Items[m.Index].Selected = true
+			m.Items[m.Index].Order = m.currentOrder
 			m.numSelected++
 			m.currentOrder++
 		}
@@ -183,7 +161,7 @@ func SelectItemCmd(m *model) tea.Cmd {
 	}
 }
 
-func SelectAllItemsCmd(m *model) tea.Cmd {
+func SelectAllItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		if m.Limit <= 1 {
 			return nil
@@ -192,11 +170,11 @@ func SelectAllItemsCmd(m *model) tea.Cmd {
 			if m.numSelected >= m.Limit {
 				break // do not exceed given limit
 			}
-			if m.Items[i].selected {
+			if m.Items[i].Selected {
 				continue
 			}
-			m.Items[i].selected = true
-			m.Items[i].order = m.currentOrder
+			m.Items[i].Selected = true
+			m.Items[i].Order = m.currentOrder
 			m.numSelected++
 			m.currentOrder++
 		}
@@ -204,14 +182,18 @@ func SelectAllItemsCmd(m *model) tea.Cmd {
 	}
 }
 
-func DeselectAllItemsCmd(m *model) tea.Cmd {
+func EnterCmd(m *Model) tea.Cmd {
+	return ReturnSelectionsCmd(m)
+}
+
+func DeselectAllItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		if m.Limit <= 1 {
 			return nil
 		}
 		for i := range m.Items {
-			m.Items[i].selected = false
-			m.Items[i].order = 0
+			m.Items[i].Selected = false
+			m.Items[i].Order = 0
 		}
 		m.numSelected = 0
 		m.currentOrder = 0
@@ -219,10 +201,10 @@ func DeselectAllItemsCmd(m *model) tea.Cmd {
 	}
 }
 
-func ReturnSelectionsCmd(m *model) tea.Cmd {
+func ReturnSelectionsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		for _, item := range m.Items {
-			if item.selected {
+			if item.Selected {
 				m.Selected = append(m.Selected, item)
 			}
 		}
@@ -230,7 +212,67 @@ func ReturnSelectionsCmd(m *model) tea.Cmd {
 	}
 }
 
-func (m model) View() string {
+func UpCmd(m *Model, start int) tea.Cmd {
+	return func() tea.Msg {
+		m.Index--
+		if m.Index < 0 {
+			m.Index = len(m.Items) - 1
+			m.paginator.Page = m.paginator.TotalPages - 1
+		}
+		if m.Index < start {
+			m.paginator.PrevPage()
+		}
+		return nil
+	}
+}
+
+func DownCmd(m *Model, end int) tea.Cmd {
+	return func() tea.Msg {
+		m.Index++
+		if m.Index >= len(m.Items) {
+			m.Index = 0
+			m.paginator.Page = 0
+		}
+		if m.Index >= end {
+			m.paginator.NextPage()
+		}
+		return nil
+	}
+}
+
+func NextPageCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.Index = clamp(m.Index+m.Height, 0, len(m.Items)-1)
+		m.paginator.NextPage()
+		return nil
+	}
+}
+
+func PrevPageCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.Index = clamp(m.Index-m.Height, 0, len(m.Items)-1)
+		m.paginator.PrevPage()
+		return nil
+	}
+}
+
+func TopCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.Index = 0
+		m.paginator.Page = 0
+		return nil
+	}
+}
+
+func BottomCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.Index = len(m.Items) - 1
+		m.paginator.Page = m.paginator.TotalPages - 1
+		return nil
+	}
+}
+
+func (m Model) View() string {
 	//if m.quitting {
 	//  return ""
 	//}
@@ -245,12 +287,12 @@ func (m model) View() string {
 			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.Cursor)))
 		}
 
-		if item.selected {
-			s.WriteString(m.SelectedItemStyle.Render(m.SelectedPrefix + item.text))
+		if item.Selected {
+			s.WriteString(m.SelectedItemStyle.Render(m.SelectedPrefix + item.Text))
 		} else if i == m.Index%m.Height {
-			s.WriteString(m.CursorStyle.Render(m.CursorPrefix + item.text))
+			s.WriteString(m.CursorStyle.Render(m.CursorPrefix + item.Text))
 		} else {
-			s.WriteString(m.ItemStyle.Render(m.UnselectedPrefix + item.text))
+			s.WriteString(m.ItemStyle.Render(m.UnselectedPrefix + item.Text))
 		}
 		if i != m.Height {
 			s.WriteRune('\n')

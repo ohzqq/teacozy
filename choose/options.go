@@ -13,8 +13,7 @@ var (
 
 // Options is the customization options for the choose command.
 type Options struct {
-	Options           []string
-	Things            []map[string]string
+	Options           []map[string]string
 	Limit             int
 	NoLimit           bool
 	Ordered           bool
@@ -28,9 +27,10 @@ type Options struct {
 	SelectedItemStyle lipgloss.Style
 }
 
-func New(o Options) *model {
-	tm := model{
+func New(o Options) *Model {
+	tm := Model{
 		Options: o,
+		KeyMap:  KeyMap,
 	}
 	tm.Cursor = "> "
 	tm.SelectedPrefix = "◉ "
@@ -56,18 +56,18 @@ func New(o Options) *model {
 	// If we've set no limit then we can simply select as many options as there
 	// are so let's set the limit to the number of options.
 	if o.NoLimit {
-		tm.Limit = len(o.Things)
+		tm.Limit = len(o.Options)
 	}
 
-	tm.Items = make([]item, len(o.Things))
+	tm.Items = make([]Item, len(o.Options))
 
-	for i, thing := range o.Things {
+	for i, thing := range o.Options {
 		for k, option := range thing {
-			tm.Items[i] = item{
-				key:      k,
-				text:     option,
-				selected: false,
-				order:    i,
+			tm.Items[i] = Item{
+				Key:      k,
+				Text:     option,
+				Selected: false,
+				Order:    i,
 			}
 		}
 	}
