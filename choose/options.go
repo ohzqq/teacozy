@@ -13,7 +13,7 @@ var (
 
 // Options is the customization options for the choose command.
 type Options struct {
-	Options           []map[string]string
+	Options           []map[int]string
 	Limit             int
 	NoLimit           bool
 	Ordered           bool
@@ -50,7 +50,7 @@ func New(o Options) *Model {
 	for i, thing := range o.Options {
 		for k, option := range thing {
 			tm.Items[i] = Item{
-				Key:      k,
+				Id:       k,
 				Text:     option,
 				Selected: false,
 				Order:    i,
