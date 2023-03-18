@@ -142,6 +142,16 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithHelp("tab", "select item"),
 			keymap.WithCmd(SelectItemCmd(m)),
 		),
+		keymap.NewBinding(
+			keymap.WithKeys("G"),
+			keymap.WithHelp("G", "last item"),
+			keymap.WithCmd(BottomCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("g"),
+			keymap.WithHelp("g", "first item"),
+			keymap.WithCmd(TopCmd(m)),
+		),
 	}
 }
 
@@ -181,108 +191,6 @@ func FilterKeyMap(m *Model) keymap.KeyMap {
 	}
 }
 
-func EnterCmd(m *Model) tea.Cmd {
-	return ReturnSelectionsCmd(m)
-}
-
-func FilterItemsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.filterState = Filtering
-		m.cursor = 0
-		m.textinput.Focus()
-		return textinput.Blink()
-	}
-}
-
-func StopFilteringCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.filterState = Unfiltered
-		m.textinput.Blur()
-		return nil
-	}
-}
-
-type ReturnSelectionsMsg struct {
-	choices []string
-}
-
-func ReturnSelectionsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		if m.numSelected < 1 {
-			m.Items[m.cursor].Selected = true
-		}
-		var sel ReturnSelectionsMsg
-		if len(m.selected) > 0 {
-			for k := range m.selected {
-				sel.choices = append(sel.choices, m.Choices[k])
-			}
-		} else if len(m.matches) > m.cursor && m.cursor >= 0 {
-			sel.choices = append(sel.choices, m.matches[m.cursor].Str)
-		}
-		return sel
-	}
-}
-
-func SelectItemCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		if m.Limit == 1 {
-			return nil
-		}
-
-		if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
-			delete(m.selected, m.matches[m.cursor].Index)
-			m.numSelected--
-		} else if m.numSelected < m.Limit {
-			m.currentOrder++
-			m.selected[m.matches[m.cursor].Index] = struct{}{}
-			m.numSelected++
-			m.CursorDown()
-		}
-
-		return nil
-	}
-}
-
-func UpCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.CursorUp()
-		return nil
-	}
-}
-
-func DownCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.CursorDown()
-		return nil
-	}
-}
-func (m *Model) CursorUp() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-		if len(m.matches)-m.cursor <= m.viewport.YOffset {
-			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
-		}
-	} else {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-		if m.cursor < m.viewport.YOffset {
-			m.viewport.SetYOffset(m.cursor)
-		}
-	}
-}
-
-func (m *Model) CursorDown() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
-			m.viewport.LineDown(1)
-		}
-	} else {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
-			m.viewport.LineDown(1)
-		}
-	}
-}
 func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
@@ -313,6 +221,33 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
+func (m *Model) CursorUp() {
+	if m.Reverse {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
+		if len(m.matches)-m.cursor <= m.viewport.YOffset {
+			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
+		}
+	} else {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
+		if m.cursor < m.viewport.YOffset {
+			m.viewport.SetYOffset(m.cursor)
+		}
+	}
+}
+
+func (m *Model) CursorDown() {
+	if m.Reverse {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
+		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
+			m.viewport.LineDown(1)
+		}
+	} else {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
+		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
+			m.viewport.LineDown(1)
+		}
+	}
+}
 func (m Model) Init() tea.Cmd { return nil }
 func (m Model) View() string {
 	if m.quitting {

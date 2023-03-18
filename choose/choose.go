@@ -163,11 +163,6 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithHelp("enter", "return selections"),
 			keymap.WithCmd(EnterCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("/"),
-			keymap.WithHelp("/", "filter items"),
-			keymap.WithCmd(FilterItemsCmd(m)),
-		),
 	}
 }
 
@@ -215,24 +210,6 @@ func SelectAllItemsCmd(m *Model) tea.Cmd {
 
 func EnterCmd(m *Model) tea.Cmd {
 	return ReturnSelectionsCmd(m)
-}
-
-func ExitFilterCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.filterState = Unfiltered
-		return nil
-	}
-}
-
-func FilterItemsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		println("filter")
-		m.filterState = Filtering
-		m.paginator.Page = 0
-		m.cursor = 0
-		m.textinput.Focus()
-		return textinput.Blink()
-	}
 }
 
 func DeselectAllItemsCmd(m *Model) tea.Cmd {

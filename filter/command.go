@@ -1,9 +1,6 @@
 package filter
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -110,43 +107,94 @@ func New(o Options) *Model {
 	return &tm
 }
 
-// Run provides a shell script interface for filtering through options, powered
-// by the textinput bubble.
-func (o Options) Run() error {
-	m := New(o)
-	if len(m.Choices) == 0 {
-		return errors.New("no options provided")
-	}
+func EnterCmd(m *Model) tea.Cmd {
+	return ReturnSelectionsCmd(m)
+}
 
-	//options := []tea.ProgramOption{tea.WithOutput(os.Stderr)}
-	options := []tea.ProgramOption{}
-	if m.Height == 0 {
-		options = append(options, tea.WithAltScreen())
+func FilterItemsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.filterState = Filtering
+		m.cursor = 0
+		m.textinput.Focus()
+		return textinput.Blink()
 	}
+}
 
-	p := tea.NewProgram(m, options...)
-
-	tm, err := p.Run()
-	if err != nil {
-		return fmt.Errorf("unable to run filter: %w", err)
+func StopFilteringCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.filterState = Unfiltered
+		m.textinput.Blur()
+		return nil
 	}
-	model := tm.(*Model)
-	if model.aborted {
-		return fmt.Errorf("aborted")
-	}
+}
 
-	// allSelections contains values only if limit is greater
-	// than 1
-	if len(model.selected) > 0 {
-		for k := range model.selected {
-			fmt.Println(model.Choices[k])
+type ReturnSelectionsMsg struct {
+	choices []string
+}
+
+func ReturnSelectionsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		if m.numSelected < 1 {
+			m.Items[m.cursor].Selected = true
 		}
-	} else if len(model.matches) > model.cursor && model.cursor >= 0 {
-		fmt.Println(model.matches[model.cursor].Str)
+		var sel ReturnSelectionsMsg
+		if len(m.selected) > 0 {
+			for k := range m.selected {
+				sel.choices = append(sel.choices, m.Choices[k])
+			}
+		} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+			sel.choices = append(sel.choices, m.matches[m.cursor].Str)
+		}
+		return sel
 	}
+}
 
-	if !o.Strict && len(model.textinput.Value()) != 0 && len(model.matches) == 0 {
-		fmt.Println(model.textinput.Value())
+func SelectItemCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		if m.Limit == 1 {
+			return nil
+		}
+
+		if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
+			delete(m.selected, m.matches[m.cursor].Index)
+			m.numSelected--
+		} else if m.numSelected < m.Limit {
+			m.currentOrder++
+			m.selected[m.matches[m.cursor].Index] = struct{}{}
+			m.numSelected++
+			m.CursorDown()
+		}
+
+		return nil
 	}
-	return nil
+}
+
+func UpCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.CursorUp()
+		return nil
+	}
+}
+
+func DownCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.CursorDown()
+		return nil
+	}
+}
+
+func TopCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.cursor = 0
+		//m.paginator.Page = 0
+		return nil
+	}
+}
+
+func BottomCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.cursor = len(m.Items) - 1
+		//m.paginator.Page = m.paginator.TotalPages - 1
+		return nil
+	}
 }
