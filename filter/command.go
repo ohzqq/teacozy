@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
 )
@@ -39,6 +40,16 @@ type Options struct {
 }
 
 func New(o Options) *Model {
+	o.CursorPrefix = style.Cursor
+	o.CursorStyle = style.CursorStyle
+	o.Prompt = style.Prompt
+	o.PromptStyle = style.PromptStyle
+	o.SelectedPrefix = style.SelectedPrefix
+	o.SelectedPrefixStyle = style.SelectedStyle
+	o.UnselectedPrefix = style.UnselectedPrefix
+	o.UnselectedPrefixStyle = style.UnselectedStyle
+	o.TextStyle = lipgloss.NewStyle().Foreground(color.Foreground)
+	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Pink)
 	model := Model{
 		Options:  o,
 		selected: make(map[string]struct{}),
@@ -54,7 +65,7 @@ func (o Options) Run() error {
 	m.textinput.Focus()
 
 	m.textinput.Prompt = o.Prompt
-	m.textinput.PromptStyle = style.PromptStyle
+	m.textinput.PromptStyle = o.PromptStyle
 	m.textinput.Placeholder = o.Placeholder
 	m.textinput.Width = o.Width
 
