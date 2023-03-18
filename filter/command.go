@@ -3,13 +3,13 @@ package filter
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/alecthomas/kong"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/sahilm/fuzzy"
 
 	"github.com/charmbracelet/gum/internal/exit"
@@ -17,6 +17,56 @@ import (
 	"github.com/charmbracelet/gum/internal/stdin"
 	"github.com/charmbracelet/gum/style"
 )
+
+// Options is the customization options for the filter command.
+type Options struct {
+	CursorPrefix          string
+	CursorStyle           lipgloss.Style
+	Limit                 int
+	NoLimit               bool
+	Strict                bool
+	SelectedPrefix        string
+	SelectedPrefixStyle   lipgloss.Style
+	UnselectedPrefix      string
+	UnselectedPrefixStyle lipgloss.Style
+	HeaderStyle           lipgloss.Style
+	Header                string
+	TextStyle             lipgloss.Style
+	MatchStyle            lipgloss.Style
+	Placeholder           string
+	Prompt                string
+	PromptStyle           lipgloss.Style
+	Width                 int
+	Height                int
+	Value                 string
+	Reverse               bool
+	Fuzzy                 bool
+}
+
+func New(o Options) *Model {
+	model := Model{
+		choices:               choices,
+		Indicator:             o.CursorPrefix,
+		matches:               matches,
+		Header:                o.Header,
+		textinput:             i,
+		viewport:              &v,
+		IndicatorStyle:        o.CursorStyle.ToLipgloss(),
+		UnselectedPrefixStyle: o.SelectedPrefixStyle.ToLipgloss(),
+		SelectedPrefix:        o.SelectedPrefix,
+		UnselectedPrefixStyle: o.UnselectedPrefixStyle.ToLipgloss(),
+		UnselectedPrefix:      o.UnselectedPrefix,
+		MatchStyle:            o.MatchStyle.ToLipgloss(),
+		HeaderStyle:           o.HeaderStyle.ToLipgloss(),
+		MatchStyle:            o.TextStyle.ToLipgloss(),
+		Height:                o.Height,
+		selected:              make(map[string]struct{}),
+		Limit:                 o.Limit,
+		Reverse:               o.Reverse,
+		Fuzzy:                 o.Fuzzy,
+	}
+	return &model
+}
 
 // Run provides a shell script interface for filtering through options, powered
 // by the textinput bubble.
@@ -45,7 +95,8 @@ func (o Options) Run() error {
 		return errors.New("no options provided, see `gum filter --help`")
 	}
 
-	options := []tea.ProgramOption{tea.WithOutput(os.Stderr)}
+	//options := []tea.ProgramOption{tea.WithOutput(os.Stderr)}
+	options := []tea.ProgramOption{}
 	if o.Height == 0 {
 		options = append(options, tea.WithAltScreen())
 	}
@@ -67,26 +118,26 @@ func (o Options) Run() error {
 		o.Limit = len(choices)
 	}
 
-	p := tea.NewProgram(model{
+	p := tea.NewProgram(Model{
 		choices:               choices,
-		indicator:             o.Indicator,
+		Indicator:             o.CursorPrefix,
 		matches:               matches,
-		header:                o.Header,
+		Header:                o.Header,
 		textinput:             i,
 		viewport:              &v,
-		indicatorStyle:        o.IndicatorStyle.ToLipgloss(),
-		selectedPrefixStyle:   o.SelectedPrefixStyle.ToLipgloss(),
-		selectedPrefix:        o.SelectedPrefix,
-		unselectedPrefixStyle: o.UnselectedPrefixStyle.ToLipgloss(),
-		unselectedPrefix:      o.UnselectedPrefix,
-		matchStyle:            o.MatchStyle.ToLipgloss(),
-		headerStyle:           o.HeaderStyle.ToLipgloss(),
-		textStyle:             o.TextStyle.ToLipgloss(),
-		height:                o.Height,
+		IndicatorStyle:        o.CursorStyle.ToLipgloss(),
+		UnselectedPrefixStyle: o.SelectedPrefixStyle.ToLipgloss(),
+		SelectedPrefix:        o.SelectedPrefix,
+		UnselectedPrefixStyle: o.UnselectedPrefixStyle.ToLipgloss(),
+		UnselectedPrefix:      o.UnselectedPrefix,
+		MatchStyle:            o.MatchStyle.ToLipgloss(),
+		HeaderStyle:           o.HeaderStyle.ToLipgloss(),
+		MatchStyle:            o.TextStyle.ToLipgloss(),
+		Height:                o.Height,
 		selected:              make(map[string]struct{}),
-		limit:                 o.Limit,
-		reverse:               o.Reverse,
-		fuzzy:                 o.Fuzzy,
+		Limit:                 o.Limit,
+		Reverse:               o.Reverse,
+		Fuzzy:                 o.Fuzzy,
 	}, options...)
 
 	tm, err := p.Run()

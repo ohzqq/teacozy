@@ -1,29 +1,25 @@
-// Package choose provides an interface to choose one option from a given list
-// of options. The options can be provided as (new-line separated) stdin or a
-// list of arguments.
-//
-// It is different from the filter command as it does not provide a fuzzy
-// finding input, so it is best used for smaller lists of options.
-//
-// Let's pick from a list of gum flavors:
-//
-// $ gum choose "Strawberry" "Banana" "Cherry"
-// taken from https://github.com/charmbracelet/gum/tree/main/choose
 package choose
 
 import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mattn/go-runewidth"
 	"github.com/ohzqq/teacozy/keymap"
+	"github.com/sahilm/fuzzy"
 )
 
 type Model struct {
 	Options
+	textinput    textinput.Model
+	viewport     *viewport.Model
 	Items        []Item
+	matches      []fuzzy.Match
 	Selected     []map[int]string
+	cursor       int
 	Quitting     bool
 	KeyMap       func(m *Model) keymap.KeyMap
 	Index        int
@@ -41,6 +37,41 @@ type Item struct {
 }
 
 func (m Model) Init() tea.Cmd { return nil }
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		return m, nil
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "ctrl+c", "esc", "q":
+			m.aborted = true
+			m.Quitting = true
+			cmds = append(cmds, tea.Quit)
+		}
+		for _, k := range m.KeyMap(m) {
+			if k.Matches(msg) {
+				cmd := k.Cmd
+				cmds = append(cmds, cmd)
+			}
+		}
+	case ReturnSelectionsMsg:
+		m.Quitting = true
+		// If the user hasn't selected any items in a multi-select.
+		// Then we select the item that they have pressed enter on. If they
+		// have selected items, then we simply return them.
+		cmd = tea.Quit
+		cmds = append(cmds, cmd)
+	}
+
+	m.paginator, cmd = m.paginator.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+}
 
 func KeyMap(m *Model) keymap.KeyMap {
 	start, end := m.paginator.GetSliceBounds(len(m.Items))
@@ -100,41 +131,6 @@ func KeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(EnterCmd(m)),
 		),
 	}
-}
-
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		return m, nil
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "ctrl+c", "esc", "q":
-			m.aborted = true
-			m.Quitting = true
-			cmds = append(cmds, tea.Quit)
-		}
-		for _, k := range m.KeyMap(m) {
-			if k.Matches(msg) {
-				cmd := k.Cmd
-				cmds = append(cmds, cmd)
-			}
-		}
-	case ReturnSelectionsMsg:
-		m.Quitting = true
-		// If the user hasn't selected any items in a multi-select.
-		// Then we select the item that they have pressed enter on. If they
-		// have selected items, then we simply return them.
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
-	}
-
-	m.paginator, cmd = m.paginator.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
 }
 
 type ReturnSelectionsMsg struct{}

@@ -3,7 +3,7 @@ package choose
 import (
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/style"
 )
 
 var (
@@ -25,6 +25,15 @@ type Options struct {
 	CursorStyle       lipgloss.Style
 	ItemStyle         lipgloss.Style
 	SelectedItemStyle lipgloss.Style
+	TextStyle         lipgloss.Style
+	MatchStyle        lipgloss.Style
+	Placeholder       string
+	Prompt            string
+	PromptStyle       lipgloss.Style
+	Value             string
+	Reverse           bool
+	Fuzzy             bool
+	Strict            bool
 }
 
 func New(o Options) *Model {
@@ -32,14 +41,14 @@ func New(o Options) *Model {
 		Options: o,
 		KeyMap:  KeyMap,
 	}
-	tm.Cursor = "> "
-	tm.SelectedPrefix = "◉ "
-	tm.UnselectedPrefix = "○ "
-	tm.CursorPrefix = "○ "
+	tm.Cursor = style.Cursor
+	tm.SelectedPrefix = style.SelectedPrefix
+	tm.UnselectedPrefix = style.UnselectedPrefix
+	tm.CursorPrefix = style.CursorPrefix
 
-	tm.CursorStyle = lipgloss.NewStyle().Foreground(color.Green)
-	tm.ItemStyle = lipgloss.NewStyle().Foreground(color.Foreground)
-	tm.SelectedItemStyle = lipgloss.NewStyle().Foreground(color.Grey)
+	tm.CursorStyle = style.CursorStyle
+	tm.ItemStyle = style.UnselectedStyle
+	tm.SelectedItemStyle = style.SelectedStyle
 
 	if tm.Height == 0 {
 		tm.Height = 10

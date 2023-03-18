@@ -21,34 +21,21 @@ import (
 	"github.com/sahilm/fuzzy"
 )
 
-type model struct {
-	textinput             textinput.Model
-	viewport              *viewport.Model
-	choices               []string
-	matches               []fuzzy.Match
-	cursor                int
-	header                string
-	selected              map[string]struct{}
-	limit                 int
-	numSelected           int
-	indicator             string
-	selectedPrefix        string
-	unselectedPrefix      string
-	height                int
-	aborted               bool
-	quitting              bool
-	headerStyle           lipgloss.Style
-	matchStyle            lipgloss.Style
-	textStyle             lipgloss.Style
-	indicatorStyle        lipgloss.Style
-	selectedPrefixStyle   lipgloss.Style
-	unselectedPrefixStyle lipgloss.Style
-	reverse               bool
-	fuzzy                 bool
+type Model struct {
+	textinput   textinput.Model
+	viewport    *viewport.Model
+	choices     []string
+	matches     []fuzzy.Match
+	cursor      int
+	selected    map[string]struct{}
+	numSelected int
+	aborted     bool
+	quitting    bool
+	Options
 }
 
-func (m model) Init() tea.Cmd { return nil }
-func (m model) View() string {
+func (m Model) Init() tea.Cmd { return nil }
+func (m Model) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -58,7 +45,7 @@ func (m model) View() string {
 	// For reverse layout, if the number of matches is less than the viewport
 	// height, we need to offset the matches so that the first match is at the
 	// bottom edge of the viewport instead of in the middle.
-	if m.reverse && len(m.matches) < m.viewport.Height {
+	if m.Reverse && len(m.matches) < m.viewport.Height {
 		s.WriteString(strings.Repeat("\n", m.viewport.Height-len(m.matches)))
 	}
 
@@ -67,7 +54,7 @@ func (m model) View() string {
 	last := len(m.matches) - 1
 	for i := range m.matches {
 		// For reverse layout, the matches are displayed in reverse order.
-		if m.reverse {
+		if m.Reverse {
 			i = last - i
 		}
 		match := m.matches[i]
@@ -75,16 +62,16 @@ func (m model) View() string {
 		// If this is the current selected index, we add a small indicator to
 		// represent it. Otherwise, simply pad the string.
 		if i == m.cursor {
-			s.WriteString(m.indicatorStyle.Render(m.indicator))
+			s.WriteString(m.CursorStyle.Render(m.CursorPrefix))
 		} else {
-			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.indicator)))
+			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.CursorPrefix)))
 		}
 
 		// If there are multiple selections mark them, otherwise leave an empty space
 		if _, ok := m.selected[match.Str]; ok {
-			s.WriteString(m.selectedPrefixStyle.Render(m.selectedPrefix))
-		} else if m.limit > 1 {
-			s.WriteString(m.unselectedPrefixStyle.Render(m.unselectedPrefix))
+			s.WriteString(m.UnselectedPrefixStyle.Render(m.SelectedPrefix))
+		} else if m.Limit > 1 {
+			s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
 		} else {
 			s.WriteString(" ")
 		}
@@ -99,10 +86,10 @@ func (m model) View() string {
 			// index. If so, color the character to indicate a match.
 			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
 				// Flush text buffer.
-				s.WriteString(m.textStyle.Render(buf.String()))
+				s.WriteString(m.TextStyle.Render(buf.String()))
 				buf.Reset()
 
-				s.WriteString(m.matchStyle.Render(string(c)))
+				s.WriteString(m.MatchStyle.Render(string(c)))
 				// We have matched this character, so we never have to check it
 				// again. Move on to the next match.
 				mi++
@@ -112,7 +99,7 @@ func (m model) View() string {
 			}
 		}
 		// Flush text buffer.
-		s.WriteString(m.textStyle.Render(buf.String()))
+		s.WriteString(m.TextStyle.Render(buf.String()))
 
 		// We have finished displaying the match with all of it's matched
 		// characters highlighted and the rest filled in.
@@ -123,10 +110,10 @@ func (m model) View() string {
 	m.viewport.SetContent(s.String())
 
 	// View the input and the filtered choices
-	header := m.headerStyle.Render(m.header)
-	if m.reverse {
+	header := m.HeaderStyle.Render(m.Header)
+	if m.Reverse {
 		view := m.viewport.View() + "\n" + m.textinput.View()
-		if m.header != "" {
+		if m.Header != "" {
 			return lipgloss.JoinVertical(lipgloss.Left, view, header)
 		}
 
@@ -137,20 +124,20 @@ func (m model) View() string {
 	return lipgloss.JoinVertical(lipgloss.Left, header, view)
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.height == 0 || m.height > msg.Height {
+		if m.Height == 0 || m.Height > msg.Height {
 			m.viewport.Height = msg.Height - lipgloss.Height(m.textinput.View())
 		}
 
 		// Make place in the view port if header is set
-		if m.header != "" {
-			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.headerStyle.Render(m.header))
+		if m.Header != "" {
+			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.HeaderStyle.Render(m.Header))
 		}
 		m.viewport.Width = msg.Width
-		if m.reverse {
+		if m.Reverse {
 			m.viewport.YOffset = clamp(0, len(m.matches), len(m.matches)-m.viewport.Height)
 		}
 	case tea.KeyMsg:
@@ -167,19 +154,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+p", "ctrl+k", "up":
 			m.CursorUp()
 		case "tab":
-			if m.limit == 1 {
+			if m.Limit == 1 {
 				break // no op
 			}
 			m.ToggleSelection()
 			m.CursorDown()
 		case "shift+tab":
-			if m.limit == 1 {
+			if m.Limit == 1 {
 				break // no op
 			}
 			m.ToggleSelection()
 			m.CursorUp()
 		case "ctrl+@":
-			if m.limit == 1 {
+			if m.Limit == 1 {
 				break // no op
 			}
 			m.ToggleSelection()
@@ -191,13 +178,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// at a constant position when the number of matches are reduced
 			// in the reverse layout.
 			var yOffsetFromBottom int
-			if m.reverse {
+			if m.Reverse {
 				yOffsetFromBottom = max(0, len(m.matches)-m.viewport.YOffset)
 			}
 
 			// A character was entered, this likely means that the text input has
 			// changed. This suggests that the matches are outdated, so update them.
-			if m.fuzzy {
+			if m.Fuzzy {
 				m.matches = fuzzy.Find(m.textinput.Value(), m.choices)
 			} else {
 				m.matches = exactMatches(m.textinput.Value(), m.choices)
@@ -211,7 +198,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// For reverse layout, we need to offset the viewport so that the
 			// it remains at a constant position relative to the cursor.
-			if m.reverse {
+			if m.Reverse {
 				maxYOffset := max(0, len(m.matches)-m.viewport.Height)
 				m.viewport.YOffset = clamp(0, maxYOffset, len(m.matches)-yOffsetFromBottom)
 			}
@@ -224,8 +211,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *model) CursorUp() {
-	if m.reverse {
+func (m *Model) CursorUp() {
+	if m.Reverse {
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
 		if len(m.matches)-m.cursor <= m.viewport.YOffset {
 			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
@@ -238,8 +225,8 @@ func (m *model) CursorUp() {
 	}
 }
 
-func (m *model) CursorDown() {
-	if m.reverse {
+func (m *Model) CursorDown() {
+	if m.Reverse {
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
 		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
 			m.viewport.LineDown(1)
@@ -252,11 +239,11 @@ func (m *model) CursorDown() {
 	}
 }
 
-func (m *model) ToggleSelection() {
+func (m *Model) ToggleSelection() {
 	if _, ok := m.selected[m.matches[m.cursor].Str]; ok {
 		delete(m.selected, m.matches[m.cursor].Str)
 		m.numSelected--
-	} else if m.numSelected < m.limit {
+	} else if m.numSelected < m.Limit {
 		m.selected[m.matches[m.cursor].Str] = struct{}{}
 		m.numSelected++
 	}
