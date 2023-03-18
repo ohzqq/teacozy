@@ -154,17 +154,7 @@ func SelectItemCmd(m *Model) tea.Cmd {
 		if m.Limit == 1 {
 			return nil
 		}
-
-		if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
-			delete(m.selected, m.matches[m.cursor].Index)
-			m.numSelected--
-		} else if m.numSelected < m.Limit {
-			m.currentOrder++
-			m.selected[m.matches[m.cursor].Index] = struct{}{}
-			m.numSelected++
-			m.CursorDown()
-		}
-
+		m.ToggleSelection()
 		return nil
 	}
 }
@@ -195,6 +185,64 @@ func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.cursor = len(m.Items) - 1
 		//m.paginator.Page = m.paginator.TotalPages - 1
+		return nil
+	}
+}
+
+func NextPageCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.cursor = clamp(m.cursor+m.Height, 0, len(m.Items)-1)
+		//m.paginator.NextPage()
+		return nil
+	}
+}
+
+func PrevPageCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.cursor = clamp(m.cursor-m.Height, 0, len(m.Items)-1)
+		//m.paginator.PrevPage()
+		return nil
+	}
+}
+
+func SelectAllItemsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		if m.Limit <= 1 {
+			return nil
+		}
+		for i := range m.matches {
+			match := m.matches[i]
+			if m.numSelected >= m.Limit {
+				break // do not exceed given limit
+			}
+			if _, ok := m.selected[match.Index]; ok {
+				continue
+			} else {
+				m.selected[m.matches[m.cursor].Index] = struct{}{}
+				m.numSelected++
+			}
+		}
+		return nil
+	}
+}
+
+func DeselectAllItemsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		if m.Limit <= 1 {
+			return nil
+		}
+		for i := range m.matches {
+			match := m.matches[i]
+			if m.numSelected >= m.Limit {
+				break // do not exceed given limit
+			}
+			if _, ok := m.selected[match.Index]; ok {
+				delete(m.selected, m.matches[m.cursor].Index)
+				m.numSelected--
+			} else {
+				continue
+			}
+		}
 		return nil
 	}
 }

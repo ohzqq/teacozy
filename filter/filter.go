@@ -105,92 +105,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func ListKeyMap(m *Model) keymap.KeyMap {
-	return keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys(" "),
-			keymap.WithHelp("space", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("down", "j"),
-			keymap.WithHelp("down/j", "move cursor down"),
-			keymap.WithCmd(DownCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("up", "k"),
-			keymap.WithHelp("up/k", "move cursor up"),
-			keymap.WithCmd(UpCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("ctrl+c", "esc", "q"),
-			keymap.WithHelp("ctrl+c/esc/q", "quit"),
-			keymap.WithCmd(tea.Quit),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("enter"),
-			keymap.WithHelp("enter", "return selections"),
-			keymap.WithCmd(EnterCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("/"),
-			keymap.WithHelp("/", "filter items"),
-			keymap.WithCmd(FilterItemsCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("tab"),
-			keymap.WithHelp("tab", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("G"),
-			keymap.WithHelp("G", "last item"),
-			keymap.WithCmd(BottomCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("g"),
-			keymap.WithHelp("g", "first item"),
-			keymap.WithCmd(TopCmd(m)),
-		),
-	}
-}
-
-func FilterKeyMap(m *Model) keymap.KeyMap {
-	//start, end := m.paginator.GetSliceBounds(len(m.Items))
-	return keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys("down", "ctrl+j"),
-			keymap.WithHelp("down/ctrl+j", "move cursor down"),
-			keymap.WithCmd(DownCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("up", "ctrl+k"),
-			keymap.WithHelp("up/ctrl+k", "move cursor up"),
-			keymap.WithCmd(UpCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("tab"),
-			keymap.WithHelp("tab", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("esc"),
-			keymap.WithHelp("esc", "stop filtering"),
-			keymap.WithCmd(StopFilteringCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("ctrl+c"),
-			keymap.WithHelp("ctrl+c", "quit"),
-			keymap.WithCmd(tea.Quit),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("enter"),
-			keymap.WithHelp("enter", "return selections"),
-			keymap.WithCmd(EnterCmd(m)),
-		),
-	}
-}
-
 func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
@@ -248,6 +162,19 @@ func (m *Model) CursorDown() {
 		}
 	}
 }
+
+func (m *Model) ToggleSelection() {
+	if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
+		delete(m.selected, m.matches[m.cursor].Index)
+		m.numSelected--
+	} else if m.numSelected < m.Limit {
+		m.currentOrder++
+		m.selected[m.matches[m.cursor].Index] = struct{}{}
+		m.numSelected++
+		m.CursorDown()
+	}
+}
+
 func (m Model) Init() tea.Cmd { return nil }
 func (m Model) View() string {
 	if m.quitting {
@@ -348,7 +275,7 @@ func matchAll(options []Item) []fuzzy.Match {
 
 func exactMatches(search string, choices []Item) []fuzzy.Match {
 	matches := fuzzy.Matches{}
-	for i, choice := range choices {
+	for _, choice := range choices {
 		search = strings.ToLower(search)
 		matchedString := strings.ToLower(choice.Text)
 
@@ -360,7 +287,7 @@ func exactMatches(search string, choices []Item) []fuzzy.Match {
 			}
 			matches = append(matches, fuzzy.Match{
 				Str:            choice.Text,
-				Index:          i,
+				Index:          choice.Index,
 				MatchedIndexes: matchedIndexes,
 			})
 		}
