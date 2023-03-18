@@ -11,7 +11,6 @@
 package filter
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -42,6 +41,7 @@ type Model struct {
 	FilterKeys   func(m *Model) keymap.KeyMap
 	ListKeys     func(m *Model) keymap.KeyMap
 	selected     map[int]struct{}
+	Chosen       []string
 	numSelected  int
 	filterState  FilterState
 	currentOrder int
@@ -74,24 +74,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.Reverse {
 			m.viewport.YOffset = clamp(0, len(m.matches), len(m.matches)-m.viewport.Height)
 		}
+	case ReturnSelectionsMsg:
+		m.Chosen = msg.choices
+		cmd = tea.Quit
+		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
-		//switch keypress := msg.String(); keypress {
-		//case "ctrl+c", "esc":
-		//  switch m.filterState {
-		//  case Filtering:
-		//    m.filterState = Unfiltered
-		//    m.textinput.Blur()
-		//  default:
-		//    m.aborted = true
-		//    m.quitting = true
-		//    cmds = append(cmds, tea.Quit)
-		//  }
-		//}
-
 		switch m.filterState {
 		case Unfiltered:
 			for _, k := range m.ListKeys(m) {
 				if k.Matches(msg) {
+					//fmt.Println(msg.String())
 					cmd = k.Cmd
 					cmds = append(cmds, cmd)
 				}
@@ -99,17 +91,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case Filtering:
 			for _, k := range m.FilterKeys(m) {
 				if k.Matches(msg) {
+					//fmt.Println(msg.String())
 					cmd = k.Cmd
 					cmds = append(cmds, cmd)
 				}
 			}
 		}
 		cmds = append(cmds, m.handleFilter(msg))
-	case ReturnSelectionsMsg:
-		m.quitting = true
-		fmt.Printf("return sels sel %+V\n", msg)
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
 	}
 
 	// It's possible that filtering items have caused fewer matches. So, ensure that the selected index is within the bounds of the number of matches.
@@ -148,6 +136,11 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithKeys("/"),
 			keymap.WithHelp("/", "filter items"),
 			keymap.WithCmd(FilterItemsCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("tab"),
+			keymap.WithHelp("tab", "select item"),
+			keymap.WithCmd(SelectItemCmd(m)),
 		),
 	}
 }
@@ -189,7 +182,6 @@ func FilterKeyMap(m *Model) keymap.KeyMap {
 }
 
 func EnterCmd(m *Model) tea.Cmd {
-	fmt.Println("enter")
 	return ReturnSelectionsCmd(m)
 }
 
@@ -215,16 +207,17 @@ type ReturnSelectionsMsg struct {
 }
 
 func ReturnSelectionsCmd(m *Model) tea.Cmd {
-	fmt.Println("sels")
 	return func() tea.Msg {
 		if m.numSelected < 1 {
 			m.Items[m.cursor].Selected = true
 		}
 		var sel ReturnSelectionsMsg
-		for _, item := range m.Items {
-			if item.Selected {
-				sel.choices = append(sel.choices, m.Choices[item.Index])
+		if len(m.selected) > 0 {
+			for k := range m.selected {
+				sel.choices = append(sel.choices, m.Choices[k])
 			}
+		} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+			sel.choices = append(sel.choices, m.matches[m.cursor].Str)
 		}
 		return sel
 	}
@@ -243,6 +236,7 @@ func SelectItemCmd(m *Model) tea.Cmd {
 			m.currentOrder++
 			m.selected[m.matches[m.cursor].Index] = struct{}{}
 			m.numSelected++
+			m.CursorDown()
 		}
 
 		return nil
@@ -251,38 +245,44 @@ func SelectItemCmd(m *Model) tea.Cmd {
 
 func UpCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		if m.Reverse {
-			m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-			if len(m.matches)-m.cursor <= m.viewport.YOffset {
-				m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
-			}
-		} else {
-			m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-			if m.cursor < m.viewport.YOffset {
-				m.viewport.SetYOffset(m.cursor)
-			}
-		}
+		m.CursorUp()
 		return nil
 	}
 }
 
 func DownCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		if m.Reverse {
-			m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-			if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
-				m.viewport.LineDown(1)
-			}
-		} else {
-			m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-			if m.cursor >= m.viewport.YOffset+m.viewport.Height {
-				m.viewport.LineDown(1)
-			}
-		}
+		m.CursorDown()
 		return nil
 	}
 }
+func (m *Model) CursorUp() {
+	if m.Reverse {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
+		if len(m.matches)-m.cursor <= m.viewport.YOffset {
+			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
+		}
+	} else {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
+		if m.cursor < m.viewport.YOffset {
+			m.viewport.SetYOffset(m.cursor)
+		}
+	}
+}
 
+func (m *Model) CursorDown() {
+	if m.Reverse {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
+		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
+			m.viewport.LineDown(1)
+		}
+	} else {
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
+		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
+			m.viewport.LineDown(1)
+		}
+	}
+}
 func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
@@ -312,44 +312,6 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	}
 	return cmd
 }
-
-func (m *Model) CursorUp() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-		if len(m.matches)-m.cursor <= m.viewport.YOffset {
-			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
-		}
-	} else {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-		if m.cursor < m.viewport.YOffset {
-			m.viewport.SetYOffset(m.cursor)
-		}
-	}
-}
-
-func (m *Model) CursorDown() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
-			m.viewport.LineDown(1)
-		}
-	} else {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
-			m.viewport.LineDown(1)
-		}
-	}
-}
-
-//func (m *Model) ToggleSelection() {
-//  if _, ok := m.selected[m.matches[m.cursor].Str]; ok {
-//    delete(m.selected, m.matches[m.cursor].Str)
-//    m.numSelected--
-//  } else if m.numSelected < m.Limit {
-//    m.selected[m.matches[m.cursor].Str] = struct{}{}
-//    m.numSelected++
-//  }
-//}
 
 func (m Model) Init() tea.Cmd { return nil }
 func (m Model) View() string {
