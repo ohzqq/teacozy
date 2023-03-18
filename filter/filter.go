@@ -24,7 +24,6 @@ import (
 type Model struct {
 	textinput   textinput.Model
 	viewport    *viewport.Model
-	choices     []string
 	matches     []fuzzy.Match
 	cursor      int
 	selected    map[string]struct{}
@@ -185,15 +184,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// A character was entered, this likely means that the text input has
 			// changed. This suggests that the matches are outdated, so update them.
 			if m.Fuzzy {
-				m.matches = fuzzy.Find(m.textinput.Value(), m.choices)
+				m.matches = fuzzy.Find(m.textinput.Value(), m.Choices)
 			} else {
-				m.matches = exactMatches(m.textinput.Value(), m.choices)
+				m.matches = exactMatches(m.textinput.Value(), m.Choices)
 			}
 
 			// If the search field is empty, let's not display the matches
 			// (none), but rather display all possible choices.
 			if m.textinput.Value() == "" {
-				m.matches = matchAll(m.choices)
+				m.matches = matchAll(m.Choices)
 			}
 
 			// For reverse layout, we need to offset the viewport so that the

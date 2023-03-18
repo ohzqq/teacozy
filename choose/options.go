@@ -2,8 +2,11 @@ package choose
 
 import (
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 var (
@@ -13,33 +16,41 @@ var (
 
 // Options is the customization options for the choose command.
 type Options struct {
-	Options           []map[int]string
-	Limit             int
-	NoLimit           bool
-	Ordered           bool
-	Height            int
-	Cursor            string
-	CursorPrefix      string
-	SelectedPrefix    string
-	UnselectedPrefix  string
-	CursorStyle       lipgloss.Style
-	ItemStyle         lipgloss.Style
-	SelectedItemStyle lipgloss.Style
-	TextStyle         lipgloss.Style
-	MatchStyle        lipgloss.Style
-	Placeholder       string
-	Prompt            string
-	PromptStyle       lipgloss.Style
-	Value             string
-	Reverse           bool
-	Fuzzy             bool
-	Strict            bool
+	Options               []map[int]string
+	Limit                 int
+	NoLimit               bool
+	Ordered               bool
+	Height                int
+	Width                 int
+	Cursor                string
+	CursorPrefix          string
+	SelectedPrefix        string
+	UnselectedPrefix      string
+	CursorStyle           lipgloss.Style
+	ItemStyle             lipgloss.Style
+	SelectedItemStyle     lipgloss.Style
+	TextStyle             lipgloss.Style
+	MatchStyle            lipgloss.Style
+	SelectedPrefixStyle   lipgloss.Style
+	UnselectedPrefixStyle lipgloss.Style
+	HeaderStyle           lipgloss.Style
+	Placeholder           string
+	Header                string
+	Prompt                string
+	PromptStyle           lipgloss.Style
+	Value                 string
+	Reverse               bool
+	Fuzzy                 bool
+	Strict                bool
 }
 
 func New(o Options) *Model {
+	filterIn := textinput.New()
+	filterIn.Focus()
 	tm := Model{
-		Options: o,
-		KeyMap:  KeyMap,
+		Options:   o,
+		KeyMap:    ListKeyMap,
+		textinput: filterIn,
 	}
 	tm.Cursor = style.Cursor
 	tm.SelectedPrefix = style.SelectedPrefix
@@ -50,9 +61,16 @@ func New(o Options) *Model {
 	tm.ItemStyle = style.UnselectedStyle
 	tm.SelectedItemStyle = style.SelectedStyle
 
+	w, h := util.TermSize()
+
 	if tm.Height == 0 {
-		tm.Height = 10
+		tm.Height = h
 	}
+	if tm.Width == 0 {
+		tm.Width = w
+	}
+	vp := viewport.New(o.Width, o.Height)
+	tm.viewport = &vp
 
 	tm.Items = make([]Item, len(o.Options))
 

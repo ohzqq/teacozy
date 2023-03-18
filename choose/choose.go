@@ -19,11 +19,14 @@ type Model struct {
 	Items        []Item
 	matches      []fuzzy.Match
 	Selected     []map[int]string
-	cursor       int
 	Quitting     bool
+	cursor       int
+	selected     map[string]struct{}
 	KeyMap       func(m *Model) keymap.KeyMap
 	Index        int
 	numSelected  int
+	showFilter   bool
+	filterState  FilterState
 	currentOrder int
 	paginator    paginator.Model
 	aborted      bool
@@ -73,7 +76,37 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func KeyMap(m *Model) keymap.KeyMap {
+func FilterKeyMap(m *Model) keymap.KeyMap {
+	start, end := m.paginator.GetSliceBounds(len(m.Items))
+	return keymap.KeyMap{
+		keymap.NewBinding(
+			keymap.WithKeys("down", "ctrl+j"),
+			keymap.WithHelp("down/ctrl+j", "move cursor down"),
+			keymap.WithCmd(DownCmd(m, end)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("up", "ctrl+k"),
+			keymap.WithHelp("up/ctrl+k", "move cursor up"),
+			keymap.WithCmd(UpCmd(m, start)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("tab"),
+			keymap.WithHelp("tab", "select item"),
+			keymap.WithCmd(SelectItemCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("ctrl+c", "esc", "q"),
+			keymap.WithHelp("ctrl+c/esc/q", "quit"),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("enter"),
+			keymap.WithHelp("enter", "return selections"),
+			keymap.WithCmd(EnterCmd(m)),
+		),
+	}
+}
+
+func ListKeyMap(m *Model) keymap.KeyMap {
 	start, end := m.paginator.GetSliceBounds(len(m.Items))
 	return keymap.KeyMap{
 		keymap.NewBinding(
@@ -130,6 +163,11 @@ func KeyMap(m *Model) keymap.KeyMap {
 			keymap.WithHelp("enter", "return selections"),
 			keymap.WithCmd(EnterCmd(m)),
 		),
+		keymap.NewBinding(
+			keymap.WithKeys("/"),
+			keymap.WithHelp("/", "filter items"),
+			keymap.WithCmd(FilterItemsCmd(m)),
+		),
 	}
 }
 
@@ -177,6 +215,24 @@ func SelectAllItemsCmd(m *Model) tea.Cmd {
 
 func EnterCmd(m *Model) tea.Cmd {
 	return ReturnSelectionsCmd(m)
+}
+
+func ExitFilterCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.filterState = Unfiltered
+		return nil
+	}
+}
+
+func FilterItemsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		println("filter")
+		m.filterState = Filtering
+		m.paginator.Page = 0
+		m.cursor = 0
+		m.textinput.Focus()
+		return textinput.Blink()
+	}
 }
 
 func DeselectAllItemsCmd(m *Model) tea.Cmd {
