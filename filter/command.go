@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,6 +10,7 @@ import (
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
+	"golang.org/x/exp/maps"
 )
 
 // Options is the customization options for the filter command.
@@ -48,6 +50,7 @@ func New(o Options) *Model {
 	o.UnselectedPrefixStyle = style.UnselectedStyle
 	o.TextStyle = lipgloss.NewStyle().Foreground(color.Foreground)
 	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Pink)
+	o.Height = 4
 	tm := Model{
 		Options:     o,
 		selected:    make(map[int]struct{}),
@@ -104,6 +107,14 @@ func New(o Options) *Model {
 		tm.Limit = len(tm.Choices)
 	}
 
+	pager := paginator.New()
+	pager.SetTotalPages((len(tm.Items) + tm.Height - 1) / tm.Height)
+	pager.PerPage = tm.Height
+	pager.Type = paginator.Dots
+	pager.ActiveDot = subduedStyle.Render("•")
+	pager.InactiveDot = verySubduedStyle.Render("•")
+
+	tm.paginator = pager
 	return &tm
 }
 
@@ -114,15 +125,19 @@ func EnterCmd(m *Model) tea.Cmd {
 func FilterItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.filterState = Filtering
-		m.cursor = 0
+		//m.cursor = 0
 		m.textinput.Focus()
 		return textinput.Blink()
 	}
 }
 
 func StopFilteringCmd(m *Model) tea.Cmd {
+	//start, end := m.paginator.GetSliceBounds(len(m.Items))
+	//fmt.Println(start)
+	//fmt.Println(end)
 	return func() tea.Msg {
 		m.filterState = Unfiltered
+		//m.cursor = 0
 		m.textinput.Blur()
 		return nil
 	}
@@ -191,16 +206,16 @@ func BottomCmd(m *Model) tea.Cmd {
 
 func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(m.cursor+m.Height, 0, len(m.Items)-1)
-		//m.paginator.NextPage()
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.Height)
+		m.paginator.NextPage()
 		return nil
 	}
 }
 
 func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(m.cursor-m.Height, 0, len(m.Items)-1)
-		//m.paginator.PrevPage()
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.Height)
+		m.paginator.PrevPage()
 		return nil
 	}
 }
@@ -211,14 +226,13 @@ func SelectAllItemsCmd(m *Model) tea.Cmd {
 			return nil
 		}
 		for i := range m.matches {
-			match := m.matches[i]
 			if m.numSelected >= m.Limit {
 				break // do not exceed given limit
 			}
-			if _, ok := m.selected[match.Index]; ok {
+			if _, ok := m.selected[i]; ok {
 				continue
 			} else {
-				m.selected[m.matches[m.cursor].Index] = struct{}{}
+				m.selected[m.matches[i].Index] = struct{}{}
 				m.numSelected++
 			}
 		}
@@ -231,18 +245,10 @@ func DeselectAllItemsCmd(m *Model) tea.Cmd {
 		if m.Limit <= 1 {
 			return nil
 		}
-		for i := range m.matches {
-			match := m.matches[i]
-			if m.numSelected >= m.Limit {
-				break // do not exceed given limit
-			}
-			if _, ok := m.selected[match.Index]; ok {
-				delete(m.selected, m.matches[m.cursor].Index)
-				m.numSelected--
-			} else {
-				continue
-			}
-		}
+
+		maps.Clear(m.selected)
+		m.numSelected = 0
+
 		return nil
 	}
 }

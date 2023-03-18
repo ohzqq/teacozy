@@ -44,6 +44,16 @@ func FilterKeyMap(m *Model) keymap.KeyMap {
 func ListKeyMap(m *Model) keymap.KeyMap {
 	return keymap.KeyMap{
 		keymap.NewBinding(
+			keymap.WithKeys("right", "l"),
+			keymap.WithHelp("right/l", "next page"),
+			keymap.WithCmd(NextPageCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("left", "h"),
+			keymap.WithHelp("left/h", "prev page"),
+			keymap.WithCmd(PrevPageCmd(m)),
+		),
+		keymap.NewBinding(
 			keymap.WithKeys("V"),
 			keymap.WithHelp("V", "deselect all"),
 			keymap.WithCmd(DeselectAllItemsCmd(m)),

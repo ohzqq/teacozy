@@ -1,18 +1,9 @@
-// Package filter provides a fuzzy searching text input to allow filtering a
-// list of options to select one option.
-//
-// By default it will list all the files (recursively) in the current directory
-// for the user to choose one, but the script (or user) can provide different
-// new-line separated options to choose from.
-//
-// I.e. let's pick from a list of gum flavors:
-//
-// $ cat flavors.text | gum filter
 package filter
 
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,9 +23,15 @@ const (
 	FilterApplied                    // a filter is applied and user is not editing filter
 )
 
+var (
+	subduedStyle     = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#847A85", Dark: "#979797"})
+	verySubduedStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"})
+)
+
 type Model struct {
 	textinput    textinput.Model
 	viewport     *viewport.Model
+	paginator    paginator.Model
 	matches      []fuzzy.Match
 	cursor       int
 	Items        []Item
@@ -60,6 +57,7 @@ type Item struct {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	//fmt.Printf("cursor %v\n", m.cursor)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		if m.Height == 0 || m.Height > msg.Height {
@@ -101,19 +99,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// It's possible that filtering items have caused fewer matches. So, ensure that the selected index is within the bounds of the number of matches.
-	m.cursor = clamp(0, len(m.matches)-1, m.cursor)
+	switch m.filterState {
+	case Filtering:
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor)
+	}
 	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
-
-	// yOffsetFromBottom is the number of lines from the bottom of the list to the top of the viewport. This is used to keep the viewport at a constant position when the number of matches are reduced in the reverse layout.
-	var yOffsetFromBottom int
-	if m.Reverse {
-		yOffsetFromBottom = max(0, len(m.matches)-m.viewport.YOffset)
-	}
 
 	// A character was entered, this likely means that the text input has changed. This suggests that the matches are outdated, so update them.
 	if m.Fuzzy {
@@ -127,21 +122,27 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 		m.matches = matchAll(m.Items)
 	}
 
-	// For reverse layout, we need to offset the viewport so that the it remains at a constant position relative to the cursor.
-	if m.Reverse {
-		maxYOffset := max(0, len(m.matches)-m.viewport.Height)
-		m.viewport.YOffset = clamp(0, maxYOffset, len(m.matches)-yOffsetFromBottom)
-	}
 	return cmd
 }
 
 func (m *Model) CursorUp() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
-		if len(m.matches)-m.cursor <= m.viewport.YOffset {
-			m.viewport.SetYOffset(len(m.matches) - m.cursor - 1)
+	//println(m.cursor)
+
+	start, _ := m.paginator.GetSliceBounds(len(m.Items))
+	//fmt.Println(start)
+	//fmt.Println(end)
+
+	switch m.filterState {
+	case Unfiltered:
+		m.cursor--
+		if m.cursor < 0 {
+			m.cursor = len(m.Items) - 1
+			m.paginator.Page = m.paginator.TotalPages - 1
 		}
-	} else {
+		if m.cursor < start {
+			m.paginator.PrevPage()
+		}
+	case Filtering:
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
 		if m.cursor < m.viewport.YOffset {
 			m.viewport.SetYOffset(m.cursor)
@@ -150,12 +151,19 @@ func (m *Model) CursorUp() {
 }
 
 func (m *Model) CursorDown() {
-	if m.Reverse {
-		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
-		if len(m.matches)-m.cursor > m.viewport.Height+m.viewport.YOffset {
-			m.viewport.LineDown(1)
+
+	_, end := m.paginator.GetSliceBounds(len(m.Items))
+	switch m.filterState {
+	case Unfiltered:
+		m.cursor++
+		if m.cursor >= len(m.Items) {
+			m.cursor = 0
+			m.paginator.Page = 0
 		}
-	} else {
+		if m.cursor >= end {
+			m.paginator.NextPage()
+		}
+	case Filtering:
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
 		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
 			m.viewport.LineDown(1)
@@ -164,40 +172,85 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
-	if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
-		delete(m.selected, m.matches[m.cursor].Index)
-		m.numSelected--
-	} else if m.numSelected < m.Limit {
-		m.currentOrder++
-		m.selected[m.matches[m.cursor].Index] = struct{}{}
-		m.numSelected++
-		m.CursorDown()
+	switch m.filterState {
+	case Unfiltered:
+		if _, ok := m.selected[m.Items[m.cursor].Index]; ok {
+			delete(m.selected, m.Items[m.cursor].Index)
+			m.numSelected--
+		} else if m.numSelected < m.Limit {
+			m.selected[m.Items[m.cursor].Index] = struct{}{}
+			m.numSelected++
+			m.CursorDown()
+		}
+	case Filtering:
+		if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
+			delete(m.selected, m.matches[m.cursor].Index)
+			m.numSelected--
+		} else if m.numSelected < m.Limit {
+			m.currentOrder++
+			m.selected[m.matches[m.cursor].Index] = struct{}{}
+			m.numSelected++
+			m.CursorDown()
+		}
 	}
 }
 
-func (m Model) Init() tea.Cmd { return nil }
 func (m Model) View() string {
+	switch m.filterState {
+	case Filtering:
+		return m.FilteringView()
+	default:
+		return m.UnfilteredView()
+	}
+}
+
+func (m Model) UnfilteredView() string {
+	var s strings.Builder
+
+	start, end := m.paginator.GetSliceBounds(len(m.Items))
+	for i, item := range m.Items[start:end] {
+		if i == m.cursor%m.Height {
+			s.WriteString(m.CursorStyle.Render(m.CursorPrefix))
+		} else {
+			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.CursorPrefix)))
+		}
+
+		if _, ok := m.selected[item.Index]; ok {
+			s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix) + item.Text)
+		} else if m.Limit > 1 {
+			s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix) + item.Text)
+		} else {
+			s.WriteString(" " + item.Text)
+		}
+
+		if i != m.Height {
+			s.WriteRune('\n')
+		}
+	}
+
+	if m.paginator.TotalPages <= 1 {
+		return s.String()
+	}
+
+	s.WriteString(strings.Repeat("\n", m.Height-m.paginator.ItemsOnPage(len(m.Items))+1))
+	s.WriteString("  " + m.paginator.View())
+
+	header := m.HeaderStyle.Render(m.Header)
+	view := s.String()
+	return lipgloss.JoinVertical(lipgloss.Left, header, view)
+}
+
+func (m Model) FilteringView() string {
 	if m.quitting {
 		return ""
 	}
 
 	var s strings.Builder
 
-	// For reverse layout, if the number of matches is less than the viewport
-	// height, we need to offset the matches so that the first match is at the
-	// bottom edge of the viewport instead of in the middle.
-	if m.Reverse && len(m.matches) < m.viewport.Height {
-		s.WriteString(strings.Repeat("\n", m.viewport.Height-len(m.matches)))
-	}
-
 	// Since there are matches, display them so that the user can see, in real
 	// time, what they are searching for.
-	last := len(m.matches) - 1
 	for i := range m.matches {
 		// For reverse layout, the matches are displayed in reverse order.
-		if m.Reverse {
-			i = last - i
-		}
 		match := m.matches[i]
 
 		// If this is the current selected index, we add a small indicator to
@@ -210,7 +263,7 @@ func (m Model) View() string {
 
 		//If there are multiple selections mark them, otherwise leave an empty space
 		if _, ok := m.selected[match.Index]; ok {
-			s.WriteString(m.UnselectedPrefixStyle.Render(m.SelectedPrefix))
+			s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
 		} else if m.Limit > 1 {
 			s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
 		} else {
@@ -251,18 +304,9 @@ func (m Model) View() string {
 	m.viewport.SetContent(s.String())
 
 	// View the input and the filtered choices
-	header := m.HeaderStyle.Render(m.Header)
-	if m.Reverse {
-		view := m.viewport.View() + "\n" + m.textinput.View()
-		if m.Header != "" {
-			return lipgloss.JoinVertical(lipgloss.Left, view, header)
-		}
-
-		return view
-	}
 
 	view := m.textinput.View() + "\n" + m.viewport.View()
-	return lipgloss.JoinVertical(lipgloss.Left, header, view)
+	return view
 }
 
 func matchAll(options []Item) []fuzzy.Match {
@@ -313,3 +357,5 @@ func max(a, b int) int {
 	}
 	return b
 }
+
+func (m Model) Init() tea.Cmd { return nil }
