@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/mattn/go-runewidth"
 	"github.com/ohzqq/teacozy/keymap"
 	"github.com/sahilm/fuzzy"
 )
@@ -48,16 +47,13 @@ type Model struct {
 }
 
 type Item struct {
-	Index    int
-	Text     string
-	Selected bool
-	Order    int
+	Index int
+	Text  string
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
-	//fmt.Printf("cursor %v\n", m.cursor)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		if m.Height == 0 || m.Height > msg.Height {
@@ -69,9 +65,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.HeaderStyle.Render(m.Header))
 		}
 		m.viewport.Width = msg.Width
-		if m.Reverse {
-			m.viewport.YOffset = clamp(0, len(m.matches), len(m.matches)-m.viewport.Height)
-		}
 	case ReturnSelectionsMsg:
 		m.Chosen = msg.choices
 		cmd = tea.Quit
@@ -81,7 +74,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case Unfiltered:
 			for _, k := range m.ListKeys(m) {
 				if k.Matches(msg) {
-					//fmt.Println(msg.String())
 					cmd = k.Cmd
 					cmds = append(cmds, cmd)
 				}
@@ -89,7 +81,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case Filtering:
 			for _, k := range m.FilterKeys(m) {
 				if k.Matches(msg) {
-					//fmt.Println(msg.String())
 					cmd = k.Cmd
 					cmds = append(cmds, cmd)
 				}
@@ -110,12 +101,7 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
 
-	// A character was entered, this likely means that the text input has changed. This suggests that the matches are outdated, so update them.
-	if m.Fuzzy {
-		m.matches = fuzzy.Find(m.textinput.Value(), m.Choices)
-	} else {
-		m.matches = exactMatches(m.textinput.Value(), m.Items)
-	}
+	m.matches = exactMatches(m.textinput.Value(), m.Items)
 
 	// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
 	if m.textinput.Value() == "" {
@@ -126,12 +112,7 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) CursorUp() {
-	//println(m.cursor)
-
 	start, _ := m.paginator.GetSliceBounds(len(m.Items))
-	//fmt.Println(start)
-	//fmt.Println(end)
-
 	switch m.filterState {
 	case Unfiltered:
 		m.cursor--
@@ -151,7 +132,6 @@ func (m *Model) CursorUp() {
 }
 
 func (m *Model) CursorDown() {
-
 	_, end := m.paginator.GetSliceBounds(len(m.Items))
 	switch m.filterState {
 	case Unfiltered:
@@ -172,26 +152,21 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
+	var idx int
 	switch m.filterState {
 	case Unfiltered:
-		if _, ok := m.selected[m.Items[m.cursor].Index]; ok {
-			delete(m.selected, m.Items[m.cursor].Index)
-			m.numSelected--
-		} else if m.numSelected < m.Limit {
-			m.selected[m.Items[m.cursor].Index] = struct{}{}
-			m.numSelected++
-			m.CursorDown()
-		}
+		idx = m.Items[m.cursor].Index
 	case Filtering:
-		if _, ok := m.selected[m.matches[m.cursor].Index]; ok {
-			delete(m.selected, m.matches[m.cursor].Index)
-			m.numSelected--
-		} else if m.numSelected < m.Limit {
-			m.currentOrder++
-			m.selected[m.matches[m.cursor].Index] = struct{}{}
-			m.numSelected++
-			m.CursorDown()
-		}
+		idx = m.matches[m.cursor].Index
+	}
+	if _, ok := m.selected[idx]; ok {
+		delete(m.selected, idx)
+		m.numSelected--
+		m.CursorDown()
+	} else if m.numSelected < m.Limit {
+		m.selected[idx] = struct{}{}
+		m.numSelected++
+		m.CursorDown()
 	}
 }
 
@@ -210,17 +185,13 @@ func (m Model) UnfilteredView() string {
 	start, end := m.paginator.GetSliceBounds(len(m.Items))
 	for i, item := range m.Items[start:end] {
 		if i == m.cursor%m.Height {
-			s.WriteString(m.CursorStyle.Render(m.CursorPrefix))
+			s.WriteString(m.CursorStyle.Render(m.CursorPrefix) + item.Text)
 		} else {
-			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.CursorPrefix)))
-		}
-
-		if _, ok := m.selected[item.Index]; ok {
-			s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix) + item.Text)
-		} else if m.Limit > 1 {
-			s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix) + item.Text)
-		} else {
-			s.WriteString(" " + item.Text)
+			if _, ok := m.selected[item.Index]; ok {
+				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix) + item.Text)
+			} else if m.Limit > 1 {
+				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix) + item.Text)
+			}
 		}
 
 		if i != m.Height {
@@ -250,24 +221,17 @@ func (m Model) FilteringView() string {
 	// Since there are matches, display them so that the user can see, in real
 	// time, what they are searching for.
 	for i := range m.matches {
-		// For reverse layout, the matches are displayed in reverse order.
 		match := m.matches[i]
 
-		// If this is the current selected index, we add a small indicator to
-		// represent it. Otherwise, simply pad the string.
+		// If this is the current selected index, we add a small indicator to represent it. Otherwise, simply pad the string.
 		if i == m.cursor {
 			s.WriteString(m.CursorStyle.Render(m.CursorPrefix))
 		} else {
-			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.CursorPrefix)))
-		}
-
-		//If there are multiple selections mark them, otherwise leave an empty space
-		if _, ok := m.selected[match.Index]; ok {
-			s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
-		} else if m.Limit > 1 {
-			s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
-		} else {
-			s.WriteString(" ")
+			if _, ok := m.selected[match.Index]; ok {
+				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
+			} else if m.Limit > 1 {
+				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
+			}
 		}
 
 		// For this match, there are a certain number of characters that have

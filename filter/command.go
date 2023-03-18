@@ -9,7 +9,6 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/maps"
 )
 
@@ -19,7 +18,6 @@ type Options struct {
 	CursorStyle           lipgloss.Style
 	Limit                 int
 	NoLimit               bool
-	Strict                bool
 	SelectedPrefix        string
 	SelectedPrefixStyle   lipgloss.Style
 	UnselectedPrefix      string
@@ -33,13 +31,13 @@ type Options struct {
 	PromptStyle           lipgloss.Style
 	Width                 int
 	Height                int
-	Value                 string
-	Reverse               bool
-	Fuzzy                 bool
 	Choices               []string
 }
 
-func New(o Options) *Model {
+func New(choices []string) *Model {
+	var o Options
+	o.Choices = choices
+	o.NoLimit = true
 	o.CursorPrefix = style.Cursor
 	o.CursorStyle = style.CursorStyle
 	o.Prompt = style.Prompt
@@ -50,7 +48,8 @@ func New(o Options) *Model {
 	o.UnselectedPrefixStyle = style.UnselectedStyle
 	o.TextStyle = lipgloss.NewStyle().Foreground(color.Foreground)
 	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Pink)
-	o.Height = 4
+	o.Header = "x"
+	//o.Height = 4
 	tm := Model{
 		Options:     o,
 		selected:    make(map[int]struct{}),
@@ -69,7 +68,7 @@ func New(o Options) *Model {
 
 	w, h := util.TermSize()
 	if tm.Height == 0 {
-		tm.Height = h
+		tm.Height = h - 4
 	}
 	if tm.Width == 0 {
 		tm.Width = w
@@ -81,27 +80,13 @@ func New(o Options) *Model {
 	tm.Items = make([]Item, len(o.Choices))
 
 	for i, thing := range o.Choices {
-		//for k, option := range thing {
 		tm.Items[i] = Item{
-			Index:    i,
-			Text:     thing,
-			Selected: false,
-			Order:    i,
+			Index: i,
+			Text:  thing,
 		}
-		//}
 	}
 
-	if tm.Value != "" {
-		tm.textinput.SetValue(tm.Value)
-	}
-	switch {
-	case tm.Value != "" && tm.Fuzzy:
-		tm.matches = fuzzy.Find(tm.Value, tm.Choices)
-	case tm.Value != "" && !tm.Fuzzy:
-		tm.matches = exactMatches(tm.Value, tm.Items)
-	default:
-		tm.matches = matchAll(tm.Items)
-	}
+	tm.matches = matchAll(tm.Items)
 
 	if tm.NoLimit {
 		tm.Limit = len(tm.Choices)
@@ -125,19 +110,15 @@ func EnterCmd(m *Model) tea.Cmd {
 func FilterItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.filterState = Filtering
-		//m.cursor = 0
 		m.textinput.Focus()
 		return textinput.Blink()
 	}
 }
 
 func StopFilteringCmd(m *Model) tea.Cmd {
-	//start, end := m.paginator.GetSliceBounds(len(m.Items))
-	//fmt.Println(start)
-	//fmt.Println(end)
 	return func() tea.Msg {
 		m.filterState = Unfiltered
-		//m.cursor = 0
+		m.textinput.Reset()
 		m.textinput.Blur()
 		return nil
 	}
@@ -149,9 +130,6 @@ type ReturnSelectionsMsg struct {
 
 func ReturnSelectionsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		if m.numSelected < 1 {
-			m.Items[m.cursor].Selected = true
-		}
 		var sel ReturnSelectionsMsg
 		if len(m.selected) > 0 {
 			for k := range m.selected {
@@ -191,7 +169,7 @@ func DownCmd(m *Model) tea.Cmd {
 func TopCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.cursor = 0
-		//m.paginator.Page = 0
+		m.paginator.Page = 0
 		return nil
 	}
 }
@@ -199,7 +177,7 @@ func TopCmd(m *Model) tea.Cmd {
 func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.cursor = len(m.Items) - 1
-		//m.paginator.Page = m.paginator.TotalPages - 1
+		m.paginator.Page = m.paginator.TotalPages - 1
 		return nil
 	}
 }

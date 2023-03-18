@@ -12,10 +12,10 @@ const (
 )
 
 const (
-	Cursor           = "> "
+	Cursor           = "[x]"
 	Prompt           = "> "
-	SelectedPrefix   = "◉ "
-	UnselectedPrefix = "○ "
+	SelectedPrefix   = "[x]"
+	UnselectedPrefix = "[ ]"
 	CursorPrefix     = "○ "
 )
 

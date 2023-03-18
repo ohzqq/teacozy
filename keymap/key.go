@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type KeyMap []Binding
 type Binding struct {
 	key.Binding
 	opts []key.BindingOpt

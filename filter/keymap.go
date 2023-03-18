@@ -6,27 +6,35 @@ import (
 )
 
 func FilterKeyMap(m *Model) keymap.KeyMap {
-	//start, end := m.paginator.GetSliceBounds(len(m.Items))
-	return keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys("down", "ctrl+j"),
-			keymap.WithHelp("down/ctrl+j", "move cursor down"),
-			keymap.WithCmd(DownCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("up", "ctrl+k"),
-			keymap.WithHelp("up/ctrl+k", "move cursor up"),
-			keymap.WithCmd(UpCmd(m)),
-		),
-		keymap.NewBinding(
-			keymap.WithKeys("tab"),
-			keymap.WithHelp("tab", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
-		),
+	km := keymap.KeyMap{
 		keymap.NewBinding(
 			keymap.WithKeys("esc"),
 			keymap.WithHelp("esc", "stop filtering"),
 			keymap.WithCmd(StopFilteringCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("enter"),
+			keymap.WithHelp("enter", "return selections"),
+			keymap.WithCmd(StopFilteringCmd(m)),
+		),
+	}
+	for _, k := range sharedKeys(m) {
+		km = append(km, k)
+	}
+	return km
+}
+
+func sharedKeys(m *Model) keymap.KeyMap {
+	return keymap.KeyMap{
+		keymap.NewBinding(
+			keymap.WithKeys("down"),
+			keymap.WithHelp("down", "move cursor down"),
+			keymap.WithCmd(DownCmd(m)),
+		),
+		keymap.NewBinding(
+			keymap.WithKeys("up"),
+			keymap.WithHelp("up", "move cursor up"),
+			keymap.WithCmd(UpCmd(m)),
 		),
 		keymap.NewBinding(
 			keymap.WithKeys("ctrl+c"),
@@ -34,15 +42,15 @@ func FilterKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(tea.Quit),
 		),
 		keymap.NewBinding(
-			keymap.WithKeys("enter"),
-			keymap.WithHelp("enter", "return selections"),
-			keymap.WithCmd(EnterCmd(m)),
+			keymap.WithKeys("tab"),
+			keymap.WithHelp("tab", "select item"),
+			keymap.WithCmd(SelectItemCmd(m)),
 		),
 	}
 }
 
 func ListKeyMap(m *Model) keymap.KeyMap {
-	return keymap.KeyMap{
+	km := keymap.KeyMap{
 		keymap.NewBinding(
 			keymap.WithKeys("right", "l"),
 			keymap.WithHelp("right/l", "next page"),
@@ -69,18 +77,18 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(SelectItemCmd(m)),
 		),
 		keymap.NewBinding(
-			keymap.WithKeys("down", "j"),
-			keymap.WithHelp("down/j", "move cursor down"),
+			keymap.WithKeys("j"),
+			keymap.WithHelp("j", "move cursor down"),
 			keymap.WithCmd(DownCmd(m)),
 		),
 		keymap.NewBinding(
-			keymap.WithKeys("up", "k"),
-			keymap.WithHelp("up/k", "move cursor up"),
+			keymap.WithKeys("k"),
+			keymap.WithHelp("k", "move cursor up"),
 			keymap.WithCmd(UpCmd(m)),
 		),
 		keymap.NewBinding(
-			keymap.WithKeys("ctrl+c", "esc", "q"),
-			keymap.WithHelp("ctrl+c/esc/q", "quit"),
+			keymap.WithKeys("esc", "q"),
+			keymap.WithHelp("esc/q", "quit"),
 			keymap.WithCmd(tea.Quit),
 		),
 		keymap.NewBinding(
@@ -94,11 +102,6 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(FilterItemsCmd(m)),
 		),
 		keymap.NewBinding(
-			keymap.WithKeys("tab"),
-			keymap.WithHelp("tab", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
-		),
-		keymap.NewBinding(
 			keymap.WithKeys("G"),
 			keymap.WithHelp("G", "last item"),
 			keymap.WithCmd(BottomCmd(m)),
@@ -109,4 +112,8 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(TopCmd(m)),
 		),
 	}
+	for _, k := range sharedKeys(m) {
+		km = append(km, k)
+	}
+	return km
 }
