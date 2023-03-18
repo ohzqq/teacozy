@@ -347,6 +347,7 @@ func (m Model) View() string {
 		} else {
 			s.WriteString(m.ItemStyle.Render(m.UnselectedPrefix + item.Text))
 		}
+
 		if i != m.Height {
 			s.WriteRune('\n')
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -50,30 +51,71 @@ func New(o Options) *Model {
 	o.UnselectedPrefixStyle = style.UnselectedStyle
 	o.TextStyle = lipgloss.NewStyle().Foreground(color.Foreground)
 	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Pink)
-	model := Model{
-		Options:  o,
-		selected: make(map[string]struct{}),
+	tm := Model{
+		Options:     o,
+		selected:    make(map[int]struct{}),
+		FilterKeys:  FilterKeyMap,
+		ListKeys:    ListKeyMap,
+		filterState: Unfiltered,
 	}
-	return &model
+
+	tm.textinput = textinput.New()
+	//model.textinput.Focus()
+
+	tm.textinput.Prompt = o.Prompt
+	tm.textinput.PromptStyle = o.PromptStyle
+	tm.textinput.Placeholder = o.Placeholder
+	tm.textinput.Width = o.Width
+
+	w, h := util.TermSize()
+	if tm.Height == 0 {
+		tm.Height = h
+	}
+	if tm.Width == 0 {
+		tm.Width = w
+	}
+
+	v := viewport.New(tm.Width, tm.Height)
+	tm.viewport = &v
+
+	tm.Items = make([]Item, len(o.Choices))
+
+	for i, thing := range o.Choices {
+		//for k, option := range thing {
+		tm.Items[i] = Item{
+			Index:    i,
+			Text:     thing,
+			Selected: false,
+			Order:    i,
+		}
+		//}
+	}
+
+	if tm.Value != "" {
+		tm.textinput.SetValue(tm.Value)
+	}
+	switch {
+	case tm.Value != "" && tm.Fuzzy:
+		tm.matches = fuzzy.Find(tm.Value, tm.Choices)
+	case tm.Value != "" && !tm.Fuzzy:
+		tm.matches = exactMatches(tm.Value, tm.Items)
+	default:
+		tm.matches = matchAll(tm.Items)
+	}
+
+	if tm.NoLimit {
+		tm.Limit = len(tm.Choices)
+	}
+
+	return &tm
 }
 
 // Run provides a shell script interface for filtering through options, powered
 // by the textinput bubble.
 func (o Options) Run() error {
 	m := New(o)
-	m.textinput = textinput.New()
-	m.textinput.Focus()
-
-	m.textinput.Prompt = o.Prompt
-	m.textinput.PromptStyle = o.PromptStyle
-	m.textinput.Placeholder = o.Placeholder
-	m.textinput.Width = o.Width
-
-	v := viewport.New(o.Width, o.Height)
-	m.viewport = &v
-
 	if len(m.Choices) == 0 {
-		return errors.New("no options provided, see `gum filter --help`")
+		return errors.New("no options provided")
 	}
 
 	//options := []tea.ProgramOption{tea.WithOutput(os.Stderr)}
@@ -82,39 +124,22 @@ func (o Options) Run() error {
 		options = append(options, tea.WithAltScreen())
 	}
 
-	if m.Value != "" {
-		m.textinput.SetValue(m.Value)
-	}
-	switch {
-	case m.Value != "" && m.Fuzzy:
-		m.matches = fuzzy.Find(m.Value, m.Choices)
-	case m.Value != "" && !m.Fuzzy:
-		m.matches = exactMatches(m.Value, m.Choices)
-	default:
-		m.matches = matchAll(m.Choices)
-	}
-
-	if m.NoLimit {
-		m.Limit = len(m.Choices)
-	}
-
 	p := tea.NewProgram(m, options...)
 
 	tm, err := p.Run()
 	if err != nil {
 		return fmt.Errorf("unable to run filter: %w", err)
 	}
-	model := tm.(Model)
+	model := tm.(*Model)
 	if model.aborted {
 		return fmt.Errorf("aborted")
 	}
 
 	// allSelections contains values only if limit is greater
-	// than 1 or if flag --no-limit is passed, hence there is
-	// no need to further checks
+	// than 1
 	if len(model.selected) > 0 {
 		for k := range model.selected {
-			fmt.Println(k)
+			fmt.Println(model.Choices[k])
 		}
 	} else if len(model.matches) > model.cursor && model.cursor >= 0 {
 		fmt.Println(model.matches[model.cursor].Str)
