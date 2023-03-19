@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/keymap"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/slices"
@@ -29,8 +29,8 @@ type Model struct {
 	paginator             paginator.Model
 	matches               fuzzy.Matches
 	Items                 fuzzy.Matches
-	FilterKeys            func(m *Model) keymap.KeyMap
-	ListKeys              func(m *Model) keymap.KeyMap
+	FilterKeys            func(m *Model) keys.KeyMap
+	ListKeys              func(m *Model) keys.KeyMap
 	selected              map[int]struct{}
 	Choices               []string
 	Chosen                []string

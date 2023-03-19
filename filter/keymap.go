@@ -2,111 +2,111 @@ package filter
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/keymap"
+	"github.com/ohzqq/teacozy/keys"
 )
 
-func FilterKeyMap(m *Model) keymap.KeyMap {
-	km := keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys("esc"),
-			keymap.WithHelp("esc", "stop filtering"),
-			keymap.WithCmd(StopFilteringCmd(m)),
+func FilterKeyMap(m *Model) keys.KeyMap {
+	km := keys.KeyMap{
+		keys.NewBinding(
+			keys.WithKeys("esc"),
+			keys.WithHelp("esc", "stop filtering"),
+			keys.WithCmd(StopFilteringCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("enter"),
-			keymap.WithHelp("enter", "return selections"),
-			keymap.WithCmd(StopFilteringCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("enter"),
+			keys.WithHelp("enter", "return selections"),
+			keys.WithCmd(StopFilteringCmd(m)),
 		),
 	}
 	return km
 }
 
-func GlobalKeyMap(m *Model) keymap.KeyMap {
-	return keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys("down"),
-			keymap.WithHelp("down", "move cursor down"),
-			keymap.WithCmd(DownCmd(m)),
+func GlobalKeyMap(m *Model) keys.KeyMap {
+	return keys.KeyMap{
+		keys.NewBinding(
+			keys.WithKeys("down"),
+			keys.WithHelp("down", "move cursor down"),
+			keys.WithCmd(DownCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("up"),
-			keymap.WithHelp("up", "move cursor up"),
-			keymap.WithCmd(UpCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("up"),
+			keys.WithHelp("up", "move cursor up"),
+			keys.WithCmd(UpCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("ctrl+c"),
-			keymap.WithHelp("ctrl+c", "quit"),
-			keymap.WithCmd(tea.Quit),
+		keys.NewBinding(
+			keys.WithKeys("ctrl+c"),
+			keys.WithHelp("ctrl+c", "quit"),
+			keys.WithCmd(tea.Quit),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("tab"),
-			keymap.WithHelp("tab", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("tab"),
+			keys.WithHelp("tab", "select item"),
+			keys.WithCmd(SelectItemCmd(m)),
 		),
 	}
 }
 
-func ListKeyMap(m *Model) keymap.KeyMap {
-	km := keymap.KeyMap{
-		keymap.NewBinding(
-			keymap.WithKeys("right", "l"),
-			keymap.WithHelp("right/l", "next page"),
-			keymap.WithCmd(NextPageCmd(m)),
+func ListKeyMap(m *Model) keys.KeyMap {
+	km := keys.KeyMap{
+		keys.NewBinding(
+			keys.WithKeys("right", "l"),
+			keys.WithHelp("right/l", "next page"),
+			keys.WithCmd(NextPageCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("left", "h"),
-			keymap.WithHelp("left/h", "prev page"),
-			keymap.WithCmd(PrevPageCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("left", "h"),
+			keys.WithHelp("left/h", "prev page"),
+			keys.WithCmd(PrevPageCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("V"),
-			keymap.WithHelp("V", "deselect all"),
-			keymap.WithCmd(DeselectAllItemsCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("V"),
+			keys.WithHelp("V", "deselect all"),
+			keys.WithCmd(DeselectAllItemsCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("v"),
-			keymap.WithHelp("v", "select all"),
-			keymap.WithCmd(SelectAllItemsCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("v"),
+			keys.WithHelp("v", "select all"),
+			keys.WithCmd(SelectAllItemsCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys(" "),
-			keymap.WithHelp("space", "select item"),
-			keymap.WithCmd(SelectItemCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys(" "),
+			keys.WithHelp("space", "select item"),
+			keys.WithCmd(SelectItemCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("j"),
-			keymap.WithHelp("j", "move cursor down"),
-			keymap.WithCmd(DownCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("j"),
+			keys.WithHelp("j", "move cursor down"),
+			keys.WithCmd(DownCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("k"),
-			keymap.WithHelp("k", "move cursor up"),
-			keymap.WithCmd(UpCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("k"),
+			keys.WithHelp("k", "move cursor up"),
+			keys.WithCmd(UpCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("esc", "q"),
-			keymap.WithHelp("esc/q", "quit"),
-			keymap.WithCmd(tea.Quit),
+		keys.NewBinding(
+			keys.WithKeys("esc", "q"),
+			keys.WithHelp("esc/q", "quit"),
+			keys.WithCmd(tea.Quit),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("enter"),
-			keymap.WithHelp("enter", "return selections"),
-			keymap.WithCmd(EnterCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("enter"),
+			keys.WithHelp("enter", "return selections"),
+			keys.WithCmd(EnterCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("/"),
-			keymap.WithHelp("/", "filter items"),
-			keymap.WithCmd(FilterItemsCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("/"),
+			keys.WithHelp("/", "filter items"),
+			keys.WithCmd(FilterItemsCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("G"),
-			keymap.WithHelp("G", "last item"),
-			keymap.WithCmd(BottomCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("G"),
+			keys.WithHelp("G", "last item"),
+			keys.WithCmd(BottomCmd(m)),
 		),
-		keymap.NewBinding(
-			keymap.WithKeys("g"),
-			keymap.WithHelp("g", "first item"),
-			keymap.WithCmd(TopCmd(m)),
+		keys.NewBinding(
+			keys.WithKeys("g"),
+			keys.WithHelp("g", "first item"),
+			keys.WithCmd(TopCmd(m)),
 		),
 	}
 	return km
