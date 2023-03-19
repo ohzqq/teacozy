@@ -31,27 +31,31 @@ type Options struct {
 	PromptStyle           lipgloss.Style
 	Width                 int
 	Height                int
-	Choices               []string
 }
 
 func New(choices []string) *Model {
 	var o Options
-	o.Choices = choices
 	o.NoLimit = true
-	o.CursorPrefix = style.Cursor
-	o.CursorStyle = style.CursorStyle
-	o.Prompt = style.Prompt
-	o.PromptStyle = style.PromptStyle
+
+	o.Prompt = style.PromptPrefix
+	o.PromptStyle = style.Prompt
+
+	o.CursorPrefix = style.CursorPrefix
 	o.SelectedPrefix = style.SelectedPrefix
-	o.SelectedPrefixStyle = style.SelectedStyle
 	o.UnselectedPrefix = style.UnselectedPrefix
-	o.UnselectedPrefixStyle = style.UnselectedStyle
-	o.TextStyle = lipgloss.NewStyle().Foreground(color.Foreground)
-	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Pink)
-	o.Header = "x"
-	//o.Height = 4
+
+	o.CursorStyle = style.Cursor
+	o.SelectedPrefixStyle = style.Selected
+	o.UnselectedPrefixStyle = style.Unselected
+
+	o.TextStyle = style.Foreground
+	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan)
+	//o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Background).Background(color.Purple)
+	o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple)
+	o.Height = 4
 	tm := Model{
 		Options:     o,
+		Choices:     choices,
 		selected:    make(map[int]struct{}),
 		FilterKeys:  FilterKeyMap,
 		ListKeys:    ListKeyMap,
@@ -77,16 +81,8 @@ func New(choices []string) *Model {
 	v := viewport.New(tm.Width, tm.Height)
 	tm.viewport = &v
 
-	tm.Items = make([]Item, len(o.Choices))
-
-	for i, thing := range o.Choices {
-		tm.Items[i] = Item{
-			Index: i,
-			Text:  thing,
-		}
-	}
-
-	tm.matches = matchAll(tm.Items)
+	tm.Items = choicesToMatch(tm.Choices)
+	tm.matches = tm.Items
 
 	if tm.NoLimit {
 		tm.Limit = len(tm.Choices)
@@ -96,8 +92,8 @@ func New(choices []string) *Model {
 	pager.SetTotalPages((len(tm.Items) + tm.Height - 1) / tm.Height)
 	pager.PerPage = tm.Height
 	pager.Type = paginator.Dots
-	pager.ActiveDot = subduedStyle.Render("•")
-	pager.InactiveDot = verySubduedStyle.Render("•")
+	pager.ActiveDot = style.Subdued.Render("•")
+	pager.InactiveDot = style.VerySubdued.Render("•")
 
 	tm.paginator = pager
 	return &tm

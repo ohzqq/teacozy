@@ -52,14 +52,14 @@ func New(o Options) *Model {
 		KeyMap:    ListKeyMap,
 		textinput: filterIn,
 	}
-	tm.Cursor = style.Cursor
+	tm.Cursor = style.CursorPrefix
 	tm.SelectedPrefix = style.SelectedPrefix
 	tm.UnselectedPrefix = style.UnselectedPrefix
 	tm.CursorPrefix = style.CursorPrefix
 
-	tm.CursorStyle = style.CursorStyle
-	tm.ItemStyle = style.UnselectedStyle
-	tm.SelectedItemStyle = style.SelectedStyle
+	tm.CursorStyle = style.Cursor
+	tm.ItemStyle = style.Unselected
+	tm.SelectedItemStyle = style.Selected
 
 	w, h := util.TermSize()
 

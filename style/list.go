@@ -12,18 +12,22 @@ const (
 )
 
 const (
-	Cursor           = "[x]"
-	Prompt           = "> "
-	SelectedPrefix   = "[x]"
-	UnselectedPrefix = "[ ]"
-	CursorPrefix     = "○ "
+	CursorPrefix     = "x"
+	PromptPrefix     = "> "
+	SelectedPrefix   = "x"
+	UnselectedPrefix = " "
 )
 
-var PromptStyle = lipgloss.NewStyle().Foreground(color.Cyan)
-var CursorStyle = lipgloss.NewStyle().Foreground(color.Green)
-var UnselectedStyle = lipgloss.NewStyle().Foreground(color.Foreground)
-var SelectedStyle = lipgloss.NewStyle().Foreground(color.Grey)
-var CurrentStyle = lipgloss.NewStyle().Foreground(color.Grey)
+var (
+	Prompt      = lipgloss.NewStyle().Foreground(color.Cyan)
+	Cursor      = lipgloss.NewStyle().Foreground(color.Green)
+	Unselected  = lipgloss.NewStyle().Foreground(color.Foreground)
+	Selected    = lipgloss.NewStyle().Foreground(color.Grey)
+	Current     = lipgloss.NewStyle().Foreground(color.Grey)
+	Subdued     = lipgloss.NewStyle().Foreground(color.White)
+	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey)
+	Foreground  = lipgloss.NewStyle().Foreground(color.Foreground)
+)
 
 func ListStyles() list.Styles {
 	verySubduedColor := color.Grey

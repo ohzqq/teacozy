@@ -9,7 +9,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keymap"
+	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
+	"golang.org/x/exp/slices"
 )
 
 // FilterState describes the current filtering state on the model.
@@ -17,26 +19,21 @@ type FilterState int
 
 // Possible filter states.
 const (
-	Unfiltered    FilterState = iota // no filter set
-	Filtering                        // user is actively setting a filter
-	FilterApplied                    // a filter is applied and user is not editing filter
-)
-
-var (
-	subduedStyle     = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#847A85", Dark: "#979797"})
-	verySubduedStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"})
+	Unfiltered FilterState = iota // no filter set
+	Filtering                     // user is actively setting a filter
 )
 
 type Model struct {
 	textinput    textinput.Model
 	viewport     *viewport.Model
 	paginator    paginator.Model
-	matches      []fuzzy.Match
+	matches      fuzzy.Matches
 	cursor       int
-	Items        []Item
+	Items        fuzzy.Matches
 	FilterKeys   func(m *Model) keymap.KeyMap
 	ListKeys     func(m *Model) keymap.KeyMap
 	selected     map[int]struct{}
+	Choices      []string
 	Chosen       []string
 	numSelected  int
 	filterState  FilterState
@@ -44,11 +41,6 @@ type Model struct {
 	aborted      bool
 	quitting     bool
 	Options
-}
-
-type Item struct {
-	Index int
-	Text  string
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -105,7 +97,7 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 
 	// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
 	if m.textinput.Value() == "" {
-		m.matches = matchAll(m.Items)
+		m.matches = m.Items
 	}
 
 	return cmd
@@ -170,6 +162,10 @@ func (m *Model) ToggleSelection() {
 	}
 }
 
+func (m Model) ItemIndex(c string) int {
+	return slices.Index(m.Choices, c)
+}
+
 func (m Model) View() string {
 	switch m.filterState {
 	case Filtering:
@@ -183,73 +179,86 @@ func (m Model) UnfilteredView() string {
 	var s strings.Builder
 
 	start, end := m.paginator.GetSliceBounds(len(m.Items))
-	for i, item := range m.Items[start:end] {
-		if i == m.cursor%m.Height {
-			s.WriteString(m.CursorStyle.Render(m.CursorPrefix) + item.Text)
-		} else {
-			if _, ok := m.selected[item.Index]; ok {
-				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix) + item.Text)
-			} else if m.Limit > 1 {
-				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix) + item.Text)
-			}
-		}
+	items := m.renderItems(m.Items[start:end])
+	s.WriteString(items)
 
-		if i != m.Height {
-			s.WriteRune('\n')
-		}
-	}
-
+	var view string
 	if m.paginator.TotalPages <= 1 {
-		return s.String()
+		view = s.String()
 	}
 
 	s.WriteString(strings.Repeat("\n", m.Height-m.paginator.ItemsOnPage(len(m.Items))+1))
 	s.WriteString("  " + m.paginator.View())
 
-	header := m.HeaderStyle.Render(m.Header)
-	view := s.String()
-	return lipgloss.JoinVertical(lipgloss.Left, header, view)
+	view = s.String()
+
+	if m.Header != "" {
+		header := m.HeaderStyle.Render(m.Header + strings.Repeat(" ", m.Width))
+		return lipgloss.JoinVertical(lipgloss.Left, header, view)
+	}
+	return view
 }
 
 func (m Model) FilteringView() string {
-	if m.quitting {
-		return ""
-	}
-
 	var s strings.Builder
 
-	// Since there are matches, display them so that the user can see, in real
-	// time, what they are searching for.
-	for i := range m.matches {
-		match := m.matches[i]
+	items := m.renderItems(m.matches)
+	s.WriteString(items)
 
-		// If this is the current selected index, we add a small indicator to represent it. Otherwise, simply pad the string.
-		if i == m.cursor {
-			s.WriteString(m.CursorStyle.Render(m.CursorPrefix))
-		} else {
-			if _, ok := m.selected[match.Index]; ok {
-				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
-			} else if m.Limit > 1 {
-				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
+	m.viewport.SetContent(s.String())
+
+	view := m.textinput.View() + "\n" + m.viewport.View()
+	return view
+}
+
+func (m Model) renderItems(matches fuzzy.Matches) string {
+	var s strings.Builder
+	curPre := style.CursorPrefix
+	if m.Limit == 1 {
+		curPre = style.PromptPrefix
+	}
+	for i, match := range matches {
+		var isCur bool
+		switch {
+		case m.filterState == Unfiltered && i == m.cursor%m.Height:
+			fallthrough
+		case m.filterState == Filtering && i == m.cursor:
+			isCur = true
+		}
+
+		switch {
+		case m.Limit > 1:
+			s.WriteString("[")
+		case m.Limit == 1:
+			if !isCur {
+				s.WriteString(strings.Repeat(" ", lipgloss.Width(curPre)))
 			}
 		}
 
-		// For this match, there are a certain number of characters that have
-		// caused the match. i.e. fuzzy matching.
-		// We should indicate to the users which characters are being matched.
+		if isCur {
+			s.WriteString(m.CursorStyle.Render(curPre))
+		} else {
+			if _, ok := m.selected[match.Index]; ok {
+				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
+			} else if m.Limit > 1 && !isCur {
+				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
+			}
+		}
+		if m.Limit > 1 {
+			s.WriteString("]")
+		}
+
 		mi := 0
 		var buf strings.Builder
 		for ci, c := range match.Str {
-			// Check if the current character index matches the current matched
-			// index. If so, color the character to indicate a match.
+			// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
 			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
 				// Flush text buffer.
 				s.WriteString(m.TextStyle.Render(buf.String()))
 				buf.Reset()
 
 				s.WriteString(m.MatchStyle.Render(string(c)))
-				// We have matched this character, so we never have to check it
-				// again. Move on to the next match.
+				// We have matched this character, so we never have to check it again. Move on to the next match.
 				mi++
 			} else {
 				// Not a match, buffer a regular character.
@@ -259,45 +268,33 @@ func (m Model) FilteringView() string {
 		// Flush text buffer.
 		s.WriteString(m.TextStyle.Render(buf.String()))
 
-		// We have finished displaying the match with all of it's matched
-		// characters highlighted and the rest filled in.
-		// Move on to the next match.
+		// We have finished displaying the match with all of it's matched characters highlighted and the rest filled in. Move on to the next match.
 		s.WriteRune('\n')
 	}
 
-	m.viewport.SetContent(s.String())
-
-	// View the input and the filtered choices
-
-	view := m.textinput.View() + "\n" + m.viewport.View()
-	return view
+	return s.String()
 }
 
-func matchAll(options []Item) []fuzzy.Match {
-	matches := make([]fuzzy.Match, len(options))
+func choicesToMatch(options []string) fuzzy.Matches {
+	matches := make(fuzzy.Matches, len(options))
 	for i, option := range options {
-		matches[i] = fuzzy.Match{Str: option.Text, Index: i}
+		matches[i] = fuzzy.Match{Str: option, Index: i}
 	}
 	return matches
 }
 
-func exactMatches(search string, choices []Item) []fuzzy.Match {
+func exactMatches(search string, choices fuzzy.Matches) fuzzy.Matches {
 	matches := fuzzy.Matches{}
 	for _, choice := range choices {
 		search = strings.ToLower(search)
-		matchedString := strings.ToLower(choice.Text)
+		matchedString := strings.ToLower(choice.Str)
 
 		index := strings.Index(matchedString, search)
 		if index >= 0 {
-			matchedIndexes := []int{}
 			for s := range search {
-				matchedIndexes = append(matchedIndexes, index+s)
+				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
 			}
-			matches = append(matches, fuzzy.Match{
-				Str:            choice.Text,
-				Index:          choice.Index,
-				MatchedIndexes: matchedIndexes,
-			})
+			matches = append(matches, choice)
 		}
 	}
 
