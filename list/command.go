@@ -34,9 +34,9 @@ func New(choices []string) *Model {
 	tm.UnselectedPrefixStyle = style.Unselected
 
 	tm.TextStyle = style.Foreground
-	tm.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan)
+	tm.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan())
 	//o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Background).Background(color.Purple)
-	tm.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple)
+	tm.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple())
 	tm.Height = 4
 
 	tm.textinput = textinput.New()

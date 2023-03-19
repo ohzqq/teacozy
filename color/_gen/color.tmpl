@@ -3,18 +3,29 @@ package color
 
 import "github.com/charmbracelet/lipgloss"
 
-var (
+var color = Color{
 {{- range $var, $color := .}}
-	{{strings.ToLower $var}} = lipgloss.Color("{{$color}}")
+	{{$var}}: lipgloss.Color("{{$color}}"),
 {{- end}}
-)
+}
+
+func SetColors(c map[string]string) {
+	for color, val := range c {
+		switch color {
+		{{range $var, $color := . }}
+		case "{{strings.ToLower $var}}", "{{$var}}":
+			Set{{$var}}(val)
+		{{end}}
+		}
+	}
+}
 
 {{range $var, $color := . }}
 func {{$var}}() lipgloss.Color {
-	return {{strings.ToLower $var}}
+	return color.{{$var}}
 }
 
 func Set{{$var}}(c string) {
-	{{strings.ToLower $var}} = lipgloss.Color("{{$color}}")
+	color.{{$var}} = lipgloss.Color("{{$color}}")
 }
 {{end}}

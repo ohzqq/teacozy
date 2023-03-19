@@ -2,71 +2,19 @@ package color
 
 import "github.com/charmbracelet/lipgloss"
 
-// go:generate gomplate -f _gen/color.tmpl -o gen_color.go -c .=_gen/color.toml
+//go:generate gomplate -f _gen/color.tmpl -o gen_color.go -c .=_gen/color.toml
 
-var (
-	Fg     = lipgloss.Color("#FFBF00")
-	Bg     = lipgloss.Color("#262626")
-	Black  = lipgloss.Color("#262626")
-	Blue   = lipgloss.Color("#5FAFFF")
-	Cyan   = lipgloss.Color("#AFFFFF")
-	Green  = lipgloss.Color("#AFFFAF")
-	Grey   = lipgloss.Color("#626262")
-	Pink   = lipgloss.Color("#FFAFFF")
-	Purple = lipgloss.Color("#AFAFFF")
-	Red    = lipgloss.Color("#FF875F")
-	White  = lipgloss.Color("#EEEEEE")
-	Yellow = lipgloss.Color("#FFFFAF")
-)
-
-func SetColors(c map[string]string) {
-	for color, val := range c {
-		Set(color, val)
-	}
-}
-
-func Set(color, val string) {
-	switch color {
-	case "foreground":
-		Fg = lipgloss.Color(val)
-	case "background":
-		Bg = lipgloss.Color(val)
-	case "black":
-		Black = lipgloss.Color(val)
-	case "blue":
-		Blue = lipgloss.Color(val)
-	case "cyan":
-		Cyan = lipgloss.Color(val)
-	case "green":
-		Green = lipgloss.Color(val)
-	case "grey":
-		Grey = lipgloss.Color(val)
-	case "pink":
-		Pink = lipgloss.Color(val)
-	case "purple":
-		Purple = lipgloss.Color(val)
-	case "red":
-		Red = lipgloss.Color(val)
-	case "white":
-		White = lipgloss.Color(val)
-	case "yellow":
-		Yellow = lipgloss.Color(val)
-	}
-}
-
-func Colors() []string {
-	return []string{
-		"foreground",
-		"background",
-		"black",
-		"blue",
-		"cyan",
-		"green",
-		"grey",
-		"pink",
-		"purple",
-		"red",
-		"white",
-		"yellow",
-	}
+type Color struct {
+	Fg     lipgloss.Color
+	Bg     lipgloss.Color
+	Black  lipgloss.Color
+	Blue   lipgloss.Color
+	Cyan   lipgloss.Color
+	Green  lipgloss.Color
+	Grey   lipgloss.Color
+	Pink   lipgloss.Color
+	Purple lipgloss.Color
+	Red    lipgloss.Color
+	White  lipgloss.Color
+	Yellow lipgloss.Color
 }
