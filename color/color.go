@@ -2,6 +2,8 @@ package color
 
 import "github.com/charmbracelet/lipgloss"
 
+// go:generate gomplate -f _gen/color.tmpl -o gen_color.go -c .=_gen/color.toml
+
 var (
 	Foreground = lipgloss.Color("#FFBF00")
 	Background = lipgloss.Color("#262626")
