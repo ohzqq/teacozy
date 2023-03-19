@@ -9,10 +9,15 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func (m *Model) Style(s ListStyle) *Model {
-	m.ListStyle = s
+func (m *Model) Header(text string) *Model {
+	m.header = text
 	return m
 }
+
+//func (m *Model) Style(s ListStyle) *Model {
+//  m.ListStyle = s
+//  return m
+//}
 
 func (m *Model) Limit(l int) *Model {
 	m.limit = l
@@ -39,15 +44,15 @@ func (m *Model) SetSize(w, h int) *Model {
 	return m
 }
 
-func DefaultStyle() ListStyle {
-	var s ListStyle
-	s.CursorStyle = style.Cursor
-	s.SelectedPrefixStyle = style.Selected
-	s.UnselectedPrefixStyle = style.Unselected
-	s.TextStyle = style.Foreground
-	s.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan())
-	s.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple())
-	s.PromptStyle = style.Prompt
+func DefaultStyle() Style {
+	var s Style
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = style.Prompt
 	return s
 }
 

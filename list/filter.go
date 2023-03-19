@@ -41,25 +41,25 @@ type Model struct {
 	filterState      FilterState
 	aborted          bool
 	quitting         bool
-	CursorPrefix     string
-	SelectedPrefix   string
-	UnselectedPrefix string
-	Header           string
+	cursorPrefix     string
+	selectedPrefix   string
+	unselectedPrefix string
+	header           string
 	Placeholder      string
 	Prompt           string
 	width            int
 	height           int
-	ListStyle
+	Style            Style
 }
 
-type ListStyle struct {
-	SelectedPrefixStyle   lipgloss.Style
-	TextStyle             lipgloss.Style
-	MatchStyle            lipgloss.Style
-	CursorStyle           lipgloss.Style
-	UnselectedPrefixStyle lipgloss.Style
-	HeaderStyle           lipgloss.Style
-	PromptStyle           lipgloss.Style
+type Style struct {
+	SelectedPrefix   lipgloss.Style
+	Text             lipgloss.Style
+	Match            lipgloss.Style
+	Cursor           lipgloss.Style
+	UnselectedPrefix lipgloss.Style
+	Header           lipgloss.Style
+	Prompt           lipgloss.Style
 }
 
 func New(choices []string) *Model {
@@ -69,12 +69,12 @@ func New(choices []string) *Model {
 		FilterKeys:       FilterKeyMap,
 		ListKeys:         ListKeyMap,
 		filterState:      Unfiltered,
-		ListStyle:        DefaultStyle(),
+		Style:            DefaultStyle(),
 		limit:            1,
 		Prompt:           style.PromptPrefix,
-		CursorPrefix:     style.CursorPrefix,
-		SelectedPrefix:   style.SelectedPrefix,
-		UnselectedPrefix: style.UnselectedPrefix,
+		cursorPrefix:     style.CursorPrefix,
+		selectedPrefix:   style.SelectedPrefix,
+		unselectedPrefix: style.UnselectedPrefix,
 		height:           10,
 	}
 
@@ -94,7 +94,7 @@ func New(choices []string) *Model {
 func (m *Model) Run() []string {
 	m.textinput = textinput.New()
 	m.textinput.Prompt = m.Prompt
-	m.textinput.PromptStyle = m.PromptStyle
+	m.textinput.PromptStyle = m.Style.Prompt
 	m.textinput.Placeholder = m.Placeholder
 	m.textinput.Width = m.width
 
@@ -125,8 +125,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Make place in the view port if header is set
-		if m.Header != "" {
-			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.HeaderStyle.Render(m.Header))
+		if m.header != "" {
+			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
 		}
 		m.viewport.Width = msg.Width
 	case ReturnSelectionsMsg:
@@ -269,8 +269,8 @@ func (m Model) UnfilteredView() string {
 
 	view = s.String()
 
-	if m.Header != "" {
-		header := m.HeaderStyle.Render(m.Header + strings.Repeat(" ", m.width))
+	if m.header != "" {
+		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.width))
 		return lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
 	return view
@@ -313,12 +313,12 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 		}
 
 		if isCur {
-			s.WriteString(m.CursorStyle.Render(curPre))
+			s.WriteString(m.Style.Cursor.Render(curPre))
 		} else {
 			if _, ok := m.selected[match.Index]; ok {
-				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
+				s.WriteString(m.Style.SelectedPrefix.Render(m.selectedPrefix))
 			} else if m.limit > 1 && !isCur {
-				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
+				s.WriteString(m.Style.UnselectedPrefix.Render(m.unselectedPrefix))
 			}
 		}
 		if m.limit > 1 {
@@ -331,10 +331,10 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 			// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
 			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
 				// Flush text buffer.
-				s.WriteString(m.TextStyle.Render(buf.String()))
+				s.WriteString(m.Style.Text.Render(buf.String()))
 				buf.Reset()
 
-				s.WriteString(m.MatchStyle.Render(string(c)))
+				s.WriteString(m.Style.Match.Render(string(c)))
 				// We have matched this character, so we never have to check it again. Move on to the next match.
 				mi++
 			} else {
@@ -343,7 +343,7 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 			}
 		}
 		// Flush text buffer.
-		s.WriteString(m.TextStyle.Render(buf.String()))
+		s.WriteString(m.Style.Text.Render(buf.String()))
 
 		// We have finished displaying the match with all of it's matched characters highlighted and the rest filled in. Move on to the next match.
 		s.WriteRune('\n')
