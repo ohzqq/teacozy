@@ -18,13 +18,10 @@ func FilterKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithCmd(StopFilteringCmd(m)),
 		),
 	}
-	for _, k := range sharedKeys(m) {
-		km = append(km, k)
-	}
 	return km
 }
 
-func sharedKeys(m *Model) keymap.KeyMap {
+func GlobalKeyMap(m *Model) keymap.KeyMap {
 	return keymap.KeyMap{
 		keymap.NewBinding(
 			keymap.WithKeys("down"),
@@ -111,9 +108,6 @@ func ListKeyMap(m *Model) keymap.KeyMap {
 			keymap.WithHelp("g", "first item"),
 			keymap.WithCmd(TopCmd(m)),
 		),
-	}
-	for _, k := range sharedKeys(m) {
-		km = append(km, k)
 	}
 	return km
 }

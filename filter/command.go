@@ -12,63 +12,40 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// Options is the customization options for the filter command.
-type Options struct {
-	CursorPrefix          string
-	CursorStyle           lipgloss.Style
-	Limit                 int
-	NoLimit               bool
-	SelectedPrefix        string
-	SelectedPrefixStyle   lipgloss.Style
-	UnselectedPrefix      string
-	UnselectedPrefixStyle lipgloss.Style
-	HeaderStyle           lipgloss.Style
-	Header                string
-	TextStyle             lipgloss.Style
-	MatchStyle            lipgloss.Style
-	Placeholder           string
-	Prompt                string
-	PromptStyle           lipgloss.Style
-	Width                 int
-	Height                int
-}
-
 func New(choices []string) *Model {
-	var o Options
-	o.NoLimit = true
-
-	o.Prompt = style.PromptPrefix
-	o.PromptStyle = style.Prompt
-
-	o.CursorPrefix = style.CursorPrefix
-	o.SelectedPrefix = style.SelectedPrefix
-	o.UnselectedPrefix = style.UnselectedPrefix
-
-	o.CursorStyle = style.Cursor
-	o.SelectedPrefixStyle = style.Selected
-	o.UnselectedPrefixStyle = style.Unselected
-
-	o.TextStyle = style.Foreground
-	o.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan)
-	//o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Background).Background(color.Purple)
-	o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple)
-	o.Height = 4
 	tm := Model{
-		Options:     o,
 		Choices:     choices,
 		selected:    make(map[int]struct{}),
 		FilterKeys:  FilterKeyMap,
 		ListKeys:    ListKeyMap,
 		filterState: Unfiltered,
 	}
+	tm.NoLimit = true
+
+	tm.Prompt = style.PromptPrefix
+	tm.PromptStyle = style.Prompt
+
+	tm.CursorPrefix = style.CursorPrefix
+	tm.SelectedPrefix = style.SelectedPrefix
+	tm.UnselectedPrefix = style.UnselectedPrefix
+
+	tm.CursorStyle = style.Cursor
+	tm.SelectedPrefixStyle = style.Selected
+	tm.UnselectedPrefixStyle = style.Unselected
+
+	tm.TextStyle = style.Foreground
+	tm.MatchStyle = lipgloss.NewStyle().Foreground(color.Cyan)
+	//o.HeaderStyle = lipgloss.NewStyle().Foreground(color.Background).Background(color.Purple)
+	tm.HeaderStyle = lipgloss.NewStyle().Foreground(color.Purple)
+	tm.Height = 4
 
 	tm.textinput = textinput.New()
 	//model.textinput.Focus()
 
-	tm.textinput.Prompt = o.Prompt
-	tm.textinput.PromptStyle = o.PromptStyle
-	tm.textinput.Placeholder = o.Placeholder
-	tm.textinput.Width = o.Width
+	tm.textinput.Prompt = tm.Prompt
+	tm.textinput.PromptStyle = tm.PromptStyle
+	tm.textinput.Placeholder = tm.Placeholder
+	tm.textinput.Width = tm.Width
 
 	w, h := util.TermSize()
 	if tm.Height == 0 {

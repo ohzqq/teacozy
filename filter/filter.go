@@ -24,23 +24,38 @@ const (
 )
 
 type Model struct {
-	textinput    textinput.Model
-	viewport     *viewport.Model
-	paginator    paginator.Model
-	matches      fuzzy.Matches
-	cursor       int
-	Items        fuzzy.Matches
-	FilterKeys   func(m *Model) keymap.KeyMap
-	ListKeys     func(m *Model) keymap.KeyMap
-	selected     map[int]struct{}
-	Choices      []string
-	Chosen       []string
-	numSelected  int
-	filterState  FilterState
-	currentOrder int
-	aborted      bool
-	quitting     bool
-	Options
+	textinput             textinput.Model
+	viewport              *viewport.Model
+	paginator             paginator.Model
+	matches               fuzzy.Matches
+	Items                 fuzzy.Matches
+	FilterKeys            func(m *Model) keymap.KeyMap
+	ListKeys              func(m *Model) keymap.KeyMap
+	selected              map[int]struct{}
+	Choices               []string
+	Chosen                []string
+	numSelected           int
+	cursor                int
+	filterState           FilterState
+	aborted               bool
+	quitting              bool
+	CursorPrefix          string
+	CursorStyle           lipgloss.Style
+	Limit                 int
+	NoLimit               bool
+	SelectedPrefix        string
+	SelectedPrefixStyle   lipgloss.Style
+	UnselectedPrefix      string
+	UnselectedPrefixStyle lipgloss.Style
+	HeaderStyle           lipgloss.Style
+	Header                string
+	TextStyle             lipgloss.Style
+	MatchStyle            lipgloss.Style
+	Placeholder           string
+	Prompt                string
+	PromptStyle           lipgloss.Style
+	Width                 int
+	Height                int
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -62,6 +77,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
+		for _, k := range GlobalKeyMap(m) {
+			if k.Matches(msg) {
+				cmd = k.Cmd
+				cmds = append(cmds, cmd)
+			}
+		}
 		switch m.filterState {
 		case Unfiltered:
 			for _, k := range m.ListKeys(m) {
