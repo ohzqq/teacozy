@@ -5,6 +5,16 @@ import "github.com/charmbracelet/lipgloss"
 
 var (
 {{- range $var, $color := .}}
-	{{$var}} = lipgloss.Color("{{$color}}")
+	{{strings.ToLower $var}} = lipgloss.Color("{{$color}}")
 {{- end}}
 )
+
+{{range $var, $color := . }}
+func {{$var}}() lipgloss.Color {
+	return {{strings.ToLower $var}}
+}
+
+func Set{{$var}}(c string) {
+	{{strings.ToLower $var}} = lipgloss.Color("{{$color}}")
+}
+{{end}}
