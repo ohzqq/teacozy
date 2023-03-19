@@ -1,123 +1,183 @@
 package list
 
 import (
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/style"
+	"golang.org/x/exp/maps"
 )
 
-// list commands
+func (m *Model) Header(text string) *Model {
+	m.header = text
+	return m
+}
+
+func (m *Model) SetStyle(s style.List) *Model {
+	m.Style = s
+	return m
+}
+
+func (m *Model) Limit(l int) *Model {
+	m.limit = l
+	return m
+}
+
+func (m *Model) NoLimit() *Model {
+	return m.Limit(len(m.Choices))
+}
+
+func (m *Model) Height(h int) *Model {
+	m.height = h
+	return m
+}
+
+func (m *Model) Width(w int) *Model {
+	m.width = w
+	return m
+}
+
+func (m *Model) SetSize(w, h int) *Model {
+	m.Width(w)
+	m.Height(h)
+	return m
+}
+
+func DefaultStyle() style.List {
+	var s style.List
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = style.Prompt
+	return s
+}
+
+func FilterItemsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.filterState = Filtering
+		m.textinput.Focus()
+		return textinput.Blink()
+	}
+}
+
+func StopFilteringCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.filterState = Unfiltered
+		m.textinput.Reset()
+		m.textinput.Blur()
+		return nil
+	}
+}
+
+func (m Model) Chosen() []string {
+	var chosen []string
+	if len(m.selected) > 0 {
+		for k := range m.selected {
+			chosen = append(chosen, m.Choices[k])
+		}
+	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+		chosen = append(chosen, m.matches[m.cursor].Str)
+	}
+	return chosen
+}
+
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd() tea.Cmd {
+func ReturnSelectionsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
 	}
 }
 
-type ExitSelectionsListMsg struct{}
-
-func (m *List) ExitSelectionsListCmd() tea.Cmd {
+func SelectItemCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.SelectionList = false
-		return ExitSelectionsListMsg{}
+		if m.limit == 1 {
+			return nil
+		}
+		m.ToggleSelection()
+		return nil
 	}
 }
 
-func ToggleAllItemsCmd(l *List) {
-	l.Items.ToggleAllSelectedItems()
-}
-
-type UpdateVisibleItemsMsg string
-
-func UpdateVisibleItemsCmd(opt string) tea.Cmd {
+func UpCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateVisibleItemsMsg(opt)
+		m.CursorUp()
+		return nil
 	}
 }
 
-func (m *List) ShowVisibleItemsCmd() tea.Cmd {
+func DownCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateVisibleItemsMsg("visible")
+		m.CursorDown()
+		return nil
 	}
 }
 
-func (m *List) ShowSelectedItemsCmd() tea.Cmd {
+func TopCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateVisibleItemsMsg("selected")
+		m.cursor = 0
+		m.paginator.Page = 0
+		return nil
 	}
 }
 
-type UpdateStatusMsg struct{ Msg string }
-
-func UpdateStatusCmd(status string) tea.Cmd {
+func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateStatusMsg{Msg: status}
+		m.cursor = len(m.items) - 1
+		m.paginator.Page = m.paginator.TotalPages - 1
+		return nil
 	}
 }
 
-type SortItemsMsg struct{ Items []*Item }
-
-func SortItemsCmd(items []*Item) tea.Cmd {
+func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return SortItemsMsg{Items: items}
+		m.cursor = clamp(0, len(m.items)-1, m.cursor+m.height)
+		m.paginator.NextPage()
+		return nil
 	}
 }
 
-type SetListItemMsg struct {
-	Item list.Item
-}
-
-func SetListItemCmd(item list.Item) tea.Cmd {
+func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return SetListItemMsg{Item: item}
+		m.cursor = clamp(0, len(m.items)-1, m.cursor-m.height)
+		m.paginator.PrevPage()
+		return nil
 	}
 }
 
-type SetItemMsg struct{ *Item }
-
-func SetItemCmd(item *Item) tea.Cmd {
+func SelectAllItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return SetItemMsg{Item: item}
+		if m.limit <= 1 {
+			return nil
+		}
+		for i := range m.matches {
+			if m.numSelected >= m.limit {
+				break // do not exceed given limit
+			}
+			if _, ok := m.selected[i]; ok {
+				continue
+			} else {
+				m.selected[m.matches[i].Index] = struct{}{}
+				m.numSelected++
+			}
+		}
+		return nil
 	}
 }
 
-type SetItemsMsg struct{ Items []list.Item }
-
-func SetItemsCmd(items []list.Item) tea.Cmd {
+func DeselectAllItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		return SetItemsMsg{Items: items}
-	}
-}
+		if m.limit <= 1 {
+			return nil
+		}
 
-// item commands
-type ToggleItemChildrenMsg struct{ *Item }
+		maps.Clear(m.selected)
+		m.numSelected = 0
 
-func ToggleItemChildrenCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return ToggleItemChildrenMsg{Item: item}
-	}
-}
-
-type ToggleSelectedItemMsg struct{ *Item }
-
-func ToggleSelectedItemCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return ToggleSelectedItemMsg{Item: item}
-	}
-}
-
-type ShowItemInfoMsg struct{ *Item }
-
-func ShowItemInfoCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return ShowItemInfoMsg{Item: item}
-	}
-}
-
-type EditItemValueMsg struct{ *Item }
-
-func EditItemValueCmd(item *Item) tea.Cmd {
-	return func() tea.Msg {
-		return EditItemValueMsg{Item: item}
+		return nil
 	}
 }
