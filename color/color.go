@@ -2,6 +2,21 @@ package color
 
 import "github.com/charmbracelet/lipgloss"
 
+var (
+	Foreground = lipgloss.Color("#FFBF00")
+	Background = lipgloss.Color("#262626")
+	Black      = lipgloss.Color("#262626")
+	Blue       = lipgloss.Color("#5FAFFF")
+	Cyan       = lipgloss.Color("#AFFFFF")
+	Green      = lipgloss.Color("#AFFFAF")
+	Grey       = lipgloss.Color("#626262")
+	Pink       = lipgloss.Color("#FFAFFF")
+	Purple     = lipgloss.Color("#AFAFFF")
+	Red        = lipgloss.Color("#FF875F")
+	White      = lipgloss.Color("#EEEEEE")
+	Yellow     = lipgloss.Color("#FFFFAF")
+)
+
 func SetColors(c map[string]string) {
 	for color, val := range c {
 		Set(color, val)
@@ -53,18 +68,3 @@ func Colors() []string {
 		"yellow",
 	}
 }
-
-var (
-	Foreground = lipgloss.Color("#FFBF00")
-	Background = lipgloss.Color("#262626")
-	Black      = lipgloss.Color("#262626")
-	Blue       = lipgloss.Color("#5FAFFF")
-	Cyan       = lipgloss.Color("#AFFFFF")
-	Green      = lipgloss.Color("#AFFFAF")
-	Grey       = lipgloss.Color("#626262")
-	Pink       = lipgloss.Color("#FFAFFF")
-	Purple     = lipgloss.Color("#AFAFFF")
-	Red        = lipgloss.Color("#FF875F")
-	White      = lipgloss.Color("#EEEEEE")
-	Yellow     = lipgloss.Color("#FFFFAF")
-)
