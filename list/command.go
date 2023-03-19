@@ -1,4 +1,4 @@
-package filter
+package list
 
 import (
 	"github.com/charmbracelet/bubbles/paginator"
