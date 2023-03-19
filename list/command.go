@@ -14,10 +14,10 @@ func (m *Model) Header(text string) *Model {
 	return m
 }
 
-//func (m *Model) Style(s ListStyle) *Model {
-//  m.ListStyle = s
-//  return m
-//}
+func (m *Model) SetStyle(s style.List) *Model {
+	m.Style = s
+	return m
+}
 
 func (m *Model) Limit(l int) *Model {
 	m.limit = l
@@ -44,8 +44,8 @@ func (m *Model) SetSize(w, h int) *Model {
 	return m
 }
 
-func DefaultStyle() Style {
-	var s Style
+func DefaultStyle() style.List {
+	var s style.List
 	s.Cursor = style.Cursor
 	s.SelectedPrefix = style.Selected
 	s.UnselectedPrefix = style.Unselected

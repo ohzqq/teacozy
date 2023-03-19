@@ -27,3 +27,13 @@ var (
 	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey())
 	Foreground  = lipgloss.NewStyle().Foreground(color.Fg())
 )
+
+type List struct {
+	SelectedPrefix   lipgloss.Style
+	Text             lipgloss.Style
+	Match            lipgloss.Style
+	Cursor           lipgloss.Style
+	UnselectedPrefix lipgloss.Style
+	Header           lipgloss.Style
+	Prompt           lipgloss.Style
+}

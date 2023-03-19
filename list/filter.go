@@ -49,17 +49,7 @@ type Model struct {
 	Prompt           string
 	width            int
 	height           int
-	Style            Style
-}
-
-type Style struct {
-	SelectedPrefix   lipgloss.Style
-	Text             lipgloss.Style
-	Match            lipgloss.Style
-	Cursor           lipgloss.Style
-	UnselectedPrefix lipgloss.Style
-	Header           lipgloss.Style
-	Prompt           lipgloss.Style
+	Style            style.List
 }
 
 func New(choices []string) *Model {
@@ -105,8 +95,8 @@ func (m *Model) Run() []string {
 	m.paginator.SetTotalPages((len(m.items) + m.height - 1) / m.height)
 	m.paginator.PerPage = m.height
 	m.paginator.Type = paginator.Dots
-	m.paginator.ActiveDot = style.Subdued.Render("•")
-	m.paginator.InactiveDot = style.VerySubdued.Render("•")
+	m.paginator.ActiveDot = style.Subdued.Render(style.Bullet)
+	m.paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
 
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
