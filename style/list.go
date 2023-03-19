@@ -21,12 +21,12 @@ const (
 var (
 	Prompt      = lipgloss.NewStyle().Foreground(color.Cyan)
 	Cursor      = lipgloss.NewStyle().Foreground(color.Green)
-	Unselected  = lipgloss.NewStyle().Foreground(color.Foreground)
+	Unselected  = lipgloss.NewStyle().Foreground(color.Fg)
 	Selected    = lipgloss.NewStyle().Foreground(color.Grey)
 	Current     = lipgloss.NewStyle().Foreground(color.Grey)
 	Subdued     = lipgloss.NewStyle().Foreground(color.White)
 	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey)
-	Foreground  = lipgloss.NewStyle().Foreground(color.Foreground)
+	Foreground  = lipgloss.NewStyle().Foreground(color.Fg)
 )
 
 func ListStyles() list.Styles {

@@ -4,7 +4,7 @@ package color
 import "github.com/charmbracelet/lipgloss"
 
 var (
-{{- for $var, $color := range .}}
+{{- range $var, $color := .}}
 	{{$var}} = lipgloss.Color("{{$color}}")
 {{- end}}
 )

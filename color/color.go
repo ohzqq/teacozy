@@ -5,18 +5,18 @@ import "github.com/charmbracelet/lipgloss"
 // go:generate gomplate -f _gen/color.tmpl -o gen_color.go -c .=_gen/color.toml
 
 var (
-	Foreground = lipgloss.Color("#FFBF00")
-	Background = lipgloss.Color("#262626")
-	Black      = lipgloss.Color("#262626")
-	Blue       = lipgloss.Color("#5FAFFF")
-	Cyan       = lipgloss.Color("#AFFFFF")
-	Green      = lipgloss.Color("#AFFFAF")
-	Grey       = lipgloss.Color("#626262")
-	Pink       = lipgloss.Color("#FFAFFF")
-	Purple     = lipgloss.Color("#AFAFFF")
-	Red        = lipgloss.Color("#FF875F")
-	White      = lipgloss.Color("#EEEEEE")
-	Yellow     = lipgloss.Color("#FFFFAF")
+	Fg     = lipgloss.Color("#FFBF00")
+	Bg     = lipgloss.Color("#262626")
+	Black  = lipgloss.Color("#262626")
+	Blue   = lipgloss.Color("#5FAFFF")
+	Cyan   = lipgloss.Color("#AFFFFF")
+	Green  = lipgloss.Color("#AFFFAF")
+	Grey   = lipgloss.Color("#626262")
+	Pink   = lipgloss.Color("#FFAFFF")
+	Purple = lipgloss.Color("#AFAFFF")
+	Red    = lipgloss.Color("#FF875F")
+	White  = lipgloss.Color("#EEEEEE")
+	Yellow = lipgloss.Color("#FFFFAF")
 )
 
 func SetColors(c map[string]string) {
@@ -28,9 +28,9 @@ func SetColors(c map[string]string) {
 func Set(color, val string) {
 	switch color {
 	case "foreground":
-		Foreground = lipgloss.Color(val)
+		Fg = lipgloss.Color(val)
 	case "background":
-		Background = lipgloss.Color(val)
+		Bg = lipgloss.Color(val)
 	case "black":
 		Black = lipgloss.Color(val)
 	case "blue":
