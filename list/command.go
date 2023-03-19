@@ -73,14 +73,14 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 	}
 }
 
-func (m Model) Chosen() []string {
-	var chosen []string
+func (m Model) Chosen() []int {
+	var chosen []int
 	if len(m.selected) > 0 {
 		for k := range m.selected {
-			chosen = append(chosen, m.Choices[k])
+			chosen = append(chosen, k)
 		}
 	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
-		chosen = append(chosen, m.matches[m.cursor].Str)
+		chosen = append(chosen, m.cursor)
 	}
 	return chosen
 }

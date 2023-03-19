@@ -81,7 +81,7 @@ func New(choices []string) *Model {
 	return &tm
 }
 
-func (m *Model) Run() []string {
+func (m *Model) Run() []int {
 	m.textinput = textinput.New()
 	m.textinput.Prompt = m.Prompt
 	m.textinput.PromptStyle = m.Style.Prompt
