@@ -91,7 +91,7 @@ func ListKeyMap(m *Model) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("enter"),
 			keys.WithHelp("enter", "return selections"),
-			keys.WithCmd(EnterCmd(m)),
+			keys.WithCmd(ReturnSelectionsCmd(m)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("/"),

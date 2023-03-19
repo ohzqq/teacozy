@@ -1,6 +1,7 @@
 package list
 
 import (
+	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/slices"
 )
@@ -24,38 +26,93 @@ const (
 )
 
 type Model struct {
-	textinput             textinput.Model
-	viewport              *viewport.Model
-	paginator             paginator.Model
-	matches               fuzzy.Matches
-	Items                 fuzzy.Matches
-	FilterKeys            func(m *Model) keys.KeyMap
-	ListKeys              func(m *Model) keys.KeyMap
-	selected              map[int]struct{}
-	Choices               []string
-	Chosen                []string
-	numSelected           int
-	cursor                int
-	filterState           FilterState
-	aborted               bool
-	quitting              bool
-	CursorPrefix          string
-	CursorStyle           lipgloss.Style
-	Limit                 int
-	NoLimit               bool
-	SelectedPrefix        string
+	Choices          []string
+	textinput        textinput.Model
+	viewport         *viewport.Model
+	paginator        paginator.Model
+	matches          fuzzy.Matches
+	items            fuzzy.Matches
+	FilterKeys       func(m *Model) keys.KeyMap
+	ListKeys         func(m *Model) keys.KeyMap
+	selected         map[int]struct{}
+	numSelected      int
+	cursor           int
+	limit            int
+	filterState      FilterState
+	aborted          bool
+	quitting         bool
+	CursorPrefix     string
+	SelectedPrefix   string
+	UnselectedPrefix string
+	Header           string
+	Placeholder      string
+	Prompt           string
+	width            int
+	height           int
+	ListStyle
+}
+
+type ListStyle struct {
 	SelectedPrefixStyle   lipgloss.Style
-	UnselectedPrefix      string
-	UnselectedPrefixStyle lipgloss.Style
-	HeaderStyle           lipgloss.Style
-	Header                string
 	TextStyle             lipgloss.Style
 	MatchStyle            lipgloss.Style
-	Placeholder           string
-	Prompt                string
+	CursorStyle           lipgloss.Style
+	UnselectedPrefixStyle lipgloss.Style
+	HeaderStyle           lipgloss.Style
 	PromptStyle           lipgloss.Style
-	Width                 int
-	Height                int
+}
+
+func New(choices []string) *Model {
+	tm := Model{
+		Choices:          choices,
+		selected:         make(map[int]struct{}),
+		FilterKeys:       FilterKeyMap,
+		ListKeys:         ListKeyMap,
+		filterState:      Unfiltered,
+		ListStyle:        DefaultStyle(),
+		limit:            1,
+		Prompt:           style.PromptPrefix,
+		CursorPrefix:     style.CursorPrefix,
+		SelectedPrefix:   style.SelectedPrefix,
+		UnselectedPrefix: style.UnselectedPrefix,
+		height:           10,
+	}
+
+	w, h := util.TermSize()
+	if tm.height == 0 {
+		tm.height = h - 4
+	}
+	if tm.width == 0 {
+		tm.width = w
+	}
+	tm.items = choicesToMatch(tm.Choices)
+	tm.matches = tm.items
+
+	return &tm
+}
+
+func (m *Model) Run() []string {
+	m.textinput = textinput.New()
+	m.textinput.Prompt = m.Prompt
+	m.textinput.PromptStyle = m.PromptStyle
+	m.textinput.Placeholder = m.Placeholder
+	m.textinput.Width = m.width
+
+	v := viewport.New(m.width, m.height)
+	m.viewport = &v
+
+	m.paginator = paginator.New()
+	m.paginator.SetTotalPages((len(m.items) + m.height - 1) / m.height)
+	m.paginator.PerPage = m.height
+	m.paginator.Type = paginator.Dots
+	m.paginator.ActiveDot = style.Subdued.Render("•")
+	m.paginator.InactiveDot = style.VerySubdued.Render("•")
+
+	p := tea.NewProgram(m)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
+	return m.Chosen()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -63,7 +120,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.Height == 0 || m.Height > msg.Height {
+		if m.height == 0 || m.height > msg.Height {
 			m.viewport.Height = msg.Height - lipgloss.Height(m.textinput.View())
 		}
 
@@ -73,7 +130,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.viewport.Width = msg.Width
 	case ReturnSelectionsMsg:
-		m.Chosen = msg.choices
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
@@ -114,23 +170,23 @@ func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.textinput, cmd = m.textinput.Update(msg)
 
-	m.matches = exactMatches(m.textinput.Value(), m.Items)
+	m.matches = exactMatches(m.textinput.Value(), m.items)
 
 	// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
 	if m.textinput.Value() == "" {
-		m.matches = m.Items
+		m.matches = m.items
 	}
 
 	return cmd
 }
 
 func (m *Model) CursorUp() {
-	start, _ := m.paginator.GetSliceBounds(len(m.Items))
+	start, _ := m.paginator.GetSliceBounds(len(m.items))
 	switch m.filterState {
 	case Unfiltered:
 		m.cursor--
 		if m.cursor < 0 {
-			m.cursor = len(m.Items) - 1
+			m.cursor = len(m.items) - 1
 			m.paginator.Page = m.paginator.TotalPages - 1
 		}
 		if m.cursor < start {
@@ -145,11 +201,11 @@ func (m *Model) CursorUp() {
 }
 
 func (m *Model) CursorDown() {
-	_, end := m.paginator.GetSliceBounds(len(m.Items))
+	_, end := m.paginator.GetSliceBounds(len(m.items))
 	switch m.filterState {
 	case Unfiltered:
 		m.cursor++
-		if m.cursor >= len(m.Items) {
+		if m.cursor >= len(m.items) {
 			m.cursor = 0
 			m.paginator.Page = 0
 		}
@@ -168,7 +224,7 @@ func (m *Model) ToggleSelection() {
 	var idx int
 	switch m.filterState {
 	case Unfiltered:
-		idx = m.Items[m.cursor].Index
+		idx = m.items[m.cursor].Index
 	case Filtering:
 		idx = m.matches[m.cursor].Index
 	}
@@ -176,7 +232,7 @@ func (m *Model) ToggleSelection() {
 		delete(m.selected, idx)
 		m.numSelected--
 		m.CursorDown()
-	} else if m.numSelected < m.Limit {
+	} else if m.numSelected < m.limit {
 		m.selected[idx] = struct{}{}
 		m.numSelected++
 		m.CursorDown()
@@ -199,22 +255,22 @@ func (m Model) View() string {
 func (m Model) UnfilteredView() string {
 	var s strings.Builder
 
-	start, end := m.paginator.GetSliceBounds(len(m.Items))
-	items := m.renderItems(m.Items[start:end])
+	start, end := m.paginator.GetSliceBounds(len(m.items))
+	items := m.renderItems(m.items[start:end])
 	s.WriteString(items)
 
 	var view string
 	if m.paginator.TotalPages <= 1 {
 		view = s.String()
+	} else if m.paginator.TotalPages > 1 {
+		s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
+		s.WriteString("  " + m.paginator.View())
 	}
-
-	s.WriteString(strings.Repeat("\n", m.Height-m.paginator.ItemsOnPage(len(m.Items))+1))
-	s.WriteString("  " + m.paginator.View())
 
 	view = s.String()
 
 	if m.Header != "" {
-		header := m.HeaderStyle.Render(m.Header + strings.Repeat(" ", m.Width))
+		header := m.HeaderStyle.Render(m.Header + strings.Repeat(" ", m.width))
 		return lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
 	return view
@@ -235,22 +291,22 @@ func (m Model) FilteringView() string {
 func (m Model) renderItems(matches fuzzy.Matches) string {
 	var s strings.Builder
 	curPre := style.CursorPrefix
-	if m.Limit == 1 {
+	if m.limit == 1 {
 		curPre = style.PromptPrefix
 	}
 	for i, match := range matches {
 		var isCur bool
 		switch {
-		case m.filterState == Unfiltered && i == m.cursor%m.Height:
+		case m.filterState == Unfiltered && i == m.cursor%m.height:
 			fallthrough
 		case m.filterState == Filtering && i == m.cursor:
 			isCur = true
 		}
 
 		switch {
-		case m.Limit > 1:
+		case m.limit > 1:
 			s.WriteString("[")
-		case m.Limit == 1:
+		case m.limit == 1:
 			if !isCur {
 				s.WriteString(strings.Repeat(" ", lipgloss.Width(curPre)))
 			}
@@ -261,11 +317,11 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 		} else {
 			if _, ok := m.selected[match.Index]; ok {
 				s.WriteString(m.SelectedPrefixStyle.Render(m.SelectedPrefix))
-			} else if m.Limit > 1 && !isCur {
+			} else if m.limit > 1 && !isCur {
 				s.WriteString(m.UnselectedPrefixStyle.Render(m.UnselectedPrefix))
 			}
 		}
-		if m.Limit > 1 {
+		if m.limit > 1 {
 			s.WriteString("]")
 		}
 
