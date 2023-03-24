@@ -1,7 +1,6 @@
 package list
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -36,7 +35,7 @@ func GlobalKeyMap(m *Model) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("ctrl+c"),
 			keys.WithHelp("ctrl+c", "quit"),
-			keys.WithCmd(tea.Quit),
+			keys.WithCmd(QuitCmd(m)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("tab"),
@@ -86,7 +85,7 @@ func ListKeyMap(m *Model) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("esc", "q"),
 			keys.WithHelp("esc/q", "quit"),
-			keys.WithCmd(tea.Quit),
+			keys.WithCmd(QuitCmd(m)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("enter"),

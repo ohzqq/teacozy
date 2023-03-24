@@ -9,6 +9,20 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+func (m Model) Chosen() []int {
+	var chosen []int
+	if m.quitting {
+		return chosen
+	} else if len(m.selected) > 0 {
+		for k := range m.selected {
+			chosen = append(chosen, k)
+		}
+	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+		chosen = append(chosen, m.cursor)
+	}
+	return chosen
+}
+
 func (m *Model) Header(text string) *Model {
 	m.header = text
 	return m
@@ -56,6 +70,21 @@ func DefaultStyle() style.List {
 	return s
 }
 
+type ReturnSelectionsMsg struct{}
+
+func ReturnSelectionsCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		return ReturnSelectionsMsg{}
+	}
+}
+
+func QuitCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		m.quitting = true
+		return ReturnSelectionsMsg{}
+	}
+}
+
 func FilterItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.filterState = Filtering
@@ -70,26 +99,6 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 		m.textinput.Reset()
 		m.textinput.Blur()
 		return nil
-	}
-}
-
-func (m Model) Chosen() []int {
-	var chosen []int
-	if len(m.selected) > 0 {
-		for k := range m.selected {
-			chosen = append(chosen, k)
-		}
-	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
-		chosen = append(chosen, m.cursor)
-	}
-	return chosen
-}
-
-type ReturnSelectionsMsg struct{}
-
-func ReturnSelectionsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
 	}
 }
 

@@ -145,7 +145,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-		cmds = append(cmds, m.handleFilter(msg))
+		m.textinput, cmd = m.textinput.Update(msg)
+		m.matches = exactMatches(m.textinput.Value(), m.items)
+		// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
+		if m.textinput.Value() == "" {
+			m.matches = m.items
+		}
+		cmds = append(cmds, cmd)
 	}
 
 	// It's possible that filtering items have caused fewer matches. So, ensure that the selected index is within the bounds of the number of matches.
@@ -154,20 +160,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor)
 	}
 	return m, tea.Batch(cmds...)
-}
-
-func (m *Model) handleFilter(msg tea.Msg) tea.Cmd {
-	var cmd tea.Cmd
-	m.textinput, cmd = m.textinput.Update(msg)
-
-	m.matches = exactMatches(m.textinput.Value(), m.items)
-
-	// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
-	if m.textinput.Value() == "" {
-		m.matches = m.items
-	}
-
-	return cmd
 }
 
 func (m *Model) CursorUp() {
@@ -234,6 +226,9 @@ func (m Model) ItemIndex(c string) int {
 }
 
 func (m Model) View() string {
+	//if m.quitting {
+	//  return ""
+	//}
 	switch m.filterState {
 	case Filtering:
 		return m.FilteringView()
