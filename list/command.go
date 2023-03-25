@@ -26,6 +26,7 @@ func DefaultItemStyle() style.ListItem {
 	s.Cursor = style.Cursor
 	s.SelectedPrefix = style.Selected
 	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 	return s
 }

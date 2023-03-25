@@ -43,4 +43,5 @@ type ListItem struct {
 	UnselectedPrefix lipgloss.Style
 	Match            lipgloss.Style
 	Cursor           lipgloss.Style
+	Text             lipgloss.Style
 }

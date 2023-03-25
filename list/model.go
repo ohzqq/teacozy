@@ -12,7 +12,6 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/slices"
 )
 
@@ -50,14 +49,6 @@ type Model struct {
 	Width            int
 	Height           int
 	Style            style.List
-}
-
-type Item struct {
-	fuzzy.Match
-	Style            style.ListItem
-	cursorPrefix     string
-	selectedPrefix   string
-	unselectedPrefix string
 }
 
 func New(choices []string) *Model {
@@ -337,44 +328,6 @@ func (m Model) renderItems(matches []Item) string {
 	}
 
 	return s.String()
-}
-
-func NewItem(t string, idx int) Item {
-	return Item{
-		Match: fuzzy.Match{
-			Str:   t,
-			Index: idx,
-		},
-		Style: DefaultItemStyle(),
-	}
-}
-
-func ChoicesToMatch(options []string) []Item {
-	matches := make([]Item, len(options))
-	for i, option := range options {
-		matches[i] = Item{
-			Match: fuzzy.Match{Str: option, Index: i},
-		}
-	}
-	return matches
-}
-
-func exactMatches(search string, choices []Item) []Item {
-	matches := []Item{}
-	for _, choice := range choices {
-		search = strings.ToLower(search)
-		matchedString := strings.ToLower(choice.Str)
-
-		index := strings.Index(matchedString, search)
-		if index >= 0 {
-			for s := range search {
-				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
-			}
-			matches = append(matches, choice)
-		}
-	}
-
-	return matches
 }
 
 //nolint:unparam
