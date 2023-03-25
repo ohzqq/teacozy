@@ -78,26 +78,20 @@ func New(choices []string) *Model {
 	tm.Items = ChoicesToMatch(tm.Choices)
 	tm.Matches = tm.Items
 
+	tm.Input = textinput.New()
+	tm.Input.Prompt = tm.Prompt
+	tm.Input.PromptStyle = tm.Style.Prompt
+	tm.Input.Placeholder = tm.Placeholder
+
+	tm.Paginator = paginator.New()
+	tm.Paginator.Type = paginator.Dots
+	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
+	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
+
 	return &tm
 }
 
 func (m *Model) Run() []int {
-	m.Input = textinput.New()
-	m.Input.Prompt = m.Prompt
-	m.Input.PromptStyle = m.Style.Prompt
-	m.Input.Placeholder = m.Placeholder
-	m.Input.Width = m.width
-
-	v := viewport.New(m.width, m.height)
-	m.Viewport = &v
-
-	m.Paginator = paginator.New()
-	m.Paginator.SetTotalPages((len(m.Items) + m.height - 1) / m.height)
-	m.Paginator.PerPage = m.height
-	m.Paginator.Type = paginator.Dots
-	m.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
-	m.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
-
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -381,4 +375,13 @@ func max(a, b int) int {
 	return b
 }
 
-func (m Model) Init() tea.Cmd { return nil }
+func (tm *Model) Init() tea.Cmd {
+	tm.Input.Width = tm.width
+
+	v := viewport.New(tm.width, tm.height)
+	tm.Viewport = &v
+
+	tm.Paginator.SetTotalPages((len(tm.Items) + tm.height - 1) / tm.height)
+	tm.Paginator.PerPage = tm.height
+	return nil
+}

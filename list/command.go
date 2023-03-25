@@ -95,6 +95,11 @@ func FilterItemsCmd(m *Model) tea.Cmd {
 
 func StopFilteringCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
+		if m.limit == 1 {
+			m.ToggleSelection()
+			return ReturnSelectionsMsg{}
+		}
+
 		m.filterState = Unfiltered
 		m.Input.Reset()
 		m.Input.Blur()
