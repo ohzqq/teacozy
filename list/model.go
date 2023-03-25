@@ -30,8 +30,8 @@ type Model struct {
 	Input            textinput.Model
 	Viewport         *viewport.Model
 	Paginator        paginator.Model
-	Matches          fuzzy.Matches
-	Items            fuzzy.Matches
+	Matches          []Item
+	Items            []Item
 	FilterKeys       func(m *Model) keys.KeyMap
 	ListKeys         func(m *Model) keys.KeyMap
 	Selected         map[int]struct{}
@@ -47,9 +47,17 @@ type Model struct {
 	header           string
 	Placeholder      string
 	Prompt           string
-	width            int
-	height           int
+	Width            int
+	Height           int
 	Style            style.List
+}
+
+type Item struct {
+	fuzzy.Match
+	Style            style.ListItem
+	cursorPrefix     string
+	selectedPrefix   string
+	unselectedPrefix string
 }
 
 func New(choices []string) *Model {
@@ -65,15 +73,15 @@ func New(choices []string) *Model {
 		cursorPrefix:     style.CursorPrefix,
 		selectedPrefix:   style.SelectedPrefix,
 		unselectedPrefix: style.UnselectedPrefix,
-		height:           10,
+		Height:           10,
 	}
 
 	w, h := util.TermSize()
-	if tm.height == 0 {
-		tm.height = h - 4
+	if tm.Height == 0 {
+		tm.Height = h - 4
 	}
-	if tm.width == 0 {
-		tm.width = w
+	if tm.Width == 0 {
+		tm.Width = w
 	}
 	tm.Items = ChoicesToMatch(tm.Choices)
 	tm.Matches = tm.Items
@@ -104,7 +112,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.height == 0 || m.height > msg.Height {
+		if m.Height == 0 || m.Height > msg.Height {
 			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
 		}
 
@@ -242,14 +250,14 @@ func (m Model) UnfilteredView() string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.height-m.Paginator.ItemsOnPage(len(m.Items))+1))
+		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items))+1))
 		s.WriteString("  " + m.Paginator.View())
 	}
 
 	view = s.String()
 
 	if m.header != "" {
-		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.width))
+		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.Width))
 		return lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
 	return view
@@ -267,7 +275,7 @@ func (m Model) FilteringView() string {
 	return view
 }
 
-func (m Model) renderItems(matches fuzzy.Matches) string {
+func (m Model) renderItems(matches []Item) string {
 	var s strings.Builder
 	curPre := style.CursorPrefix
 	if m.limit == 1 {
@@ -276,7 +284,7 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 	for i, match := range matches {
 		var isCur bool
 		switch {
-		case m.filterState == Unfiltered && i == m.cursor%m.height:
+		case m.filterState == Unfiltered && i == m.cursor%m.Height:
 			fallthrough
 		case m.filterState == Filtering && i == m.cursor:
 			isCur = true
@@ -331,16 +339,28 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 	return s.String()
 }
 
-func ChoicesToMatch(options []string) fuzzy.Matches {
-	matches := make(fuzzy.Matches, len(options))
+func NewItem(t string, idx int) Item {
+	return Item{
+		Match: fuzzy.Match{
+			Str:   t,
+			Index: idx,
+		},
+		Style: DefaultItemStyle(),
+	}
+}
+
+func ChoicesToMatch(options []string) []Item {
+	matches := make([]Item, len(options))
 	for i, option := range options {
-		matches[i] = fuzzy.Match{Str: option, Index: i}
+		matches[i] = Item{
+			Match: fuzzy.Match{Str: option, Index: i},
+		}
 	}
 	return matches
 }
 
-func exactMatches(search string, choices fuzzy.Matches) fuzzy.Matches {
-	matches := fuzzy.Matches{}
+func exactMatches(search string, choices []Item) []Item {
+	matches := []Item{}
 	for _, choice := range choices {
 		search = strings.ToLower(search)
 		matchedString := strings.ToLower(choice.Str)
@@ -376,12 +396,12 @@ func max(a, b int) int {
 }
 
 func (tm *Model) Init() tea.Cmd {
-	tm.Input.Width = tm.width
+	tm.Input.Width = tm.Width
 
-	v := viewport.New(tm.width, tm.height)
+	v := viewport.New(tm.Width, tm.Height)
 	tm.Viewport = &v
 
-	tm.Paginator.SetTotalPages((len(tm.Items) + tm.height - 1) / tm.height)
-	tm.Paginator.PerPage = tm.height
+	tm.Paginator.SetTotalPages((len(tm.Items) + tm.Height - 1) / tm.Height)
+	tm.Paginator.PerPage = tm.Height
 	return nil
 }

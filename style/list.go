@@ -37,3 +37,10 @@ type List struct {
 	Header           lipgloss.Style
 	Prompt           lipgloss.Style
 }
+
+type ListItem struct {
+	SelectedPrefix   lipgloss.Style
+	UnselectedPrefix lipgloss.Style
+	Match            lipgloss.Style
+	Cursor           lipgloss.Style
+}

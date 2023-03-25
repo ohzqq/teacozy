@@ -9,6 +9,27 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+func DefaultStyle() style.List {
+	var s style.List
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = style.Prompt
+	return s
+}
+
+func DefaultItemStyle() style.ListItem {
+	var s style.ListItem
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	return s
+}
+
 func (m Model) Chosen() []int {
 	var chosen []int
 	if m.quitting {
@@ -42,32 +63,20 @@ func (m *Model) NoLimit() *Model {
 	return m.Limit(len(m.Choices))
 }
 
-func (m *Model) Height(h int) *Model {
-	m.height = h
+func (m *Model) SetHeight(h int) *Model {
+	m.Height = h
 	return m
 }
 
-func (m *Model) Width(w int) *Model {
-	m.width = w
+func (m *Model) SetWidth(w int) *Model {
+	m.Width = w
 	return m
 }
 
 func (m *Model) SetSize(w, h int) *Model {
-	m.Width(w)
-	m.Height(h)
+	m.SetWidth(w)
+	m.SetHeight(h)
 	return m
-}
-
-func DefaultStyle() style.List {
-	var s style.List
-	s.Cursor = style.Cursor
-	s.SelectedPrefix = style.Selected
-	s.UnselectedPrefix = style.Unselected
-	s.Text = style.Foreground
-	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
-	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
-	s.Prompt = style.Prompt
-	return s
 }
 
 type ReturnSelectionsMsg struct{}
@@ -149,7 +158,7 @@ func BottomCmd(m *Model) tea.Cmd {
 
 func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.height)
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.Height)
 		m.Paginator.NextPage()
 		return nil
 	}
@@ -157,7 +166,7 @@ func NextPageCmd(m *Model) tea.Cmd {
 
 func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.height)
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.Height)
 		m.Paginator.PrevPage()
 		return nil
 	}
