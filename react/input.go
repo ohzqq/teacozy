@@ -5,24 +5,25 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
 )
 
-type Component struct {
-	reactea.BasicComponent               // It implements AfterUpdate() for us, so we don't have to care!
-	reactea.BasicPropfulComponent[Props] // It implements props backend - UpdateProps() and Props()
+type InputComponent struct {
+	reactea.BasicComponent                    // It implements AfterUpdate() for us, so we don't have to care!
+	reactea.BasicPropfulComponent[InputProps] // It implements props backend - UpdateProps() and Props()
 
 	textinput textinput.Model // Input for inputting name
 }
 
-type Props struct {
+type InputProps struct {
 	SetText func(string) // SetText function for lifting state up
 }
 
-func New() *Component {
-	return &Component{textinput: textinput.New()}
+func NewInput() *InputComponent {
+	return &InputComponent{textinput: textinput.New()}
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *InputComponent) Init(props InputProps) tea.Cmd {
 	// Always derive props in Init()! If you are not replacing Init(),
 	// reactea.BasicPropfulComponent will take care of it
 	c.UpdateProps(props)
@@ -30,7 +31,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	return c.textinput.Focus()
 }
 
-func (c *Component) Update(msg tea.Msg) tea.Cmd {
+func (c *InputComponent) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyEnter {
@@ -49,6 +50,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 // Here we are not using width and height, but you can!
-func (c *Component) Render(int, int) string {
+func (c *InputComponent) Render(int, int) string {
 	return fmt.Sprintf("Enter your name: %s\nAnd press [ Enter ]", c.textinput.View())
 }
