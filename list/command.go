@@ -13,11 +13,11 @@ func (m Model) Chosen() []int {
 	var chosen []int
 	if m.quitting {
 		return chosen
-	} else if len(m.selected) > 0 {
-		for k := range m.selected {
+	} else if len(m.Selected) > 0 {
+		for k := range m.Selected {
 			chosen = append(chosen, k)
 		}
-	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+	} else if len(m.Matches) > m.cursor && m.cursor >= 0 {
 		chosen = append(chosen, m.cursor)
 	}
 	return chosen
@@ -88,7 +88,7 @@ func QuitCmd(m *Model) tea.Cmd {
 func FilterItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.filterState = Filtering
-		m.textinput.Focus()
+		m.Input.Focus()
 		return textinput.Blink()
 	}
 }
@@ -96,8 +96,8 @@ func FilterItemsCmd(m *Model) tea.Cmd {
 func StopFilteringCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.filterState = Unfiltered
-		m.textinput.Reset()
-		m.textinput.Blur()
+		m.Input.Reset()
+		m.Input.Blur()
 		return nil
 	}
 }
@@ -129,31 +129,31 @@ func DownCmd(m *Model) tea.Cmd {
 func TopCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.cursor = 0
-		m.paginator.Page = 0
+		m.Paginator.Page = 0
 		return nil
 	}
 }
 
 func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = len(m.items) - 1
-		m.paginator.Page = m.paginator.TotalPages - 1
+		m.cursor = len(m.Items) - 1
+		m.Paginator.Page = m.Paginator.TotalPages - 1
 		return nil
 	}
 }
 
 func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.items)-1, m.cursor+m.height)
-		m.paginator.NextPage()
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.height)
+		m.Paginator.NextPage()
 		return nil
 	}
 }
 
 func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.items)-1, m.cursor-m.height)
-		m.paginator.PrevPage()
+		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.height)
+		m.Paginator.PrevPage()
 		return nil
 	}
 }
@@ -163,14 +163,14 @@ func SelectAllItemsCmd(m *Model) tea.Cmd {
 		if m.limit <= 1 {
 			return nil
 		}
-		for i := range m.matches {
+		for i := range m.Matches {
 			if m.numSelected >= m.limit {
 				break // do not exceed given limit
 			}
-			if _, ok := m.selected[i]; ok {
+			if _, ok := m.Selected[i]; ok {
 				continue
 			} else {
-				m.selected[m.matches[i].Index] = struct{}{}
+				m.Selected[m.Matches[i].Index] = struct{}{}
 				m.numSelected++
 			}
 		}
@@ -184,7 +184,7 @@ func DeselectAllItemsCmd(m *Model) tea.Cmd {
 			return nil
 		}
 
-		maps.Clear(m.selected)
+		maps.Clear(m.Selected)
 		m.numSelected = 0
 
 		return nil

@@ -13,6 +13,8 @@ type Component struct {
 	mainRouter reactea.Component[router.Props] // Our router
 
 	text string // The name
+
+	Choices []string
 }
 
 func New() *Component {
@@ -25,11 +27,9 @@ func (c *Component) Init(reactea.NoProps) tea.Cmd {
 	// Does it remind you of something? react-router!
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewInput()
+			component := NewList()
 
-			return component, component.Init(InputProps{
-				SetText: c.setText, // Can also use "lambdas" (function can be created here)
-			})
+			return component, component.Init(NewListProps(c.Choices))
 		},
 		"displayname": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			// RouteInitializer wants SomeComponent so we have to convert

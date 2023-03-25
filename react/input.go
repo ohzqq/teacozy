@@ -24,8 +24,6 @@ func NewInput() *InputComponent {
 }
 
 func (c *InputComponent) Init(props InputProps) tea.Cmd {
-	// Always derive props in Init()! If you are not replacing Init(),
-	// reactea.BasicPropfulComponent will take care of it
 	c.UpdateProps(props)
 
 	return c.textinput.Focus()
@@ -39,7 +37,7 @@ func (c *InputComponent) Update(msg tea.Msg) tea.Cmd {
 			c.Props().SetText(c.textinput.Value())
 
 			// Navigate to displayname, please
-			reactea.SetCurrentRoute("displayname")
+			reactea.SetCurrentRoute("list")
 			return nil
 		}
 	}
