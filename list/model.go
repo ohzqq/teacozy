@@ -268,41 +268,29 @@ func (m Model) FilteringView() string {
 
 func (m Model) renderItems(matches []Item) string {
 	var s strings.Builder
-	curPre := style.CursorPrefix
-	if m.limit == 1 {
-		curPre = style.PromptPrefix
-	}
 	for i, match := range matches {
-		var isCur bool
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
 		switch {
 		case m.filterState == Unfiltered && i == m.cursor%m.Height:
 			fallthrough
 		case m.filterState == Filtering && i == m.cursor:
-			isCur = true
-			match.IsCur()
-		}
-
-		switch {
-		case m.limit > 1:
-			s.WriteString("[")
-		case m.limit == 1:
-			if !isCur {
-				s.WriteString(strings.Repeat(" ", lipgloss.Width(curPre)))
-			}
-		}
-
-		if isCur {
-			s.WriteString(m.Style.Cursor.Render(curPre))
-		} else {
+			pre = match.Style.Cursor.Render(pre)
+		default:
 			if _, ok := m.Selected[match.Index]; ok {
-				s.WriteString(m.Style.SelectedPrefix.Render(m.selectedPrefix))
-			} else if m.limit > 1 && !isCur {
-				s.WriteString(m.Style.UnselectedPrefix.Render(m.unselectedPrefix))
+				pre = m.Style.SelectedPrefix.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
 			}
 		}
-		if m.limit > 1 {
-			s.WriteString("]")
-		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
 
 		mi := 0
 		var buf strings.Builder

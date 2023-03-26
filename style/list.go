@@ -39,12 +39,9 @@ type List struct {
 }
 
 type ListItem struct {
-	SelectedPrefix   lipgloss.Style
-	UnselectedPrefix lipgloss.Style
-	Match            lipgloss.Style
-	Cursor           lipgloss.Style
-	Text             lipgloss.Style
-	Prefix           ItemPrefix
+	Match lipgloss.Style
+	Text  lipgloss.Style
+	ItemPrefix
 }
 
 type ItemPrefix struct {

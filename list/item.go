@@ -12,20 +12,25 @@ import (
 type Item struct {
 	fuzzy.Match
 	Style            style.ListItem
+	Label            string
 	cursorPrefix     string
 	selectedPrefix   string
 	unselectedPrefix string
-	isCur            bool
-	selected         bool
-	prefix           *Prefix
+	*Prefix
 }
 
 type Prefix struct {
 	Cursor     string
 	Selected   string
 	Unselected string
-	Style      style.ItemPrefix
 }
+
+const (
+	PromptPrefix     = "> "
+	CursorPrefix     = "x"
+	SelectedPrefix   = "◉ "
+	UnselectedPrefix = " "
+)
 
 func NewItem(t string, idx int) Item {
 	return Item{
@@ -33,55 +38,28 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
+		//Label:  "poot",
 		Style:  DefaultItemStyle(),
-		prefix: DefaultPrefix(),
+		Prefix: DefaultPrefix(),
 	}
-}
-
-func (i Item) Prefix() string {
-	var s strings.Builder
-	if i.isCur {
-		s.WriteString(i.prefix.Style.Cursor.Render(i.prefix.Cursor))
-	} else {
-		if i.selected {
-			s.WriteString(i.prefix.Style.Selected.Render(i.prefix.Selected))
-		} else if !i.isCur {
-			s.WriteString(i.prefix.Style.Unselected.Render(i.prefix.Unselected))
-		}
-	}
-	return s.String()
-}
-
-func (i *Item) IsCur() {
-	i.isCur = true
 }
 
 func DefaultPrefix() *Prefix {
 	return &Prefix{
-		Cursor:     "> ",
-		Selected:   "◉ ",
-		Unselected: "○ ",
-		Style: style.ItemPrefix{
-			Cursor:     style.Cursor,
-			Selected:   style.Selected,
-			Unselected: style.Unselected,
-		},
+		Cursor:     CursorPrefix,
+		Selected:   SelectedPrefix,
+		Unselected: UnselectedPrefix,
 	}
 }
 
 func DefaultItemStyle() style.ListItem {
 	var s style.ListItem
 	s.Cursor = style.Cursor
-	s.SelectedPrefix = style.Selected
-	s.UnselectedPrefix = style.Unselected
+	s.Selected = style.Selected
+	s.Unselected = style.Unselected
 	s.Text = style.Foreground
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 
-	s.Prefix = style.ItemPrefix{
-		Cursor:     style.Cursor,
-		Selected:   style.Selected,
-		Unselected: style.Unselected,
-	}
 	return s
 }
 
