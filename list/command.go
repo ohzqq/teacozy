@@ -21,16 +21,6 @@ func DefaultStyle() style.List {
 	return s
 }
 
-func DefaultItemStyle() style.ListItem {
-	var s style.ListItem
-	s.Cursor = style.Cursor
-	s.SelectedPrefix = style.Selected
-	s.UnselectedPrefix = style.Unselected
-	s.Text = style.Foreground
-	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
-	return s
-}
-
 func (m Model) Chosen() []int {
 	var chosen []int
 	if m.quitting {

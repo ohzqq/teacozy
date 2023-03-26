@@ -3,6 +3,8 @@ package list
 import (
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
 )
@@ -14,6 +16,15 @@ type Item struct {
 	selectedPrefix   string
 	unselectedPrefix string
 	isCur            bool
+	selected         bool
+	prefix           *Prefix
+}
+
+type Prefix struct {
+	Cursor     string
+	Selected   string
+	Unselected string
+	Style      style.ItemPrefix
 }
 
 func NewItem(t string, idx int) Item {
@@ -22,58 +33,56 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Style: DefaultItemStyle(),
+		Style:  DefaultItemStyle(),
+		prefix: DefaultPrefix(),
 	}
 }
 
-func (match *Item) Render() string {
+func (i Item) Prefix() string {
 	var s strings.Builder
-	mi := 0
-	var buf strings.Builder
-	for ci, c := range match.Str {
-		// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
-		if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
-			// Flush text buffer.
-			s.WriteString(match.Style.Text.Render(buf.String()))
-			buf.Reset()
-
-			s.WriteString(match.Style.Match.Render(string(c)))
-			// We have matched this character, so we never have to check it again. Move on to the next match.
-			mi++
-		} else {
-			// Not a match, buffer a regular character.
-			buf.WriteRune(c)
+	if i.isCur {
+		s.WriteString(i.prefix.Style.Cursor.Render(i.prefix.Cursor))
+	} else {
+		if i.selected {
+			s.WriteString(i.prefix.Style.Selected.Render(i.prefix.Selected))
+		} else if !i.isCur {
+			s.WriteString(i.prefix.Style.Unselected.Render(i.prefix.Unselected))
 		}
 	}
-	// Flush text buffer.
-	s.WriteString(match.Style.Text.Render(buf.String()))
-
 	return s.String()
 }
 
-func (match *Item) RenderText() string {
-	var s strings.Builder
-	mi := 0
-	var buf strings.Builder
-	for ci, c := range match.Str {
-		// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
-		if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
-			// Flush text buffer.
-			s.WriteString(match.Style.Text.Render(buf.String()))
-			buf.Reset()
+func (i *Item) IsCur() {
+	i.isCur = true
+}
 
-			s.WriteString(match.Style.Match.Render(string(c)))
-			// We have matched this character, so we never have to check it again. Move on to the next match.
-			mi++
-		} else {
-			// Not a match, buffer a regular character.
-			buf.WriteRune(c)
-		}
+func DefaultPrefix() *Prefix {
+	return &Prefix{
+		Cursor:     "> ",
+		Selected:   "◉ ",
+		Unselected: "○ ",
+		Style: style.ItemPrefix{
+			Cursor:     style.Cursor,
+			Selected:   style.Selected,
+			Unselected: style.Unselected,
+		},
 	}
-	// Flush text buffer.
-	s.WriteString(match.Style.Text.Render(buf.String()))
+}
 
-	return s.String()
+func DefaultItemStyle() style.ListItem {
+	var s style.ListItem
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+
+	s.Prefix = style.ItemPrefix{
+		Cursor:     style.Cursor,
+		Selected:   style.Selected,
+		Unselected: style.Unselected,
+	}
+	return s
 }
 
 func ChoicesToMatch(options []string) []Item {

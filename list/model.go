@@ -279,6 +279,7 @@ func (m Model) renderItems(matches []Item) string {
 			fallthrough
 		case m.filterState == Filtering && i == m.cursor:
 			isCur = true
+			match.IsCur()
 		}
 
 		switch {
