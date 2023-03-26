@@ -11,11 +11,8 @@ import (
 
 type Item struct {
 	fuzzy.Match
-	Style            style.ListItem
-	Label            string
-	cursorPrefix     string
-	selectedPrefix   string
-	unselectedPrefix string
+	Style style.ListItem
+	Label string
 	*Prefix
 }
 
@@ -38,7 +35,7 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		//Label:  "poot",
+		Label:  "poot",
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
@@ -58,6 +55,7 @@ func DefaultItemStyle() style.ListItem {
 	s.Selected = style.Selected
 	s.Unselected = style.Unselected
 	s.Text = style.Foreground
+	s.Label = style.Label
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 
 	return s

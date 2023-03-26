@@ -26,6 +26,7 @@ var (
 	Subdued     = lipgloss.NewStyle().Foreground(color.White())
 	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey())
 	Foreground  = lipgloss.NewStyle().Foreground(color.Fg())
+	Label       = lipgloss.NewStyle().Foreground(color.Purple())
 )
 
 type List struct {
@@ -41,6 +42,7 @@ type List struct {
 type ListItem struct {
 	Match lipgloss.Style
 	Text  lipgloss.Style
+	Label lipgloss.Style
 	ItemPrefix
 }
 

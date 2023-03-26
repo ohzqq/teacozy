@@ -219,9 +219,6 @@ func (m Model) ItemIndex(c string) int {
 }
 
 func (m Model) View() string {
-	//if m.quitting {
-	//  return ""
-	//}
 	switch m.filterState {
 	case Filtering:
 		return m.FilteringView()
@@ -285,6 +282,8 @@ func (m Model) renderItems(matches []Item) string {
 				pre = m.Style.SelectedPrefix.Render(pre)
 			} else if match.Label == "" {
 				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
 			}
 		}
 
