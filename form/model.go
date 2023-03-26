@@ -1,11 +1,14 @@
 package form
 
 import (
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"golang.org/x/exp/maps"
 )
 
 type Model struct {
@@ -15,29 +18,73 @@ type Model struct {
 	Fields     []map[string]string
 }
 
-type FormComponent struct {
+type Form struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[FormProps]
-	view *viewport.Model
+
+	mainRouter reactea.Component[router.Props]
+	view       *viewport.Model
 }
 
 type FormProps struct {
-	Field []map[string]string
+	Fields   []*FieldProps
+	SetValue func(int, string)
 }
 
-type FieldComponent struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[FieldProps]
-
-	input textinput.Model
-
-	key   string
-	value string
-}
-
-type FieldProps struct {
-	SetValue func(string)
+func New(fields []map[string]string) *Model {
+	return &Model{
+		mainRouter: router.New(),
+		Fields:     fields,
+	}
 }
 
 func (m *Model) Init(reactea.NoProps) tea.Cmd {
+	routes := make(map[string]router.RouteInitializer)
+
+	var fields []*FieldProps
+	for idx, field := range m.Fields {
+		r := strconv.Itoa(idx)
+		for key, val := range field {
+			props := FieldProps{
+				name:     r,
+				idx:      idx,
+				key:      key,
+				SetValue: m.setFieldValue,
+				input:    textinput.New(),
+			}
+			props.input.SetValue(val)
+			fields = append(fields, &props)
+		}
+	}
+
+	routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := NewForm()
+		props := FormProps{
+			Fields:   fields,
+			SetValue: m.setFieldValue,
+		}
+		return comp, comp.Init(props)
+	}
+
+	return m.mainRouter.Init(routes)
+}
+
+func (c *Model) Update(msg tea.Msg) tea.Cmd {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		// ctrl+c support
+		if msg.String() == "ctrl+c" {
+			return reactea.Destroy
+		}
+	}
+	return c.mainRouter.Update(msg)
+}
+
+func (c *Model) Render(width, height int) string {
+	return c.mainRouter.Render(width, height)
+}
+
+func (c *Model) setFieldValue(idx int, val string) {
+	keys := maps.Keys(c.Fields[idx])
+	c.Fields[idx][keys[0]] = val
 }

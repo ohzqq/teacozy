@@ -23,6 +23,11 @@ func FilterKeyMap(m *Model) keys.KeyMap {
 func GlobalKeyMap(m *Model) keys.KeyMap {
 	return keys.KeyMap{
 		keys.NewBinding(
+			keys.WithKeys("e"),
+			keys.WithHelp("e", "edit"),
+			keys.WithCmd(EditItemCmd(m)),
+		),
+		keys.NewBinding(
 			keys.WithKeys("down"),
 			keys.WithHelp("down", "move cursor down"),
 			keys.WithCmd(DownCmd(m)),

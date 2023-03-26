@@ -3,6 +3,7 @@ package list
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
@@ -11,8 +12,10 @@ import (
 
 type Item struct {
 	fuzzy.Match
-	Style style.ListItem
-	Label string
+	Style    style.ListItem
+	Label    string
+	input    textinput.Model
+	SetValue func(int, string)
 	*Prefix
 }
 
@@ -29,16 +32,19 @@ const (
 	UnselectedPrefix = " "
 )
 
-func NewItem(t string, idx int) Item {
-	return Item{
+func NewItem(t string, idx int) *Item {
+	item := Item{
 		Match: fuzzy.Match{
 			Str:   t,
 			Index: idx,
 		},
-		Label:  "poot",
+		input: textinput.New(),
+		//Label:  "poot",
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
+
+	return &item
 }
 
 func DefaultPrefix() *Prefix {
@@ -61,16 +67,16 @@ func DefaultItemStyle() style.ListItem {
 	return s
 }
 
-func ChoicesToMatch(options []string) []Item {
-	matches := make([]Item, len(options))
+func ChoicesToMatch(options []string) []*Item {
+	matches := make([]*Item, len(options))
 	for i, option := range options {
 		matches[i] = NewItem(option, i)
 	}
 	return matches
 }
 
-func exactMatches(search string, choices []Item) []Item {
-	matches := []Item{}
+func exactMatches(search string, choices []*Item) []*Item {
+	matches := []*Item{}
 	for _, choice := range choices {
 		search = strings.ToLower(search)
 		matchedString := strings.ToLower(choice.Str)

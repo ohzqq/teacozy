@@ -1,6 +1,8 @@
 package list
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -109,6 +111,18 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 		m.Input.Reset()
 		m.Input.Blur()
 		return nil
+	}
+}
+
+type EditItemMsg struct{}
+
+func EditItemCmd(m *Model) tea.Cmd {
+	return func() tea.Msg {
+		if m.limit == 1 {
+			return nil
+		}
+		fmt.Println(m.cursor)
+		return EditItemMsg{}
 	}
 }
 

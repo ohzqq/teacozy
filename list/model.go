@@ -30,8 +30,8 @@ type Model struct {
 	Input            textinput.Model
 	Viewport         *viewport.Model
 	Paginator        paginator.Model
-	Matches          []Item
-	Items            []Item
+	Matches          []*Item
+	Items            []*Item
 	FilterKeys       func(m *Model) keys.KeyMap
 	ListKeys         func(m *Model) keys.KeyMap
 	Selected         map[int]struct{}
@@ -261,7 +261,7 @@ func (m Model) FilteringView() string {
 	return view
 }
 
-func (m Model) renderItems(matches []Item) string {
+func (m Model) renderItems(matches []*Item) string {
 	var s strings.Builder
 	for i, match := range matches {
 		pre := "x"
