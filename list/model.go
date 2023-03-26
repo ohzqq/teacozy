@@ -26,6 +26,7 @@ const (
 
 type Model struct {
 	Choices          []string
+	choiceMap        []map[string]string
 	Input            textinput.Model
 	Viewport         *viewport.Model
 	Paginator        paginator.Model
@@ -51,7 +52,7 @@ type Model struct {
 	Style            style.List
 }
 
-func New(choices []string) *Model {
+func New(choices ...string) *Model {
 	tm := Model{
 		Choices:          choices,
 		Selected:         make(map[int]struct{}),
@@ -74,18 +75,12 @@ func New(choices []string) *Model {
 	if tm.Width == 0 {
 		tm.Width = w
 	}
-	tm.Items = ChoicesToMatch(tm.Choices)
-	tm.Matches = tm.Items
-
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt
 	tm.Input.PromptStyle = tm.Style.Prompt
 	tm.Input.Placeholder = tm.Placeholder
 
-	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Dots
-	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
-	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
+	tm.header = "poot"
 
 	return &tm
 }
@@ -243,11 +238,14 @@ func (m Model) UnfilteredView() string {
 	}
 
 	view = s.String()
-
 	if m.header != "" {
 		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.Width))
-		return lipgloss.JoinVertical(lipgloss.Left, header, view)
+		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
+
+	m.Viewport.SetContent(view)
+	view = m.Viewport.View()
+
 	return view
 }
 
@@ -337,11 +335,18 @@ func max(a, b int) int {
 }
 
 func (tm *Model) Init() tea.Cmd {
+	tm.Items = ChoicesToMatch(tm.Choices)
+	tm.Matches = tm.Items
+
 	tm.Input.Width = tm.Width
 
-	v := viewport.New(tm.Width, tm.Height)
+	v := viewport.New(tm.Width, tm.Height+4)
 	tm.Viewport = &v
 
+	tm.Paginator = paginator.New()
+	tm.Paginator.Type = paginator.Dots
+	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
+	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
 	tm.Paginator.SetTotalPages((len(tm.Items) + tm.Height - 1) / tm.Height)
 	tm.Paginator.PerPage = tm.Height
 	return nil

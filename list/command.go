@@ -40,6 +40,11 @@ func (m *Model) Header(text string) *Model {
 	return m
 }
 
+func (m *Model) ChoiceMap(choices []map[string]string) *Model {
+	m.choiceMap = choices
+	return m
+}
+
 func (m *Model) SetStyle(s style.List) *Model {
 	m.Style = s
 	return m
