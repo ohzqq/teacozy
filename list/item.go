@@ -37,7 +37,7 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Label:  "poot",
+		//Label:  "poot",
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
@@ -60,30 +60,24 @@ func (match Item) RenderPrefix() string {
 
 	if match.isCur {
 		pre = match.Style.Cursor.Render(pre)
+	} else {
+		if match.selected {
+			pre = match.Style.Selected.Render(pre)
+		} else if match.Label == "" {
+			pre = strings.Repeat(" ", lipgloss.Width(pre))
+		} else {
+			pre = match.Style.Label.Render(pre)
+		}
 	}
-	// case m.filterState == Unfiltered && i == m.cursor%m.Height:
-	//
-	//	fallthrough
-	//
-	// case m.filterState == Filtering && i == m.cursor:
-	//
-	//	pre = match.Style.Cursor.Render(pre)
-	//
-	// default:
-	//
-	//	  if _, ok := m.Selected[match.Index]; ok {
-	//	    pre = m.Style.SelectedPrefix.Render(pre)
-	//	  } else if match.Label == "" {
-	//	    pre = strings.Repeat(" ", lipgloss.Width(pre))
-	//	  } else {
-	//	    pre = match.Style.Label.Render(pre)
-	//	  }
-	//	}
-	return pre
+	return "[" + pre + "]"
 }
 
 func (i *Item) IsCur() {
 	i.isCur = true
+}
+
+func (i *Item) NotCur() {
+	i.isCur = false
 }
 
 func (i *Item) Toggle() {

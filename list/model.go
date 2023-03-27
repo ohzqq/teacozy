@@ -232,29 +232,13 @@ func (m Model) UnfilteredView() string {
 	//items := m.renderItems(m.Items[start:end])
 
 	for i, match := range m.Items[start:end] {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
 		if i == m.cursor%m.Height {
-			//pre = match.Style.Cursor.Render(pre)
 			match.IsCur()
-			pre = match.RenderPrefix()
 		} else {
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = m.Style.SelectedPrefix.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
+			match.NotCur()
 		}
 
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
+		s.WriteString(match.RenderPrefix())
 		s.WriteString(match.Str)
 		s.WriteRune('\n')
 	}
@@ -284,33 +268,15 @@ func (m Model) UnfilteredView() string {
 func (m Model) FilteringView() string {
 	var s strings.Builder
 
-	//items := m.renderItems(m.Matches)
-
 	for i, match := range m.Matches {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
 		switch {
 		case i == m.cursor:
-			//pre = match.Style.Cursor.Render(pre)
 			match.IsCur()
-			pre = match.RenderPrefix()
 		default:
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = m.Style.SelectedPrefix.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
+			match.NotCur()
 		}
 
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
+		s.WriteString(match.RenderPrefix())
 
 		mi := 0
 		var buf strings.Builder
