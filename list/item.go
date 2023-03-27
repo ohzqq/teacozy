@@ -11,8 +11,10 @@ import (
 
 type Item struct {
 	fuzzy.Match
-	Style style.ListItem
-	Label string
+	Style    style.ListItem
+	Label    string
+	isCur    bool
+	selected bool
 	*Prefix
 }
 
@@ -47,6 +49,45 @@ func DefaultPrefix() *Prefix {
 		Selected:   SelectedPrefix,
 		Unselected: UnselectedPrefix,
 	}
+}
+
+func (match Item) RenderPrefix() string {
+	pre := "x"
+
+	if match.Label != "" {
+		pre = match.Label
+	}
+
+	if match.isCur {
+		pre = match.Style.Cursor.Render(pre)
+	}
+	// case m.filterState == Unfiltered && i == m.cursor%m.Height:
+	//
+	//	fallthrough
+	//
+	// case m.filterState == Filtering && i == m.cursor:
+	//
+	//	pre = match.Style.Cursor.Render(pre)
+	//
+	// default:
+	//
+	//	  if _, ok := m.Selected[match.Index]; ok {
+	//	    pre = m.Style.SelectedPrefix.Render(pre)
+	//	  } else if match.Label == "" {
+	//	    pre = strings.Repeat(" ", lipgloss.Width(pre))
+	//	  } else {
+	//	    pre = match.Style.Label.Render(pre)
+	//	  }
+	//	}
+	return pre
+}
+
+func (i *Item) IsCur() {
+	i.isCur = true
+}
+
+func (i *Item) Toggle() {
+	i.selected = !i.selected
 }
 
 func DefaultItemStyle() style.ListItem {
