@@ -229,8 +229,6 @@ func (m Model) UnfilteredView() string {
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items))
 
-	//items := m.renderItems(m.Items[start:end])
-
 	for i, match := range m.Items[start:end] {
 		if i == m.cursor%m.Height {
 			match.IsCur()
@@ -242,8 +240,6 @@ func (m Model) UnfilteredView() string {
 		s.WriteString(match.Str)
 		s.WriteRune('\n')
 	}
-
-	//s.WriteString(items)
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {
@@ -277,34 +273,11 @@ func (m Model) FilteringView() string {
 		}
 
 		s.WriteString(match.RenderPrefix())
+		text := lipgloss.StyleRunes(match.Str, match.MatchedIndexes, m.Style.Match, m.Style.Text)
+		s.WriteString(text)
 
-		mi := 0
-		var buf strings.Builder
-		for ci, c := range match.Str {
-			// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
-			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
-				// Flush text buffer.
-				s.WriteString(m.Style.Text.Render(buf.String()))
-				buf.Reset()
-
-				s.WriteString(m.Style.Match.Render(string(c)))
-				// We have matched this character, so we never have to check it again. Move on to the next match.
-				mi++
-			} else {
-				// Not a match, buffer a regular character.
-				buf.WriteRune(c)
-			}
-		}
-		// Flush text buffer.
-		s.WriteString(m.Style.Text.Render(buf.String()))
-
-		// We have finished displaying the match with all of it's matched characters highlighted and the rest filled in. Move on to the next match.
 		s.WriteRune('\n')
 	}
-
-	//return s.String()
-
-	//s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
 
