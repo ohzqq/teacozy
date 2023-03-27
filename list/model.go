@@ -312,61 +312,6 @@ func (m Model) FilteringView() string {
 	return view
 }
 
-func (m Model) renderItems(matches []Item) string {
-	var s strings.Builder
-	for i, match := range matches {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case m.filterState == Unfiltered && i == m.cursor%m.Height:
-			fallthrough
-		case m.filterState == Filtering && i == m.cursor:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = m.Style.SelectedPrefix.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-
-		mi := 0
-		var buf strings.Builder
-		for ci, c := range match.Str {
-			// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
-			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
-				// Flush text buffer.
-				s.WriteString(m.Style.Text.Render(buf.String()))
-				buf.Reset()
-
-				s.WriteString(m.Style.Match.Render(string(c)))
-				// We have matched this character, so we never have to check it again. Move on to the next match.
-				mi++
-			} else {
-				// Not a match, buffer a regular character.
-				buf.WriteRune(c)
-			}
-		}
-		// Flush text buffer.
-		s.WriteString(m.Style.Text.Render(buf.String()))
-
-		// We have finished displaying the match with all of it's matched characters highlighted and the rest filled in. Move on to the next match.
-		s.WriteRune('\n')
-	}
-
-	return s.String()
-}
-
 //nolint:unparam
 func clamp(min, max, val int) int {
 	if val < min {
