@@ -27,14 +27,14 @@ func (m Model) Chosen() []int {
 		return chosen
 	}
 
-	for _, i := range m.Items {
+	for _, i := range m.Items.Items {
 		if i.Selected() {
 			chosen = append(chosen, i.Index)
 		}
 	}
 
 	if len(chosen) == 0 {
-		chosen = append(chosen, m.Items[m.cursor].Index)
+		chosen = append(chosen, m.Items.Items[m.cursor].Index)
 	}
 
 	return chosen
@@ -145,7 +145,7 @@ func TopCmd(m *Model) tea.Cmd {
 
 func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = len(m.Items) - 1
+		m.cursor = len(m.Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 		return nil
 	}
@@ -153,7 +153,7 @@ func BottomCmd(m *Model) tea.Cmd {
 
 func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.Height)
+		m.cursor = clamp(0, len(m.Items.Items)-1, m.cursor+m.Height)
 		m.Paginator.NextPage()
 		return nil
 	}
@@ -161,7 +161,7 @@ func NextPageCmd(m *Model) tea.Cmd {
 
 func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.Height)
+		m.cursor = clamp(0, len(m.Items.Items)-1, m.cursor-m.Height)
 		m.Paginator.PrevPage()
 		return nil
 	}

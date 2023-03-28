@@ -16,12 +16,13 @@ import (
 )
 
 type Model struct {
-	Choices     []string
-	choiceMap   []map[string]string
-	Viewport    *viewport.Model
-	Paginator   paginator.Model
-	Matches     []item.Item
-	Items       []item.Item
+	item.Items
+	Choices   []string
+	choiceMap []map[string]string
+	Viewport  *viewport.Model
+	Paginator paginator.Model
+	//Matches     []item.Item
+	//Items       []item.Item
 	ListKeys    func(m *Model) keys.KeyMap
 	Selected    map[int]struct{}
 	numSelected int
@@ -101,10 +102,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) CursorUp() {
-	start, _ := m.Paginator.GetSliceBounds(len(m.Items))
+	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Items))
 	m.cursor--
 	if m.cursor < 0 {
-		m.cursor = len(m.Items) - 1
+		m.cursor = len(m.Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
 	if m.cursor < start {
@@ -113,9 +114,9 @@ func (m *Model) CursorUp() {
 }
 
 func (m *Model) CursorDown() {
-	_, end := m.Paginator.GetSliceBounds(len(m.Items))
+	_, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
 	m.cursor++
-	if m.cursor >= len(m.Items) {
+	if m.cursor >= len(m.Items.Items) {
 		m.cursor = 0
 		m.Paginator.Page = 0
 	}
@@ -125,18 +126,18 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
-	if m.Items[m.cursor].Selected() {
-		m.Items[m.cursor].Deselect()
+	if m.Items.Items[m.cursor].Selected() {
+		m.Items.Items[m.cursor].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
-		m.Items[m.cursor].Select()
+		m.Items.Items[m.cursor].Select()
 		m.numSelected++
 	}
 	m.CursorDown()
 }
 
 func (m Model) CurrentItem() item.Item {
-	return m.Items[m.cursor]
+	return m.Items.Items[m.cursor]
 }
 
 func (m Model) ItemIndex(c string) int {
@@ -146,9 +147,9 @@ func (m Model) ItemIndex(c string) int {
 func (m *Model) View() string {
 	var s strings.Builder
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Items))
+	start, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
 
-	for i, match := range m.Items[start:end] {
+	for i, match := range m.Items.Items[start:end] {
 		if i == m.cursor%m.Height {
 			match.IsCur()
 		} else {
@@ -165,7 +166,7 @@ func (m *Model) View() string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items))+1))
+		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items.Items))+1))
 		s.WriteString("  " + m.Paginator.View())
 	}
 
@@ -193,8 +194,7 @@ func clamp(min, max, val int) int {
 }
 
 func (tm *Model) Init() tea.Cmd {
-	tm.Items = item.ChoicesToMatch(tm.Choices)
-	tm.Matches = tm.Items
+	tm.Items = item.New(tm.Choices)
 
 	v := viewport.New(tm.Width, tm.Height+4)
 	tm.Viewport = &v
@@ -203,7 +203,7 @@ func (tm *Model) Init() tea.Cmd {
 	tm.Paginator.Type = paginator.Dots
 	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
 	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
-	tm.Paginator.SetTotalPages((len(tm.Items) + tm.Height - 1) / tm.Height)
+	tm.Paginator.SetTotalPages((len(tm.Items.Items) + tm.Height - 1) / tm.Height)
 	tm.Paginator.PerPage = tm.Height
 	return nil
 }

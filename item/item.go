@@ -66,9 +66,8 @@ func DefaultPrefix() *Prefix {
 }
 
 func (match Item) Render() string {
-	i := match.RenderPrefix()
-	i += match.RenderText()
-	return i
+	//i := match.RenderPrefix()
+	return match.RenderText()
 }
 
 func (match Item) RenderPrefix() string {
@@ -99,7 +98,7 @@ func (match Item) RenderText(idx ...int) string {
 		match.Style.Match,
 		match.Style.Text,
 	)
-	return text
+	return match.RenderPrefix() + text
 }
 
 func (i *Item) IsCur() {
