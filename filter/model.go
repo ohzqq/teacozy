@@ -168,16 +168,10 @@ func (m Model) View() string {
 			match.Cur(false)
 		}
 
-		s.WriteString(match.RenderPrefix())
+		//s.WriteString(match.RenderPrefix())
 
-		//text := lipgloss.StyleRunes(
-		//  match.Str,
-		//  match.MatchedIndexes,
-		//  m.Style.Match,
-		//  m.Style.Text,
-		//)
-
-		text := match.RenderText(match.MatchedIndexes...)
+		//text := match.RenderText(match.MatchedIndexes...)
+		text := match.Render()
 		s.WriteString(text)
 
 		s.WriteRune('\n')

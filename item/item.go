@@ -65,6 +65,12 @@ func DefaultPrefix() *Prefix {
 	}
 }
 
+func (match Item) Render() string {
+	i := match.RenderPrefix()
+	i += match.RenderText()
+	return i
+}
+
 func (match Item) RenderPrefix() string {
 	pre := "x"
 
@@ -89,7 +95,7 @@ func (match Item) RenderPrefix() string {
 func (match Item) RenderText(idx ...int) string {
 	text := lipgloss.StyleRunes(
 		match.Str,
-		idx,
+		match.MatchedIndexes,
 		match.Style.Match,
 		match.Style.Text,
 	)
