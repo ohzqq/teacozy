@@ -26,7 +26,7 @@ func (m Model) Chosen() []int {
 		return chosen
 	}
 
-	for _, i := range m.Items {
+	for _, i := range m.Items.Matches {
 		if i.Selected() {
 			chosen = append(chosen, i.Index)
 		}

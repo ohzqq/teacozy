@@ -13,7 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/slices"
 )
 
 // FilterState describes the current filtering state on the model.
@@ -26,13 +25,14 @@ const (
 )
 
 type Model struct {
-	Choices     []string
-	choiceMap   []map[string]string
-	Input       textinput.Model
-	Viewport    *viewport.Model
-	Paginator   paginator.Model
-	Matches     []item.Item
-	Items       []item.Item
+	item.Items
+	Choices   []string
+	choiceMap []map[string]string
+	Input     textinput.Model
+	Viewport  *viewport.Model
+	Paginator paginator.Model
+	//Matches     []item.Item
+	//Items       []item.Item
 	FilterKeys  func(m *Model) keys.KeyMap
 	Selected    map[int]struct{}
 	numSelected int
@@ -117,9 +117,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.Input, cmd = m.Input.Update(msg)
-		m.Matches = item.ExactMatches(m.Input.Value(), m.Items)
+		m.Matches = item.ExactMatches(m.Input.Value(), m.Items.Items)
 		if m.Input.Value() == "" {
-			m.Matches = m.Items
+			m.Items.Matches = m.Items.Items
 		}
 		cmds = append(cmds, cmd)
 	}
@@ -148,23 +148,13 @@ func (m *Model) ToggleSelection() {
 		delete(m.Selected, idx)
 		m.numSelected--
 		m.CursorDown()
-		m.Items[idx].Toggle()
+		m.Items.Items[idx].Toggle()
 	} else if m.numSelected < m.limit {
 		m.Selected[idx] = struct{}{}
 		m.numSelected++
 		m.CursorDown()
-		m.Items[idx].Toggle()
+		m.Items.Items[idx].Toggle()
 	}
-}
-
-func (m Model) ItemIndex(li item.Item) int {
-	idx := slices.IndexFunc(m.Items, func(i item.Item) bool {
-		return i.Index == li.Index
-	})
-	if idx == -1 {
-		return 0
-	}
-	return idx
 }
 
 func (m Model) View() string {
@@ -211,8 +201,9 @@ func clamp(min, max, val int) int {
 }
 
 func (tm *Model) Init() tea.Cmd {
-	tm.Items = item.ChoicesToMatch(tm.Choices)
-	tm.Matches = tm.Items
+	tm.Items = item.New(tm.Choices)
+	//tm.Items.Items = item.ChoicesToMatch(tm.Choices)
+	//tm.Matches = tm.Items.Items
 
 	tm.Input.Width = tm.Width
 

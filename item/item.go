@@ -9,6 +9,18 @@ import (
 	"github.com/sahilm/fuzzy"
 )
 
+const (
+	PromptPrefix     = "> "
+	CursorPrefix     = "x"
+	SelectedPrefix   = "◉ "
+	UnselectedPrefix = " "
+)
+
+type Items struct {
+	Items   []Item
+	Matches []Item
+}
+
 type Item struct {
 	fuzzy.Match
 	Style     style.ListItem
@@ -25,12 +37,13 @@ type Prefix struct {
 	Unselected string
 }
 
-const (
-	PromptPrefix     = "> "
-	CursorPrefix     = "x"
-	SelectedPrefix   = "◉ "
-	UnselectedPrefix = " "
-)
+func New(c []string) Items {
+	items := Items{
+		Items: ChoicesToMatch(c),
+	}
+	items.Matches = items.Items
+	return items
+}
 
 func NewItem(t string, idx int) Item {
 	return Item{
