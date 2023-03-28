@@ -11,10 +11,11 @@ import (
 
 type Item struct {
 	fuzzy.Match
-	Style    style.ListItem
-	Label    string
-	isCur    bool
-	selected bool
+	Style     style.ListItem
+	Label     string
+	isCur     bool
+	IsCurrent bool
+	selected  bool
 	*Prefix
 }
 
@@ -74,18 +75,29 @@ func (match Item) RenderPrefix() string {
 
 func (i *Item) IsCur() {
 	i.isCur = true
+	i.IsCurrent = true
 }
 
 func (i *Item) Cur(cur bool) {
 	i.isCur = cur
+	i.IsCurrent = true
 }
 
 func (i *Item) NotCur() {
 	i.isCur = false
+	i.IsCurrent = false
 }
 
 func (i *Item) Toggle() {
 	i.selected = !i.selected
+}
+
+func (i *Item) Select() {
+	i.selected = true
+}
+
+func (i *Item) Deselect() {
+	i.selected = false
 }
 
 func (i Item) Selected() bool {

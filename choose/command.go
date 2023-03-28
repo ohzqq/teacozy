@@ -1,6 +1,8 @@
 package choose
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
@@ -22,9 +24,13 @@ func DefaultStyle() style.List {
 
 func (m Model) Chosen() []int {
 	var chosen []int
+
+	fmt.Println(m.numSelected)
+
 	if m.quitting {
 		return chosen
 	}
+
 	for _, i := range m.Items {
 		if i.Selected() {
 			chosen = append(chosen, i.Index)

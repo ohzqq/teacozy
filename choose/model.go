@@ -125,25 +125,32 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
-	idx := m.Items[m.cursor].Index
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
+	if m.Items[m.cursor].Selected() {
+		m.Items[m.cursor].Deselect()
 		m.numSelected--
-		m.CursorDown()
-		m.Items[idx].Toggle()
 	} else if m.numSelected < m.limit {
-		m.Selected[idx] = struct{}{}
+		m.Items[m.cursor].Select()
 		m.numSelected++
-		m.CursorDown()
-		m.Items[idx].Toggle()
 	}
+	m.CursorDown()
+}
+
+func (m Model) CurrentItem() *item.Item {
+	start, end := m.Paginator.GetSliceBounds(len(m.Items))
+	var item item.Item
+	for i, match := range m.Items[start:end] {
+		if i == m.cursor%m.Height {
+			item = match
+		}
+	}
+	return &item
 }
 
 func (m Model) ItemIndex(c string) int {
 	return slices.Index(m.Choices, c)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items))
@@ -154,6 +161,7 @@ func (m Model) View() string {
 		} else {
 			match.NotCur()
 		}
+		//fmt.Println(match.IsCurrent)
 
 		s.WriteString(match.RenderPrefix())
 		s.WriteString(match.Str)

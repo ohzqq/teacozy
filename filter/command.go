@@ -21,9 +21,11 @@ func DefaultStyle() style.List {
 
 func (m Model) Chosen() []int {
 	var chosen []int
+
 	if m.quitting {
 		return chosen
 	}
+
 	for _, i := range m.Items {
 		if i.Selected() {
 			chosen = append(chosen, i.Index)
@@ -34,7 +36,6 @@ func (m Model) Chosen() []int {
 		chosen = append(chosen, m.Items[m.cursor].Index)
 	}
 
-	return chosen
 	return chosen
 }
 
