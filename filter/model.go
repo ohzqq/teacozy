@@ -33,7 +33,6 @@ type Model struct {
 	Paginator   paginator.Model
 	FilterKeys  func(m *Model) keys.KeyMap
 	numSelected int
-	cursor      int
 	limit       int
 	filterState FilterState
 	aborted     bool
@@ -79,6 +78,9 @@ func (m *Model) Run() []int {
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
+	if m.quitting {
+		return []int{}
+	}
 	return m.Chosen()
 }
 
@@ -120,83 +122,46 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	}
 
-	m.cursor = clamp(0, len(m.Matches)-1, m.cursor)
+	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor)
 	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) CursorUp() {
-	m.cursor = clamp(0, len(m.Matches)-1, m.cursor-1)
-	if m.cursor < m.Viewport.YOffset {
-		m.Viewport.SetYOffset(m.cursor)
+	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
+	if m.Cursor < m.Viewport.YOffset {
+		m.Viewport.SetYOffset(m.Cursor)
 	}
 }
 
 func (m *Model) CursorDown() {
-	m.cursor = clamp(0, len(m.Matches)-1, m.cursor+1)
-	if m.cursor >= m.Viewport.YOffset+m.Viewport.Height {
+	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
+	if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
 		m.Viewport.LineDown(1)
 	}
 }
 
 func (m *Model) ToggleSelection() {
-	idx := m.Matches[m.cursor].Index
+	idx := m.Matches[m.Cursor].Index
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
-		m.CursorDown()
 		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
-		m.CursorDown()
 		m.Items.Items[idx].Select()
 		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
+	m.CursorDown()
 }
 
 func (m *Model) Current() item.Item {
-	return m.Matches[m.cursor]
+	return m.Matches[m.Cursor]
 }
 
 func (m Model) View() string {
 	var s strings.Builder
 
-	s.WriteString(m.RenderItems(m.cursor, m.Matches))
-
-	//for i, match := range m.Matches {
-	//  pre := "x"
-
-	//  if match.Label != "" {
-	//    pre = match.Label
-	//  }
-
-	//  switch {
-	//  case i == m.cursor:
-	//    pre = match.Style.Cursor.Render(pre)
-	//  default:
-	//    if _, ok := m.Selected[match.Index]; ok {
-	//      pre = match.Style.Selected.Render(pre)
-	//    } else if match.Label == "" {
-	//      pre = strings.Repeat(" ", lipgloss.Width(pre))
-	//    } else {
-	//      pre = match.Style.Label.Render(pre)
-	//    }
-
-	//  }
-
-	//  s.WriteString("[")
-	//  s.WriteString(pre)
-	//  s.WriteString("]")
-
-	//  //text := lipgloss.StyleRunes(
-	//  //  match.Str,
-	//  //  match.MatchedIndexes,
-	//  //  match.Style.Match,
-	//  //  match.Style.Text,
-	//  //)
-
-	//  s.WriteString(match.RenderText())
-	//  s.WriteRune('\n')
-	//}
+	s.WriteString(m.RenderItems(m.Cursor, m.Matches))
 
 	m.Viewport.SetContent(s.String())
 
@@ -217,9 +182,6 @@ func clamp(min, max, val int) int {
 
 func (tm *Model) Init() tea.Cmd {
 	tm.Items = item.New(tm.Choices)
-	//tm.Items.Items = item.ChoicesToMatch(tm.Choices)
-	//tm.Matches = tm.Items.Items
-
 	tm.Input.Width = tm.Width
 
 	v := viewport.New(tm.Width, tm.Height+4)

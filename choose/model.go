@@ -16,16 +16,12 @@ import (
 
 type Model struct {
 	item.Items
-	Choices   []string
-	choiceMap []map[string]string
-	Viewport  *viewport.Model
-	Paginator paginator.Model
-	//Matches     []item.Item
-	//Items       []item.Item
+	Choices     []string
+	choiceMap   []map[string]string
+	Viewport    *viewport.Model
+	Paginator   paginator.Model
 	ListKeys    func(m *Model) keys.KeyMap
-	Selected    map[int]struct{}
 	numSelected int
-	cursor      int
 	limit       int
 	aborted     bool
 	quitting    bool
@@ -40,7 +36,6 @@ type Model struct {
 func New(choices ...string) *Model {
 	tm := Model{
 		Choices:  choices,
-		Selected: make(map[int]struct{}),
 		ListKeys: ListKeyMap,
 		Style:    DefaultStyle(),
 		limit:    1,
@@ -65,6 +60,10 @@ func (m *Model) Run() []int {
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
+	}
+
+	if m.quitting {
+		return []int{}
 	}
 	return m.Chosen()
 }
@@ -102,43 +101,45 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) CursorUp() {
 	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Items))
-	m.cursor--
-	if m.cursor < 0 {
-		m.cursor = len(m.Items.Items) - 1
+	m.Cursor--
+	if m.Cursor < 0 {
+		m.Cursor = len(m.Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
-	if m.cursor < start {
+	if m.Cursor < start {
 		m.Paginator.PrevPage()
 	}
 }
 
 func (m *Model) CursorDown() {
 	_, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
-	m.cursor++
-	if m.cursor >= len(m.Items.Items) {
-		m.cursor = 0
+	m.Cursor++
+	if m.Cursor >= len(m.Items.Items) {
+		m.Cursor = 0
 		m.Paginator.Page = 0
 	}
-	if m.cursor >= end {
+	if m.Cursor >= end {
 		m.Paginator.NextPage()
 	}
 }
 
 func (m *Model) ToggleSelection() {
-	idx := m.Matches[m.cursor].Index
+	idx := m.Matches[m.Cursor].Index
 
-	if m.Items.Items[idx].Selected() {
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
 		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
 		m.Items.Items[idx].Select()
+		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
 	m.CursorDown()
 }
 
 func (m Model) CurrentItem() item.Item {
-	return m.Items.Items[m.cursor]
+	return m.Items.Items[m.Cursor]
 }
 
 func (m *Model) View() string {
@@ -146,22 +147,8 @@ func (m *Model) View() string {
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
 
-	items := item.RenderItems(m.cursor, m.Items.Items[start:end])
+	items := item.RenderItems(m.Cursor, m.Items.Items[start:end])
 	s.WriteString(items)
-
-	//for i, match := range m.Items.Items[start:end] {
-	//  switch {
-	//  case i == m.cursor:
-	//    match.Cur(true)
-	//  default:
-	//    match.Cur(false)
-	//  }
-	//  //fmt.Println(match.IsCurrent)
-
-	//  s.WriteString(match.Render())
-	//  //s.WriteString(match.Str)
-	//  s.WriteRune('\n')
-	//}
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {

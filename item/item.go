@@ -17,9 +17,12 @@ const (
 )
 
 type Items struct {
-	Items    []Item
-	Matches  []Item
-	Selected map[int]struct{}
+	Items       []Item
+	Matches     []Item
+	Selected    map[int]struct{}
+	Limit       int
+	numSelected int
+	Cursor      int
 }
 
 type Item struct {
@@ -67,32 +70,30 @@ func DefaultPrefix() *Prefix {
 	}
 }
 
-func (match Item) Render() string {
-	return match.RenderPrefix() + match.RenderText()
-}
-
-func (match Item) RenderPrefix() string {
-	pre := "x"
-
-	if match.Label != "" {
-		pre = match.Label
-	}
-
-	if match.isCur {
-		pre = match.Style.Cursor.Render(pre)
-	} else {
-		if match.selected {
-			pre = match.Style.Selected.Render(pre)
-		} else if match.Label == "" {
-			pre = strings.Repeat(" ", lipgloss.Width(pre))
-		} else {
-			pre = match.Style.Label.Render(pre)
+func (m Items) Chosen() []int {
+	var chosen []int
+	if len(m.Selected) > 0 {
+		for k := range m.Selected {
+			chosen = append(chosen, k)
 		}
+	} else if len(m.Matches) > m.Cursor && m.Cursor >= 0 {
+		chosen = append(chosen, m.Cursor)
 	}
-	return "[" + pre + "]"
+	return chosen
 }
 
-func (match Item) RenderText(idx ...int) string {
+func (m *Items) ToggleSelection() {
+	idx := m.Matches[m.Cursor].Index
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.numSelected--
+	} else if m.numSelected < m.Limit {
+		m.Selected[idx] = struct{}{}
+		m.numSelected++
+	}
+}
+
+func (match Item) RenderText() string {
 	text := lipgloss.StyleRunes(
 		match.Str,
 		match.MatchedIndexes,

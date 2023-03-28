@@ -20,26 +20,6 @@ func DefaultStyle() style.List {
 	return s
 }
 
-func (m Model) Chosen() []int {
-	var chosen []int
-
-	if m.quitting {
-		return chosen
-	}
-
-	for _, i := range m.Items.Items {
-		if i.Selected() {
-			chosen = append(chosen, i.Index)
-		}
-	}
-
-	if len(chosen) == 0 {
-		chosen = append(chosen, m.Items.Items[m.cursor].Index)
-	}
-
-	return chosen
-}
-
 func (m *Model) Header(text string) *Model {
 	m.header = text
 	return m
@@ -137,7 +117,7 @@ func DownCmd(m *Model) tea.Cmd {
 
 func TopCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = 0
+		m.Cursor = 0
 		m.Paginator.Page = 0
 		return nil
 	}
@@ -145,7 +125,7 @@ func TopCmd(m *Model) tea.Cmd {
 
 func BottomCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = len(m.Items.Items) - 1
+		m.Cursor = len(m.Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 		return nil
 	}
@@ -153,7 +133,7 @@ func BottomCmd(m *Model) tea.Cmd {
 
 func NextPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items.Items)-1, m.cursor+m.Height)
+		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor+m.Height)
 		m.Paginator.NextPage()
 		return nil
 	}
@@ -161,7 +141,7 @@ func NextPageCmd(m *Model) tea.Cmd {
 
 func PrevPageCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items.Items)-1, m.cursor-m.Height)
+		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor-m.Height)
 		m.Paginator.PrevPage()
 		return nil
 	}

@@ -19,20 +19,6 @@ func DefaultStyle() style.List {
 	return s
 }
 
-func (m Model) Chosen() []int {
-	var chosen []int
-	if m.quitting {
-		return chosen
-	} else if len(m.Selected) > 0 {
-		for k := range m.Selected {
-			chosen = append(chosen, k)
-		}
-	} else if len(m.Matches) > m.cursor && m.cursor >= 0 {
-		chosen = append(chosen, m.cursor)
-	}
-	return chosen
-}
-
 func (m *Model) Header(text string) *Model {
 	m.header = text
 	return m
