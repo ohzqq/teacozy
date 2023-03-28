@@ -1,7 +1,6 @@
-package list
+package choose
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
@@ -92,9 +91,7 @@ func QuitCmd(m *Model) tea.Cmd {
 
 func FilterItemsCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
-		m.filterState = Filtering
-		m.Input.Focus()
-		return textinput.Blink()
+		return nil
 	}
 }
 
@@ -104,10 +101,6 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 			m.ToggleSelection()
 			return ReturnSelectionsMsg{}
 		}
-
-		m.filterState = Unfiltered
-		m.Input.Reset()
-		m.Input.Blur()
 		return nil
 	}
 }

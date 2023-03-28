@@ -1,24 +1,8 @@
-package list
+package choose
 
 import (
 	"github.com/ohzqq/teacozy/keys"
 )
-
-func FilterKeyMap(m *Model) keys.KeyMap {
-	km := keys.KeyMap{
-		keys.NewBinding(
-			keys.WithKeys("esc"),
-			keys.WithHelp("esc", "stop filtering"),
-			keys.WithCmd(StopFilteringCmd(m)),
-		),
-		keys.NewBinding(
-			keys.WithKeys("enter"),
-			keys.WithHelp("enter", "return selections"),
-			keys.WithCmd(StopFilteringCmd(m)),
-		),
-	}
-	return km
-}
 
 func GlobalKeyMap(m *Model) keys.KeyMap {
 	return keys.KeyMap{

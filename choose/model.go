@@ -1,14 +1,14 @@
-package select
+package choose
 
 import (
 	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
-	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -27,12 +27,10 @@ const (
 type Model struct {
 	Choices          []string
 	choiceMap        []map[string]string
-	Input            textinput.Model
 	Viewport         *viewport.Model
 	Paginator        paginator.Model
-	Matches          []Item
-	Items            []Item
-	FilterKeys       func(m *Model) keys.KeyMap
+	Matches          []item.Item
+	Items            []item.Item
 	ListKeys         func(m *Model) keys.KeyMap
 	Selected         map[int]struct{}
 	numSelected      int
@@ -56,7 +54,6 @@ func New(choices ...string) *Model {
 	tm := Model{
 		Choices:          choices,
 		Selected:         make(map[int]struct{}),
-		FilterKeys:       FilterKeyMap,
 		ListKeys:         ListKeyMap,
 		filterState:      Unfiltered,
 		Style:            DefaultStyle(),
@@ -75,10 +72,6 @@ func New(choices ...string) *Model {
 	if tm.Width == 0 {
 		tm.Width = w
 	}
-	tm.Input = textinput.New()
-	tm.Input.Prompt = tm.Prompt
-	tm.Input.PromptStyle = tm.Style.Prompt
-	tm.Input.Placeholder = tm.Placeholder
 
 	tm.header = "poot"
 
@@ -98,10 +91,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.Height == 0 || m.Height > msg.Height {
-			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
-		}
-
 		// Make place in the view port if header is set
 		if m.header != "" {
 			m.Viewport.Height = m.Viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
@@ -117,87 +106,43 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-		switch m.filterState {
-		case Unfiltered:
-			for _, k := range m.ListKeys(m) {
-				if k.Matches(msg) {
-					cmd = k.Cmd
-					cmds = append(cmds, cmd)
-				}
-			}
-		case Filtering:
-			for _, k := range m.FilterKeys(m) {
-				if k.Matches(msg) {
-					cmd = k.Cmd
-					cmds = append(cmds, cmd)
-				}
+		for _, k := range m.ListKeys(m) {
+			if k.Matches(msg) {
+				cmd = k.Cmd
+				cmds = append(cmds, cmd)
 			}
 		}
-		m.Input, cmd = m.Input.Update(msg)
-		m.Matches = exactMatches(m.Input.Value(), m.Items)
-		// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
-		if m.Input.Value() == "" {
-			m.Matches = m.Items
-		}
-		cmds = append(cmds, cmd)
 	}
 
-	// It's possible that filtering items have caused fewer matches. So, ensure that the selected index is within the bounds of the number of matches.
-	switch m.filterState {
-	case Filtering:
-		m.cursor = clamp(0, len(m.Matches)-1, m.cursor)
-	}
 	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) CursorUp() {
 	start, _ := m.Paginator.GetSliceBounds(len(m.Items))
-	switch m.filterState {
-	case Unfiltered:
-		m.cursor--
-		if m.cursor < 0 {
-			m.cursor = len(m.Items) - 1
-			m.Paginator.Page = m.Paginator.TotalPages - 1
-		}
-		if m.cursor < start {
-			m.Paginator.PrevPage()
-		}
-	case Filtering:
-		m.cursor = clamp(0, len(m.Matches)-1, m.cursor-1)
-		if m.cursor < m.Viewport.YOffset {
-			m.Viewport.SetYOffset(m.cursor)
-		}
+	m.cursor--
+	if m.cursor < 0 {
+		m.cursor = len(m.Items) - 1
+		m.Paginator.Page = m.Paginator.TotalPages - 1
+	}
+	if m.cursor < start {
+		m.Paginator.PrevPage()
 	}
 }
 
 func (m *Model) CursorDown() {
 	_, end := m.Paginator.GetSliceBounds(len(m.Items))
-	switch m.filterState {
-	case Unfiltered:
-		m.cursor++
-		if m.cursor >= len(m.Items) {
-			m.cursor = 0
-			m.Paginator.Page = 0
-		}
-		if m.cursor >= end {
-			m.Paginator.NextPage()
-		}
-	case Filtering:
-		m.cursor = clamp(0, len(m.Matches)-1, m.cursor+1)
-		if m.cursor >= m.Viewport.YOffset+m.Viewport.Height {
-			m.Viewport.LineDown(1)
-		}
+	m.cursor++
+	if m.cursor >= len(m.Items) {
+		m.cursor = 0
+		m.Paginator.Page = 0
+	}
+	if m.cursor >= end {
+		m.Paginator.NextPage()
 	}
 }
 
 func (m *Model) ToggleSelection() {
-	var idx int
-	switch m.filterState {
-	case Unfiltered:
-		idx = m.Items[m.cursor].Index
-	case Filtering:
-		idx = m.Matches[m.cursor].Index
-	}
+	idx := m.Items[m.cursor].Index
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
 		m.numSelected--
@@ -216,15 +161,6 @@ func (m Model) ItemIndex(c string) int {
 }
 
 func (m Model) View() string {
-	switch m.filterState {
-	case Filtering:
-		return m.FilteringView()
-	default:
-		return m.UnfilteredView()
-	}
-}
-
-func (m Model) UnfilteredView() string {
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items))
@@ -261,30 +197,6 @@ func (m Model) UnfilteredView() string {
 	return view
 }
 
-func (m Model) FilteringView() string {
-	var s strings.Builder
-
-	for i, match := range m.Matches {
-		switch {
-		case i == m.cursor:
-			match.IsCur()
-		default:
-			match.NotCur()
-		}
-
-		s.WriteString(match.RenderPrefix())
-		text := lipgloss.StyleRunes(match.Str, match.MatchedIndexes, m.Style.Match, m.Style.Text)
-		s.WriteString(text)
-
-		s.WriteRune('\n')
-	}
-
-	m.Viewport.SetContent(s.String())
-
-	view := m.Input.View() + "\n" + m.Viewport.View()
-	return view
-}
-
 //nolint:unparam
 func clamp(min, max, val int) int {
 	if val < min {
@@ -296,18 +208,9 @@ func clamp(min, max, val int) int {
 	return val
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func (tm *Model) Init() tea.Cmd {
-	tm.Items = ChoicesToMatch(tm.Choices)
+	tm.Items = item.ChoicesToMatch(tm.Choices)
 	tm.Matches = tm.Items
-
-	tm.Input.Width = tm.Width
 
 	v := viewport.New(tm.Width, tm.Height+4)
 	tm.Viewport = &v
