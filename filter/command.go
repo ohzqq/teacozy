@@ -33,7 +33,7 @@ func (m Model) Chosen() []int {
 	}
 
 	if len(chosen) == 0 {
-		chosen = append(chosen, m.Items[m.cursor].Index)
+		chosen = append(chosen, m.Matches[m.cursor].Index)
 	}
 
 	return chosen

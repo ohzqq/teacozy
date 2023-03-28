@@ -135,15 +135,8 @@ func (m *Model) ToggleSelection() {
 	m.CursorDown()
 }
 
-func (m Model) CurrentItem() *item.Item {
-	start, end := m.Paginator.GetSliceBounds(len(m.Items))
-	var item item.Item
-	for i, match := range m.Items[start:end] {
-		if i == m.cursor%m.Height {
-			item = match
-		}
-	}
-	return &item
+func (m Model) CurrentItem() item.Item {
+	return m.Items[m.cursor]
 }
 
 func (m Model) ItemIndex(c string) int {

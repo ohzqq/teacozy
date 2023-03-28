@@ -73,6 +73,16 @@ func (match Item) RenderPrefix() string {
 	return "[" + pre + "]"
 }
 
+func (match Item) RenderText(idx ...int) string {
+	text := lipgloss.StyleRunes(
+		match.Str,
+		idx,
+		match.Style.Match,
+		match.Style.Text,
+	)
+	return text
+}
+
 func (i *Item) IsCur() {
 	i.isCur = true
 	i.IsCurrent = true

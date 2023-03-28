@@ -157,8 +157,14 @@ func (m *Model) ToggleSelection() {
 	}
 }
 
-func (m Model) ItemIndex(c string) int {
-	return slices.Index(m.Choices, c)
+func (m Model) ItemIndex(li item.Item) int {
+	idx := slices.IndexFunc(m.Items, func(i item.Item) bool {
+		return i.Index == li.Index
+	})
+	if idx == -1 {
+		return 0
+	}
+	return idx
 }
 
 func (m Model) View() string {
@@ -174,12 +180,14 @@ func (m Model) View() string {
 
 		s.WriteString(match.RenderPrefix())
 
-		text := lipgloss.StyleRunes(
-			match.Str,
-			match.MatchedIndexes,
-			m.Style.Match,
-			m.Style.Text,
-		)
+		//text := lipgloss.StyleRunes(
+		//  match.Str,
+		//  match.MatchedIndexes,
+		//  m.Style.Match,
+		//  m.Style.Text,
+		//)
+
+		text := match.RenderText(match.MatchedIndexes...)
 		s.WriteString(text)
 
 		s.WriteRune('\n')
