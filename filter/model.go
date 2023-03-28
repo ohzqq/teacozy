@@ -32,7 +32,6 @@ type Model struct {
 	Viewport    *viewport.Model
 	Paginator   paginator.Model
 	FilterKeys  func(m *Model) keys.KeyMap
-	Selected    map[int]struct{}
 	numSelected int
 	cursor      int
 	limit       int
@@ -50,7 +49,6 @@ type Model struct {
 func New(choices ...string) *Model {
 	tm := Model{
 		Choices:     choices,
-		Selected:    make(map[int]struct{}),
 		FilterKeys:  FilterKeyMap,
 		filterState: Unfiltered,
 		Style:       DefaultStyle(),
@@ -162,19 +160,43 @@ func (m *Model) Current() item.Item {
 func (m Model) View() string {
 	var s strings.Builder
 
-	for i, match := range m.Matches {
-		switch {
-		case i == m.cursor:
-			match.Cur(true)
-		default:
-			match.Cur(false)
-		}
+	s.WriteString(m.RenderItems(m.cursor, m.Matches))
 
-		text := match.Render()
-		s.WriteString(text)
+	//for i, match := range m.Matches {
+	//  pre := "x"
 
-		s.WriteRune('\n')
-	}
+	//  if match.Label != "" {
+	//    pre = match.Label
+	//  }
+
+	//  switch {
+	//  case i == m.cursor:
+	//    pre = match.Style.Cursor.Render(pre)
+	//  default:
+	//    if _, ok := m.Selected[match.Index]; ok {
+	//      pre = match.Style.Selected.Render(pre)
+	//    } else if match.Label == "" {
+	//      pre = strings.Repeat(" ", lipgloss.Width(pre))
+	//    } else {
+	//      pre = match.Style.Label.Render(pre)
+	//    }
+
+	//  }
+
+	//  s.WriteString("[")
+	//  s.WriteString(pre)
+	//  s.WriteString("]")
+
+	//  //text := lipgloss.StyleRunes(
+	//  //  match.Str,
+	//  //  match.MatchedIndexes,
+	//  //  match.Style.Match,
+	//  //  match.Style.Text,
+	//  //)
+
+	//  s.WriteString(match.RenderText())
+	//  s.WriteRune('\n')
+	//}
 
 	m.Viewport.SetContent(s.String())
 

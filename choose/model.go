@@ -146,19 +146,22 @@ func (m *Model) View() string {
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
 
-	for i, match := range m.Items.Items[start:end] {
-		switch {
-		case i == m.cursor:
-			match.Cur(true)
-		default:
-			match.Cur(false)
-		}
-		//fmt.Println(match.IsCurrent)
+	items := item.RenderItems(m.cursor, m.Items.Items[start:end])
+	s.WriteString(items)
 
-		s.WriteString(match.Render())
-		//s.WriteString(match.Str)
-		s.WriteRune('\n')
-	}
+	//for i, match := range m.Items.Items[start:end] {
+	//  switch {
+	//  case i == m.cursor:
+	//    match.Cur(true)
+	//  default:
+	//    match.Cur(false)
+	//  }
+	//  //fmt.Println(match.IsCurrent)
+
+	//  s.WriteString(match.Render())
+	//  //s.WriteString(match.Str)
+	//  s.WriteRune('\n')
+	//}
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {

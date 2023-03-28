@@ -133,6 +133,77 @@ func (i Item) Selected() bool {
 	return i.selected
 }
 
+func (m Items) RenderItems(cursor int, items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == cursor:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.RenderText())
+		s.WriteRune('\n')
+	}
+	return s.String()
+}
+
+func RenderItems(cursor int, items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == cursor:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if match.selected {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		//text := lipgloss.StyleRunes(
+		//  match.Str,
+		//  match.MatchedIndexes,
+		//  match.Style.Match,
+		//  match.Style.Text,
+		//)
+
+		s.WriteString(match.RenderText())
+		s.WriteRune('\n')
+	}
+	return s.String()
+}
+
 func DefaultItemStyle() style.ListItem {
 	var s style.ListItem
 	s.Cursor = style.Cursor
