@@ -125,21 +125,14 @@ func (m *Model) CursorDown() {
 
 func (m *Model) ToggleSelection() {
 	idx := m.Matches[m.Cursor].Index
-
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
-		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
-		m.Items.Items[idx].Select()
 		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
 	m.CursorDown()
-}
-
-func (m Model) CurrentItem() item.Item {
-	return m.Items.Items[m.Cursor]
 }
 
 func (m *Model) View() string {

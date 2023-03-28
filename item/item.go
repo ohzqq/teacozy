@@ -27,11 +27,9 @@ type Items struct {
 
 type Item struct {
 	fuzzy.Match
-	Style     style.ListItem
-	Label     string
-	isCur     bool
-	IsCurrent bool
-	selected  bool
+	Style    style.ListItem
+	Label    string
+	selected bool
 	*Prefix
 }
 
@@ -101,37 +99,6 @@ func (match Item) RenderText() string {
 		match.Style.Text,
 	)
 	return text
-}
-
-func (i *Item) IsCur() {
-	i.isCur = true
-	i.IsCurrent = true
-}
-
-func (i *Item) Cur(cur bool) {
-	i.isCur = cur
-	i.IsCurrent = true
-}
-
-func (i *Item) NotCur() {
-	i.isCur = false
-	i.IsCurrent = false
-}
-
-func (i *Item) Toggle() {
-	i.selected = !i.selected
-}
-
-func (i *Item) Select() {
-	i.selected = true
-}
-
-func (i *Item) Deselect() {
-	i.selected = false
-}
-
-func (i Item) Selected() bool {
-	return i.selected
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {

@@ -4,7 +4,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,26 +14,15 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-// FilterState describes the current filtering state on the model.
-type FilterState int
-
-// Possible filter states.
-const (
-	Unfiltered FilterState = iota // no filter set
-	Filtering                     // user is actively setting a filter
-)
-
 type Model struct {
 	item.Items
 	Choices     []string
 	choiceMap   []map[string]string
 	Input       textinput.Model
 	Viewport    *viewport.Model
-	Paginator   paginator.Model
 	FilterKeys  func(m *Model) keys.KeyMap
 	numSelected int
 	limit       int
-	filterState FilterState
 	aborted     bool
 	quitting    bool
 	header      string
@@ -47,13 +35,12 @@ type Model struct {
 
 func New(choices ...string) *Model {
 	tm := Model{
-		Choices:     choices,
-		FilterKeys:  FilterKeyMap,
-		filterState: Unfiltered,
-		Style:       DefaultStyle(),
-		limit:       1,
-		Prompt:      style.PromptPrefix,
-		Height:      10,
+		Choices:    choices,
+		FilterKeys: FilterKeyMap,
+		Style:      DefaultStyle(),
+		limit:      1,
+		Prompt:     style.PromptPrefix,
+		Height:     10,
 	}
 
 	w, h := util.TermSize()
@@ -144,18 +131,12 @@ func (m *Model) ToggleSelection() {
 	idx := m.Matches[m.Cursor].Index
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
-		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
-		m.Items.Items[idx].Select()
 		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
 	m.CursorDown()
-}
-
-func (m *Model) Current() item.Item {
-	return m.Matches[m.Cursor]
 }
 
 func (m Model) View() string {
