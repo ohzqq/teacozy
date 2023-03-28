@@ -9,7 +9,7 @@ func GlobalKeyMap(m *Model) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("down"),
 			keys.WithHelp("down", "move cursor down"),
-			keys.WithCmd(DownCmd(m)),
+			keys.WithCmd(m.CursorDown()),
 		),
 		keys.NewBinding(
 			keys.WithKeys("up"),
