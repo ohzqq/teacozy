@@ -26,13 +26,13 @@ const (
 
 type Model struct {
 	item.Items
-	Choices    []string
-	choiceMap  []map[string]string
-	Input      textinput.Model
-	Viewport   *viewport.Model
-	Paginator  paginator.Model
-	FilterKeys func(m *Model) keys.KeyMap
-	//Selected    map[int]struct{}
+	Choices     []string
+	choiceMap   []map[string]string
+	Input       textinput.Model
+	Viewport    *viewport.Model
+	Paginator   paginator.Model
+	FilterKeys  func(m *Model) keys.KeyMap
+	Selected    map[int]struct{}
 	numSelected int
 	cursor      int
 	limit       int
@@ -50,6 +50,7 @@ type Model struct {
 func New(choices ...string) *Model {
 	tm := Model{
 		Choices:     choices,
+		Selected:    make(map[int]struct{}),
 		FilterKeys:  FilterKeyMap,
 		filterState: Unfiltered,
 		Style:       DefaultStyle(),
@@ -141,15 +142,21 @@ func (m *Model) CursorDown() {
 
 func (m *Model) ToggleSelection() {
 	idx := m.Matches[m.cursor].Index
-
-	if m.Items.Items[idx].Selected() {
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.CursorDown()
 		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
+		m.CursorDown()
 		m.Items.Items[idx].Select()
+		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
-	m.CursorDown()
+}
+
+func (m *Model) Current() item.Item {
+	return m.Matches[m.cursor]
 }
 
 func (m Model) View() string {

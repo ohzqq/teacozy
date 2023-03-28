@@ -21,21 +21,15 @@ func DefaultStyle() style.List {
 
 func (m Model) Chosen() []int {
 	var chosen []int
-
 	if m.quitting {
 		return chosen
-	}
-
-	for _, i := range m.Items.Items {
-		if i.Selected() {
-			chosen = append(chosen, i.Index)
+	} else if len(m.Selected) > 0 {
+		for k := range m.Selected {
+			chosen = append(chosen, k)
 		}
+	} else if len(m.Matches) > m.cursor && m.cursor >= 0 {
+		chosen = append(chosen, m.cursor)
 	}
-
-	if len(chosen) == 0 {
-		chosen = append(chosen, m.Matches[m.cursor].Index)
-	}
-
 	return chosen
 }
 
