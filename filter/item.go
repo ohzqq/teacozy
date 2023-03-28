@@ -1,4 +1,4 @@
-package list
+package filter
 
 import (
 	"strings"

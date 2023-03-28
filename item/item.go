@@ -1,4 +1,4 @@
-package list
+package item
 
 import (
 	"strings"
@@ -76,6 +76,10 @@ func (i *Item) IsCur() {
 	i.isCur = true
 }
 
+func (i *Item) Cur(cur bool) {
+	i.isCur = cur
+}
+
 func (i *Item) NotCur() {
 	i.isCur = false
 }
@@ -104,7 +108,7 @@ func ChoicesToMatch(options []string) []Item {
 	return matches
 }
 
-func exactMatches(search string, choices []Item) []Item {
+func ExactMatches(search string, choices []Item) []Item {
 	matches := []Item{}
 	for _, choice := range choices {
 		search = strings.ToLower(search)

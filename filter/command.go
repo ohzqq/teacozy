@@ -1,12 +1,10 @@
-package list
+package filter
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
-	"golang.org/x/exp/maps"
 )
 
 func DefaultStyle() style.List {
@@ -90,14 +88,6 @@ func QuitCmd(m *Model) tea.Cmd {
 	}
 }
 
-func FilterItemsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.filterState = Filtering
-		m.Input.Focus()
-		return textinput.Blink()
-	}
-}
-
 func StopFilteringCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit == 1 {
@@ -132,71 +122,6 @@ func UpCmd(m *Model) tea.Cmd {
 func DownCmd(m *Model) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorDown()
-		return nil
-	}
-}
-
-func TopCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.cursor = 0
-		m.Paginator.Page = 0
-		return nil
-	}
-}
-
-func BottomCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.cursor = len(m.Items) - 1
-		m.Paginator.Page = m.Paginator.TotalPages - 1
-		return nil
-	}
-}
-
-func NextPageCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor+m.Height)
-		m.Paginator.NextPage()
-		return nil
-	}
-}
-
-func PrevPageCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		m.cursor = clamp(0, len(m.Items)-1, m.cursor-m.Height)
-		m.Paginator.PrevPage()
-		return nil
-	}
-}
-
-func SelectAllItemsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit <= 1 {
-			return nil
-		}
-		for i := range m.Matches {
-			if m.numSelected >= m.limit {
-				break // do not exceed given limit
-			}
-			if _, ok := m.Selected[i]; ok {
-				continue
-			} else {
-				m.Selected[m.Matches[i].Index] = struct{}{}
-				m.numSelected++
-			}
-		}
-		return nil
-	}
-}
-
-func DeselectAllItemsCmd(m *Model) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit <= 1 {
-			return nil
-		}
-
-		maps.Clear(m.Selected)
-		m.numSelected = 0
-
 		return nil
 	}
 }
