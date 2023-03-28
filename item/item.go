@@ -88,6 +88,10 @@ func (i *Item) Toggle() {
 	i.selected = !i.selected
 }
 
+func (i Item) Selected() bool {
+	return i.selected
+}
+
 func DefaultItemStyle() style.ListItem {
 	var s style.ListItem
 	s.Cursor = style.Cursor

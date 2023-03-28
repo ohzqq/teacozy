@@ -23,13 +23,18 @@ func (m Model) Chosen() []int {
 	var chosen []int
 	if m.quitting {
 		return chosen
-	} else if len(m.Selected) > 0 {
-		for k := range m.Selected {
-			chosen = append(chosen, k)
-		}
-	} else if len(m.Matches) > m.cursor && m.cursor >= 0 {
-		chosen = append(chosen, m.cursor)
 	}
+	for _, i := range m.Items {
+		if i.Selected() {
+			chosen = append(chosen, i.Index)
+		}
+	}
+
+	if len(chosen) == 0 {
+		chosen = append(chosen, m.Items[m.cursor].Index)
+	}
+
+	return chosen
 	return chosen
 }
 

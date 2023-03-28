@@ -15,54 +15,37 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// FilterState describes the current filtering state on the model.
-type FilterState int
-
-// Possible filter states.
-const (
-	Unfiltered FilterState = iota // no filter set
-	Filtering                     // user is actively setting a filter
-)
-
 type Model struct {
-	Choices          []string
-	choiceMap        []map[string]string
-	Viewport         *viewport.Model
-	Paginator        paginator.Model
-	Matches          []item.Item
-	Items            []item.Item
-	ListKeys         func(m *Model) keys.KeyMap
-	Selected         map[int]struct{}
-	numSelected      int
-	cursor           int
-	limit            int
-	filterState      FilterState
-	aborted          bool
-	quitting         bool
-	cursorPrefix     string
-	selectedPrefix   string
-	unselectedPrefix string
-	header           string
-	Placeholder      string
-	Prompt           string
-	Width            int
-	Height           int
-	Style            style.List
+	Choices     []string
+	choiceMap   []map[string]string
+	Viewport    *viewport.Model
+	Paginator   paginator.Model
+	Matches     []item.Item
+	Items       []item.Item
+	ListKeys    func(m *Model) keys.KeyMap
+	Selected    map[int]struct{}
+	numSelected int
+	cursor      int
+	limit       int
+	aborted     bool
+	quitting    bool
+	header      string
+	Placeholder string
+	Prompt      string
+	Width       int
+	Height      int
+	Style       style.List
 }
 
 func New(choices ...string) *Model {
 	tm := Model{
-		Choices:          choices,
-		Selected:         make(map[int]struct{}),
-		ListKeys:         ListKeyMap,
-		filterState:      Unfiltered,
-		Style:            DefaultStyle(),
-		limit:            1,
-		Prompt:           style.PromptPrefix,
-		cursorPrefix:     style.CursorPrefix,
-		selectedPrefix:   style.SelectedPrefix,
-		unselectedPrefix: style.UnselectedPrefix,
-		Height:           10,
+		Choices:  choices,
+		Selected: make(map[int]struct{}),
+		ListKeys: ListKeyMap,
+		Style:    DefaultStyle(),
+		limit:    1,
+		Prompt:   style.PromptPrefix,
+		Height:   10,
 	}
 
 	w, h := util.TermSize()
