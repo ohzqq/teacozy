@@ -26,7 +26,7 @@ func (m Model) Chosen() []int {
 		return chosen
 	}
 
-	for _, i := range m.Items.Matches {
+	for _, i := range m.Items.Items {
 		if i.Selected() {
 			chosen = append(chosen, i.Index)
 		}
@@ -101,7 +101,6 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 			return ReturnSelectionsMsg{}
 		}
 
-		m.filterState = Unfiltered
 		m.Input.Reset()
 		m.Input.Blur()
 		return nil

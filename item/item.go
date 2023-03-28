@@ -17,8 +17,9 @@ const (
 )
 
 type Items struct {
-	Items   []Item
-	Matches []Item
+	Items    []Item
+	Matches  []Item
+	Selected map[int]struct{}
 }
 
 type Item struct {
@@ -39,7 +40,8 @@ type Prefix struct {
 
 func New(c []string) Items {
 	items := Items{
-		Items: ChoicesToMatch(c),
+		Items:    ChoicesToMatch(c),
+		Selected: make(map[int]struct{}),
 	}
 	items.Matches = items.Items
 	return items
@@ -66,8 +68,7 @@ func DefaultPrefix() *Prefix {
 }
 
 func (match Item) Render() string {
-	//i := match.RenderPrefix()
-	return match.RenderText()
+	return match.RenderPrefix() + match.RenderText()
 }
 
 func (match Item) RenderPrefix() string {
@@ -98,7 +99,7 @@ func (match Item) RenderText(idx ...int) string {
 		match.Style.Match,
 		match.Style.Text,
 	)
-	return match.RenderPrefix() + text
+	return text
 }
 
 func (i *Item) IsCur() {

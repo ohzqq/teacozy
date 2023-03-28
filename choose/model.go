@@ -12,7 +12,6 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/slices"
 )
 
 type Model struct {
@@ -126,11 +125,13 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
-	if m.Items.Items[m.cursor].Selected() {
-		m.Items.Items[m.cursor].Deselect()
+	idx := m.Matches[m.cursor].Index
+
+	if m.Items.Items[idx].Selected() {
+		m.Items.Items[idx].Deselect()
 		m.numSelected--
 	} else if m.numSelected < m.limit {
-		m.Items.Items[m.cursor].Select()
+		m.Items.Items[idx].Select()
 		m.numSelected++
 	}
 	m.CursorDown()
@@ -140,25 +141,22 @@ func (m Model) CurrentItem() item.Item {
 	return m.Items.Items[m.cursor]
 }
 
-func (m Model) ItemIndex(c string) int {
-	return slices.Index(m.Choices, c)
-}
-
 func (m *Model) View() string {
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
 
 	for i, match := range m.Items.Items[start:end] {
-		if i == m.cursor%m.Height {
-			match.IsCur()
-		} else {
-			match.NotCur()
+		switch {
+		case i == m.cursor:
+			match.Cur(true)
+		default:
+			match.Cur(false)
 		}
 		//fmt.Println(match.IsCurrent)
 
-		s.WriteString(match.RenderPrefix())
-		s.WriteString(match.Str)
+		s.WriteString(match.Render())
+		//s.WriteString(match.Str)
 		s.WriteRune('\n')
 	}
 
