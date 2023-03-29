@@ -29,36 +29,6 @@ func (m *Choose) ChoiceMap(choices []map[string]string) *Choose {
 	return m
 }
 
-func (m *Choose) SetStyle(s style.List) *Choose {
-	m.Style = s
-	return m
-}
-
-func (m *Choose) Limit(l int) *Choose {
-	m.limit = l
-	return m
-}
-
-func (m *Choose) NoLimit() *Choose {
-	return m.Limit(len(m.Choices))
-}
-
-func (m *Choose) SetHeight(h int) *Choose {
-	m.Height = h
-	return m
-}
-
-func (m *Choose) SetWidth(w int) *Choose {
-	m.Width = w
-	return m
-}
-
-func (m *Choose) SetSize(w, h int) *Choose {
-	m.SetWidth(w)
-	m.SetHeight(h)
-	return m
-}
-
 type ReturnSelectionsMsg struct{}
 
 func ReturnSelectionsCmd() tea.Cmd {

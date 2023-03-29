@@ -9,30 +9,21 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 )
 
 type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
-	//item.Items
-	Cursor      int
-	Choices     []string
-	choiceMap   []map[string]string
-	Viewport    *viewport.Model
-	Paginator   paginator.Model
-	ListKeys    func(m *Choose) keys.KeyMap
-	numSelected int
-	limit       int
-	aborted     bool
-	quitting    bool
-	header      string
-	Placeholder string
-	Prompt      string
-	Width       int
-	Height      int
-	Style       style.List
+	Cursor    int
+	Choices   []string
+	choiceMap []map[string]string
+	Viewport  *viewport.Model
+	Paginator paginator.Model
+	aborted   bool
+	quitting  bool
+	header    string
+	Style     style.List
 }
 
 type ChooseKeys struct {
@@ -50,10 +41,8 @@ type ChooseKeys struct {
 
 func New(choices ...string) *Choose {
 	tm := Choose{
-		Choices:  choices,
-		ListKeys: ListKeyMap,
-		Style:    DefaultStyle(),
-		Prompt:   style.PromptPrefix,
+		Choices: choices,
+		Style:   DefaultStyle(),
 	}
 	return &tm
 }

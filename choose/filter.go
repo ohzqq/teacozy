@@ -10,30 +10,22 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
-	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
-	item.Items
 	Cursor      int
+	Matches     []item.Item
 	Choices     []string
 	choiceMap   []map[string]string
 	Input       textinput.Model
 	Viewport    *viewport.Model
-	FilterKeys  func(m *Filter) keys.KeyMap
-	numSelected int
-	limit       int
-	aborted     bool
 	quitting    bool
 	header      string
 	Placeholder string
 	Prompt      string
-	Width       int
-	Height      int
 	Style       style.List
 }
 
@@ -50,37 +42,15 @@ func NewFilter(choices ...string) *Filter {
 	tm := Filter{
 		Choices: choices,
 		Style:   DefaultStyle(),
-		limit:   2,
 		Prompt:  style.PromptPrefix,
-		Height:  10,
 	}
 
-	w, h := util.TermSize()
-	if tm.Height == 0 {
-		tm.Height = h - 4
-	}
-	if tm.Width == 0 {
-		tm.Width = w
-	}
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt
 	tm.Input.PromptStyle = tm.Style.Prompt
 	tm.Input.Placeholder = tm.Placeholder
 
-	tm.header = "poot"
-
 	return &tm
-}
-
-func (m *Filter) Run() []int {
-	//p := tea.NewProgram(m)
-	//if err := p.Start(); err != nil {
-	//log.Fatal(err)
-	//}
-	//if m.quitting {
-	//return []int{}
-	//}
-	return m.Chosen()
 }
 
 func (m *Filter) Update(msg tea.Msg) tea.Cmd {
@@ -88,7 +58,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.Height == 0 || m.Height > msg.Height {
+		if m.Props().Height == 0 || m.Props().Height > msg.Height {
 			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
 		}
 
@@ -190,7 +160,7 @@ func (m *Filter) Render(w, h int) string {
 func (tm *Filter) Init(props ChooseProps) tea.Cmd {
 	tm.UpdateProps(props)
 	tm.Matches = tm.Props().Visible()
-	tm.Input.Width = tm.Width
+	tm.Input.Width = tm.Props().Width
 
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
