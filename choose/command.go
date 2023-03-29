@@ -100,6 +100,10 @@ func SelectItemCmd(m *Choose) tea.Cmd {
 	}
 }
 
+type SetCursorMsg struct {
+	cursor int
+}
+
 func UpCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorUp()
@@ -107,10 +111,16 @@ func UpCmd(m *Choose) tea.Cmd {
 	}
 }
 
+func CursorDownCmd(c func() int) tea.Cmd {
+	return func() tea.Msg {
+		return SetCursorMsg{cursor: c()}
+	}
+}
+
 func DownCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorDown()
-		return nil
+		return SetCursorMsg{cursor: m.Cursor}
 	}
 }
 

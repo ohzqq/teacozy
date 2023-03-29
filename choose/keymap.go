@@ -100,7 +100,7 @@ func ListKeyMap(m *Choose) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("j"),
 			keys.WithHelp("j", "move cursor down"),
-			keys.WithCmd(DownCmd(m)),
+			keys.WithCmd(CursorDownCmd(m.CursorDown)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("k"),

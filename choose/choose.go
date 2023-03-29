@@ -11,7 +11,6 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Choose struct {
@@ -35,32 +34,13 @@ type Choose struct {
 	Style       style.List
 }
 
-type ChooseProps struct {
-	item.Items
-	Selected   map[int]struct{}
-	ToggleItem func(int)
-}
-
 func New(choices ...string) *Choose {
 	tm := Choose{
 		Choices:  choices,
 		ListKeys: ListKeyMap,
 		Style:    DefaultStyle(),
-		limit:    2,
 		Prompt:   style.PromptPrefix,
-		Height:   4,
 	}
-
-	w, h := util.TermSize()
-	if tm.Height == 0 {
-		tm.Height = h - 4
-	}
-	if tm.Width == 0 {
-		tm.Width = w
-	}
-
-	tm.header = "poot"
-
 	return &tm
 }
 
@@ -110,56 +90,53 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Choose) CursorUp() {
-	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Matches))
+func (m *Choose) CursorUp() int {
+	start, _ := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	m.Cursor--
 	if m.Cursor < 0 {
-		m.Cursor = len(m.Items.Matches) - 1
+		m.Cursor = len(m.Props().Visible()) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
 	if m.Cursor < start {
 		m.Paginator.PrevPage()
 	}
+	return m.Cursor
 }
 
-func (m *Choose) CursorDown() {
-	_, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
+func (m *Choose) CursorDown() int {
+	_, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	m.Cursor++
-	if m.Cursor >= len(m.Items.Matches) {
+	if m.Cursor >= len(m.Props().Visible()) {
 		m.Cursor = 0
 		m.Paginator.Page = 0
 	}
 	if m.Cursor >= end {
 		m.Paginator.NextPage()
 	}
+	return m.Cursor
 }
 
 func (m *Choose) ToggleSelection() {
-	idx := m.Matches[m.Cursor].Index
+	idx := m.Props().Visible()[m.Cursor].Index
 	m.Props().ToggleItem(idx)
-	//if _, ok := m.Selected[idx]; ok {
-	//  delete(m.Selected, idx)
-	//  m.numSelected--
-	//} else if m.numSelected < m.limit {
-	//  m.Selected[idx] = struct{}{}
-	//  m.numSelected++
-	//}
-
 	m.CursorDown()
 }
 
 func (m *Choose) Render(w, h int) string {
-	v := viewport.New(w, h+4)
-	m.Viewport = &v
+	m.Viewport.Height = h
+	if m.Paginator.TotalPages > 1 {
+		m.Viewport.Height = m.Viewport.Height + 4
+	}
+	m.Viewport.Width = w
 	return m.View()
 }
 
 func (m *Choose) View() string {
 	var s strings.Builder
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Props().Matches))
+	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
-	for i, match := range m.Props().Matches[start:end] {
+	for i, match := range m.Props().Visible()[start:end] {
 		pre := "x"
 
 		if match.Label != "" {
@@ -167,7 +144,7 @@ func (m *Choose) View() string {
 		}
 
 		switch {
-		case i == m.Cursor%m.Height:
+		case i == m.Cursor%m.Props().Height:
 			pre = match.Style.Cursor.Render(pre)
 		default:
 			if _, ok := m.Props().Selected[match.Index]; ok {
@@ -190,15 +167,11 @@ func (m *Choose) View() string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items.Matches))+1))
+		s.WriteString(strings.Repeat("\n", m.Props().Height-m.Paginator.ItemsOnPage(len(m.Props().Visible()))+1))
 		s.WriteString("  " + m.Paginator.View())
 	}
 
 	view = s.String()
-	if m.header != "" {
-		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.Width))
-		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
-	}
 
 	m.Viewport.SetContent(view)
 	view = m.Viewport.View()
@@ -218,18 +191,14 @@ func clamp(min, max, val int) int {
 }
 
 func (tm *Choose) Init(props ChooseProps) tea.Cmd {
-	tm.Items = props.Items
 	tm.UpdateProps(props)
-	return tm.init()
-}
-
-func (tm *Choose) init() tea.Cmd {
-
+	v := viewport.New(0, 0)
+	tm.Viewport = &v
 	tm.Paginator = paginator.New()
 	tm.Paginator.Type = paginator.Dots
 	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
 	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
-	tm.Paginator.SetTotalPages((len(tm.Items.Matches) + tm.Height - 1) / tm.Height)
-	tm.Paginator.PerPage = tm.Height
+	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
+	tm.Paginator.PerPage = props.Height
 	return nil
 }

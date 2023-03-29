@@ -102,10 +102,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 		m.Input, cmd = m.Input.Update(msg)
-		m.Matches = item.ExactMatches(m.Input.Value(), m.Items.Items)
-		if m.Input.Value() == "" {
-			m.Items.Matches = m.Items.Items
-		}
+		m.Matches = m.Props().Visible(m.Input.Value())
 		cmds = append(cmds, cmd)
 	}
 
@@ -178,15 +175,11 @@ func (m *Filter) View() string {
 }
 
 func (tm *Filter) Init(props ChooseProps) tea.Cmd {
-	tm.Items = props.Items
 	tm.UpdateProps(props)
-	return tm.init()
-}
-
-func (tm *Filter) init() tea.Cmd {
+	tm.Matches = tm.Props().Visible()
 	tm.Input.Width = tm.Width
 
-	v := viewport.New(tm.Width, tm.Height)
+	v := viewport.New(0, 0)
 	tm.Viewport = &v
 	tm.Input.Focus()
 
