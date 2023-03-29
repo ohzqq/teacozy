@@ -28,6 +28,7 @@ type Model struct {
 	limit       int
 	aborted     bool
 	quitting    bool
+	cursor      int
 	header      string
 	Placeholder string
 	Prompt      string
@@ -105,11 +106,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) CursorUp() {
 	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor--
-	if m.Cursor < 0 {
-		m.Cursor = len(m.Items.Matches) - 1
+	m.cursor--
+	if m.cursor < 0 {
+		m.cursor = len(m.Items.Matches) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
-	if m.Cursor < start {
+	if m.cursor < start {
 		m.Paginator.PrevPage()
 	}
 }
@@ -117,17 +119,25 @@ func (m *Model) CursorUp() {
 func (m *Model) CursorDown() {
 	_, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor++
-	if m.Cursor >= len(m.Items.Matches) {
-		m.Cursor = 0
+	m.cursor++
+	if m.cursor >= len(m.Items.Matches) {
+		m.cursor = 0
 		m.Paginator.Page = 0
 	}
-	if m.Cursor >= end {
+	if m.cursor >= end {
 		m.Paginator.NextPage()
 	}
 }
 
 func (m *Model) ToggleSelection() {
-	m.Items.ToggleSelection()
+	idx := m.Matches[m.cursor].Index
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.numSelected--
+	} else if m.numSelected < m.limit {
+		m.Selected[idx] = struct{}{}
+		m.numSelected++
+	}
 	m.CursorDown()
 }
 
@@ -136,8 +146,32 @@ func (m *Model) View() string {
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 
-	items := item.RenderItems(m.Cursor, m.Items.Matches[start:end])
-	s.WriteString(items)
+	for i, match := range m.Items.Matches[start:end] {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == m.cursor%m.Height:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+		s.WriteString(match.RenderText())
+		s.WriteRune('\n')
+	}
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {

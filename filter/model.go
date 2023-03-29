@@ -117,6 +117,8 @@ func (m *Model) CursorUp() {
 	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
 	if m.Cursor < m.Viewport.YOffset {
 		m.Viewport.SetYOffset(m.Cursor)
+	} else {
+		m.Viewport.GotoBottom()
 	}
 }
 
@@ -124,6 +126,8 @@ func (m *Model) CursorDown() {
 	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
 	if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
 		m.Viewport.LineDown(1)
+	} else {
+		m.Viewport.GotoTop()
 	}
 }
 
@@ -153,10 +157,10 @@ func (m Model) View() string {
 //nolint:unparam
 func clamp(min, max, val int) int {
 	if val < min {
-		return min
+		return max
 	}
 	if val > max {
-		return max
+		return min
 	}
 	return val
 }
