@@ -19,41 +19,41 @@ func DefaultStyle() style.List {
 	return s
 }
 
-func (m *Model) Header(text string) *Model {
+func (m *Filter) Header(text string) *Filter {
 	m.header = text
 	return m
 }
 
-func (m *Model) ChoiceMap(choices []map[string]string) *Model {
+func (m *Filter) ChoiceMap(choices []map[string]string) *Filter {
 	m.choiceMap = choices
 	return m
 }
 
-func (m *Model) SetStyle(s style.List) *Model {
+func (m *Filter) SetStyle(s style.List) *Filter {
 	m.Style = s
 	return m
 }
 
-func (m *Model) Limit(l int) *Model {
+func (m *Filter) Limit(l int) *Filter {
 	m.limit = l
 	return m
 }
 
-func (m *Model) NoLimit() *Model {
+func (m *Filter) NoLimit() *Filter {
 	return m.Limit(len(m.Choices))
 }
 
-func (m *Model) SetHeight(h int) *Model {
+func (m *Filter) SetHeight(h int) *Filter {
 	m.Height = h
 	return m
 }
 
-func (m *Model) SetWidth(w int) *Model {
+func (m *Filter) SetWidth(w int) *Filter {
 	m.Width = w
 	return m
 }
 
-func (m *Model) SetSize(w, h int) *Model {
+func (m *Filter) SetSize(w, h int) *Filter {
 	m.SetWidth(w)
 	m.SetHeight(h)
 	return m
@@ -61,20 +61,20 @@ func (m *Model) SetSize(w, h int) *Model {
 
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd(m *Model) tea.Cmd {
+func ReturnSelectionsCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func QuitCmd(m *Model) tea.Cmd {
+func QuitCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		m.quitting = true
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func StopFilteringCmd(m *Model) tea.Cmd {
+func StopFilteringCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit == 1 {
 			m.ToggleSelection()
@@ -87,7 +87,7 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 	}
 }
 
-func SelectItemCmd(m *Model) tea.Cmd {
+func SelectItemCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit == 1 {
 			return nil
@@ -97,14 +97,14 @@ func SelectItemCmd(m *Model) tea.Cmd {
 	}
 }
 
-func UpCmd(m *Model) tea.Cmd {
+func UpCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorUp()
 		return nil
 	}
 }
 
-func DownCmd(m *Model) tea.Cmd {
+func DownCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorDown()
 		return nil
