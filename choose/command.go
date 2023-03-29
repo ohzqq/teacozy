@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
-	"golang.org/x/exp/maps"
 )
 
 func DefaultStyle() style.List {
@@ -62,20 +61,19 @@ func (m *Choose) SetSize(w, h int) *Choose {
 
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd(m *Choose) tea.Cmd {
+func ReturnSelectionsCmd() tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func QuitCmd(m *Choose) tea.Cmd {
+func QuitCmd() tea.Cmd {
 	return func() tea.Msg {
-		m.quitting = true
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func FilterItemsCmd(m *Choose) tea.Cmd {
+func FilterItemsCmd() tea.Cmd {
 	return func() tea.Msg {
 		return nil
 	}
@@ -104,23 +102,19 @@ type SetCursorMsg struct {
 	cursor int
 }
 
-func UpCmd(m *Choose) tea.Cmd {
+type UpMsg struct{}
+
+func UpCmd() tea.Cmd {
 	return func() tea.Msg {
-		m.CursorUp()
-		return nil
+		return UpMsg{}
 	}
 }
 
-func CursorDownCmd(c func() int) tea.Cmd {
-	return func() tea.Msg {
-		return SetCursorMsg{cursor: c()}
-	}
-}
+type DownMsg struct{}
 
-func DownCmd(m *Choose) tea.Cmd {
+func DownCmd() tea.Cmd {
 	return func() tea.Msg {
-		m.CursorDown()
-		return SetCursorMsg{cursor: m.Cursor}
+		return DownMsg{}
 	}
 }
 
@@ -134,7 +128,7 @@ func TopCmd(m *Choose) tea.Cmd {
 
 func BottomCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
-		m.Cursor = len(m.Items.Items) - 1
+		m.Cursor = len(m.Props().Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 		return nil
 	}
@@ -142,7 +136,7 @@ func BottomCmd(m *Choose) tea.Cmd {
 
 func NextPageCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
-		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor+m.Height)
+		m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
 		m.Paginator.NextPage()
 		return nil
 	}
@@ -150,44 +144,44 @@ func NextPageCmd(m *Choose) tea.Cmd {
 
 func PrevPageCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
-		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor-m.Height)
+		m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor-m.Props().Height)
 		m.Paginator.PrevPage()
 		return nil
 	}
 }
 
-func SelectAllItemsCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit <= 1 {
-			return nil
-		}
-		for i := range m.Matches {
-			if m.numSelected >= m.limit {
-				break // do not exceed given limit
-			}
-			if _, ok := m.Selected[i]; ok {
-				continue
-			} else {
-				m.Selected[m.Matches[i].Index] = struct{}{}
-				m.numSelected++
-			}
-		}
-		return nil
-	}
-}
+//func SelectAllItemsCmd(m *Choose) tea.Cmd {
+//  return func() tea.Msg {
+//    if m.limit <= 1 {
+//      return nil
+//    }
+//    for i := range m.Matches {
+//      if m.numSelected >= m.limit {
+//        break // do not exceed given limit
+//      }
+//      if _, ok := m.Selected[i]; ok {
+//        continue
+//      } else {
+//        m.Selected[m.Matches[i].Index] = struct{}{}
+//        m.numSelected++
+//      }
+//    }
+//    return nil
+//  }
+//}
 
-func DeselectAllItemsCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit <= 1 {
-			return nil
-		}
+//func DeselectAllItemsCmd(m *Choose) tea.Cmd {
+//  return func() tea.Msg {
+//    if m.limit <= 1 {
+//      return nil
+//    }
 
-		maps.Clear(m.Selected)
-		m.numSelected = 0
+//    maps.Clear(m.Selected)
+//    m.numSelected = 0
 
-		return nil
-	}
-}
+//    return nil
+//  }
+//}
 
 func FReturnSelectionsCmd(m *Filter) tea.Cmd {
 	return func() tea.Msg {

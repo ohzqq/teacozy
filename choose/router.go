@@ -90,9 +90,8 @@ func (c *Component) Init(reactea.NoProps) tea.Cmd {
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
-	case SetCursorMsg:
-		//fmt.Println(msg.cursor)
-		c.SetCursor(msg.cursor)
+	case ReturnSelectionsMsg:
+		return reactea.Destroy
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {

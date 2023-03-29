@@ -3,12 +3,12 @@ package choose
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -16,7 +16,8 @@ import (
 type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
-	item.Items
+	//item.Items
+	Cursor      int
 	Choices     []string
 	choiceMap   []map[string]string
 	Viewport    *viewport.Model
@@ -34,6 +35,19 @@ type Choose struct {
 	Style       style.List
 }
 
+type ChooseKeys struct {
+	Up               key.Binding
+	Down             key.Binding
+	Prev             key.Binding
+	Next             key.Binding
+	ToggleItem       key.Binding
+	Quit             key.Binding
+	ReturnSelections key.Binding
+	Filter           key.Binding
+	Bottom           key.Binding
+	Top              key.Binding
+}
+
 func New(choices ...string) *Choose {
 	tm := Choose{
 		Choices:  choices,
@@ -44,21 +58,12 @@ func New(choices ...string) *Choose {
 	return &tm
 }
 
-func (m *Choose) Run() []int {
-	//p := tea.NewProgram(m)
-	//if err := p.Start(); err != nil {
-	//log.Fatal(err)
-	//}
-
-	//if m.quitting {
-	//return []int{}
-	//}
-	return m.Chosen()
-}
-
 func (m *Choose) Update(msg tea.Msg) tea.Cmd {
-	var cmd tea.Cmd
+	//var cmd tea.Cmd
 	var cmds []tea.Cmd
+
+	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// Make place in the view port if header is set
@@ -66,24 +71,60 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.Viewport.Height = m.Viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
 		}
 		m.Viewport.Width = msg.Width
-	case ReturnSelectionsMsg:
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
+	case UpMsg:
+		m.Cursor--
+		if m.Cursor < 0 {
+			m.Cursor = len(m.Props().Visible()) - 1
+			m.Paginator.Page = m.Paginator.TotalPages - 1
+		}
+		if m.Cursor < start {
+			m.Paginator.PrevPage()
+		}
+	case DownMsg:
+		m.Cursor++
+		if m.Cursor >= len(m.Props().Visible()) {
+			m.Cursor = 0
+			m.Paginator.Page = 0
+		}
+		if m.Cursor >= end {
+			m.Paginator.NextPage()
+		}
 	case StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
 		return nil
 	case tea.KeyMsg:
-		for _, k := range GlobalKeyMap(m) {
-			if k.Matches(msg) {
-				cmd = k.Cmd
-				cmds = append(cmds, cmd)
+		switch {
+		case key.Matches(msg, chooseKey.Up):
+			cmds = append(cmds, UpCmd())
+		case key.Matches(msg, chooseKey.Down):
+			cmds = append(cmds, DownCmd())
+		case key.Matches(msg, chooseKey.Prev):
+			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor-m.Props().Height)
+			m.Paginator.PrevPage()
+		case key.Matches(msg, chooseKey.Next):
+			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
+			m.Paginator.NextPage()
+		case key.Matches(msg, chooseKey.ToggleItem):
+			if m.limit == 1 {
+				return nil
 			}
-		}
-		for _, k := range m.ListKeys(m) {
-			if k.Matches(msg) {
-				cmd = k.Cmd
-				cmds = append(cmds, cmd)
-			}
+			idx := m.Props().Visible()[m.Cursor].Index
+			m.Props().ToggleItem(idx)
+			cmds = append(cmds, DownCmd())
+		case key.Matches(msg, chooseKey.Filter):
+			reactea.SetCurrentRoute("filter")
+			return nil
+		case key.Matches(msg, chooseKey.Bottom):
+			m.Cursor = len(m.Props().Items.Items) - 1
+			m.Paginator.Page = m.Paginator.TotalPages - 1
+		case key.Matches(msg, chooseKey.Top):
+			m.Cursor = 0
+			m.Paginator.Page = 0
+		case key.Matches(msg, chooseKey.Quit):
+			m.quitting = true
+			cmds = append(cmds, ReturnSelectionsCmd())
+		case key.Matches(msg, chooseKey.ReturnSelections):
+			cmds = append(cmds, ReturnSelectionsCmd())
 		}
 	}
 
@@ -201,4 +242,17 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil
+}
+
+func (m *Choose) Run() []int {
+	//p := tea.NewProgram(m)
+	//if err := p.Start(); err != nil {
+	//log.Fatal(err)
+	//}
+
+	//if m.quitting {
+	return []int{}
+	//}
+	//return m.Chosen()
+
 }
