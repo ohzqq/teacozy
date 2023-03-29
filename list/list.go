@@ -4,28 +4,53 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type List struct {
-	reactea.BasicComponent                         // It implements AfterUpdate()
-	reactea.BasicPropfulComponent[reactea.NoProps] // It implements props backend - UpdateProps() and Props()
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter reactea.Component[router.Props] // Our router
+	mainRouter reactea.Component[router.Props]
 
 	Choices     []string
-	choiceMap   []map[string]string
 	Items       []Item
-	Matches     []Item
+	choiceMap   []map[string]string
 	Selected    map[int]struct{}
+	Matches     []Item
 	Limit       int
 	numSelected int
 	Cursor      int
+	quitting    bool
+	header      string
+	Placeholder string
+	Prompt      string
+	Width       int
+	Height      int
+	Style       style.List
 }
 
 func New(items ...string) *List {
-	return &List{
+	list := &List{
+		Items:      ChoicesToMatch(items),
+		Choices:    items,
+		Selected:   make(map[int]struct{}),
 		mainRouter: router.New(),
+		Limit:      1,
+		Height:     10,
 	}
+	list.Matches = list.Items
+
+	w, h := util.TermSize()
+	if list.Height == 0 {
+		list.Height = h - 4
+	}
+	if list.Width == 0 {
+		list.Width = w
+	}
+
+	return list
 }
 
 //func (c *List) Init(reactea.NoProps) tea.Cmd {
