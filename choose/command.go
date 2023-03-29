@@ -2,32 +2,7 @@ package choose
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/style"
 )
-
-func DefaultStyle() style.List {
-	var s style.List
-	s.Cursor = style.Cursor
-	s.SelectedPrefix = style.Selected
-	s.UnselectedPrefix = style.Unselected
-	s.Text = style.Foreground
-	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
-	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
-	s.Prompt = style.Prompt
-	return s
-}
-
-func (m *Choose) Header(text string) *Choose {
-	m.header = text
-	return m
-}
-
-func (m *Choose) ChoiceMap(choices []map[string]string) *Choose {
-	m.choiceMap = choices
-	return m
-}
 
 type ReturnSelectionsMsg struct{}
 

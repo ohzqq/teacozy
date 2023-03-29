@@ -7,73 +7,67 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/item"
+	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Component struct {
+type List struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
 
-	Choices     []string
-	Selected    map[int]struct{}
+	Choices []string
+	//Selected    map[int]struct{}
 	numSelected int
-	Width       int
-	Height      int
+	width       int
+	height      int
 	header      string
 	item.Items
 }
 
 type ChooseProps struct {
 	item.Items
-	Selected   map[int]struct{}
+	//Selected   map[int]struct{}
 	ToggleItem func(int)
 	Height     int
 	Width      int
 }
 
-func (cp ChooseProps) Visible(str ...string) []item.Item {
-	if len(str) != 0 {
-		return ExactMatches(str[0], cp.Items.Items)
-	}
-	return cp.Items.Items
-}
-
-func NewRouter(choices ...string) *Component {
-	list := &Component{
+func NewRouter(choices ...string) *List {
+	list := &List{
 		Choices:    choices,
 		mainRouter: router.New(),
-		Height:     4,
+		height:     4,
 		header:     "poot",
-		Selected:   make(map[int]struct{}),
+		//Selected:   make(map[int]struct{}),
 	}
 	list.Items = item.New(choices)
-	list.Limit = 2
 
 	w, h := util.TermSize()
-	if list.Height == 0 {
-		list.Height = h - 4
+	if list.height == 0 {
+		list.height = h - 4
 	}
-	if list.Width == 0 {
-		list.Width = w
+	if list.width == 0 {
+		list.width = w
 	}
 
 	return list
 }
 
-func (c *Component) NewProps() ChooseProps {
+func (c *List) NewProps() ChooseProps {
 	return ChooseProps{
-		Width:      c.Width,
-		Height:     c.Height,
-		Items:      c.Items,
-		Selected:   c.Selected,
+		Width:  c.width,
+		Height: c.height,
+		Items:  c.Items,
+		//Selected:   c.Selected,
 		ToggleItem: c.ToggleSelection,
 	}
 }
 
-func (c *Component) Init(reactea.NoProps) tea.Cmd {
+func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := New()
@@ -88,7 +82,7 @@ func (c *Component) Init(reactea.NoProps) tea.Cmd {
 	})
 }
 
-func (c *Component) Update(msg tea.Msg) tea.Cmd {
+func (c *List) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case ReturnSelectionsMsg:
 		return reactea.Destroy
@@ -102,43 +96,69 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	return c.mainRouter.Update(msg)
 }
 
-func (c *Component) Render(width, height int) string {
-	view := c.mainRouter.Render(c.Width, c.Height)
+func (c *List) Render(width, height int) string {
+	view := c.mainRouter.Render(c.width, c.height)
 	if c.header != "" {
-		header := c.header + strings.Repeat(" ", c.Width)
+		header := c.header + strings.Repeat(" ", c.width)
 		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
 	return view
 }
 
-func (m *Component) ToggleSelection(idx int) {
+func (m *List) ToggleSelection(idx int) {
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
 		m.numSelected--
-	} else if m.numSelected < m.Limit {
+	} else if m.numSelected < m.Items.Limit {
 		m.Selected[idx] = struct{}{}
 		m.numSelected++
 	}
 }
 
-func (m *Component) SetCursor(cur int) {
-	m.Cursor = cur
+func (cp ChooseProps) Visible(str ...string) []item.Item {
+	if len(str) != 0 {
+		return item.ExactMatches(str[0], cp.Items.Items)
+	}
+	return cp.Items.Items
 }
 
-func ExactMatches(search string, choices []item.Item) []item.Item {
-	matches := []item.Item{}
-	for _, choice := range choices {
-		search = strings.ToLower(search)
-		matchedString := strings.ToLower(choice.Str)
+func (m *List) Header(text string) *List {
+	m.header = text
+	return m
+}
 
-		index := strings.Index(matchedString, search)
-		if index >= 0 {
-			for s := range search {
-				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
-			}
-			matches = append(matches, choice)
-		}
-	}
+//func (m *Component) ChoiceMap(choices []map[string]string) *Component {
+//  m.choiceMap = choices
+//  return m
+//}
 
-	return matches
+func (m *List) Limit(l int) *List {
+	m.Items.Limit = l
+	return m
+}
+
+func (m *List) NoLimit() *List {
+	return m.Limit(len(m.Choices))
+}
+
+func (m *List) Height(h int) *List {
+	m.height = h
+	return m
+}
+
+func (m *List) Width(w int) *List {
+	m.width = w
+	return m
+}
+
+func DefaultStyle() style.List {
+	var s style.List
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = style.Prompt
+	return s
 }

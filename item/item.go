@@ -18,7 +18,6 @@ const (
 
 type Items struct {
 	Items       []Item
-	Matches     []Item
 	Selected    map[int]struct{}
 	Limit       int
 	numSelected int
@@ -44,7 +43,6 @@ func New(c []string) Items {
 		Items:    ChoicesToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
-	items.Matches = items.Items
 	return items
 }
 
@@ -54,7 +52,7 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		//Label:  "poot",
+		Label:  "poot",
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
@@ -74,21 +72,10 @@ func (m Items) Chosen() []int {
 		for k := range m.Selected {
 			chosen = append(chosen, k)
 		}
-	} else if len(m.Matches) > m.Cursor && m.Cursor >= 0 {
+	} else if len(m.Items) > m.Cursor && m.Cursor >= 0 {
 		chosen = append(chosen, m.Cursor)
 	}
 	return chosen
-}
-
-func (m *Items) ToggleSelection() {
-	idx := m.Matches[m.Cursor].Index
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.numSelected--
-	} else if m.numSelected < m.Limit {
-		m.Selected[idx] = struct{}{}
-		m.numSelected++
-	}
 }
 
 func (match Item) RenderText() string {

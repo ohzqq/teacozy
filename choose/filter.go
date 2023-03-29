@@ -122,34 +122,8 @@ func (m *Filter) Render(w, h int) string {
 	m.Viewport.Width = w
 
 	var s strings.Builder
-
-	for i, match := range m.Matches {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case i == m.Cursor:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Props().Selected[match.Index]; ok {
-				pre = match.Style.Selected.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-
-		s.WriteString(match.RenderText())
-		s.WriteRune('\n')
-	}
+	items := m.Props().RenderItems(m.Cursor, m.Matches)
+	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
 

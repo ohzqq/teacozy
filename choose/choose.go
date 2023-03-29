@@ -166,32 +166,11 @@ func (m *Choose) View() string {
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
-	for i, match := range m.Props().Visible()[start:end] {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case i == m.Cursor%m.Props().Height:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Props().Selected[match.Index]; ok {
-				pre = match.Style.Selected.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-		s.WriteString(match.RenderText())
-		s.WriteRune('\n')
-	}
+	items := m.Props().RenderItems(
+		m.Cursor%m.Props().Height,
+		m.Props().Visible()[start:end],
+	)
+	s.WriteString(items)
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {
