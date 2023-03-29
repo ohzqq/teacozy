@@ -28,7 +28,6 @@ type Model struct {
 	limit       int
 	aborted     bool
 	quitting    bool
-	cursor      int
 	header      string
 	Placeholder string
 	Prompt      string
@@ -106,12 +105,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) CursorUp() {
 	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor--
-	m.cursor--
-	if m.cursor < 0 {
-		m.cursor = len(m.Items.Matches) - 1
+	if m.Cursor < 0 {
+		m.Cursor = len(m.Items.Matches) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
-	if m.cursor < start {
+	if m.Cursor < start {
 		m.Paginator.PrevPage()
 	}
 }
@@ -119,18 +117,17 @@ func (m *Model) CursorUp() {
 func (m *Model) CursorDown() {
 	_, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor++
-	m.cursor++
-	if m.cursor >= len(m.Items.Matches) {
-		m.cursor = 0
+	if m.Cursor >= len(m.Items.Matches) {
+		m.Cursor = 0
 		m.Paginator.Page = 0
 	}
-	if m.cursor >= end {
+	if m.Cursor >= end {
 		m.Paginator.NextPage()
 	}
 }
 
 func (m *Model) ToggleSelection() {
-	idx := m.Matches[m.cursor].Index
+	idx := m.Matches[m.Cursor].Index
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
 		m.numSelected--
@@ -154,7 +151,7 @@ func (m *Model) View() string {
 		}
 
 		switch {
-		case i == m.cursor%m.Height:
+		case i == m.Cursor%m.Height:
 			pre = match.Style.Cursor.Render(pre)
 		default:
 			if _, ok := m.Selected[match.Index]; ok {
