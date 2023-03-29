@@ -1,4 +1,4 @@
-package item
+package list
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,10 +12,17 @@ type List struct {
 
 	mainRouter reactea.Component[router.Props] // Our router
 
-	Items
+	Choices     []string
+	choiceMap   []map[string]string
+	Items       []Item
+	Matches     []Item
+	Selected    map[int]struct{}
+	Limit       int
+	numSelected int
+	Cursor      int
 }
 
-func NewRouter() *List {
+func New(items ...string) *List {
 	return &List{
 		mainRouter: router.New(),
 	}
