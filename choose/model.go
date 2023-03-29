@@ -100,10 +100,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) CursorUp() {
-	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Items))
+	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor--
 	if m.Cursor < 0 {
-		m.Cursor = len(m.Items.Items) - 1
+		m.Cursor = len(m.Items.Matches) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 	}
 	if m.Cursor < start {
@@ -112,9 +112,9 @@ func (m *Model) CursorUp() {
 }
 
 func (m *Model) CursorDown() {
-	_, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
+	_, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor++
-	if m.Cursor >= len(m.Items.Items) {
+	if m.Cursor >= len(m.Items.Matches) {
 		m.Cursor = 0
 		m.Paginator.Page = 0
 	}
@@ -124,30 +124,23 @@ func (m *Model) CursorDown() {
 }
 
 func (m *Model) ToggleSelection() {
-	idx := m.Matches[m.Cursor].Index
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.numSelected--
-	} else if m.numSelected < m.limit {
-		m.Selected[idx] = struct{}{}
-		m.numSelected++
-	}
+	m.Items.ToggleSelection()
 	m.CursorDown()
 }
 
 func (m *Model) View() string {
 	var s strings.Builder
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Items.Items))
+	start, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 
-	items := item.RenderItems(m.Cursor, m.Items.Items[start:end])
+	items := item.RenderItems(m.Cursor, m.Items.Matches[start:end])
 	s.WriteString(items)
 
 	var view string
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items.Items))+1))
+		s.WriteString(strings.Repeat("\n", m.Height-m.Paginator.ItemsOnPage(len(m.Items.Matches))+1))
 		s.WriteString("  " + m.Paginator.View())
 	}
 
@@ -184,7 +177,7 @@ func (tm *Model) Init() tea.Cmd {
 	tm.Paginator.Type = paginator.Dots
 	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
 	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
-	tm.Paginator.SetTotalPages((len(tm.Items.Items) + tm.Height - 1) / tm.Height)
+	tm.Paginator.SetTotalPages((len(tm.Items.Matches) + tm.Height - 1) / tm.Height)
 	tm.Paginator.PerPage = tm.Height
 	return nil
 }
