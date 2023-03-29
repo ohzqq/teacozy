@@ -52,7 +52,6 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Label:  "poot",
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}

@@ -19,8 +19,7 @@ type List struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	Choices []string
-	//Selected    map[int]struct{}
+	Choices     []string
 	numSelected int
 	width       int
 	height      int
@@ -30,21 +29,18 @@ type List struct {
 
 type ChooseProps struct {
 	item.Items
-	//Selected   map[int]struct{}
 	ToggleItem func(int)
 	Height     int
 	Width      int
 }
 
-func NewRouter(choices ...string) *List {
+func New(choices ...string) *List {
 	list := &List{
 		Choices:    choices,
 		mainRouter: router.New(),
-		height:     4,
-		header:     "poot",
-		//Selected:   make(map[int]struct{}),
 	}
 	list.Items = item.New(choices)
+	list.Limit(1)
 
 	w, h := util.TermSize()
 	if list.height == 0 {
@@ -59,10 +55,9 @@ func NewRouter(choices ...string) *List {
 
 func (c *List) NewProps() ChooseProps {
 	return ChooseProps{
-		Width:  c.width,
-		Height: c.height,
-		Items:  c.Items,
-		//Selected:   c.Selected,
+		Width:      c.width,
+		Height:     c.height,
+		Items:      c.Items,
 		ToggleItem: c.ToggleSelection,
 	}
 }
@@ -70,7 +65,7 @@ func (c *List) NewProps() ChooseProps {
 func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := New()
+			component := NewChoice()
 
 			return component, component.Init(c.NewProps())
 		},
@@ -161,4 +156,15 @@ func DefaultStyle() style.List {
 	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
 	s.Prompt = style.Prompt
 	return s
+}
+
+//nolint:unparam
+func clamp(min, max, val int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
 }

@@ -18,12 +18,9 @@ type Filter struct {
 	reactea.BasicPropfulComponent[ChooseProps]
 	Cursor      int
 	Matches     []item.Item
-	Choices     []string
-	choiceMap   []map[string]string
 	Input       textinput.Model
 	Viewport    *viewport.Model
 	quitting    bool
-	header      string
 	Placeholder string
 	Prompt      string
 	Style       style.List
@@ -38,18 +35,11 @@ type FilterKeys struct {
 	StopFiltering    key.Binding
 }
 
-func NewFilter(choices ...string) *Filter {
+func NewFilter() *Filter {
 	tm := Filter{
-		Choices: choices,
-		Style:   DefaultStyle(),
-		Prompt:  style.PromptPrefix,
+		Style:  DefaultStyle(),
+		Prompt: style.PromptPrefix,
 	}
-
-	tm.Input = textinput.New()
-	tm.Input.Prompt = tm.Prompt
-	tm.Input.PromptStyle = tm.Style.Prompt
-	tm.Input.Placeholder = tm.Placeholder
-
 	return &tm
 }
 
@@ -134,6 +124,11 @@ func (m *Filter) Render(w, h int) string {
 func (tm *Filter) Init(props ChooseProps) tea.Cmd {
 	tm.UpdateProps(props)
 	tm.Matches = tm.Props().Visible()
+
+	tm.Input = textinput.New()
+	tm.Input.Prompt = tm.Prompt
+	tm.Input.PromptStyle = tm.Style.Prompt
+	tm.Input.Placeholder = tm.Placeholder
 	tm.Input.Width = tm.Props().Width
 
 	v := viewport.New(0, 0)

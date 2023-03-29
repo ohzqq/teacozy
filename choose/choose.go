@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -16,11 +15,8 @@ type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
 	Cursor    int
-	Choices   []string
-	choiceMap []map[string]string
 	Viewport  *viewport.Model
 	Paginator paginator.Model
-	aborted   bool
 	quitting  bool
 	header    string
 	Style     style.List
@@ -39,10 +35,9 @@ type ChooseKeys struct {
 	Top              key.Binding
 }
 
-func New(choices ...string) *Choose {
+func NewChoice() *Choose {
 	tm := Choose{
-		Choices: choices,
-		Style:   DefaultStyle(),
+		Style: DefaultStyle(),
 	}
 	return &tm
 }
@@ -55,11 +50,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		// Make place in the view port if header is set
-		if m.header != "" {
-			m.Viewport.Height = m.Viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
-		}
-		m.Viewport.Width = msg.Width
 	case UpMsg:
 		m.Cursor--
 		if m.Cursor < 0 {
@@ -120,48 +110,13 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Choose) CursorUp() int {
-	start, _ := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
-	m.Cursor--
-	if m.Cursor < 0 {
-		m.Cursor = len(m.Props().Visible()) - 1
-		m.Paginator.Page = m.Paginator.TotalPages - 1
-	}
-	if m.Cursor < start {
-		m.Paginator.PrevPage()
-	}
-	return m.Cursor
-}
-
-func (m *Choose) CursorDown() int {
-	_, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
-	m.Cursor++
-	if m.Cursor >= len(m.Props().Visible()) {
-		m.Cursor = 0
-		m.Paginator.Page = 0
-	}
-	if m.Cursor >= end {
-		m.Paginator.NextPage()
-	}
-	return m.Cursor
-}
-
-func (m *Choose) ToggleSelection() {
-	idx := m.Props().Visible()[m.Cursor].Index
-	m.Props().ToggleItem(idx)
-	m.CursorDown()
-}
-
 func (m *Choose) Render(w, h int) string {
 	m.Viewport.Height = h
 	if m.Paginator.TotalPages > 1 {
 		m.Viewport.Height = m.Viewport.Height + 4
 	}
 	m.Viewport.Width = w
-	return m.View()
-}
 
-func (m *Choose) View() string {
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
@@ -188,17 +143,6 @@ func (m *Choose) View() string {
 	return view
 }
 
-//nolint:unparam
-func clamp(min, max, val int) int {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
-}
-
 func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	tm.UpdateProps(props)
 	v := viewport.New(0, 0)
@@ -210,17 +154,4 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil
-}
-
-func (m *Choose) Run() []int {
-	//p := tea.NewProgram(m)
-	//if err := p.Start(); err != nil {
-	//log.Fatal(err)
-	//}
-
-	//if m.quitting {
-	return []int{}
-	//}
-	//return m.Chosen()
-
 }
