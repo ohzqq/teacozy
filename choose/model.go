@@ -1,7 +1,6 @@
 package choose
 
 import (
-	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
@@ -15,15 +14,15 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Model struct {
+type Choose struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[item.Items]
+	reactea.BasicPropfulComponent[ChooseProps]
 	item.Items
 	Choices     []string
 	choiceMap   []map[string]string
 	Viewport    *viewport.Model
 	Paginator   paginator.Model
-	ListKeys    func(m *Model) keys.KeyMap
+	ListKeys    func(m *Choose) keys.KeyMap
 	numSelected int
 	limit       int
 	aborted     bool
@@ -36,14 +35,26 @@ type Model struct {
 	Style       style.List
 }
 
-func New(choices ...string) *Model {
-	tm := Model{
+type ChooseProps struct {
+	item.Items
+	ToggleItem func(int)
+}
+
+func (c *Component) NewProps() ChooseProps {
+	return ChooseProps{
+		Items:      item.New(c.Choices),
+		ToggleItem: c.ToggleSelection,
+	}
+}
+
+func New(choices ...string) *Choose {
+	tm := Choose{
 		Choices:  choices,
 		ListKeys: ListKeyMap,
 		Style:    DefaultStyle(),
-		limit:    1,
+		limit:    2,
 		Prompt:   style.PromptPrefix,
-		Height:   10,
+		Height:   4,
 	}
 
 	w, h := util.TermSize()
@@ -59,19 +70,19 @@ func New(choices ...string) *Model {
 	return &tm
 }
 
-func (m *Model) Run() []int {
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
+func (m *Choose) Run() []int {
+	//p := tea.NewProgram(m)
+	//if err := p.Start(); err != nil {
+	//log.Fatal(err)
+	//}
 
-	if m.quitting {
-		return []int{}
-	}
+	//if m.quitting {
+	//return []int{}
+	//}
 	return m.Chosen()
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -99,10 +110,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
-func (m *Model) CursorUp() {
+func (m *Choose) CursorUp() {
 	start, _ := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor--
 	if m.Cursor < 0 {
@@ -114,7 +125,7 @@ func (m *Model) CursorUp() {
 	}
 }
 
-func (m *Model) CursorDown() {
+func (m *Choose) CursorDown() {
 	_, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
 	m.Cursor++
 	if m.Cursor >= len(m.Items.Matches) {
@@ -126,8 +137,9 @@ func (m *Model) CursorDown() {
 	}
 }
 
-func (m *Model) ToggleSelection() {
+func (m *Choose) ToggleSelection() {
 	idx := m.Matches[m.Cursor].Index
+	m.Props().ToggleItem(idx)
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
 		m.numSelected--
@@ -138,7 +150,13 @@ func (m *Model) ToggleSelection() {
 	m.CursorDown()
 }
 
-func (m *Model) View() string {
+func (m *Choose) Render(w, h int) string {
+	v := viewport.New(w, h+4)
+	m.Viewport = &v
+	return m.View()
+}
+
+func (m *Choose) View() string {
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
@@ -201,11 +219,13 @@ func clamp(min, max, val int) int {
 	return val
 }
 
-func (tm *Model) Init() tea.Cmd {
-	tm.Items = item.New(tm.Choices)
+func (tm *Choose) Init(props ChooseProps) tea.Cmd {
+	tm.Items = props.Items
+	tm.UpdateProps(props)
+	return tm.init()
+}
 
-	v := viewport.New(tm.Width, tm.Height+4)
-	tm.Viewport = &v
+func (tm *Choose) init() tea.Cmd {
 
 	tm.Paginator = paginator.New()
 	tm.Paginator.Type = paginator.Dots

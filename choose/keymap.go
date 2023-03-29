@@ -4,7 +4,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-func GlobalKeyMap(m *Model) keys.KeyMap {
+func GlobalKeyMap(m *Choose) keys.KeyMap {
 	return keys.KeyMap{
 		keys.NewBinding(
 			keys.WithKeys("down"),
@@ -29,7 +29,7 @@ func GlobalKeyMap(m *Model) keys.KeyMap {
 	}
 }
 
-func ListKeyMap(m *Model) keys.KeyMap {
+func ListKeyMap(m *Choose) keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding(
 			keys.WithKeys("right", "l"),

@@ -20,41 +20,41 @@ func DefaultStyle() style.List {
 	return s
 }
 
-func (m *Model) Header(text string) *Model {
+func (m *Choose) Header(text string) *Choose {
 	m.header = text
 	return m
 }
 
-func (m *Model) ChoiceMap(choices []map[string]string) *Model {
+func (m *Choose) ChoiceMap(choices []map[string]string) *Choose {
 	m.choiceMap = choices
 	return m
 }
 
-func (m *Model) SetStyle(s style.List) *Model {
+func (m *Choose) SetStyle(s style.List) *Choose {
 	m.Style = s
 	return m
 }
 
-func (m *Model) Limit(l int) *Model {
+func (m *Choose) Limit(l int) *Choose {
 	m.limit = l
 	return m
 }
 
-func (m *Model) NoLimit() *Model {
+func (m *Choose) NoLimit() *Choose {
 	return m.Limit(len(m.Choices))
 }
 
-func (m *Model) SetHeight(h int) *Model {
+func (m *Choose) SetHeight(h int) *Choose {
 	m.Height = h
 	return m
 }
 
-func (m *Model) SetWidth(w int) *Model {
+func (m *Choose) SetWidth(w int) *Choose {
 	m.Width = w
 	return m
 }
 
-func (m *Model) SetSize(w, h int) *Model {
+func (m *Choose) SetSize(w, h int) *Choose {
 	m.SetWidth(w)
 	m.SetHeight(h)
 	return m
@@ -62,26 +62,26 @@ func (m *Model) SetSize(w, h int) *Model {
 
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd(m *Model) tea.Cmd {
+func ReturnSelectionsCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func QuitCmd(m *Model) tea.Cmd {
+func QuitCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.quitting = true
 		return ReturnSelectionsMsg{}
 	}
 }
 
-func FilterItemsCmd(m *Model) tea.Cmd {
+func FilterItemsCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		return nil
 	}
 }
 
-func StopFilteringCmd(m *Model) tea.Cmd {
+func StopFilteringCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit == 1 {
 			m.ToggleSelection()
@@ -91,7 +91,7 @@ func StopFilteringCmd(m *Model) tea.Cmd {
 	}
 }
 
-func SelectItemCmd(m *Model) tea.Cmd {
+func SelectItemCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit == 1 {
 			return nil
@@ -101,21 +101,21 @@ func SelectItemCmd(m *Model) tea.Cmd {
 	}
 }
 
-func UpCmd(m *Model) tea.Cmd {
+func UpCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorUp()
 		return nil
 	}
 }
 
-func DownCmd(m *Model) tea.Cmd {
+func DownCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.CursorDown()
 		return nil
 	}
 }
 
-func TopCmd(m *Model) tea.Cmd {
+func TopCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.Cursor = 0
 		m.Paginator.Page = 0
@@ -123,7 +123,7 @@ func TopCmd(m *Model) tea.Cmd {
 	}
 }
 
-func BottomCmd(m *Model) tea.Cmd {
+func BottomCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.Cursor = len(m.Items.Items) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
@@ -131,7 +131,7 @@ func BottomCmd(m *Model) tea.Cmd {
 	}
 }
 
-func NextPageCmd(m *Model) tea.Cmd {
+func NextPageCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor+m.Height)
 		m.Paginator.NextPage()
@@ -139,7 +139,7 @@ func NextPageCmd(m *Model) tea.Cmd {
 	}
 }
 
-func PrevPageCmd(m *Model) tea.Cmd {
+func PrevPageCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		m.Cursor = clamp(0, len(m.Items.Items)-1, m.Cursor-m.Height)
 		m.Paginator.PrevPage()
@@ -147,7 +147,7 @@ func PrevPageCmd(m *Model) tea.Cmd {
 	}
 }
 
-func SelectAllItemsCmd(m *Model) tea.Cmd {
+func SelectAllItemsCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit <= 1 {
 			return nil
@@ -167,7 +167,7 @@ func SelectAllItemsCmd(m *Model) tea.Cmd {
 	}
 }
 
-func DeselectAllItemsCmd(m *Model) tea.Cmd {
+func DeselectAllItemsCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
 		if m.limit <= 1 {
 			return nil
