@@ -2,8 +2,10 @@ package list
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -18,17 +20,23 @@ type List struct {
 	Items       []Item
 	choiceMap   []map[string]string
 	Selected    map[int]struct{}
-	Matches     []Item
-	Limit       int
 	numSelected int
-	Cursor      int
 	quitting    bool
 	header      string
 	Placeholder string
 	Prompt      string
 	Width       int
 	Height      int
-	Style       style.List
+	ListProps
+}
+
+type ListProps struct {
+	Style           style.List
+	Matches         []Item
+	Cursor          int
+	Limit           int
+	UpdateMatches   func([]Item)
+	ToggleSelection func(int)
 }
 
 func New(items ...string) *List {
@@ -37,8 +45,10 @@ func New(items ...string) *List {
 		Choices:    items,
 		Selected:   make(map[int]struct{}),
 		mainRouter: router.New(),
-		Limit:      1,
 		Height:     10,
+		ListProps: &ListProps{
+			Limit: 1,
+		},
 	}
 	list.Matches = list.Items
 
@@ -51,6 +61,16 @@ func New(items ...string) *List {
 	}
 
 	return list
+}
+
+func (m List) NewListProps() ListProps {
+	return ListProps{
+		UpdateMatches:   m.UpdateMatches,
+		ToggleSelection: m.ToggleSelection,
+		Style:           DefaultStyle(),
+		Cursor:          m.Cursor,
+		Limit:           m.Limit,
+	}
 }
 
 //func (c *List) Init(reactea.NoProps) tea.Cmd {
@@ -87,4 +107,30 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 
 func (c *List) Render(width, height int) string {
 	return c.mainRouter.Render(width, height)
+}
+
+func (m *List) ToggleSelection(idx int) {
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.numSelected--
+	} else if m.numSelected < m.Limit {
+		m.Selected[idx] = struct{}{}
+		m.numSelected++
+	}
+}
+
+func (m *List) UpdateMatches(matches []Item) {
+	m.Matches = matches
+}
+
+func DefaultStyle() style.List {
+	var s style.List
+	s.Cursor = style.Cursor
+	s.SelectedPrefix = style.Selected
+	s.UnselectedPrefix = style.Unselected
+	s.Text = style.Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = style.Prompt
+	return s
 }
