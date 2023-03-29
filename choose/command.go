@@ -81,13 +81,12 @@ func FilterItemsCmd(m *Choose) tea.Cmd {
 	}
 }
 
-func StopFilteringCmd(m *Choose) tea.Cmd {
+type StopFilteringMsg struct{}
+type StartFilteringMsg struct{}
+
+func StartFilteringCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
-		if m.limit == 1 {
-			m.ToggleSelection()
-			return ReturnSelectionsMsg{}
-		}
-		return nil
+		return StartFilteringMsg{}
 	}
 }
 
@@ -176,6 +175,56 @@ func DeselectAllItemsCmd(m *Choose) tea.Cmd {
 		maps.Clear(m.Selected)
 		m.numSelected = 0
 
+		return nil
+	}
+}
+
+func FReturnSelectionsCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		return ReturnSelectionsMsg{}
+	}
+}
+
+func FQuitCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		m.quitting = true
+		return ReturnSelectionsMsg{}
+	}
+}
+
+func FStopFilteringCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		if m.limit == 1 {
+			m.ToggleSelection()
+			return ReturnSelectionsMsg{}
+		}
+
+		m.Input.Reset()
+		m.Input.Blur()
+		return StopFilteringMsg{}
+	}
+}
+
+func FSelectItemCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		if m.limit == 1 {
+			return nil
+		}
+		m.ToggleSelection()
+		return nil
+	}
+}
+
+func FUpCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		m.CursorUp()
+		return nil
+	}
+}
+
+func FDownCmd(m *Filter) tea.Cmd {
+	return func() tea.Msg {
+		m.CursorDown()
 		return nil
 	}
 }

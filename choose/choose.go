@@ -37,14 +37,8 @@ type Choose struct {
 
 type ChooseProps struct {
 	item.Items
+	Selected   map[int]struct{}
 	ToggleItem func(int)
-}
-
-func (c *Component) NewProps() ChooseProps {
-	return ChooseProps{
-		Items:      item.New(c.Choices),
-		ToggleItem: c.ToggleSelection,
-	}
 }
 
 func New(choices ...string) *Choose {
@@ -95,6 +89,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
+	case StartFilteringMsg:
+		reactea.SetCurrentRoute("filter")
+		return nil
 	case tea.KeyMsg:
 		for _, k := range GlobalKeyMap(m) {
 			if k.Matches(msg) {
@@ -140,13 +137,14 @@ func (m *Choose) CursorDown() {
 func (m *Choose) ToggleSelection() {
 	idx := m.Matches[m.Cursor].Index
 	m.Props().ToggleItem(idx)
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.numSelected--
-	} else if m.numSelected < m.limit {
-		m.Selected[idx] = struct{}{}
-		m.numSelected++
-	}
+	//if _, ok := m.Selected[idx]; ok {
+	//  delete(m.Selected, idx)
+	//  m.numSelected--
+	//} else if m.numSelected < m.limit {
+	//  m.Selected[idx] = struct{}{}
+	//  m.numSelected++
+	//}
+
 	m.CursorDown()
 }
 
@@ -159,9 +157,9 @@ func (m *Choose) Render(w, h int) string {
 func (m *Choose) View() string {
 	var s strings.Builder
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Items.Matches))
+	start, end := m.Paginator.GetSliceBounds(len(m.Props().Matches))
 
-	for i, match := range m.Items.Matches[start:end] {
+	for i, match := range m.Props().Matches[start:end] {
 		pre := "x"
 
 		if match.Label != "" {
@@ -172,7 +170,7 @@ func (m *Choose) View() string {
 		case i == m.Cursor%m.Height:
 			pre = match.Style.Cursor.Render(pre)
 		default:
-			if _, ok := m.Selected[match.Index]; ok {
+			if _, ok := m.Props().Selected[match.Index]; ok {
 				pre = match.Style.Selected.Render(pre)
 			} else if match.Label == "" {
 				pre = strings.Repeat(" ", lipgloss.Width(pre))

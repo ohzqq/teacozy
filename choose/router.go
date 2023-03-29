@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -41,10 +42,25 @@ func NewRouter(choices ...string) *Component {
 	return list
 }
 
+func (c *Component) NewProps() ChooseProps {
+	items := item.New(c.Choices)
+	items.Limit = c.Limit
+	return ChooseProps{
+		Items:      items,
+		Selected:   c.Selected,
+		ToggleItem: c.ToggleSelection,
+	}
+}
+
 func (c *Component) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := New()
+
+			return component, component.Init(c.NewProps())
+		},
+		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := NewFilter()
 
 			return component, component.Init(c.NewProps())
 		},

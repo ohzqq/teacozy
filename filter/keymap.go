@@ -4,7 +4,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-func FilterKeyMap(m *Model) keys.KeyMap {
+func FilterKeyMap(m *Filter) keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding(
 			keys.WithKeys("esc"),
@@ -20,7 +20,7 @@ func FilterKeyMap(m *Model) keys.KeyMap {
 	return km
 }
 
-func GlobalKeyMap(m *Model) keys.KeyMap {
+func GlobalKeyMap(m *Filter) keys.KeyMap {
 	return keys.KeyMap{
 		keys.NewBinding(
 			keys.WithKeys("down"),

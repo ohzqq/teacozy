@@ -4,20 +4,45 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-func FilterKeyMap(m *Model) keys.KeyMap {
+func FilterKeyMap(m *Filter) keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding(
 			keys.WithKeys("esc"),
 			keys.WithHelp("esc", "stop filtering"),
-			keys.WithCmd(StopFilteringCmd(m)),
+			keys.WithCmd(FStopFilteringCmd(m)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("enter"),
 			keys.WithHelp("enter", "return selections"),
-			keys.WithCmd(ReturnSelectionsCmd(m)),
+			keys.WithCmd(FReturnSelectionsCmd(m)),
 		),
 	}
 	return km
+}
+
+func GlobalsKeyMap(m *Filter) keys.KeyMap {
+	return keys.KeyMap{
+		keys.NewBinding(
+			keys.WithKeys("down"),
+			keys.WithHelp("down", "move cursor down"),
+			keys.WithCmd(FDownCmd(m)),
+		),
+		keys.NewBinding(
+			keys.WithKeys("up"),
+			keys.WithHelp("up", "move cursor up"),
+			keys.WithCmd(FUpCmd(m)),
+		),
+		keys.NewBinding(
+			keys.WithKeys("ctrl+c"),
+			keys.WithHelp("ctrl+c", "quit"),
+			keys.WithCmd(FQuitCmd(m)),
+		),
+		keys.NewBinding(
+			keys.WithKeys("tab"),
+			keys.WithHelp("tab", "select item"),
+			keys.WithCmd(FSelectItemCmd(m)),
+		),
+	}
 }
 
 func GlobalKeyMap(m *Choose) keys.KeyMap {
@@ -95,7 +120,7 @@ func ListKeyMap(m *Choose) keys.KeyMap {
 		keys.NewBinding(
 			keys.WithKeys("/"),
 			keys.WithHelp("/", "filter items"),
-			keys.WithCmd(FilterItemsCmd(m)),
+			keys.WithCmd(StartFilteringCmd(m)),
 		),
 		keys.NewBinding(
 			keys.WithKeys("G"),

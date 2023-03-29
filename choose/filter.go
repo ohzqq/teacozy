@@ -1,13 +1,13 @@
-package filter
+package choose
 
 import (
-	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
@@ -15,6 +15,8 @@ import (
 )
 
 type Filter struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[ChooseProps]
 	item.Items
 	Choices     []string
 	choiceMap   []map[string]string
@@ -38,7 +40,7 @@ func NewFilter(choices ...string) *Filter {
 		Choices:    choices,
 		FilterKeys: FilterKeyMap,
 		Style:      DefaultStyle(),
-		limit:      1,
+		limit:      2,
 		Prompt:     style.PromptPrefix,
 		Height:     10,
 	}
@@ -61,17 +63,17 @@ func NewFilter(choices ...string) *Filter {
 }
 
 func (m *Filter) Run() []int {
-	p := tea.NewProgram(m)
-	if err := p.Start(); err != nil {
-		log.Fatal(err)
-	}
-	if m.quitting {
-		return []int{}
-	}
+	//p := tea.NewProgram(m)
+	//if err := p.Start(); err != nil {
+	//log.Fatal(err)
+	//}
+	//if m.quitting {
+	//return []int{}
+	//}
 	return m.Chosen()
 }
 
-func (m *Filter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -80,16 +82,14 @@ func (m *Filter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
 		}
 
-		// Make place in the view port if header is set
-		if m.header != "" {
-			m.Viewport.Height = m.Viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
-		}
 		m.Viewport.Width = msg.Width
 	case ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
+	case StopFilteringMsg:
+		reactea.SetCurrentRoute("default")
 	case tea.KeyMsg:
-		for _, k := range GlobalKeyMap(m) {
+		for _, k := range GlobalsKeyMap(m) {
 			if k.Matches(msg) {
 				cmd = k.Cmd
 				cmds = append(cmds, cmd)
@@ -110,15 +110,13 @@ func (m *Filter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor)
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (m *Filter) CursorUp() {
 	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
 	if m.Cursor < m.Viewport.YOffset {
 		m.Viewport.SetYOffset(m.Cursor)
-	} else {
-		m.Viewport.GotoBottom()
 	}
 }
 
@@ -126,27 +124,52 @@ func (m *Filter) CursorDown() {
 	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
 	if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
 		m.Viewport.LineDown(1)
-	} else {
-		m.Viewport.GotoTop()
 	}
 }
 
 func (m *Filter) ToggleSelection() {
 	idx := m.Matches[m.Cursor].Index
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.numSelected--
-	} else if m.numSelected < m.limit {
-		m.Selected[idx] = struct{}{}
-		m.numSelected++
-	}
+	m.Props().ToggleItem(idx)
 	m.CursorDown()
 }
 
-func (m Filter) View() string {
+func (m *Filter) Render(w, h int) string {
+	m.Viewport.Height = h
+	m.Viewport.Width = w
+
+	return m.View()
+}
+
+func (m *Filter) View() string {
 	var s strings.Builder
 
-	s.WriteString(m.RenderItems(m.Cursor, m.Matches))
+	for i, match := range m.Matches {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == m.Cursor:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Props().Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.RenderText())
+		s.WriteRune('\n')
+	}
 
 	m.Viewport.SetContent(s.String())
 
@@ -154,24 +177,17 @@ func (m Filter) View() string {
 	return view
 }
 
-//nolint:unparam
-func clamp(min, max, val int) int {
-	if val < min {
-		return max
-	}
-	if val > max {
-		return min
-	}
-	return val
+func (tm *Filter) Init(props ChooseProps) tea.Cmd {
+	tm.Items = props.Items
+	tm.UpdateProps(props)
+	return tm.init()
 }
 
-func (tm *Filter) Init() tea.Cmd {
-	tm.Items = item.New(tm.Choices)
+func (tm *Filter) init() tea.Cmd {
 	tm.Input.Width = tm.Width
 
-	v := viewport.New(tm.Width, tm.Height+4)
+	v := viewport.New(tm.Width, tm.Height)
 	tm.Viewport = &v
-
 	tm.Input.Focus()
 
 	return nil
