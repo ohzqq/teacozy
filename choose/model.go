@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
@@ -15,6 +16,8 @@ import (
 )
 
 type Model struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[item.Items]
 	item.Items
 	Choices     []string
 	choiceMap   []map[string]string
