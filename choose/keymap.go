@@ -5,66 +5,31 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-func FilterKeyMap(m *Filter) keys.KeyMap {
-	km := keys.KeyMap{
-		keys.NewBinding(
-			keys.WithKeys("esc"),
-			keys.WithHelp("esc", "stop filtering"),
-			keys.WithCmd(FStopFilteringCmd(m)),
-		),
-		keys.NewBinding(
-			keys.WithKeys("enter"),
-			keys.WithHelp("enter", "return selections"),
-			keys.WithCmd(FReturnSelectionsCmd(m)),
-		),
-	}
-	return km
-}
-
-func GlobalsKeyMap(m *Filter) keys.KeyMap {
-	return keys.KeyMap{
-		keys.NewBinding(
-			keys.WithKeys("down"),
-			keys.WithHelp("down", "move cursor down"),
-			keys.WithCmd(FDownCmd(m)),
-		),
-		keys.NewBinding(
-			keys.WithKeys("up"),
-			keys.WithHelp("up", "move cursor up"),
-			keys.WithCmd(FUpCmd(m)),
-		),
-		keys.NewBinding(
-			keys.WithKeys("ctrl+c"),
-			keys.WithHelp("ctrl+c", "quit"),
-			keys.WithCmd(FQuitCmd(m)),
-		),
-		keys.NewBinding(
-			keys.WithKeys("tab"),
-			keys.WithHelp("tab", "select item"),
-			keys.WithCmd(FSelectItemCmd(m)),
-		),
-	}
-}
-
-func GlobalKeyMap(m *Choose) keys.KeyMap {
-	return keys.KeyMap{
-		keys.NewBinding(
-			keys.WithKeys("down"),
-			keys.WithHelp("down", "move cursor down"),
-		),
-		keys.NewBinding(
-			keys.WithKeys("up"),
-			keys.WithHelp("up", "move cursor up"),
-		),
-		keys.NewBinding(
-			keys.WithKeys("ctrl+c"),
-			keys.WithHelp("ctrl+c", "quit"),
-		),
-		keys.NewBinding(
-			keys.WithKeys("tab"),
-			keys.WithHelp("tab", "select item"),
-		),
-	}
+var filterKey = FilterKeys{
+	ToggleItem: key.NewBinding(
+		key.WithKeys(" ", "tab"),
+		key.WithHelp("space", "select item"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("j", "down"),
+		key.WithHelp("j", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("k", "up"),
+		key.WithHelp("k", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	),
+	StopFiltering: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "stop filtering"),
+	),
+	ReturnSelections: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "return selections"),
+	),
 }
 
 var chooseKey = ChooseKeys{

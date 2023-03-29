@@ -81,6 +81,7 @@ func FilterItemsCmd() tea.Cmd {
 
 type StopFilteringMsg struct{}
 type StartFilteringMsg struct{}
+type ToggleItemMsg struct{}
 
 func StartFilteringCmd(m *Choose) tea.Cmd {
 	return func() tea.Msg {
@@ -88,13 +89,15 @@ func StartFilteringCmd(m *Choose) tea.Cmd {
 	}
 }
 
-func SelectItemCmd(m *Choose) tea.Cmd {
+func StopFilteringCmd() tea.Cmd {
 	return func() tea.Msg {
-		if m.limit == 1 {
-			return nil
-		}
-		m.ToggleSelection()
-		return nil
+		return StopFilteringMsg{}
+	}
+}
+
+func ToggleItemCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ToggleItemMsg{}
 	}
 }
 
@@ -115,38 +118,6 @@ type DownMsg struct{}
 func DownCmd() tea.Cmd {
 	return func() tea.Msg {
 		return DownMsg{}
-	}
-}
-
-func TopCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		m.Cursor = 0
-		m.Paginator.Page = 0
-		return nil
-	}
-}
-
-func BottomCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		m.Cursor = len(m.Props().Items.Items) - 1
-		m.Paginator.Page = m.Paginator.TotalPages - 1
-		return nil
-	}
-}
-
-func NextPageCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
-		m.Paginator.NextPage()
-		return nil
-	}
-}
-
-func PrevPageCmd(m *Choose) tea.Cmd {
-	return func() tea.Msg {
-		m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor-m.Props().Height)
-		m.Paginator.PrevPage()
-		return nil
 	}
 }
 
@@ -182,53 +153,3 @@ func PrevPageCmd(m *Choose) tea.Cmd {
 //    return nil
 //  }
 //}
-
-func FReturnSelectionsCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
-	}
-}
-
-func FQuitCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		m.quitting = true
-		return ReturnSelectionsMsg{}
-	}
-}
-
-func FStopFilteringCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit == 1 {
-			m.ToggleSelection()
-			return ReturnSelectionsMsg{}
-		}
-
-		m.Input.Reset()
-		m.Input.Blur()
-		return StopFilteringMsg{}
-	}
-}
-
-func FSelectItemCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		if m.limit == 1 {
-			return nil
-		}
-		m.ToggleSelection()
-		return nil
-	}
-}
-
-func FUpCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		m.CursorUp()
-		return nil
-	}
-}
-
-func FDownCmd(m *Filter) tea.Cmd {
-	return func() tea.Msg {
-		m.CursorDown()
-		return nil
-	}
-}

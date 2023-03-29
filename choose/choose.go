@@ -105,7 +105,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
 			m.Paginator.NextPage()
 		case key.Matches(msg, chooseKey.ToggleItem):
-			if m.limit == 1 {
+			if m.Props().Limit == 1 {
 				return nil
 			}
 			idx := m.Props().Visible()[m.Cursor].Index

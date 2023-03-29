@@ -3,6 +3,7 @@ package choose
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,6 +19,7 @@ type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
 	item.Items
+	Cursor      int
 	Choices     []string
 	choiceMap   []map[string]string
 	Input       textinput.Model
@@ -35,14 +37,22 @@ type Filter struct {
 	Style       style.List
 }
 
+type FilterKeys struct {
+	Up               key.Binding
+	Down             key.Binding
+	ToggleItem       key.Binding
+	Quit             key.Binding
+	ReturnSelections key.Binding
+	StopFiltering    key.Binding
+}
+
 func NewFilter(choices ...string) *Filter {
 	tm := Filter{
-		Choices:    choices,
-		FilterKeys: FilterKeyMap,
-		Style:      DefaultStyle(),
-		limit:      2,
-		Prompt:     style.PromptPrefix,
-		Height:     10,
+		Choices: choices,
+		Style:   DefaultStyle(),
+		limit:   2,
+		Prompt:  style.PromptPrefix,
+		Height:  10,
 	}
 
 	w, h := util.TermSize()
@@ -86,20 +96,47 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-	case StopFilteringMsg:
-		reactea.SetCurrentRoute("default")
-	case tea.KeyMsg:
-		for _, k := range GlobalsKeyMap(m) {
-			if k.Matches(msg) {
-				cmd = k.Cmd
-				cmds = append(cmds, cmd)
-			}
+	case UpMsg:
+		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
+		if m.Cursor < m.Viewport.YOffset {
+			m.Viewport.SetYOffset(m.Cursor)
 		}
-		for _, k := range m.FilterKeys(m) {
-			if k.Matches(msg) {
-				cmd = k.Cmd
-				cmds = append(cmds, cmd)
-			}
+	case DownMsg:
+		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
+		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
+			m.Viewport.LineDown(1)
+		}
+	case ToggleItemMsg:
+		if m.Props().Limit == 1 {
+			return nil
+		}
+		idx := m.Props().Visible()[m.Cursor].Index
+		m.Props().ToggleItem(idx)
+		cmds = append(cmds, DownCmd())
+	case StopFilteringMsg:
+		if m.Props().Limit == 1 {
+			cmds = append(cmds, ToggleItemCmd())
+		}
+
+		m.Input.Reset()
+		m.Input.Blur()
+		reactea.SetCurrentRoute("default")
+		return nil
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, filterKey.StopFiltering):
+			cmds = append(cmds, StopFilteringCmd())
+		case key.Matches(msg, filterKey.Up):
+			cmds = append(cmds, UpCmd())
+		case key.Matches(msg, filterKey.Down):
+			cmds = append(cmds, DownCmd())
+		case key.Matches(msg, filterKey.ToggleItem):
+			cmds = append(cmds, ToggleItemCmd())
+		case key.Matches(msg, filterKey.Quit):
+			m.quitting = true
+			cmds = append(cmds, ReturnSelectionsCmd())
+		case key.Matches(msg, filterKey.ReturnSelections):
+			cmds = append(cmds, ReturnSelectionsCmd())
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		m.Matches = m.Props().Visible(m.Input.Value())
@@ -110,34 +147,10 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Filter) CursorUp() {
-	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
-	if m.Cursor < m.Viewport.YOffset {
-		m.Viewport.SetYOffset(m.Cursor)
-	}
-}
-
-func (m *Filter) CursorDown() {
-	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
-	if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
-		m.Viewport.LineDown(1)
-	}
-}
-
-func (m *Filter) ToggleSelection() {
-	idx := m.Matches[m.Cursor].Index
-	m.Props().ToggleItem(idx)
-	m.CursorDown()
-}
-
 func (m *Filter) Render(w, h int) string {
 	m.Viewport.Height = h
 	m.Viewport.Width = w
 
-	return m.View()
-}
-
-func (m *Filter) View() string {
 	var s strings.Builder
 
 	for i, match := range m.Matches {
