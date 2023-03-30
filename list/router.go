@@ -20,6 +20,7 @@ type List struct {
 	mainRouter reactea.Component[router.Props]
 
 	Choices     []string
+	choiceMap   []map[string]string
 	numSelected int
 	width       int
 	height      int
@@ -37,9 +38,10 @@ type ChooseProps struct {
 func New(choices ...string) *List {
 	list := &List{
 		Choices:    choices,
+		choiceMap:  mapChoices(choices),
 		mainRouter: router.New(),
 	}
-	list.Items = item.New(choices)
+	list.Items = item.NewChoiceMap(list.choiceMap)
 	list.Limit(1)
 
 	w, h := util.TermSize()
@@ -122,10 +124,19 @@ func (m *List) Header(text string) *List {
 	return m
 }
 
-//func (m *Component) ChoiceMap(choices []map[string]string) *Component {
-//  m.choiceMap = choices
-//  return m
-//}
+func (m *List) ChoiceMap(choices []map[string]string) *List {
+	m.choiceMap = choices
+	m.Items = item.NewChoiceMap(choices)
+	return m
+}
+
+func mapChoices(c []string) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": val}
+	}
+	return choices
+}
 
 func (m *List) Limit(l int) *List {
 	m.Items.Limit = l

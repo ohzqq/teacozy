@@ -41,9 +41,17 @@ type Prefix struct {
 	Unselected string
 }
 
-func New(c []string) Items {
+func New(c []map[string]string) Items {
 	items := Items{
-		Items:    ChoicesToMatch(c),
+		Items:    ChoiceMapToMatch(c),
+		Selected: make(map[int]struct{}),
+	}
+	return items
+}
+
+func NewChoiceMap(c []map[string]string) Items {
+	items := Items{
+		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
 	return items
@@ -136,6 +144,18 @@ func DefaultItemStyle() style.ListItem {
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 
 	return s
+}
+
+func ChoiceMapToMatch(options []map[string]string) []Item {
+	matches := make([]Item, len(options))
+	for i, option := range options {
+		for label, val := range option {
+			item := NewItem(val, i)
+			item.Label = label
+			matches[i] = item
+		}
+	}
+	return matches
 }
 
 func ChoicesToMatch(options []string) []Item {
