@@ -75,6 +75,10 @@ func DefaultPrefix() *Prefix {
 	}
 }
 
+func (i *Item) SetValue(val string) {
+	i.Str = val
+}
+
 func (m Items) Chosen() []int {
 	var chosen []int
 	if len(m.Selected) > 0 {
@@ -85,6 +89,18 @@ func (m Items) Chosen() []int {
 		chosen = append(chosen, m.Cursor)
 	}
 	return chosen
+}
+
+func (m Items) Map() []map[string]string {
+	var items []map[string]string
+	for _, item := range m.Items {
+		items = append(items, item.Map())
+	}
+	return items
+}
+
+func (i Item) Map() map[string]string {
+	return map[string]string{i.Label: i.Str}
 }
 
 func (match Item) RenderText() string {

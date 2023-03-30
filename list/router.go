@@ -45,6 +45,14 @@ func (cp Props) Visible(str ...string) []Item {
 	return cp.Items.Items
 }
 
+func (i *Props) SetItemValue(idx int, val string) {
+	for _, item := range i.Items.Items {
+		if idx == item.Index {
+			item.Str = val
+		}
+	}
+}
+
 type ChooseProps struct {
 	Props
 	ToggleItem func(int)
@@ -74,12 +82,13 @@ func New(choices ...string) *List {
 }
 
 func (c *List) NewProps() Props {
-	//items := NewChoiceMap(c.choiceMap)
-	//items.Limit = c.limit
+	items := NewItems(c.choiceMap)
+	items.Limit = c.Items.Limit
+	items.Selected = c.Selected
 	return Props{
 		Width:  c.width,
 		Height: c.height,
-		Items:  c.Items,
+		Items:  items,
 	}
 }
 
@@ -92,8 +101,8 @@ func (c *List) NewChooseProps() ChooseProps {
 
 func (c *List) NewFormProps() FormProps {
 	return FormProps{
-		Props:    c.NewProps(),
-		EditItem: c.EditItem,
+		Props: c.NewProps(),
+		Save:  c.ChoiceMap,
 	}
 }
 
@@ -165,10 +174,16 @@ func (m *List) Header(text string) *List {
 	return m
 }
 
-func (m *List) ChoiceMap(choices []map[string]string) *List {
+func (m *List) ChoiceMap(choices []map[string]string) {
 	m.choiceMap = choices
-	m.Items = NewItems(choices)
-	return m
+}
+
+func (m List) Chosen() []map[string]string {
+	var chosen []map[string]string
+	for _, c := range m.Items.Chosen() {
+		chosen = append(chosen, m.choiceMap[c])
+	}
+	return chosen
 }
 
 func mapChoices(c []string) []map[string]string {

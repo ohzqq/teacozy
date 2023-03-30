@@ -17,7 +17,6 @@ type Form struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[FormProps]
 	Cursor      int
-	Matches     []item.Item
 	Input       textarea.Model
 	Viewport    *viewport.Model
 	quitting    bool
@@ -28,7 +27,7 @@ type Form struct {
 
 type FormProps struct {
 	Props
-	EditItem func(int)
+	Save func([]map[string]string)
 }
 
 type FormKeys struct {
@@ -37,7 +36,7 @@ type FormKeys struct {
 	ToggleItem  key.Binding
 	Quit        key.Binding
 	StopEditing key.Binding
-	SaveValue   key.Binding
+	Save        key.Binding
 	Edit        key.Binding
 }
 
@@ -87,6 +86,14 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	case tea.KeyMsg:
 		if m.Input.Focused() {
+			switch {
+			case key.Matches(msg, formKey.Save):
+				//props := m.Props()
+				//props.SetItemValue(m.Cursor, m.Input.Value())
+				m.Props().Visible()[m.Cursor].Str = m.Input.Value()
+				//m.Input.Reset()
+				m.Input.Blur()
+			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
@@ -102,17 +109,15 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 			case key.Matches(msg, formKey.Quit):
 				m.quitting = true
 				cmds = append(cmds, ReturnSelectionsCmd())
+			case key.Matches(msg, formKey.Save):
+				m.Props().Save(m.Props().Items.Map())
+				reactea.SetCurrentRoute("default")
+				return nil
 			case key.Matches(msg, formKey.Edit):
-				if m.Input.Focused() {
-					//m.Props().SetValue(cur.idx, m.Input.Value())
-					m.Input.Blur()
-				} else {
-					//m.Props().EditItem(m.Cursor)
-					m.Input.SetValue(m.Props().Visible()[m.Cursor].Str)
-					return m.Input.Focus()
-					//cmds = append(cmds, StartEditingCmd())
-					//cmds = append(cmds, EditItemCmd(cur))
-				}
+				m.Input.SetValue(m.Props().Visible()[m.Cursor].Str)
+				return m.Input.Focus()
+				//cmds = append(cmds, StartEditingCmd())
+				//cmds = append(cmds, EditItemCmd(cur))
 			}
 		}
 	}
@@ -146,6 +151,7 @@ func (tm *Form) Init(props FormProps) tea.Cmd {
 	tm.Input.Prompt = tm.Prompt
 	tm.Input.Placeholder = tm.Placeholder
 	tm.Input.SetWidth(tm.Props().Width)
+	tm.Input.ShowLineNumbers = false
 
 	v := viewport.New(0, 0)
 	tm.Viewport = &v

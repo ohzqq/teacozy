@@ -47,6 +47,10 @@ var fieldKey = FieldKeys{
 }
 
 var formKey = FormKeys{
+	Save: key.NewBinding(
+		key.WithKeys("ctrl+w"),
+		key.WithHelp("ctrl+w", "save"),
+	),
 	ToggleItem: key.NewBinding(
 		key.WithKeys(" ", "tab"),
 		key.WithHelp("space", "select item"),
