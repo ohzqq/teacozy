@@ -3,6 +3,7 @@ package list
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -25,14 +26,28 @@ type List struct {
 	width       int
 	height      int
 	header      string
+	Input       textarea.Model
+	inputValue  string
+	itemIndex   int
+	limit       int
+}
+
+type Props struct {
 	item.Items
+	Height int
+	Width  int
+}
+
+func (cp Props) Visible(str ...string) []item.Item {
+	if len(str) != 0 {
+		return item.ExactMatches(str[0], cp.Items.Items)
+	}
+	return cp.Items.Items
 }
 
 type ChooseProps struct {
-	item.Items
+	Props
 	ToggleItem func(int)
-	Height     int
-	Width      int
 }
 
 func New(choices ...string) *List {
@@ -41,8 +56,6 @@ func New(choices ...string) *List {
 		choiceMap:  mapChoices(choices),
 		mainRouter: router.New(),
 	}
-	list.Items = item.NewChoiceMap(list.choiceMap)
-	list.Limit(1)
 
 	w, h := util.TermSize()
 	if list.height == 0 {
@@ -52,15 +65,34 @@ func New(choices ...string) *List {
 		list.width = w
 	}
 
+	list.Input = textarea.New()
+	list.Input.ShowLineNumbers = false
+	list.Input.SetWidth(list.width)
+
 	return list
 }
 
-func (c *List) NewProps() ChooseProps {
+func (c *List) NewProps() Props {
+	items := item.NewChoiceMap(c.choiceMap)
+	items.Limit = c.limit
+	return Props{
+		Width:  c.width,
+		Height: c.height,
+		Items:  item.NewChoiceMap(c.choiceMap),
+	}
+}
+
+func (c *List) NewChooseProps() ChooseProps {
 	return ChooseProps{
-		Width:      c.width,
-		Height:     c.height,
-		Items:      c.Items,
+		Props:      c.NewProps(),
 		ToggleItem: c.ToggleSelection,
+	}
+}
+
+func (c *List) NewFormProps() FormProps {
+	return FormProps{
+		Props:    c.NewProps(),
+		EditItem: c.EditItem,
 	}
 }
 
@@ -69,17 +101,28 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewChoice()
 
-			return component, component.Init(c.NewProps())
+			return component, component.Init(c.NewChooseProps())
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewFilter()
 
-			return component, component.Init(c.NewProps())
+			return component, component.Init(c.NewChooseProps())
 		},
 		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewForm()
 
-			return component, component.Init(c.NewProps())
+			return component, component.Init(c.NewFormProps())
+		},
+		"field": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := NewField()
+
+			println("field")
+			props := FieldProps{
+				//Item: c.Items.Items[c.itemIndex],
+				Save: c.Save,
+			}
+
+			return component, component.Init(props)
 		},
 	})
 }
@@ -117,13 +160,6 @@ func (m *List) ToggleSelection(idx int) {
 	}
 }
 
-func (cp ChooseProps) Visible(str ...string) []item.Item {
-	if len(str) != 0 {
-		return item.ExactMatches(str[0], cp.Items.Items)
-	}
-	return cp.Items.Items
-}
-
 func (m *List) Header(text string) *List {
 	m.header = text
 	return m
@@ -144,7 +180,7 @@ func mapChoices(c []string) []map[string]string {
 }
 
 func (m *List) Limit(l int) *List {
-	m.Items.Limit = l
+	m.limit = l
 	return m
 }
 
@@ -160,6 +196,18 @@ func (m *List) Height(h int) *List {
 func (m *List) Width(w int) *List {
 	m.width = w
 	return m
+}
+
+func (m *List) SetInputValue(val string) {
+	m.Input.SetValue(val)
+}
+
+func (m *List) EditItem(idx int) {
+	m.itemIndex = idx
+}
+
+func (m *List) Save(idx int, val string) {
+	m.Items.Items[idx].Write(val)
 }
 
 func DefaultStyle() style.List {

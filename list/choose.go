@@ -1,7 +1,6 @@
 package list
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -72,13 +71,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		}
 	case StartEditingMsg:
 		reactea.SetCurrentRoute("form")
-
-		fmt.Println(reactea.CurrentRoute())
 		return nil
 	case StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
-
-		fmt.Println(reactea.CurrentRoute())
 		return nil
 	case tea.KeyMsg:
 		switch {

@@ -2,6 +2,7 @@ package list
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/item"
 )
 
 type ReturnSelectionsMsg struct{}
@@ -24,6 +25,9 @@ func FilterItemsCmd() tea.Cmd {
 	}
 }
 
+type EditItemMsg struct {
+	item.Item
+}
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type StopFilteringMsg struct{}
@@ -39,6 +43,12 @@ func StartFilteringCmd() tea.Cmd {
 func StopFilteringCmd() tea.Cmd {
 	return func() tea.Msg {
 		return StopFilteringMsg{}
+	}
+}
+
+func EditItemCmd(i item.Item) tea.Cmd {
+	return func() tea.Msg {
+		return EditItemMsg{Item: i}
 	}
 }
 
