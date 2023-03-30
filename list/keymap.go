@@ -4,6 +4,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
+<<<<<<< HEAD
 func FilterKeyMap(m *Model) keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding(
@@ -28,6 +29,11 @@ func GlobalKeyMap(m *Model) keys.KeyMap {
 			keys.WithCmd(EditItemCmd(m)),
 		),
 		keys.NewBinding(
+=======
+func GlobalKeyMap(m *Model) keys.KeyMap {
+	return keys.KeyMap{
+		keys.NewBinding(
+>>>>>>> parent of 39339ab... remove files and things work
 			keys.WithKeys("down"),
 			keys.WithHelp("down", "move cursor down"),
 			keys.WithCmd(DownCmd(m)),
