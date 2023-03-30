@@ -22,6 +22,11 @@ type Choose struct {
 	Style     style.List
 }
 
+type ChooseProps struct {
+	Props
+	ToggleItem func(int)
+}
+
 type ChooseKeys struct {
 	Up               key.Binding
 	Down             key.Binding
