@@ -1,0 +1,176 @@
+package item
+
+import (
+	"strings"
+
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/style"
+	"github.com/sahilm/fuzzy"
+)
+
+const (
+	PromptPrefix     = "> "
+	CursorPrefix     = "x"
+	SelectedPrefix   = "◉ "
+	UnselectedPrefix = " "
+)
+
+type Items struct {
+	Items       []Item
+	Selected    map[int]struct{}
+	Limit       int
+	numSelected int
+	Cursor      int
+}
+
+type Item struct {
+	fuzzy.Match
+	Style    style.ListItem
+	Label    string
+<<<<<<< HEAD:list/item.go
+	input    textinput.Model
+	SetValue func(int, string)
+=======
+	selected bool
+>>>>>>> dev:item/item.go
+	*Prefix
+}
+
+type Prefix struct {
+	Cursor     string
+	Selected   string
+	Unselected string
+}
+
+func New(c []string) Items {
+	items := Items{
+		Items:    ChoicesToMatch(c),
+		Selected: make(map[int]struct{}),
+	}
+	return items
+}
+
+func NewItem(t string, idx int) *Item {
+	item := Item{
+		Match: fuzzy.Match{
+			Str:   t,
+			Index: idx,
+		},
+<<<<<<< HEAD:list/item.go
+		input: textinput.New(),
+		//Label:  "poot",
+=======
+>>>>>>> dev:item/item.go
+		Style:  DefaultItemStyle(),
+		Prefix: DefaultPrefix(),
+	}
+
+	return &item
+}
+
+func DefaultPrefix() *Prefix {
+	return &Prefix{
+		Cursor:     CursorPrefix,
+		Selected:   SelectedPrefix,
+		Unselected: UnselectedPrefix,
+	}
+}
+
+func (m Items) Chosen() []int {
+	var chosen []int
+	if len(m.Selected) > 0 {
+		for k := range m.Selected {
+			chosen = append(chosen, k)
+		}
+	} else if len(m.Items) > m.Cursor && m.Cursor >= 0 {
+		chosen = append(chosen, m.Cursor)
+	}
+	return chosen
+}
+
+func (match Item) RenderText() string {
+	text := lipgloss.StyleRunes(
+		match.Str,
+		match.MatchedIndexes,
+		match.Style.Match,
+		match.Style.Text,
+	)
+	return text
+}
+
+func (m Items) RenderItems(cursor int, items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == cursor:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.RenderText())
+		s.WriteRune('\n')
+	}
+	return s.String()
+}
+
+func DefaultItemStyle() style.ListItem {
+	var s style.ListItem
+	s.Cursor = style.Cursor
+	s.Selected = style.Selected
+	s.Unselected = style.Unselected
+	s.Text = style.Foreground
+	s.Label = style.Label
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+
+	return s
+}
+
+func ChoicesToMatch(options []string) []*Item {
+	matches := make([]*Item, len(options))
+	for i, option := range options {
+		matches[i] = NewItem(option, i)
+	}
+	return matches
+}
+
+<<<<<<< HEAD:list/item.go
+func exactMatches(search string, choices []*Item) []*Item {
+	matches := []*Item{}
+=======
+func ExactMatches(search string, choices []Item) []Item {
+	matches := []Item{}
+>>>>>>> dev:item/item.go
+	for _, choice := range choices {
+		search = strings.ToLower(search)
+		matchedString := strings.ToLower(choice.Str)
+
+		index := strings.Index(matchedString, search)
+		if index >= 0 {
+			for s := range search {
+				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
+			}
+			matches = append(matches, choice)
+		}
+	}
+
+	return matches
+}
