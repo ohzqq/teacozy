@@ -123,16 +123,6 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 
 			return component, component.Init(c.NewFormProps())
 		},
-		"field": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewField()
-
-			println("field")
-			props := FieldProps{
-				//Item: c.Items.Items[c.itemIndex],
-			}
-
-			return component, component.Init(props)
-		},
 	})
 }
 

@@ -31,21 +31,6 @@ var filterKey = FilterKeys{
 	),
 }
 
-var fieldKey = FieldKeys{
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "quit"),
-	),
-	Exit: key.NewBinding(
-		key.WithKeys("esc", "ctrl+q"),
-		key.WithHelp("esc", "stop filtering"),
-	),
-	Save: key.NewBinding(
-		key.WithKeys("ctrl+w"),
-		key.WithHelp("ctrl+w", "save"),
-	),
-}
-
 var formKey = FormKeys{
 	Save: key.NewBinding(
 		key.WithKeys("ctrl+w"),

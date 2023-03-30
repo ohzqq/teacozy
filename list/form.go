@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -38,11 +37,6 @@ type FormKeys struct {
 	StopEditing key.Binding
 	Save        key.Binding
 	Edit        key.Binding
-}
-
-func NewField() *Field {
-	f := &Field{}
-	return f
 }
 
 func NewForm() *Form {
@@ -76,9 +70,6 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
 			m.Viewport.LineDown(1)
 		}
-	case StartEditingMsg:
-		reactea.SetCurrentRoute("field")
-		return nil
 	case StopEditingMsg:
 		m.Input.Reset()
 		m.Input.Blur()
@@ -88,10 +79,7 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 		if m.Input.Focused() {
 			switch {
 			case key.Matches(msg, formKey.Save):
-				//props := m.Props()
-				//props.SetItemValue(m.Cursor, m.Input.Value())
 				m.Props().Visible()[m.Cursor].Str = m.Input.Value()
-				//m.Input.Reset()
 				m.Input.Blur()
 			}
 			m.Input, cmd = m.Input.Update(msg)
@@ -158,62 +146,4 @@ func (tm *Form) Init(props FormProps) tea.Cmd {
 	//tm.Input.Focus()
 
 	return nil
-}
-
-type FieldKeys struct {
-	Exit key.Binding
-	Save key.Binding
-	Quit key.Binding
-}
-
-type Field struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[FieldProps]
-
-	Input textarea.Model
-	Val   string
-}
-
-type FieldProps struct {
-	item.Item
-	Save func(int, string)
-}
-
-func (m *Field) Init(props FieldProps) tea.Cmd {
-	m.UpdateProps(props)
-	m.Input = textarea.New()
-	m.Input.ShowLineNumbers = false
-	m.Input.SetValue(props.Str)
-	return m.Input.Focus()
-}
-
-func (m *Field) Render(w, h int) string {
-	m.Input.SetWidth(w)
-
-	return m.Input.View()
-}
-
-func (m *Field) Update(msg tea.Msg) tea.Cmd {
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case StopEditingMsg:
-		m.Input.Blur()
-		reactea.SetCurrentRoute("form")
-		return nil
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, fieldKey.Quit):
-			return reactea.Destroy
-		case key.Matches(msg, fieldKey.Exit):
-			cmds = append(cmds, StopEditingCmd())
-		case key.Matches(msg, fieldKey.Save):
-			i := m.Props().Item
-			i.Write(m.Input.Value())
-			cmds = append(cmds, StopEditingCmd())
-		}
-		m.Input, cmd = m.Input.Update(msg)
-		cmds = append(cmds, cmd)
-	}
-	return tea.Batch(cmds...)
 }

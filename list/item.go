@@ -85,8 +85,6 @@ func (m Items) Chosen() []int {
 		for k := range m.Selected {
 			chosen = append(chosen, k)
 		}
-	} else if len(m.Items) > m.Cursor && m.Cursor >= 0 {
-		chosen = append(chosen, m.Cursor)
 	}
 	return chosen
 }
