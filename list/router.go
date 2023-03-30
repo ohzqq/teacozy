@@ -24,6 +24,7 @@ type List struct {
 	width       int
 	height      int
 	header      string
+	footer      string
 	inputValue  string
 	itemIndex   int
 	limit       int
@@ -34,6 +35,7 @@ type Props struct {
 	Items
 	Height int
 	Width  int
+	Footer func(string)
 }
 
 func (cp Props) Visible(matches ...string) []Item {
@@ -63,6 +65,7 @@ func New(choices ...string) *List {
 }
 
 func (c *List) NewProps() Props {
+	c.Footer("")
 	items := NewItems(c.choiceMap)
 	items.Limit = c.Items.Limit
 	items.Selected = c.Selected
@@ -70,6 +73,7 @@ func (c *List) NewProps() Props {
 		Width:  c.width,
 		Height: c.height,
 		Items:  items,
+		Footer: c.Footer,
 	}
 }
 
@@ -122,6 +126,10 @@ func (c *List) Render(width, height int) string {
 		header := c.header + strings.Repeat(" ", c.width)
 		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
+	if c.footer != "" {
+		f := style.Footer.Render(c.footer)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, f)
+	}
 	return view
 }
 
@@ -138,6 +146,10 @@ func (m *List) ToggleSelection(idx int) {
 func (m *List) Header(text string) *List {
 	m.header = text
 	return m
+}
+
+func (m *List) Footer(text string) {
+	m.footer = text
 }
 
 func (m *List) ChoiceMap(choices []map[string]string) {
@@ -170,7 +182,7 @@ func (m *List) NoLimit() *List {
 }
 
 func (m *List) Height(h int) *List {
-	m.height = h
+	m.height = h + 2
 	return m
 }
 

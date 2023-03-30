@@ -141,8 +141,7 @@ func (m *Choose) Render(w, h int) string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.Props().Height-m.Paginator.ItemsOnPage(len(m.Props().Visible()))+1))
-		s.WriteString("  " + m.Paginator.View())
+		m.Props().Footer(m.Paginator.View())
 	}
 
 	view = s.String()
@@ -158,9 +157,7 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
 	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Dots
-	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
-	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
+	tm.Paginator.Type = paginator.Arabic
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil

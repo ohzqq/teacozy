@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -29,6 +30,7 @@ type Item struct {
 	Style    style.ListItem
 	selected bool
 	Label    string
+	Width    int
 	*Prefix
 }
 
@@ -39,14 +41,6 @@ type Prefix struct {
 }
 
 func NewItems(c []map[string]string) Items {
-	items := Items{
-		Items:    ChoiceMapToMatch(c),
-		Selected: make(map[int]struct{}),
-	}
-	return items
-}
-
-func NewChoiceMap(c []map[string]string) Items {
 	items := Items{
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
@@ -108,7 +102,9 @@ func (match Item) RenderText() string {
 		match.Style.Match,
 		match.Style.Text,
 	)
-	return text
+	w := util.TermWidth()
+	s := lipgloss.NewStyle().Width(w).Render(text)
+	return s
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {

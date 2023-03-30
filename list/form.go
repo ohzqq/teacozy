@@ -66,9 +66,12 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
 	case DownMsg:
+		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor+1)
-		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
-			m.Viewport.LineDown(1)
+		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
+			m.Viewport.LineDown(h)
+		} else if m.Cursor == len(m.Props().Visible())-1 {
+			m.Viewport.GotoBottom()
 		}
 	case StopEditingMsg:
 		m.Input.Reset()
