@@ -76,6 +76,11 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 
 			return component, component.Init(c.NewProps())
 		},
+		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := NewForm()
+
+			return component, component.Init(c.NewProps())
+		},
 	})
 }
 

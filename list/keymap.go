@@ -31,6 +31,33 @@ var filterKey = FilterKeys{
 	),
 }
 
+var formKey = FormKeys{
+	ToggleItem: key.NewBinding(
+		key.WithKeys(" ", "tab"),
+		key.WithHelp("space", "select item"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("j", "down"),
+		key.WithHelp("j", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("k", "up"),
+		key.WithHelp("k", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	),
+	StopEditing: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "stop editing"),
+	),
+	Edit: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "edit field"),
+	),
+}
+
 var chooseKey = ChooseKeys{
 	Next: key.NewBinding(
 		key.WithKeys("right", "l"),
@@ -39,6 +66,10 @@ var chooseKey = ChooseKeys{
 	Prev: key.NewBinding(
 		key.WithKeys("left", "h"),
 		key.WithHelp("left/h", "prev page"),
+	),
+	Edit: key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit form"),
 	),
 	//key.NewBinding(
 	//  key.WithKeys("V"),

@@ -1,6 +1,7 @@
 package list
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -33,6 +34,7 @@ type ChooseKeys struct {
 	Filter           key.Binding
 	Bottom           key.Binding
 	Top              key.Binding
+	Edit             key.Binding
 }
 
 func NewChoice() *Choose {
@@ -68,8 +70,15 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= end {
 			m.Paginator.NextPage()
 		}
+	case StartEditingMsg:
+		reactea.SetCurrentRoute("form")
+
+		fmt.Println(reactea.CurrentRoute())
+		return nil
 	case StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
+
+		fmt.Println(reactea.CurrentRoute())
 		return nil
 	case tea.KeyMsg:
 		switch {
@@ -90,9 +99,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			idx := m.Props().Visible()[m.Cursor].Index
 			m.Props().ToggleItem(idx)
 			cmds = append(cmds, DownCmd())
+		case key.Matches(msg, chooseKey.Edit):
+			cmds = append(cmds, StartEditingCmd())
 		case key.Matches(msg, chooseKey.Filter):
-			reactea.SetCurrentRoute("filter")
-			return nil
+			cmds = append(cmds, StartFilteringCmd())
 		case key.Matches(msg, chooseKey.Bottom):
 			m.Cursor = len(m.Props().Items.Items) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1

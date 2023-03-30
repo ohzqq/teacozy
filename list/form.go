@@ -13,7 +13,7 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type Filter struct {
+type Form struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
 	Cursor      int
@@ -26,24 +26,25 @@ type Filter struct {
 	Style       style.List
 }
 
-type FilterKeys struct {
-	Up               key.Binding
-	Down             key.Binding
-	ToggleItem       key.Binding
-	Quit             key.Binding
-	ReturnSelections key.Binding
-	StopFiltering    key.Binding
+type FormKeys struct {
+	Up          key.Binding
+	Down        key.Binding
+	ToggleItem  key.Binding
+	Quit        key.Binding
+	StopEditing key.Binding
+	SaveValue   key.Binding
+	Edit        key.Binding
 }
 
-func NewFilter() *Filter {
-	tm := Filter{
+func NewForm() *Form {
+	tm := Form{
 		Style:  DefaultStyle(),
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
 }
 
-func (m *Filter) Update(msg tea.Msg) tea.Cmd {
+func (m *Form) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -66,64 +67,61 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
 			m.Viewport.LineDown(1)
 		}
-	case ToggleItemMsg:
-		if m.Props().Limit == 1 {
-			return nil
-		}
-		idx := m.Props().Visible()[m.Cursor].Index
-		m.Props().ToggleItem(idx)
-		cmds = append(cmds, DownCmd())
-	case StopFilteringMsg:
-		if m.Props().Limit == 1 {
-			cmds = append(cmds, ToggleItemCmd())
-		}
-
+	case StopEditingMsg:
 		m.Input.Reset()
 		m.Input.Blur()
-		reactea.SetCurrentRoute("default")
+		//reactea.SetCurrentRoute("default")
 		return nil
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, filterKey.StopFiltering):
-			cmds = append(cmds, StopFilteringCmd())
-		case key.Matches(msg, filterKey.Up):
+		case key.Matches(msg, formKey.StopEditing):
+			cmds = append(cmds, StopEditingCmd())
+		case key.Matches(msg, formKey.Up):
 			cmds = append(cmds, UpCmd())
-		case key.Matches(msg, filterKey.Down):
+		case key.Matches(msg, formKey.Down):
 			cmds = append(cmds, DownCmd())
-		case key.Matches(msg, filterKey.ToggleItem):
+		case key.Matches(msg, formKey.ToggleItem):
 			cmds = append(cmds, ToggleItemCmd())
-		case key.Matches(msg, filterKey.Quit):
+		case key.Matches(msg, formKey.Quit):
 			m.quitting = true
 			cmds = append(cmds, ReturnSelectionsCmd())
-		case key.Matches(msg, filterKey.ReturnSelections):
-			cmds = append(cmds, ReturnSelectionsCmd())
+		case key.Matches(msg, formKey.Edit):
+			if m.Input.Focused() {
+				//m.Props().SetValue(cur.idx, m.Input.Value())
+				m.Input.Blur()
+			} else {
+				return m.Input.Focus()
+			}
 		}
 		m.Input, cmd = m.Input.Update(msg)
-		m.Matches = m.Props().Visible(m.Input.Value())
+		//m.Matches = m.Props().Visible(m.Input.Value())
 		cmds = append(cmds, cmd)
 	}
 
-	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor)
+	m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor)
 	return tea.Batch(cmds...)
 }
 
-func (m *Filter) Render(w, h int) string {
+func (m *Form) Render(w, h int) string {
 	m.Viewport.Height = h
 	m.Viewport.Width = w
 
 	var s strings.Builder
-	items := m.Props().RenderItems(m.Cursor, m.Matches)
+	items := m.Props().RenderItems(m.Cursor, m.Props().Visible())
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
 
-	view := m.Input.View() + "\n" + m.Viewport.View()
+	view := m.Viewport.View()
+	if m.Input.Focused() {
+		view = m.Input.View() + "\n" + view
+	}
+
 	return view
 }
 
-func (tm *Filter) Init(props ChooseProps) tea.Cmd {
+func (tm *Form) Init(props ChooseProps) tea.Cmd {
 	tm.UpdateProps(props)
-	tm.Matches = tm.Props().Visible()
 
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt
@@ -133,7 +131,7 @@ func (tm *Filter) Init(props ChooseProps) tea.Cmd {
 
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
-	tm.Input.Focus()
+	//tm.Input.Focus()
 
 	return nil
 }
