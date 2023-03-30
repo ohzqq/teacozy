@@ -27,6 +27,7 @@ var (
 	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey())
 	Foreground  = lipgloss.NewStyle().Foreground(color.Fg())
 	Label       = lipgloss.NewStyle().Foreground(color.Purple())
+	Footer      = lipgloss.NewStyle().Foreground(color.Blue())
 )
 
 type List struct {

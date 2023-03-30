@@ -1,4 +1,4 @@
-package choose
+package list
 
 import (
 	"strings"
@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -17,7 +16,7 @@ type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
 	Cursor      int
-	Matches     []item.Item
+	Matches     []Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
 	quitting    bool
@@ -48,11 +47,6 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if m.Props().Height == 0 || m.Props().Height > msg.Height {
-			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
-		}
-
-		m.Viewport.Width = msg.Width
 	case ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
@@ -62,16 +56,21 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
 	case DownMsg:
+		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
-		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height {
-			m.Viewport.LineDown(1)
+		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
+			m.Viewport.LineDown(h)
+		} else if m.Cursor == len(m.Matches)-1 {
+			m.Viewport.GotoBottom()
 		}
 	case ToggleItemMsg:
 		if m.Props().Limit == 1 {
 			return nil
 		}
-		idx := m.Props().Visible()[m.Cursor].Index
-		m.Props().ToggleItem(idx)
+		if m.Cursor >= 0 {
+			idx := m.Props().Visible()[m.Cursor].Index
+			m.Props().ToggleItem(idx)
+		}
 		cmds = append(cmds, DownCmd())
 	case StopFilteringMsg:
 		if m.Props().Limit == 1 {

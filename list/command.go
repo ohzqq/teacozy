@@ -1,4 +1,4 @@
-package choose
+package list
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -24,11 +24,13 @@ func FilterItemsCmd() tea.Cmd {
 	}
 }
 
+type StopEditingMsg struct{}
+type StartEditingMsg struct{}
 type StopFilteringMsg struct{}
 type StartFilteringMsg struct{}
 type ToggleItemMsg struct{}
 
-func StartFilteringCmd(m *Choose) tea.Cmd {
+func StartFilteringCmd() tea.Cmd {
 	return func() tea.Msg {
 		return StartFilteringMsg{}
 	}
@@ -40,14 +42,22 @@ func StopFilteringCmd() tea.Cmd {
 	}
 }
 
+func StopEditingCmd() tea.Cmd {
+	return func() tea.Msg {
+		return StopEditingMsg{}
+	}
+}
+
+func StartEditingCmd() tea.Cmd {
+	return func() tea.Msg {
+		return StartEditingMsg{}
+	}
+}
+
 func ToggleItemCmd() tea.Cmd {
 	return func() tea.Msg {
 		return ToggleItemMsg{}
 	}
-}
-
-type SetCursorMsg struct {
-	cursor int
 }
 
 type UpMsg struct{}

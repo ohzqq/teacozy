@@ -1,4 +1,4 @@
-package choose
+package list
 
 import (
 	"strings"
@@ -8,7 +8,6 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -20,27 +19,39 @@ type List struct {
 	mainRouter reactea.Component[router.Props]
 
 	Choices     []string
+	choiceMap   []map[string]string
 	numSelected int
 	width       int
 	height      int
 	header      string
-	item.Items
+	footer      string
+	inputValue  string
+	itemIndex   int
+	limit       int
+	Items
 }
 
-type ChooseProps struct {
-	item.Items
-	ToggleItem func(int)
-	Height     int
-	Width      int
+type Props struct {
+	Items
+	Height int
+	Width  int
+	Footer func(string)
+}
+
+func (cp Props) Visible(matches ...string) []Item {
+	if len(matches) != 0 {
+		return ExactMatches(matches[0], cp.Items.Items)
+	}
+	return cp.Items.Items
 }
 
 func New(choices ...string) *List {
 	list := &List{
 		Choices:    choices,
+		choiceMap:  mapChoices(choices),
 		mainRouter: router.New(),
 	}
-	list.Items = item.New(choices)
-	list.Limit(1)
+	list.Items = NewItems(list.choiceMap)
 
 	w, h := util.TermSize()
 	if list.height == 0 {
@@ -53,12 +64,16 @@ func New(choices ...string) *List {
 	return list
 }
 
-func (c *List) NewProps() ChooseProps {
-	return ChooseProps{
-		Width:      c.width,
-		Height:     c.height,
-		Items:      c.Items,
-		ToggleItem: c.ToggleSelection,
+func (c *List) NewProps() Props {
+	c.Footer("")
+	items := NewItems(c.choiceMap)
+	items.Limit = c.Items.Limit
+	items.Selected = c.Selected
+	return Props{
+		Width:  c.width,
+		Height: c.height,
+		Items:  items,
+		Footer: c.Footer,
 	}
 }
 
@@ -66,13 +81,27 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewChoice()
-
-			return component, component.Init(c.NewProps())
+			props := ChooseProps{
+				Props:      c.NewProps(),
+				ToggleItem: c.ToggleSelection,
+			}
+			return component, component.Init(props)
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewFilter()
-
-			return component, component.Init(c.NewProps())
+			props := ChooseProps{
+				Props:      c.NewProps(),
+				ToggleItem: c.ToggleSelection,
+			}
+			return component, component.Init(props)
+		},
+		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := NewForm()
+			props := FormProps{
+				Props: c.NewProps(),
+				Save:  c.ChoiceMap,
+			}
+			return component, component.Init(props)
 		},
 	})
 }
@@ -97,6 +126,10 @@ func (c *List) Render(width, height int) string {
 		header := c.header + strings.Repeat(" ", c.width)
 		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
+	if c.footer != "" {
+		f := style.Footer.Render(c.footer)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, f)
+	}
 	return view
 }
 
@@ -110,22 +143,34 @@ func (m *List) ToggleSelection(idx int) {
 	}
 }
 
-func (cp ChooseProps) Visible(str ...string) []item.Item {
-	if len(str) != 0 {
-		return item.ExactMatches(str[0], cp.Items.Items)
-	}
-	return cp.Items.Items
-}
-
 func (m *List) Header(text string) *List {
 	m.header = text
 	return m
 }
 
-//func (m *Component) ChoiceMap(choices []map[string]string) *Component {
-//  m.choiceMap = choices
-//  return m
-//}
+func (m *List) Footer(text string) {
+	m.footer = text
+}
+
+func (m *List) ChoiceMap(choices []map[string]string) {
+	m.choiceMap = choices
+}
+
+func (m List) Chosen() []map[string]string {
+	var chosen []map[string]string
+	for _, c := range m.Items.Chosen() {
+		chosen = append(chosen, m.choiceMap[c])
+	}
+	return chosen
+}
+
+func mapChoices(c []string) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": val}
+	}
+	return choices
+}
 
 func (m *List) Limit(l int) *List {
 	m.Items.Limit = l
@@ -137,7 +182,7 @@ func (m *List) NoLimit() *List {
 }
 
 func (m *List) Height(h int) *List {
-	m.height = h
+	m.height = h + 2
 	return m
 }
 

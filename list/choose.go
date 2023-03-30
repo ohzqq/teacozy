@@ -1,4 +1,4 @@
-package choose
+package list
 
 import (
 	"strings"
@@ -22,6 +22,11 @@ type Choose struct {
 	Style     style.List
 }
 
+type ChooseProps struct {
+	Props
+	ToggleItem func(int)
+}
+
 type ChooseKeys struct {
 	Up               key.Binding
 	Down             key.Binding
@@ -33,6 +38,7 @@ type ChooseKeys struct {
 	Filter           key.Binding
 	Bottom           key.Binding
 	Top              key.Binding
+	Edit             key.Binding
 }
 
 func NewChoice() *Choose {
@@ -68,6 +74,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= end {
 			m.Paginator.NextPage()
 		}
+	case StartEditingMsg:
+		reactea.SetCurrentRoute("form")
+		return nil
 	case StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
 		return nil
@@ -78,10 +87,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Down):
 			cmds = append(cmds, DownCmd())
 		case key.Matches(msg, chooseKey.Prev):
-			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor-m.Props().Height)
+			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
 			m.Paginator.PrevPage()
 		case key.Matches(msg, chooseKey.Next):
-			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
+			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 			m.Paginator.NextPage()
 		case key.Matches(msg, chooseKey.ToggleItem):
 			if m.Props().Limit == 1 {
@@ -90,11 +99,12 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			idx := m.Props().Visible()[m.Cursor].Index
 			m.Props().ToggleItem(idx)
 			cmds = append(cmds, DownCmd())
+		case key.Matches(msg, chooseKey.Edit):
+			cmds = append(cmds, StartEditingCmd())
 		case key.Matches(msg, chooseKey.Filter):
-			reactea.SetCurrentRoute("filter")
-			return nil
+			cmds = append(cmds, StartFilteringCmd())
 		case key.Matches(msg, chooseKey.Bottom):
-			m.Cursor = len(m.Props().Items.Items) - 1
+			m.Cursor = len(m.Props().Visible()) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1
 		case key.Matches(msg, chooseKey.Top):
 			m.Cursor = 0
@@ -131,8 +141,7 @@ func (m *Choose) Render(w, h int) string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		s.WriteString(strings.Repeat("\n", m.Props().Height-m.Paginator.ItemsOnPage(len(m.Props().Visible()))+1))
-		s.WriteString("  " + m.Paginator.View())
+		m.Props().Footer(m.Paginator.View())
 	}
 
 	view = s.String()
@@ -148,9 +157,7 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
 	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Dots
-	tm.Paginator.ActiveDot = style.Subdued.Render(style.Bullet)
-	tm.Paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
+	tm.Paginator.Type = paginator.Arabic
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil

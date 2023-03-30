@@ -1,4 +1,4 @@
-package item
+package list
 
 import (
 	"strings"
@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -27,8 +28,9 @@ type Items struct {
 type Item struct {
 	fuzzy.Match
 	Style    style.ListItem
-	Label    string
 	selected bool
+	Label    string
+	Width    int
 	*Prefix
 }
 
@@ -38,16 +40,16 @@ type Prefix struct {
 	Unselected string
 }
 
-func New(c []string) Items {
+func NewItems(c []map[string]string) Items {
 	items := Items{
-		Items:    ChoicesToMatch(c),
+		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
 	return items
 }
 
 func NewItem(t string, idx int) Item {
-	return Item{
+	item := Item{
 		Match: fuzzy.Match{
 			Str:   t,
 			Index: idx,
@@ -55,6 +57,8 @@ func NewItem(t string, idx int) Item {
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
+
+	return item
 }
 
 func DefaultPrefix() *Prefix {
@@ -65,16 +69,30 @@ func DefaultPrefix() *Prefix {
 	}
 }
 
+func (i *Item) SetValue(val string) {
+	i.Str = val
+}
+
 func (m Items) Chosen() []int {
 	var chosen []int
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
 			chosen = append(chosen, k)
 		}
-	} else if len(m.Items) > m.Cursor && m.Cursor >= 0 {
-		chosen = append(chosen, m.Cursor)
 	}
 	return chosen
+}
+
+func (m Items) Map() []map[string]string {
+	var items []map[string]string
+	for _, item := range m.Items {
+		items = append(items, item.Map())
+	}
+	return items
+}
+
+func (i Item) Map() map[string]string {
+	return map[string]string{i.Label: i.Str}
 }
 
 func (match Item) RenderText() string {
@@ -84,7 +102,9 @@ func (match Item) RenderText() string {
 		match.Style.Match,
 		match.Style.Text,
 	)
-	return text
+	w := util.TermWidth()
+	s := lipgloss.NewStyle().Width(w).Render(text)
+	return s
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {
@@ -129,6 +149,18 @@ func DefaultItemStyle() style.ListItem {
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 
 	return s
+}
+
+func ChoiceMapToMatch(options []map[string]string) []Item {
+	matches := make([]Item, len(options))
+	for i, option := range options {
+		for label, val := range option {
+			item := NewItem(val, i)
+			item.Label = label
+			matches[i] = item
+		}
+	}
+	return matches
 }
 
 func ChoicesToMatch(options []string) []Item {
