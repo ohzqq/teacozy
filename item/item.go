@@ -63,8 +63,7 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		input: textinput.New(),
-		//Label:  "poot",
+		input:  textinput.New(),
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}

@@ -40,7 +40,6 @@ func (c *Field) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.Type == tea.KeyEnter {
-			// Lifted state power! Woohooo
 			c.Props().SetValue(c.Props().idx, c.input.Value())
 
 			// Navigate to displayname, please
