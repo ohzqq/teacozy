@@ -26,8 +26,9 @@ type Items struct {
 
 type Item struct {
 	fuzzy.Match
-	Style style.ListItem
-	Label string
+	Style    style.ListItem
+	selected bool
+	Label    string
 	*Prefix
 }
 

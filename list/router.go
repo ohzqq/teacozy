@@ -83,21 +83,6 @@ func (c *List) NewProps() Props {
 	}
 }
 
-func (c List) GatherItems() Items {
-	matches := make([]Item, len(c.choiceMap))
-	for i, option := range c.choiceMap {
-		for label, val := range option {
-			item := NewItem(val, i)
-			item.Label = label
-			matches[i] = item
-		}
-	}
-	return Items{
-		Items:    matches,
-		Selected: c.Selected,
-	}
-}
-
 func (c *List) NewChooseProps() ChooseProps {
 	return ChooseProps{
 		Props:      c.NewProps(),
@@ -182,7 +167,7 @@ func (m *List) Header(text string) *List {
 
 func (m *List) ChoiceMap(choices []map[string]string) *List {
 	m.choiceMap = choices
-	m.Items = m.GatherItems()
+	m.Items = NewItems(choices)
 	return m
 }
 
