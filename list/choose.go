@@ -82,10 +82,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Down):
 			cmds = append(cmds, DownCmd())
 		case key.Matches(msg, chooseKey.Prev):
-			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor-m.Props().Height)
+			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
 			m.Paginator.PrevPage()
 		case key.Matches(msg, chooseKey.Next):
-			m.Cursor = clamp(0, len(m.Props().Items.Items)-1, m.Cursor+m.Props().Height)
+			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 			m.Paginator.NextPage()
 		case key.Matches(msg, chooseKey.ToggleItem):
 			if m.Props().Limit == 1 {
@@ -99,7 +99,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Filter):
 			cmds = append(cmds, StartFilteringCmd())
 		case key.Matches(msg, chooseKey.Bottom):
-			m.Cursor = len(m.Props().Items.Items) - 1
+			m.Cursor = len(m.Props().Visible()) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1
 		case key.Matches(msg, chooseKey.Top):
 			m.Cursor = 0

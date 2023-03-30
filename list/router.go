@@ -9,7 +9,6 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -30,17 +29,18 @@ type List struct {
 	inputValue  string
 	itemIndex   int
 	limit       int
+	Items
 }
 
 type Props struct {
-	item.Items
+	Items
 	Height int
 	Width  int
 }
 
-func (cp Props) Visible(str ...string) []item.Item {
+func (cp Props) Visible(str ...string) []Item {
 	if len(str) != 0 {
-		return item.ExactMatches(str[0], cp.Items.Items)
+		return ExactMatches(str[0], cp.Items.Items)
 	}
 	return cp.Items.Items
 }
@@ -56,6 +56,7 @@ func New(choices ...string) *List {
 		choiceMap:  mapChoices(choices),
 		mainRouter: router.New(),
 	}
+	list.Items = NewItems(list.choiceMap)
 
 	w, h := util.TermSize()
 	if list.height == 0 {
@@ -73,12 +74,27 @@ func New(choices ...string) *List {
 }
 
 func (c *List) NewProps() Props {
-	items := item.NewChoiceMap(c.choiceMap)
-	items.Limit = c.limit
+	//items := NewChoiceMap(c.choiceMap)
+	//items.Limit = c.limit
 	return Props{
 		Width:  c.width,
 		Height: c.height,
-		Items:  item.NewChoiceMap(c.choiceMap),
+		Items:  c.Items,
+	}
+}
+
+func (c List) GatherItems() Items {
+	matches := make([]Item, len(c.choiceMap))
+	for i, option := range c.choiceMap {
+		for label, val := range option {
+			item := NewItem(val, i)
+			item.Label = label
+			matches[i] = item
+		}
+	}
+	return Items{
+		Items:    matches,
+		Selected: c.Selected,
 	}
 }
 
@@ -119,7 +135,6 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 			println("field")
 			props := FieldProps{
 				//Item: c.Items.Items[c.itemIndex],
-				Save: c.Save,
 			}
 
 			return component, component.Init(props)
@@ -167,7 +182,7 @@ func (m *List) Header(text string) *List {
 
 func (m *List) ChoiceMap(choices []map[string]string) *List {
 	m.choiceMap = choices
-	m.Items = item.NewChoiceMap(choices)
+	m.Items = m.GatherItems()
 	return m
 }
 
@@ -180,7 +195,7 @@ func mapChoices(c []string) []map[string]string {
 }
 
 func (m *List) Limit(l int) *List {
-	m.limit = l
+	m.Items.Limit = l
 	return m
 }
 
@@ -204,10 +219,6 @@ func (m *List) SetInputValue(val string) {
 
 func (m *List) EditItem(idx int) {
 	m.itemIndex = idx
-}
-
-func (m *List) Save(idx int, val string) {
-	m.Items.Items[idx].Write(val)
 }
 
 func DefaultStyle() style.List {

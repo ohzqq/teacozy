@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -17,7 +16,7 @@ type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[ChooseProps]
 	Cursor      int
-	Matches     []item.Item
+	Matches     []Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
 	quitting    bool
@@ -70,8 +69,10 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		if m.Props().Limit == 1 {
 			return nil
 		}
-		idx := m.Props().Visible()[m.Cursor].Index
-		m.Props().ToggleItem(idx)
+		if m.Cursor >= 0 {
+			idx := m.Props().Visible()[m.Cursor].Index
+			m.Props().ToggleItem(idx)
+		}
 		cmds = append(cmds, DownCmd())
 	case StopFilteringMsg:
 		if m.Props().Limit == 1 {

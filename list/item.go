@@ -1,9 +1,8 @@
-package item
+package list
 
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
@@ -27,11 +26,8 @@ type Items struct {
 
 type Item struct {
 	fuzzy.Match
-	Style    style.ListItem
-	Label    string
-	Input    textinput.Model
-	SetValue func(int, string)
-	selected bool
+	Style style.ListItem
+	Label string
 	*Prefix
 }
 
@@ -41,7 +37,7 @@ type Prefix struct {
 	Unselected string
 }
 
-func New(c []map[string]string) Items {
+func NewItems(c []map[string]string) Items {
 	items := Items{
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
@@ -63,16 +59,11 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Input:  textinput.New(),
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
 
 	return item
-}
-
-func (i *Item) Write(val string) {
-	i.Str = val
 }
 
 func DefaultPrefix() *Prefix {
@@ -93,11 +84,6 @@ func (m Items) Chosen() []int {
 		chosen = append(chosen, m.Cursor)
 	}
 	return chosen
-}
-
-func (i *Items) SetValue(idx int, val string) {
-	//keys := maps.Keys(i.Items[idx])
-	i.Items[idx].Str = val
 }
 
 func (match Item) RenderText() string {
