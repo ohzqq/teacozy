@@ -1,4 +1,4 @@
-package choose
+package list
 
 import (
 	"github.com/charmbracelet/bubbles/key"
