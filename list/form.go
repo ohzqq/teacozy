@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -45,6 +46,13 @@ func NewForm() *Form {
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
+}
+
+func FormRouteInitializer(props FormProps) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewForm()
+		return component, component.Init(props)
+	}
 }
 
 func (m *Form) Update(msg tea.Msg) tea.Cmd {

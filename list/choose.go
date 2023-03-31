@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -46,6 +47,13 @@ func NewChoice() *Choose {
 		Style: DefaultStyle(),
 	}
 	return &tm
+}
+
+func ChooseRouteInitializer(props ChooseProps) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewChoice()
+		return component, component.Init(props)
+	}
 }
 
 func (m *Choose) Update(msg tea.Msg) tea.Cmd {

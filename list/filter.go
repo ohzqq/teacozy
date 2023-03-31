@@ -9,12 +9,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/style"
 )
 
 type Filter struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[ChooseProps]
+	reactea.BasicPropfulComponent[FilterProps]
 	Cursor      int
 	Matches     []Item
 	Input       textinput.Model
@@ -23,6 +24,11 @@ type Filter struct {
 	Placeholder string
 	Prompt      string
 	Style       style.List
+}
+
+type FilterProps struct {
+	Props
+	ToggleItem func(int)
 }
 
 type FilterKeys struct {
@@ -40,6 +46,13 @@ func NewFilter() *Filter {
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
+}
+
+func FilterRouteInitializer(props FilterProps) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewFilter()
+		return component, component.Init(props)
+	}
 }
 
 func (m *Filter) Update(msg tea.Msg) tea.Cmd {
@@ -120,7 +133,7 @@ func (m *Filter) Render(w, h int) string {
 	return view
 }
 
-func (tm *Filter) Init(props ChooseProps) tea.Cmd {
+func (tm *Filter) Init(props FilterProps) tea.Cmd {
 	tm.UpdateProps(props)
 	tm.Matches = tm.Props().Visible()
 
