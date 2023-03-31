@@ -165,6 +165,10 @@ func (match Item) RenderText() string {
 	return s
 }
 
+func (i Item) LineHeight() int {
+	return lipgloss.Height(i.RenderText())
+}
+
 func (m *Items) ToggleSelection(idx int) {
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)

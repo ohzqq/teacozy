@@ -107,8 +107,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]
 		m.Props().SetCur(cur.Index)
-		reactea.SetCurrentRoute("editField")
-		return nil
+		cmds = append(cmds, message.StartEditingCmd())
 	case message.StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
 		return nil
@@ -153,11 +152,11 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Choose) Render(w, h int) string {
-	m.Viewport.Height = h
+	//m.Viewport.Height = h
 	if m.Paginator.TotalPages > 1 {
-		m.Viewport.Height = m.Viewport.Height + 4
+		//m.Viewport.Height = m.Viewport.Height + 4
 	}
-	m.Viewport.Width = w
+	//m.Viewport.Width = w
 
 	var s strings.Builder
 

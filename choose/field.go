@@ -28,7 +28,6 @@ type FieldKeyMap struct {
 
 type FieldProps struct {
 	*props.Item
-	Save func(map[string]string)
 }
 
 func NewField() *Field {
@@ -38,6 +37,12 @@ func NewField() *Field {
 	return &tm
 }
 
+func NewFieldProps(i *props.Item) FieldProps {
+	return FieldProps{
+		Item: i,
+	}
+}
+
 func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -45,8 +50,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	case message.StopEditingMsg:
 		m.Input.Reset()
 		m.Input.Blur()
-		reactea.SetCurrentRoute("default")
-		return nil
+		cmds = append(cmds, message.StopEditingCmd())
 	case message.SaveEditMsg:
 		m.Input.Blur()
 	case message.StartEditingMsg:
@@ -72,7 +76,6 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 			case key.Matches(msg, formKey.Edit):
 				cmds = append(cmds, message.StartEditingCmd())
 			}
-
 		}
 	}
 
@@ -81,6 +84,8 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Field) Render(w, h int) string {
 	m.Input.SetWidth(w)
+	lh := m.Props().Item.LineHeight()
+	m.Input.SetHeight(lh)
 	return m.Input.View()
 }
 
