@@ -16,7 +16,7 @@ type Items struct {
 	Height      int
 	Width       int
 	Snapshot    string
-	Current     *Item
+	Cur         int
 }
 
 type Opt func(*Items)
@@ -55,7 +55,7 @@ func (i Items) Update() *Items {
 	items.NumSelected = i.NumSelected
 	items.Height = i.Height
 	items.Width = i.Width
-	items.Current = i.Current
+	items.Cur = i.Cur
 	return items
 }
 
@@ -81,7 +81,11 @@ func (m Items) Map() []map[string]string {
 }
 
 func (i *Items) SetCurrent(idx int) {
-	i.Current = &i.Items[idx]
+	i.Cur = idx
+}
+
+func (i Items) CurrentItem() *Item {
+	return &i.Items[i.Cur]
 }
 
 func (cp Items) Visible(matches ...string) []Item {

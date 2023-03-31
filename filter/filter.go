@@ -93,7 +93,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case message.ToggleItemMsg:
 		idx := m.Matches[m.Cursor].Index
 
-		if m.Props().NumSelected == 0 {
+		if m.Props().NumSelected == 0 && m.quitting {
 			cmds = append(cmds, message.ReturnSelectionsCmd())
 		}
 
@@ -129,6 +129,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 				return message.ToggleItemCmd()
 			}
 			if m.Props().NumSelected == 0 {
+				m.quitting = true
 				return message.ToggleItemCmd()
 			}
 			cmds = append(cmds, message.ReturnSelectionsCmd())
