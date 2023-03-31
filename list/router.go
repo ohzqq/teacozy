@@ -8,6 +8,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -102,7 +103,7 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 			Props:      c.NewProps(),
 			ToggleItem: c.ToggleSelection,
 		}),
-		"filter": FilterRouteInitializer(FilterProps{
+		"filter": filter.FilterRouteInitializer(filter.FilterProps{
 			Props:      c.NewProps(),
 			ToggleItem: c.ToggleSelection,
 		}),

@@ -1,4 +1,4 @@
-package list
+package filter
 
 import (
 	"strings"
@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -27,7 +28,7 @@ type Filter struct {
 }
 
 type FilterProps struct {
-	Props
+	*Items
 	ToggleItem func(int)
 }
 
@@ -42,7 +43,7 @@ type FilterKeys struct {
 
 func NewFilter() *Filter {
 	tm := Filter{
-		Style:  DefaultStyle(),
+		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
@@ -60,15 +61,15 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-	case ReturnSelectionsMsg:
+	case message.ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-	case UpMsg:
+	case message.UpMsg:
 		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
 		if m.Cursor < m.Viewport.YOffset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
-	case DownMsg:
+	case message.DownMsg:
 		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
 		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
@@ -76,7 +77,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		} else if m.Cursor == len(m.Matches)-1 {
 			m.Viewport.GotoBottom()
 		}
-	case ToggleItemMsg:
+	case message.ToggleItemMsg:
 		if m.Props().Limit == 1 {
 			return nil
 		}
@@ -85,7 +86,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			m.Props().ToggleItem(idx)
 		}
 		cmds = append(cmds, DownCmd())
-	case StopFilteringMsg:
+	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
 			cmds = append(cmds, ToggleItemCmd())
 		}
@@ -97,18 +98,18 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, filterKey.StopFiltering):
-			cmds = append(cmds, StopFilteringCmd())
+			cmds = append(cmds, message.StopFilteringCmd())
 		case key.Matches(msg, filterKey.Up):
-			cmds = append(cmds, UpCmd())
+			cmds = append(cmds, message.UpCmd())
 		case key.Matches(msg, filterKey.Down):
-			cmds = append(cmds, DownCmd())
+			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, filterKey.ToggleItem):
-			cmds = append(cmds, ToggleItemCmd())
+			cmds = append(cmds, message.ToggleItemCmd())
 		case key.Matches(msg, filterKey.Quit):
 			m.quitting = true
-			cmds = append(cmds, ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelectionsCmd())
 		case key.Matches(msg, filterKey.ReturnSelections):
-			cmds = append(cmds, ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelectionsCmd())
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		m.Matches = m.Props().Visible(m.Input.Value())
@@ -148,4 +149,41 @@ func (tm *Filter) Init(props FilterProps) tea.Cmd {
 	tm.Input.Focus()
 
 	return nil
+}
+
+var filterKey = FilterKeys{
+	ToggleItem: key.NewBinding(
+		key.WithKeys(" ", "tab"),
+		key.WithHelp("space", "select item"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down"),
+		key.WithHelp("down", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up"),
+		key.WithHelp("up", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	),
+	StopFiltering: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "stop filtering"),
+	),
+	ReturnSelections: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "return selections"),
+	),
+}
+
+func clamp(min, max, val int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
 }
