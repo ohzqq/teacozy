@@ -50,7 +50,7 @@ func NewForm() *Form {
 	return &tm
 }
 
-func FormRouteInitializer(props Props) router.RouteInitializer {
+func RouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewForm()
 		return component, component.Init(props)

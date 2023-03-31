@@ -1,4 +1,4 @@
-package choose
+package frame
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

@@ -15,45 +15,6 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type base struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[reactea.NoProps]
-	mainRouter reactea.Component[router.Props]
-	Props
-}
-
-func New(choices []map[string]string, opts ...props.Opt) *base {
-	props := Props{
-		Items: props.NewItems(choices, opts...),
-	}
-	return &base{
-		Props:      props,
-		mainRouter: router.New(),
-	}
-}
-
-func (c *base) Init(reactea.NoProps) tea.Cmd {
-	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": ChooseRouteInitializer(c.Props),
-	})
-}
-
-func (c *base) Update(msg tea.Msg) tea.Cmd {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		// ctrl+c support
-		if msg.String() == "ctrl+c" {
-			return reactea.Destroy
-		}
-	}
-
-	return c.mainRouter.Update(msg)
-}
-
-func (c *base) Render(width, height int) string {
-	return c.mainRouter.Render(width, height)
-}
-
 type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
@@ -91,7 +52,7 @@ func NewChoice() *Choose {
 	return &tm
 }
 
-func ChooseRouteInitializer(props Props) router.RouteInitializer {
+func RouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
 		return component, component.Init(props)
