@@ -84,7 +84,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		}
 		if m.Cursor >= 0 {
 			idx := m.Props().Visible()[m.Cursor].Index
-			m.Props().ToggleItem(idx)
+			m.Props().ToggleSelection(idx)
 		}
 		cmds = append(cmds, message.DownCmd())
 	case message.StopFilteringMsg:

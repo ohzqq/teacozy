@@ -56,28 +56,18 @@ func New(choices ...string) *List {
 	return list
 }
 
-func (c *List) NewProps() *props.Items {
-	//p := props.Items{
-	//Items: c.Items.Items,
-	//Limit: c.Items.Limit,
-	//}
-	//p.Width = c.width
-	//p.Height = c.height
-	return c.Refresh()
-}
-
 func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": choose.ChooseRouteInitializer(choose.ChooseProps{
-			Items:      c.NewProps(),
+			Items:      c.Refresh(),
 			ToggleItem: c.ToggleSelection,
 		}),
 		"filter": filter.FilterRouteInitializer(filter.FilterProps{
-			Items:      c.Items,
+			Items:      c.Refresh(),
 			ToggleItem: c.ToggleSelection,
 		}),
 		"form": form.FormRouteInitializer(form.FormProps{
-			Items: c.Items,
+			Items: c.Refresh(),
 			Save:  c.ChoiceMap,
 		}),
 	})

@@ -54,10 +54,6 @@ func NewChoice() *Choose {
 func ChooseRouteInitializer(props ChooseProps) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
-		//props := ChooseProps{
-		//  Props:      c.NewProps(),
-		//  ToggleItem: c.ToggleSelection,
-		//}
 		return component, component.Init(props)
 	}
 }
@@ -111,7 +107,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 				return nil
 			}
 			idx := m.Props().Visible()[m.Cursor].Index
-			m.Props().ToggleItem(idx)
+			m.Props().ToggleSelection(idx)
 			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, chooseKey.Edit):
 			cmds = append(cmds, message.StartEditingCmd())

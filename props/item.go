@@ -162,7 +162,6 @@ func (m *Items) ToggleSelection(idx int) {
 
 func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Choices = choices
-	//m.Items = ChoiceMapToMatch(choices)
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {
