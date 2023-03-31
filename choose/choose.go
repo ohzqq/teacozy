@@ -67,7 +67,7 @@ func (c Choose) Initializer(props *props.Items) router.RouteInitializer {
 }
 
 func (c Choose) Name() string {
-	return "default"
+	return "choose"
 }
 
 func (m *Choose) Update(msg tea.Msg) tea.Cmd {

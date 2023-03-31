@@ -4,7 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 )
@@ -17,7 +16,6 @@ type Frame struct {
 	width  int
 	height int
 	Routes map[string]router.RouteInitializer
-	Routez []Route
 }
 
 type Route interface {
@@ -25,18 +23,7 @@ type Route interface {
 	Name() string
 }
 
-func New(choices []map[string]string, opts ...props.Opt) *Frame {
-	app := &Frame{
-		Items:      props.NewItems(choices, opts...),
-		mainRouter: router.New(),
-		Routes:     make(map[string]router.RouteInitializer),
-	}
-	app.Routes["default"] = choose.RouteInitializer(choose.Props{Items: app.Items})
-
-	return app
-}
-
-func NewFrame(choices []map[string]string, routes []Route, opts ...props.Opt) *Frame {
+func New(choices []map[string]string, routes []Route, opts ...props.Opt) *Frame {
 	app := &Frame{
 		Items:      props.NewItems(choices, opts...),
 		mainRouter: router.New(),
@@ -45,8 +32,13 @@ func NewFrame(choices []map[string]string, routes []Route, opts ...props.Opt) *F
 		width:      50,
 		height:     5,
 	}
-	for _, r := range routes {
-		app.Routes[r.Name()] = r.Initializer(app.Items)
+
+	for i, r := range routes {
+		name := r.Name()
+		if i == 0 {
+			name = "default"
+		}
+		app.Routes[name] = r.Initializer(app.Items)
 	}
 
 	return app
@@ -61,14 +53,6 @@ func (c *Frame) NewProps() *props.Items {
 
 func (c *Frame) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(c.Routes)
-}
-
-func (c Frame) routes() map[string]router.RouteInitializer {
-	routes := make(map[string]router.RouteInitializer)
-	for _, r := range c.Routez {
-		routes[r.Name()] = r.Initializer(c.NewProps())
-	}
-	return routes
 }
 
 func (c *Frame) Update(msg tea.Msg) tea.Cmd {

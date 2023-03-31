@@ -57,6 +57,17 @@ func RouteInitializer(props Props) router.RouteInitializer {
 	}
 }
 
+func (c Form) Initializer(props *props.Items) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewForm()
+		return component, component.Init(Props{Items: props})
+	}
+}
+
+func (c Form) Name() string {
+	return "form"
+}
+
 func (m *Form) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
