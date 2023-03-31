@@ -16,7 +16,8 @@ type base struct {
 	Routes  router.Props
 	editing bool
 
-	Field *Field
+	fieldsView string
+	Field      *Field
 	*Choose
 }
 
@@ -33,10 +34,9 @@ func New(choices []map[string]string, opts ...props.Opt) *base {
 
 func (c *base) Init(reactea.NoProps) tea.Cmd {
 	c.Routes["default"] = c.Initializer(c.Items)
-	//c.Routes["editField"] = c.Field.Initializer(c.Items.Current)
 	c.Routes["editField"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewField()
-		return component, component.Init(NewFieldProps(c.Items.Current))
+		return component, component.Init(NewFieldProps(c.Items.Current, c.fieldsView))
 	}
 
 	return c.mainRouter.Init(c.Routes)
@@ -49,6 +49,7 @@ func (c *base) Update(msg tea.Msg) tea.Cmd {
 		reactea.SetCurrentRoute("default")
 	case message.StartEditingMsg:
 		c.editing = true
+		c.fieldsView = c.mainRouter.Render(c.Width, c.Height)
 		reactea.SetCurrentRoute("editField")
 	case tea.KeyMsg:
 		// ctrl+c support
@@ -62,8 +63,5 @@ func (c *base) Update(msg tea.Msg) tea.Cmd {
 
 func (c *base) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
-	if c.editing {
-		view = view + "\n Editing"
-	}
 	return view
 }

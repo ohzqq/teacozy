@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -19,7 +18,6 @@ type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 	Cursor    int
-	Viewport  *viewport.Model
 	Paginator paginator.Model
 	quitting  bool
 	header    string
@@ -152,12 +150,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Choose) Render(w, h int) string {
-	//m.Viewport.Height = h
-	if m.Paginator.TotalPages > 1 {
-		//m.Viewport.Height = m.Viewport.Height + 4
-	}
-	//m.Viewport.Width = w
-
 	var s strings.Builder
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
@@ -171,23 +163,18 @@ func (m *Choose) Render(w, h int) string {
 	var view string
 	view = s.String()
 	if m.Paginator.TotalPages <= 1 {
-		view = s.String()
+		//view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
 		view = lipgloss.JoinVertical(lipgloss.Left, view, p)
 		//m.Props().Footer(m.Paginator.View())
 	}
 
-	//m.Viewport.SetContent(view)
-	//view = m.Viewport.View()
-
 	return view
 }
 
 func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
-	v := viewport.New(0, 0)
-	tm.Viewport = &v
 	tm.Paginator = paginator.New()
 	tm.Paginator.Type = paginator.Arabic
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)

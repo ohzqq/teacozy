@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -28,6 +29,8 @@ type FieldKeyMap struct {
 
 type FieldProps struct {
 	*props.Item
+	//RenderFields func(int, int) string
+	fields string
 }
 
 func NewField() *Field {
@@ -37,9 +40,10 @@ func NewField() *Field {
 	return &tm
 }
 
-func NewFieldProps(i *props.Item) FieldProps {
+func NewFieldProps(i *props.Item, fields string) FieldProps {
 	return FieldProps{
-		Item: i,
+		Item:   i,
+		fields: fields,
 	}
 }
 
@@ -86,7 +90,7 @@ func (m *Field) Render(w, h int) string {
 	m.Input.SetWidth(w)
 	lh := m.Props().Item.LineHeight()
 	m.Input.SetHeight(lh)
-	return m.Input.View()
+	return lipgloss.JoinVertical(lipgloss.Left, m.Props().fields, m.Input.View())
 }
 
 func (tm *Field) Init(props FieldProps) tea.Cmd {
