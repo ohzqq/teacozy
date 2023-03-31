@@ -91,17 +91,23 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			m.Viewport.GotoBottom()
 		}
 	case message.ToggleItemMsg:
-		if m.Props().Limit == 1 {
-			return nil
-		}
 		idx := m.Matches[m.Cursor].Index
+
+		if m.Props().NumSelected == 0 {
+			cmds = append(cmds, message.ReturnSelectionsCmd())
+		}
+
 		m.Props().ToggleSelection(idx)
+
+		if m.Props().Limit == 1 {
+			return message.ReturnSelectionsCmd()
+		}
+
 		cmds = append(cmds, message.DownCmd())
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
 			cmds = append(cmds, message.ToggleItemCmd())
 		}
-
 		m.Input.Reset()
 		m.Input.Blur()
 		return message.ChangeRouteCmd("default")
@@ -119,6 +125,12 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			m.quitting = true
 			cmds = append(cmds, message.ReturnSelectionsCmd())
 		case key.Matches(msg, filterKey.ReturnSelections):
+			if m.Props().Limit == 1 {
+				return message.ToggleItemCmd()
+			}
+			if m.Props().NumSelected == 0 {
+				return message.ToggleItemCmd()
+			}
 			cmds = append(cmds, message.ReturnSelectionsCmd())
 		}
 		m.Input, cmd = m.Input.Update(msg)
