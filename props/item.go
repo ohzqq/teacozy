@@ -43,11 +43,14 @@ type Prefix struct {
 	Unselected string
 }
 
-func NewItems(c []map[string]string) *Items {
+type Opt func(*Items)
+
+func NewItems(c []map[string]string, opts ...Opt) *Items {
 	items := Items{
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
+	items.Opts(opts...)
 
 	w, h := util.TermSize()
 	if items.Height == 0 {
@@ -58,6 +61,12 @@ func NewItems(c []map[string]string) *Items {
 	}
 
 	return &items
+}
+
+func (i *Items) Opts(opts ...Opt) {
+	for _, opt := range opts {
+		opt(i)
+	}
 }
 
 func (i Items) Update() *Items {
@@ -243,4 +252,16 @@ func ExactMatches(search string, choices []Item) []Item {
 	}
 
 	return matches
+}
+
+func Limit(l int) Opt {
+	return func(i *Items) {
+		i.Limit = l
+	}
+}
+
+func Height(h int) Opt {
+	return func(i *Items) {
+		i.Height = h
+	}
 }

@@ -17,7 +17,7 @@ import (
 
 type Filter struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[FilterProps]
+	reactea.BasicPropfulComponent[Props]
 	Cursor      int
 	Matches     []props.Item
 	Input       textinput.Model
@@ -28,12 +28,12 @@ type Filter struct {
 	Style       style.List
 }
 
-type FilterProps struct {
+type Props struct {
 	*props.Items
 	ToggleItem func(int)
 }
 
-type FilterKeys struct {
+type KeyMap struct {
 	Up               key.Binding
 	Down             key.Binding
 	ToggleItem       key.Binding
@@ -50,7 +50,7 @@ func NewFilter() *Filter {
 	return &tm
 }
 
-func FilterRouteInitializer(props FilterProps) router.RouteInitializer {
+func FilterRouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewFilter()
 		return component, component.Init(props)
@@ -135,7 +135,7 @@ func (m *Filter) Render(w, h int) string {
 	return view
 }
 
-func (tm *Filter) Init(props FilterProps) tea.Cmd {
+func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 	tm.Matches = tm.Props().Visible()
 
@@ -152,7 +152,7 @@ func (tm *Filter) Init(props FilterProps) tea.Cmd {
 	return nil
 }
 
-var filterKey = FilterKeys{
+var filterKey = KeyMap{
 	ToggleItem: key.NewBinding(
 		key.WithKeys(" ", "tab"),
 		key.WithHelp("space", "select item"),

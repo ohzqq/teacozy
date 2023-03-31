@@ -15,9 +15,48 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
+type base struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[reactea.NoProps]
+	mainRouter reactea.Component[router.Props]
+	Props
+}
+
+func New(choices []map[string]string, opts ...props.Opt) *base {
+	props := Props{
+		Items: props.NewItems(choices, opts...),
+	}
+	return &base{
+		Props:      props,
+		mainRouter: router.New(),
+	}
+}
+
+func (c *base) Init(reactea.NoProps) tea.Cmd {
+	return c.mainRouter.Init(map[string]router.RouteInitializer{
+		"default": ChooseRouteInitializer(c.Props),
+	})
+}
+
+func (c *base) Update(msg tea.Msg) tea.Cmd {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		// ctrl+c support
+		if msg.String() == "ctrl+c" {
+			return reactea.Destroy
+		}
+	}
+
+	return c.mainRouter.Update(msg)
+}
+
+func (c *base) Render(width, height int) string {
+	return c.mainRouter.Render(width, height)
+}
+
 type Choose struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[ChooseProps]
+	reactea.BasicPropfulComponent[Props]
 	Cursor    int
 	Viewport  *viewport.Model
 	Paginator paginator.Model
@@ -26,12 +65,12 @@ type Choose struct {
 	Style     style.List
 }
 
-type ChooseProps struct {
+type Props struct {
 	*props.Items
 	ToggleItem func(int)
 }
 
-type ChooseKeys struct {
+type KeyMap struct {
 	Up               key.Binding
 	Down             key.Binding
 	Prev             key.Binding
@@ -52,7 +91,7 @@ func NewChoice() *Choose {
 	return &tm
 }
 
-func ChooseRouteInitializer(props ChooseProps) router.RouteInitializer {
+func ChooseRouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
 		return component, component.Init(props)
@@ -164,7 +203,7 @@ func (m *Choose) Render(w, h int) string {
 	return view
 }
 
-func (tm *Choose) Init(props ChooseProps) tea.Cmd {
+func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
@@ -175,7 +214,7 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	return nil
 }
 
-var chooseKey = ChooseKeys{
+var chooseKey = KeyMap{
 	Next: key.NewBinding(
 		key.WithKeys("right", "l"),
 		key.WithHelp("right/l", "next page"),

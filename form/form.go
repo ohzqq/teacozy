@@ -17,7 +17,7 @@ import (
 
 type Form struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[FormProps]
+	reactea.BasicPropfulComponent[Props]
 	Cursor      int
 	Input       textarea.Model
 	Viewport    *viewport.Model
@@ -27,12 +27,12 @@ type Form struct {
 	Style       style.List
 }
 
-type FormProps struct {
+type Props struct {
 	*props.Items
 	Save func([]map[string]string)
 }
 
-type FormKeys struct {
+type KeyMap struct {
 	Up          key.Binding
 	Down        key.Binding
 	ToggleItem  key.Binding
@@ -50,7 +50,7 @@ func NewForm() *Form {
 	return &tm
 }
 
-func FormRouteInitializer(props FormProps) router.RouteInitializer {
+func FormRouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewForm()
 		return component, component.Init(props)
@@ -137,7 +137,7 @@ func (m *Form) Render(w, h int) string {
 	return view
 }
 
-func (tm *Form) Init(props FormProps) tea.Cmd {
+func (tm *Form) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 
 	tm.Input = textarea.New()
@@ -163,7 +163,7 @@ func clamp(min, max, val int) int {
 	return val
 }
 
-var formKey = FormKeys{
+var formKey = KeyMap{
 	Save: key.NewBinding(
 		key.WithKeys("ctrl+w"),
 		key.WithHelp("ctrl+w", "save"),
