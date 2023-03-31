@@ -29,6 +29,7 @@ type Choose struct {
 type Props struct {
 	*props.Items
 	ToggleItem func(int)
+	SetCur     func(int)
 }
 
 type KeyMap struct {
@@ -56,6 +57,13 @@ func RouteInitializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
 		return component, component.Init(props)
+	}
+}
+
+func NewProps(items *props.Items) Props {
+	return Props{
+		Items:  items,
+		SetCur: items.SetCurrent,
 	}
 }
 
@@ -97,7 +105,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.Paginator.NextPage()
 		}
 	case message.StartEditingMsg:
-		reactea.SetCurrentRoute("form")
+		cur := m.Props().Visible()[m.Cursor]
+		m.Props().SetCur(cur.Index)
+		reactea.SetCurrentRoute("editField")
 		return nil
 	case message.StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")

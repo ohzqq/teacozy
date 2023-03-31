@@ -28,7 +28,6 @@ func New(choices []map[string]string, routes []Route, opts ...props.Opt) *Frame 
 		Items:      props.NewItems(choices, opts...),
 		mainRouter: router.New(),
 		Routes:     make(map[string]router.RouteInitializer),
-		Routez:     routes,
 		width:      50,
 		height:     5,
 	}

@@ -12,6 +12,7 @@ type base struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 	mainRouter reactea.Component[router.Props]
 	*props.Items
+	cur    *props.Item
 	Routes map[string]router.RouteInitializer
 }
 
@@ -21,12 +22,16 @@ func New(choices []map[string]string, opts ...props.Opt) *base {
 		mainRouter: router.New(),
 		Routes:     make(map[string]router.RouteInitializer),
 	}
-	app.Routes["default"] = RouteInitializer(Props{Items: app.Items})
-
 	return app
 }
 
 func (c *base) Init(reactea.NoProps) tea.Cmd {
+	c.Routes["default"] = RouteInitializer(NewProps(c.Items))
+	c.Routes["editField"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewField()
+		return component, component.Init(FieldProps{Item: c.Items.Current})
+	}
+
 	return c.mainRouter.Init(c.Routes)
 }
 

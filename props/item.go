@@ -25,6 +25,7 @@ type Items struct {
 	Limit       int
 	Height      int
 	Width       int
+	Current     *Item
 	//Cursor      int
 }
 
@@ -76,7 +77,12 @@ func (i Items) Update() *Items {
 	items.NumSelected = i.NumSelected
 	items.Height = i.Height
 	items.Width = i.Width
+	items.Current = i.Current
 	return items
+}
+
+func (i *Items) SetCurrent(idx int) {
+	i.Current = &i.Items[idx]
 }
 
 func (cp Items) Visible(matches ...string) []Item {

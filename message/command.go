@@ -26,6 +26,7 @@ func FilterItemsCmd() tea.Cmd {
 
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
+type SaveEditMsg struct{}
 type StopFilteringMsg struct{}
 type StartFilteringMsg struct{}
 type ToggleItemMsg struct{}
@@ -45,6 +46,12 @@ func StopFilteringCmd() tea.Cmd {
 func StopEditingCmd() tea.Cmd {
 	return func() tea.Msg {
 		return StopEditingMsg{}
+	}
+}
+
+func SaveEditCmd() tea.Cmd {
+	return func() tea.Msg {
+		return SaveEditMsg{}
 	}
 }
 
