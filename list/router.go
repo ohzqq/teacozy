@@ -18,17 +18,15 @@ type List struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	Choices     []string
-	choiceMap   []map[string]string
-	numSelected int
-	width       int
-	height      int
-	header      string
-	footer      string
-	inputValue  string
-	itemIndex   int
-	limit       int
-	Items
+	width      int
+	height     int
+	header     string
+	footer     string
+	inputValue string
+	itemIndex  int
+	limit      int
+	//*Items
+	Props
 }
 
 type Props struct {
@@ -47,11 +45,15 @@ func (cp Props) Visible(matches ...string) []Item {
 
 func New(choices ...string) *List {
 	list := &List{
-		Choices:    choices,
-		choiceMap:  mapChoices(choices),
 		mainRouter: router.New(),
+		Props: Props{
+			Items: ItemSlice(choices),
+		},
 	}
-	list.Items = NewItems(list.choiceMap)
+	//items := NewItems(list.ChooseMap)
+	//list.Items = items
+	//list.Choices = choices
+	//list.ChooseMap = MapChoices(choices)
 
 	w, h := util.TermSize()
 	if list.height == 0 {
@@ -66,13 +68,13 @@ func New(choices ...string) *List {
 
 func (c *List) NewProps() Props {
 	c.Footer("")
-	items := NewItems(c.choiceMap)
-	items.Limit = c.Items.Limit
-	items.Selected = c.Selected
+	//items := NewItems(c.ChooseMap)
+	//items.Limit = c.Items.Limit
+	//items.Selected = c.Selected
 	return Props{
 		Width:  c.width,
 		Height: c.height,
-		Items:  items,
+		Items:  c.Items,
 		Footer: c.Footer,
 	}
 }
@@ -103,9 +105,15 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 		//  }
 		//  return component, component.Init(props)
 		//},
-		"default": ChooseRouteInitializer(c),
-		"filter":  FilterRouteInitializer(c),
-		"form":    FormRouteInitializer(c),
+		"default": ChooseRouteInitializer(ChooseProps{
+			Props:      c.NewProps(),
+			ToggleItem: c.ToggleSelection,
+		}),
+		"filter": FilterRouteInitializer(c),
+		"form": FormRouteInitializer(FormProps{
+			Props: c.NewProps(),
+			Save:  c.ChoiceMap,
+		}),
 	})
 }
 
@@ -136,16 +144,6 @@ func (c *List) Render(width, height int) string {
 	return view
 }
 
-func (m *List) ToggleSelection(idx int) {
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.numSelected--
-	} else if m.numSelected < m.Items.Limit {
-		m.Selected[idx] = struct{}{}
-		m.numSelected++
-	}
-}
-
 func (m *List) Header(text string) *List {
 	m.header = text
 	return m
@@ -155,24 +153,12 @@ func (m *List) Footer(text string) {
 	m.footer = text
 }
 
-func (m *List) ChoiceMap(choices []map[string]string) {
-	m.choiceMap = choices
-}
-
 func (m List) Chosen() []map[string]string {
 	var chosen []map[string]string
 	for _, c := range m.Items.Chosen() {
-		chosen = append(chosen, m.choiceMap[c])
+		chosen = append(chosen, m.ChooseMap[c])
 	}
 	return chosen
-}
-
-func mapChoices(c []string) []map[string]string {
-	choices := make([]map[string]string, len(c))
-	for i, val := range c {
-		choices[i] = map[string]string{"": val}
-	}
-	return choices
 }
 
 func (m *List) Limit(l int) *List {

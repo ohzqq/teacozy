@@ -18,6 +18,9 @@ const (
 )
 
 type Items struct {
+	NumSelected int
+	Choices     []string
+	ChooseMap   []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
 	Limit       int
@@ -46,6 +49,20 @@ func NewItems(c []map[string]string) Items {
 		Selected: make(map[int]struct{}),
 	}
 	return items
+}
+
+func ItemSlice(i []string) Items {
+	items := NewItems(MapChoices(i))
+	items.Choices = i
+	return items
+}
+
+func MapChoices(c []string) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": val}
+	}
+	return choices
 }
 
 func NewItem(t string, idx int) Item {
@@ -105,6 +122,21 @@ func (match Item) RenderText() string {
 	w := util.TermWidth()
 	s := lipgloss.NewStyle().Width(w).Render(text)
 	return s
+}
+
+func (m *Items) ToggleSelection(idx int) {
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.NumSelected--
+	} else if m.NumSelected < m.Limit {
+		m.Selected[idx] = struct{}{}
+		m.NumSelected++
+	}
+}
+
+func (m *Items) ChoiceMap(choices []map[string]string) {
+	m.ChooseMap = choices
+	m.Items = ChoiceMapToMatch(choices)
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {

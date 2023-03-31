@@ -49,13 +49,13 @@ func NewChoice() *Choose {
 	return &tm
 }
 
-func ChooseRouteInitializer(c *List) router.RouteInitializer {
+func ChooseRouteInitializer(props ChooseProps) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
-		props := ChooseProps{
-			Props:      c.NewProps(),
-			ToggleItem: c.ToggleSelection,
-		}
+		//props := ChooseProps{
+		//  Props:      c.NewProps(),
+		//  ToggleItem: c.ToggleSelection,
+		//}
 		return component, component.Init(props)
 	}
 }
