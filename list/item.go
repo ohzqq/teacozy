@@ -19,12 +19,12 @@ const (
 
 type Items struct {
 	NumSelected int
-	Choices     []string
-	ChooseMap   []map[string]string
+	Choices     []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
 	Limit       int
-	numSelected int
+	Height      int
+	Width       int
 	Cursor      int
 }
 
@@ -43,17 +43,16 @@ type Prefix struct {
 	Unselected string
 }
 
-func NewItems(c []map[string]string) Items {
+func NewItems(c []map[string]string) *Items {
 	items := Items{
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
-	return items
+	return &items
 }
 
-func ItemSlice(i []string) Items {
+func ItemSlice(i []string) *Items {
 	items := NewItems(MapChoices(i))
-	items.Choices = i
 	return items
 }
 
@@ -135,7 +134,7 @@ func (m *Items) ToggleSelection(idx int) {
 }
 
 func (m *Items) ChoiceMap(choices []map[string]string) {
-	m.ChooseMap = choices
+	m.Choices = choices
 	m.Items = ChoiceMapToMatch(choices)
 }
 

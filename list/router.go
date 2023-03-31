@@ -18,21 +18,16 @@ type List struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	width      int
-	height     int
-	header     string
-	footer     string
-	inputValue string
-	itemIndex  int
-	limit      int
-	//*Items
+	width  int
+	height int
+	header string
+	footer string
+	limit  int
 	Props
 }
 
 type Props struct {
-	Items
-	Height int
-	Width  int
+	*Items
 	Footer func(string)
 }
 
@@ -68,15 +63,13 @@ func New(choices ...string) *List {
 
 func (c *List) NewProps() Props {
 	c.Footer("")
-	//items := NewItems(c.ChooseMap)
-	//items.Limit = c.Items.Limit
-	//items.Selected = c.Selected
-	return Props{
-		Width:  c.width,
-		Height: c.height,
+	p := Props{
 		Items:  c.Items,
 		Footer: c.Footer,
 	}
+	p.Width = c.width
+	p.Height = c.height
+	return p
 }
 
 func (c *List) Init(reactea.NoProps) tea.Cmd {
@@ -109,7 +102,10 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 			Props:      c.NewProps(),
 			ToggleItem: c.ToggleSelection,
 		}),
-		"filter": FilterRouteInitializer(c),
+		"filter": FilterRouteInitializer(FilterProps{
+			Props:      c.NewProps(),
+			ToggleItem: c.ToggleSelection,
+		}),
 		"form": FormRouteInitializer(FormProps{
 			Props: c.NewProps(),
 			Save:  c.ChoiceMap,
@@ -156,7 +152,7 @@ func (m *List) Footer(text string) {
 func (m List) Chosen() []map[string]string {
 	var chosen []map[string]string
 	for _, c := range m.Items.Chosen() {
-		chosen = append(chosen, m.ChooseMap[c])
+		chosen = append(chosen, m.Choices[c])
 	}
 	return chosen
 }
