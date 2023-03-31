@@ -48,9 +48,13 @@ func NewFilter() *Filter {
 	return &tm
 }
 
-func FilterRouteInitializer(props FilterProps) router.RouteInitializer {
+func FilterRouteInitializer(c *List) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewFilter()
+		props := FilterProps{
+			Props:      c.NewProps(),
+			ToggleItem: c.ToggleSelection,
+		}
 		return component, component.Init(props)
 	}
 }

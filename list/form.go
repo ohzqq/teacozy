@@ -48,9 +48,13 @@ func NewForm() *Form {
 	return &tm
 }
 
-func FormRouteInitializer(props FormProps) router.RouteInitializer {
+func FormRouteInitializer(c *List) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewForm()
+		props := FormProps{
+			Props: c.NewProps(),
+			Save:  c.ChoiceMap,
+		}
 		return component, component.Init(props)
 	}
 }
