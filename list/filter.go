@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -17,7 +18,7 @@ type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[FilterProps]
 	Cursor      int
-	Matches     []Item
+	Matches     []props.Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
 	quitting    bool

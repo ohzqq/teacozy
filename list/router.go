@@ -7,8 +7,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/filter"
+	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -28,13 +29,13 @@ type List struct {
 }
 
 type Props struct {
-	*Items
+	*props.Items
 	Footer func(string)
 }
 
-func (cp Props) Visible(matches ...string) []Item {
+func (cp Props) Visible(matches ...string) []props.Item {
 	if len(matches) != 0 {
-		return ExactMatches(matches[0], cp.Items.Items)
+		return props.ExactMatches(matches[0], cp.Items.Items)
 	}
 	return cp.Items.Items
 }
@@ -43,7 +44,7 @@ func New(choices ...string) *List {
 	list := &List{
 		mainRouter: router.New(),
 		Props: Props{
-			Items: ItemSlice(choices),
+			Items: props.ItemSlice(choices),
 		},
 	}
 	//items := NewItems(list.ChooseMap)
@@ -99,11 +100,11 @@ func (c *List) Init(reactea.NoProps) tea.Cmd {
 		//  }
 		//  return component, component.Init(props)
 		//},
-		"default": ChooseRouteInitializer(ChooseProps{
-			Props:      c.NewProps(),
+		"default": choose.ChooseRouteInitializer(choose.ChooseProps{
+			Items:      c.Items,
 			ToggleItem: c.ToggleSelection,
 		}),
-		"filter": filter.FilterRouteInitializer(filter.FilterProps{
+		"filter": FilterRouteInitializer(FilterProps{
 			Props:      c.NewProps(),
 			ToggleItem: c.ToggleSelection,
 		}),

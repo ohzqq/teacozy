@@ -9,6 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/message"
+	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -24,7 +26,7 @@ type Choose struct {
 }
 
 type ChooseProps struct {
-	*item.Items
+	*props.Items
 	ToggleItem func(int)
 }
 
@@ -44,7 +46,7 @@ type ChooseKeys struct {
 
 func NewChoice() *Choose {
 	tm := Choose{
-		Style: DefaultStyle(),
+		Style: style.ListDefaults(),
 	}
 	return &tm
 }
@@ -68,7 +70,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-	case UpMsg:
+	case message.UpMsg:
 		m.Cursor--
 		if m.Cursor < 0 {
 			m.Cursor = len(m.Props().Visible()) - 1
@@ -77,7 +79,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor < start {
 			m.Paginator.PrevPage()
 		}
-	case DownMsg:
+	case message.DownMsg:
 		m.Cursor++
 		if m.Cursor >= len(m.Props().Visible()) {
 			m.Cursor = 0
@@ -86,18 +88,18 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= end {
 			m.Paginator.NextPage()
 		}
-	case StartEditingMsg:
+	case message.StartEditingMsg:
 		reactea.SetCurrentRoute("form")
 		return nil
-	case StartFilteringMsg:
+	case message.StartFilteringMsg:
 		reactea.SetCurrentRoute("filter")
 		return nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, chooseKey.Up):
-			cmds = append(cmds, UpCmd())
+			cmds = append(cmds, message.UpCmd())
 		case key.Matches(msg, chooseKey.Down):
-			cmds = append(cmds, DownCmd())
+			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, chooseKey.Prev):
 			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
 			m.Paginator.PrevPage()
@@ -110,11 +112,11 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			}
 			idx := m.Props().Visible()[m.Cursor].Index
 			m.Props().ToggleItem(idx)
-			cmds = append(cmds, DownCmd())
+			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, chooseKey.Edit):
-			cmds = append(cmds, StartEditingCmd())
+			cmds = append(cmds, message.StartEditingCmd())
 		case key.Matches(msg, chooseKey.Filter):
-			cmds = append(cmds, StartFilteringCmd())
+			cmds = append(cmds, message.StartFilteringCmd())
 		case key.Matches(msg, chooseKey.Bottom):
 			m.Cursor = len(m.Props().Visible()) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1
@@ -123,9 +125,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.Paginator.Page = 0
 		case key.Matches(msg, chooseKey.Quit):
 			m.quitting = true
-			cmds = append(cmds, ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelectionsCmd())
 		case key.Matches(msg, chooseKey.ReturnSelections):
-			cmds = append(cmds, ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelectionsCmd())
 		}
 	}
 
@@ -153,7 +155,7 @@ func (m *Choose) Render(w, h int) string {
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
-		m.Props().Footer(m.Paginator.View())
+		//m.Props().Footer(m.Paginator.View())
 	}
 
 	view = s.String()
@@ -173,4 +175,69 @@ func (tm *Choose) Init(props ChooseProps) tea.Cmd {
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil
+}
+
+var chooseKey = ChooseKeys{
+	Next: key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("right/l", "next page"),
+	),
+	Prev: key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("left/h", "prev page"),
+	),
+	Edit: key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit form"),
+	),
+	//key.NewBinding(
+	//  key.WithKeys("V"),
+	//  key.WithHelp("V", "deselect all"),
+	//),
+	//key.NewBinding(
+	//  key.WithKeys("v"),
+	//  key.WithHelp("v", "select all"),
+	//),
+	ToggleItem: key.NewBinding(
+		key.WithKeys(" ", "tab"),
+		key.WithHelp("space", "select item"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("j", "down"),
+		key.WithHelp("j", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("k", "up"),
+		key.WithHelp("k", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("esc", "q", "ctrl+c"),
+		key.WithHelp("esc/q", "quit"),
+	),
+	ReturnSelections: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "return selections"),
+	),
+	Filter: key.NewBinding(
+		key.WithKeys("/"),
+		key.WithHelp("/", "filter items"),
+	),
+	Bottom: key.NewBinding(
+		key.WithKeys("G"),
+		key.WithHelp("G", "last item"),
+	),
+	Top: key.NewBinding(
+		key.WithKeys("g"),
+		key.WithHelp("g", "first item"),
+	),
+}
+
+func clamp(min, max, val int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
 }

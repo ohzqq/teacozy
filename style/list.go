@@ -53,7 +53,7 @@ type ItemPrefix struct {
 	Cursor     lipgloss.Style
 }
 
-func ListDefaults() style.List {
+func ListDefaults() List {
 	var s List
 	s.Cursor = Cursor
 	s.SelectedPrefix = Selected

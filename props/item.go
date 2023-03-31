@@ -51,6 +51,12 @@ func NewItems(c []map[string]string) *Items {
 	return &items
 }
 
+func (cp Items) Visible(matches ...string) []Item {
+	if len(matches) != 0 {
+		return ExactMatches(matches[0], cp.Items)
+	}
+	return cp.Items
+}
 func ItemSlice(i []string) *Items {
 	items := NewItems(MapChoices(i))
 	return items
