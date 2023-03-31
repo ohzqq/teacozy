@@ -26,7 +26,6 @@ type Items struct {
 	Height      int
 	Width       int
 	Current     *Item
-	//Cursor      int
 }
 
 type Item struct {
@@ -60,6 +59,8 @@ func NewItems(c []map[string]string, opts ...Opt) *Items {
 	if items.Width == 0 {
 		items.Width = w
 	}
+
+	items.SetCurrent(0)
 
 	return &items
 }

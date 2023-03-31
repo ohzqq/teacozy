@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -37,17 +36,6 @@ func NewField() *Field {
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
-}
-
-func (c Field) Initializer(props *props.Items) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewField()
-		return component, component.Init(FieldProps{Item: &props.Items[0]})
-	}
-}
-
-func (c Field) Name() string {
-	return "editField"
 }
 
 func (m *Field) Update(msg tea.Msg) tea.Cmd {

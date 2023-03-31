@@ -70,7 +70,7 @@ func NewProps(items *props.Items) Props {
 func (c Choose) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewChoice()
-		return component, component.Init(Props{Items: props})
+		return component, component.Init(NewProps(props))
 	}
 }
 
