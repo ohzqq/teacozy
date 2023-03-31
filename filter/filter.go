@@ -13,6 +13,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Filter struct {
@@ -77,13 +78,13 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 	case message.UpMsg:
-		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor-1)
+		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 		if m.Cursor < m.Viewport.YOffset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
 	case message.DownMsg:
 		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
-		m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor+1)
+		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
 			m.Viewport.LineDown(h)
 		} else if m.Cursor == len(m.Matches)-1 {
@@ -127,7 +128,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, cmd)
 	}
 
-	m.Cursor = clamp(0, len(m.Matches)-1, m.Cursor)
+	m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
 	return tea.Batch(cmds...)
 }
 
@@ -187,14 +188,4 @@ var filterKey = KeyMap{
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "return selections"),
 	),
-}
-
-func clamp(min, max, val int) int {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
 }

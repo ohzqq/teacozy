@@ -12,6 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Choose struct {
@@ -112,10 +113,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Down):
 			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, chooseKey.Prev):
-			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
+			m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
 			m.Paginator.PrevPage()
 		case key.Matches(msg, chooseKey.Next):
-			m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
+			m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 			m.Paginator.NextPage()
 		case key.Matches(msg, chooseKey.ToggleItem):
 			if m.Props().Limit == 1 {
@@ -231,14 +232,4 @@ var chooseKey = KeyMap{
 		key.WithKeys("g"),
 		key.WithHelp("g", "first item"),
 	),
-}
-
-func clamp(min, max, val int) int {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
 }
