@@ -59,6 +59,17 @@ func RouteInitializer(props Props) router.RouteInitializer {
 	}
 }
 
+func (c Choose) Initializer(props *props.Items) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewChoice()
+		return component, component.Init(Props{Items: props})
+	}
+}
+
+func (c Choose) Name() string {
+	return "default"
+}
+
 func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	//var cmd tea.Cmd
 	var cmds []tea.Cmd

@@ -57,6 +57,17 @@ func RouteInitializer(props Props) router.RouteInitializer {
 	}
 }
 
+func (c Filter) Initializer(props *props.Items) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewFilter()
+		return component, component.Init(Props{Items: props})
+	}
+}
+
+func (c Filter) Name() string {
+	return "filter"
+}
+
 func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
