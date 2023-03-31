@@ -25,7 +25,7 @@ type Items struct {
 	Limit       int
 	Height      int
 	Width       int
-	Cursor      int
+	//Cursor      int
 }
 
 type Item struct {
@@ -60,14 +60,13 @@ func NewItems(c []map[string]string) *Items {
 	return &items
 }
 
-func (i Items) Refresh() *Items {
+func (i Items) Update() *Items {
 	items := NewItems(i.Choices)
 	items.Limit = i.Limit
 	items.Selected = i.Selected
 	items.NumSelected = i.NumSelected
 	items.Height = i.Height
 	items.Width = i.Width
-	items.Cursor = i.Cursor
 	return items
 }
 

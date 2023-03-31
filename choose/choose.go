@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/message"
@@ -148,16 +149,17 @@ func (m *Choose) Render(w, h int) string {
 	s.WriteString(items)
 
 	var view string
+	view = s.String()
 	if m.Paginator.TotalPages <= 1 {
 		view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
+		p := style.Footer.Render(m.Paginator.View())
+		view = lipgloss.JoinVertical(lipgloss.Left, view, p)
 		//m.Props().Footer(m.Paginator.View())
 	}
 
-	view = s.String()
-
-	m.Viewport.SetContent(view)
-	view = m.Viewport.View()
+	//m.Viewport.SetContent(view)
+	//view = m.Viewport.View()
 
 	return view
 }
