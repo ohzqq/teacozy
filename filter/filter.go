@@ -94,10 +94,8 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		if m.Props().Limit == 1 {
 			return nil
 		}
-		if m.Cursor >= 0 {
-			idx := m.Props().Visible()[m.Cursor].Index
-			m.Props().ToggleSelection(idx)
-		}
+		idx := m.Matches[m.Cursor].Index
+		m.Props().ToggleSelection(idx)
 		cmds = append(cmds, message.DownCmd())
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {

@@ -4,6 +4,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/choose"
+	"github.com/ohzqq/teacozy/field"
+	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/util"
@@ -12,11 +15,13 @@ import (
 type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
-	mainRouter reactea.Component[router.Props]
+
 	*props.Items
-	width  int
-	height int
-	Routes map[string]router.RouteInitializer
+
+	mainRouter reactea.Component[router.Props]
+	width      int
+	height     int
+	Routes     map[string]router.RouteInitializer
 }
 
 type Route interface {
@@ -42,6 +47,37 @@ func New(choices []map[string]string, routes []Route, opts ...props.Opt) *App {
 	}
 
 	return app
+}
+
+func Choose(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	l := New(choices, []Route{c}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Form(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	fi := field.NewField()
+	l := New(choices, []Route{c, fi}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Filter(choices []map[string]string, opts ...props.Opt) *App {
+	c := filter.NewFilter()
+	l := New(choices, []Route{c}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
 }
 
 func (c *App) NewProps() *props.Items {
