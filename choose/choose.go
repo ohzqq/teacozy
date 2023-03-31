@@ -24,7 +24,7 @@ type Choose struct {
 }
 
 type ChooseProps struct {
-	Props
+	*item.Items
 	ToggleItem func(int)
 }
 
