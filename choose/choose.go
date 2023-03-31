@@ -104,6 +104,20 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		cur := m.Props().Visible()[m.Cursor]
 		m.Props().Items.SetCurrent(cur.Index)
 		return message.ChangeRouteCmd("editField")
+	case message.ToggleItemMsg:
+		idx := m.Props().Visible()[m.Cursor].Index
+
+		if m.Props().NumSelected == 0 {
+			cmds = append(cmds, message.ReturnSelectionsCmd())
+		}
+
+		m.Props().ToggleSelection(idx)
+
+		if m.Props().Limit == 1 {
+			return message.ReturnSelectionsCmd()
+		}
+
+		cmds = append(cmds, message.DownCmd())
 	case message.StartFilteringMsg:
 		return message.ChangeRouteCmd("filter")
 	case tea.KeyMsg:
@@ -119,12 +133,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 			m.Paginator.NextPage()
 		case key.Matches(msg, chooseKey.ToggleItem):
-			if m.Props().Limit == 1 {
-				return nil
-			}
-			idx := m.Props().Visible()[m.Cursor].Index
-			m.Props().ToggleSelection(idx)
-			cmds = append(cmds, message.DownCmd())
+			cmds = append(cmds, message.ToggleItemCmd())
 		case key.Matches(msg, chooseKey.Edit):
 			cmds = append(cmds, message.StartEditingCmd())
 		case key.Matches(msg, chooseKey.Filter):
@@ -139,6 +148,12 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.quitting = true
 			cmds = append(cmds, message.ReturnSelectionsCmd())
 		case key.Matches(msg, chooseKey.ReturnSelections):
+			if m.Props().Limit == 1 {
+				return message.ToggleItemCmd()
+			}
+			if m.Props().NumSelected == 0 {
+				return message.ToggleItemCmd()
+			}
 			cmds = append(cmds, message.ReturnSelectionsCmd())
 		}
 	}
