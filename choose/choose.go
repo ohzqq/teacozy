@@ -26,8 +26,6 @@ type Choose struct {
 
 type Props struct {
 	*props.Items
-	ToggleItem func(int)
-	SetCur     func(int)
 }
 
 type KeyMap struct {
@@ -60,8 +58,7 @@ func RouteInitializer(props Props) router.RouteInitializer {
 
 func NewProps(items *props.Items) Props {
 	return Props{
-		Items:  items,
-		SetCur: items.SetCurrent,
+		Items: items,
 	}
 }
 
@@ -104,7 +101,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		}
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]
-		m.Props().SetCur(cur.Index)
+		m.Props().Items.SetCurrent(cur.Index)
 		return message.ChangeRouteCmd("editField")
 	case message.StartFilteringMsg:
 		return message.ChangeRouteCmd("filter")

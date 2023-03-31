@@ -18,6 +18,7 @@ import (
 type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
+
 	Cursor      int
 	Matches     []props.Item
 	Input       textinput.Model
@@ -30,7 +31,6 @@ type Filter struct {
 
 type Props struct {
 	*props.Items
-	ToggleItem func(int)
 }
 
 type KeyMap struct {
@@ -105,8 +105,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 
 		m.Input.Reset()
 		m.Input.Blur()
-		reactea.SetCurrentRoute("default")
-		return nil
+		return message.ChangeRouteCmd("default")
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, filterKey.StopFiltering):
@@ -133,8 +132,8 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Filter) Render(w, h int) string {
-	m.Viewport.Height = h
-	m.Viewport.Width = w
+	m.Viewport.Height = m.Props().Height
+	m.Viewport.Width = m.Props().Width
 
 	var s strings.Builder
 	items := m.Props().RenderItems(m.Cursor, m.Matches)
