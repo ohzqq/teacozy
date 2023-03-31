@@ -1,4 +1,4 @@
-package choose
+package field
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -14,7 +14,7 @@ import (
 
 type Field struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[FieldProps]
+	reactea.BasicPropfulComponent[Props]
 
 	Input       textarea.Model
 	quitting    bool
@@ -22,16 +22,15 @@ type Field struct {
 	Prompt      string
 }
 
-type FieldKeyMap struct {
+type KeyMap struct {
 	Quit        key.Binding
 	StopEditing key.Binding
 	Save        key.Binding
 	Edit        key.Binding
 }
 
-type FieldProps struct {
+type Props struct {
 	*props.Item
-	//RenderFields func(int, int) string
 	fields string
 }
 
@@ -42,8 +41,8 @@ func NewField() *Field {
 	return &tm
 }
 
-func NewFieldProps(i *props.Item, fields string) FieldProps {
-	return FieldProps{
+func NewFieldProps(i *props.Item, fields string) Props {
+	return Props{
 		Item:   i,
 		fields: fields,
 	}
@@ -106,7 +105,7 @@ func (m *Field) Render(w, h int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, m.Props().fields, m.Input.View())
 }
 
-func (tm *Field) Init(props FieldProps) tea.Cmd {
+func (tm *Field) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 
 	tm.Input = textarea.New()
@@ -120,7 +119,7 @@ func (tm *Field) Init(props FieldProps) tea.Cmd {
 	return tm.Input.Focus()
 }
 
-var formKey = FieldKeyMap{
+var formKey = KeyMap{
 	Save: key.NewBinding(
 		key.WithKeys("ctrl+w"),
 		key.WithHelp("ctrl+w", "save"),
