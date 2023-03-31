@@ -73,15 +73,17 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
 	case message.ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
+
 	case message.UpMsg:
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 		if m.Cursor < m.Viewport.YOffset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.DownMsg:
 		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
@@ -90,6 +92,8 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		} else if m.Cursor == len(m.Matches)-1 {
 			m.Viewport.GotoBottom()
 		}
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.ToggleItemMsg:
 		idx := m.Matches[m.Cursor].Index
 
@@ -104,6 +108,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		}
 
 		cmds = append(cmds, message.DownCmd())
+
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
 			cmds = append(cmds, message.ToggleItemCmd())
@@ -111,6 +116,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Input.Reset()
 		m.Input.Blur()
 		return message.ChangeRouteCmd("default")
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, filterKey.StopFiltering):
@@ -140,6 +146,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
+	m.Props().SetCurrent(m.Cursor)
 	return tea.Batch(cmds...)
 }
 
@@ -148,7 +155,7 @@ func (m *Filter) Render(w, h int) string {
 	m.Viewport.Width = m.Props().Width
 
 	var s strings.Builder
-	items := m.Props().RenderItems(m.Cursor, m.Matches)
+	items := m.Props().RenderItems(m.Matches)
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())

@@ -81,7 +81,26 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
+	case message.NextMsg:
+		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
+		m.Props().Items.SetCurrent(m.Cursor)
+		m.Paginator.NextPage()
+
+	case message.PrevMsg:
+		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
+		m.Props().Items.SetCurrent(m.Cursor)
+		m.Paginator.PrevPage()
+
+	case message.TopMsg:
+		m.Cursor = 0
+		m.Paginator.Page = 0
+		m.Props().SetCurrent(m.Cursor)
+
+	case message.BottomMsg:
+		m.Cursor = len(m.Props().Visible()) - 1
+		m.Paginator.Page = m.Paginator.TotalPages - 1
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.UpMsg:
 		m.Cursor--
 		if m.Cursor < 0 {
@@ -91,6 +110,8 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor < start {
 			m.Paginator.PrevPage()
 		}
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.DownMsg:
 		m.Cursor++
 		if m.Cursor >= len(m.Props().Visible()) {
@@ -100,10 +121,13 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Cursor >= end {
 			m.Paginator.NextPage()
 		}
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]
-		m.Props().Items.SetCurrent(cur.Index)
+		m.Props().SetCurrent(cur.Index)
 		return message.ChangeRouteCmd("editField")
+
 	case message.ToggleItemMsg:
 		idx := m.Props().Visible()[m.Cursor].Index
 
@@ -118,8 +142,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		}
 
 		cmds = append(cmds, message.DownCmd())
+
 	case message.StartFilteringMsg:
 		return message.ChangeRouteCmd("filter")
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, chooseKey.Up):
@@ -127,11 +153,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Down):
 			cmds = append(cmds, message.DownCmd())
 		case key.Matches(msg, chooseKey.Prev):
-			m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-			m.Paginator.PrevPage()
+			cmds = append(cmds, message.PrevCmd())
 		case key.Matches(msg, chooseKey.Next):
-			m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-			m.Paginator.NextPage()
+			cmds = append(cmds, message.NextCmd())
 		case key.Matches(msg, chooseKey.ToggleItem):
 			cmds = append(cmds, message.ToggleItemCmd())
 		case key.Matches(msg, chooseKey.Edit):
@@ -139,11 +163,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, chooseKey.Filter):
 			cmds = append(cmds, message.StartFilteringCmd())
 		case key.Matches(msg, chooseKey.Bottom):
-			m.Cursor = len(m.Props().Visible()) - 1
-			m.Paginator.Page = m.Paginator.TotalPages - 1
+			cmds = append(cmds, message.BottomCmd())
 		case key.Matches(msg, chooseKey.Top):
-			m.Cursor = 0
-			m.Paginator.Page = 0
+			cmds = append(cmds, message.TopCmd())
 		case key.Matches(msg, chooseKey.Quit):
 			m.quitting = true
 			cmds = append(cmds, message.ReturnSelectionsCmd())
@@ -168,7 +190,6 @@ func (m *Choose) Render(w, h int) string {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	items := m.Props().RenderItems(
-		m.Cursor%m.Props().Height,
 		m.Props().Visible()[start:end],
 	)
 	s.WriteString(items)

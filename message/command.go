@@ -18,12 +18,6 @@ func QuitCmd() tea.Cmd {
 	}
 }
 
-func FilterItemsCmd() tea.Cmd {
-	return func() tea.Msg {
-		return nil
-	}
-}
-
 type ChangeRouteMsg struct {
 	Name string
 }
@@ -78,6 +72,11 @@ func ToggleItemCmd() tea.Cmd {
 }
 
 type UpMsg struct{}
+type DownMsg struct{}
+type NextMsg struct{}
+type PrevMsg struct{}
+type TopMsg struct{}
+type BottomMsg struct{}
 
 func UpCmd() tea.Cmd {
 	return func() tea.Msg {
@@ -85,11 +84,33 @@ func UpCmd() tea.Cmd {
 	}
 }
 
-type DownMsg struct{}
-
 func DownCmd() tea.Cmd {
 	return func() tea.Msg {
 		return DownMsg{}
+	}
+}
+
+func NextCmd() tea.Cmd {
+	return func() tea.Msg {
+		return NextMsg{}
+	}
+}
+
+func PrevCmd() tea.Cmd {
+	return func() tea.Msg {
+		return PrevMsg{}
+	}
+}
+
+func TopCmd() tea.Cmd {
+	return func() tea.Msg {
+		return TopMsg{}
+	}
+}
+
+func BottomCmd() tea.Cmd {
+	return func() tea.Msg {
+		return BottomMsg{}
 	}
 }
 

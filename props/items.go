@@ -122,7 +122,7 @@ func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Choices = choices
 }
 
-func (m Items) RenderItems(cursor int, items []Item) string {
+func (m Items) RenderItems(items []Item) string {
 	var s strings.Builder
 	for i, match := range items {
 		pre := "x"
@@ -132,7 +132,7 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		}
 
 		switch {
-		case i == cursor:
+		case i == m.CurrentItem().Index:
 			pre = match.Style.Cursor.Render(pre)
 		default:
 			if _, ok := m.Selected[match.Index]; ok {
