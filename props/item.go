@@ -48,7 +48,27 @@ func NewItems(c []map[string]string) *Items {
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
+
+	w, h := util.TermSize()
+	if items.Height == 0 {
+		items.Height = h - 4
+	}
+	if items.Width == 0 {
+		items.Width = w
+	}
+
 	return &items
+}
+
+func (i Items) Refresh() *Items {
+	items := NewItems(i.Choices)
+	items.Limit = i.Limit
+	items.Selected = i.Selected
+	items.NumSelected = i.NumSelected
+	items.Height = i.Height
+	items.Width = i.Width
+	items.Cursor = i.Cursor
+	return items
 }
 
 func (cp Items) Visible(matches ...string) []Item {
@@ -57,6 +77,7 @@ func (cp Items) Visible(matches ...string) []Item {
 	}
 	return cp.Items
 }
+
 func ItemSlice(i []string) *Items {
 	items := NewItems(MapChoices(i))
 	return items
@@ -141,7 +162,7 @@ func (m *Items) ToggleSelection(idx int) {
 
 func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Choices = choices
-	m.Items = ChoiceMapToMatch(choices)
+	//m.Items = ChoiceMapToMatch(choices)
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {

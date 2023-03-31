@@ -1,4 +1,4 @@
-package list
+package form
 
 import (
 	"strings"
@@ -10,6 +10,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/message"
+	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -26,7 +28,7 @@ type Form struct {
 }
 
 type FormProps struct {
-	Props
+	*props.Items
 	Save func([]map[string]string)
 }
 
@@ -42,7 +44,7 @@ type FormKeys struct {
 
 func NewForm() *Form {
 	tm := Form{
-		Style:  DefaultStyle(),
+		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
@@ -51,11 +53,6 @@ func NewForm() *Form {
 func FormRouteInitializer(props FormProps) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewForm()
-		//props := FormProps{
-		//  Props: c.NewProps(),
-		//  Save:  c.ChoiceMap,
-		//}
-
 		return component, component.Init(props)
 	}
 }
@@ -64,21 +61,15 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		if m.Props().Height == 0 || m.Props().Height > msg.Height {
-			m.Viewport.Height = msg.Height - lipgloss.Height(m.Input.View())
-		}
-
-		m.Viewport.Width = msg.Width
-	case ReturnSelectionsMsg:
+	case message.ReturnSelectionsMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-	case UpMsg:
+	case message.UpMsg:
 		m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor-1)
 		if m.Cursor < m.Viewport.YOffset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
-	case DownMsg:
+	case message.DownMsg:
 		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		m.Cursor = clamp(0, len(m.Props().Visible())-1, m.Cursor+1)
 		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
@@ -86,7 +77,7 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 		} else if m.Cursor == len(m.Props().Visible())-1 {
 			m.Viewport.GotoBottom()
 		}
-	case StopEditingMsg:
+	case message.StopEditingMsg:
 		m.Input.Reset()
 		m.Input.Blur()
 		reactea.SetCurrentRoute("default")
@@ -103,16 +94,16 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 		} else {
 			switch {
 			case key.Matches(msg, formKey.StopEditing):
-				cmds = append(cmds, StopEditingCmd())
+				cmds = append(cmds, message.StopEditingCmd())
 			case key.Matches(msg, formKey.Up):
-				cmds = append(cmds, UpCmd())
+				cmds = append(cmds, message.UpCmd())
 			case key.Matches(msg, formKey.Down):
-				cmds = append(cmds, DownCmd())
+				cmds = append(cmds, message.DownCmd())
 			case key.Matches(msg, formKey.ToggleItem):
-				cmds = append(cmds, ToggleItemCmd())
+				cmds = append(cmds, message.ToggleItemCmd())
 			case key.Matches(msg, formKey.Quit):
 				m.quitting = true
-				cmds = append(cmds, ReturnSelectionsCmd())
+				cmds = append(cmds, message.ReturnSelectionsCmd())
 			case key.Matches(msg, formKey.Save):
 				m.Props().Save(m.Props().Items.Map())
 				reactea.SetCurrentRoute("default")
@@ -120,8 +111,6 @@ func (m *Form) Update(msg tea.Msg) tea.Cmd {
 			case key.Matches(msg, formKey.Edit):
 				m.Input.SetValue(m.Props().Visible()[m.Cursor].Str)
 				return m.Input.Focus()
-				//cmds = append(cmds, StartEditingCmd())
-				//cmds = append(cmds, EditItemCmd(cur))
 			}
 		}
 	}
@@ -162,4 +151,45 @@ func (tm *Form) Init(props FormProps) tea.Cmd {
 	//tm.Input.Focus()
 
 	return nil
+}
+
+func clamp(min, max, val int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
+}
+
+var formKey = FormKeys{
+	Save: key.NewBinding(
+		key.WithKeys("ctrl+w"),
+		key.WithHelp("ctrl+w", "save"),
+	),
+	ToggleItem: key.NewBinding(
+		key.WithKeys(" ", "tab"),
+		key.WithHelp("space", "select item"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down"),
+		key.WithHelp("down", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up"),
+		key.WithHelp("up", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	),
+	StopEditing: key.NewBinding(
+		key.WithKeys("esc", "q"),
+		key.WithHelp("esc/q", "stop editing"),
+	),
+	Edit: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "edit field"),
+	),
 }

@@ -10,9 +10,9 @@ import (
 	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/filter"
+	"github.com/ohzqq/teacozy/form"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type List struct {
@@ -53,40 +53,31 @@ func New(choices ...string) *List {
 	//list.Choices = choices
 	//list.ChooseMap = MapChoices(choices)
 
-	w, h := util.TermSize()
-	if list.height == 0 {
-		list.height = h - 4
-	}
-	if list.width == 0 {
-		list.width = w
-	}
-
 	return list
 }
 
-func (c *List) NewProps() Props {
-	c.Footer("")
-	p := Props{
-		Items:  c.Items,
-		Footer: c.Footer,
-	}
-	p.Width = c.width
-	p.Height = c.height
-	return p
+func (c *List) NewProps() *props.Items {
+	//p := props.Items{
+	//Items: c.Items.Items,
+	//Limit: c.Items.Limit,
+	//}
+	//p.Width = c.width
+	//p.Height = c.height
+	return c.Refresh()
 }
 
 func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": choose.ChooseRouteInitializer(choose.ChooseProps{
-			Items:      c.Items,
+			Items:      c.NewProps(),
 			ToggleItem: c.ToggleSelection,
 		}),
 		"filter": filter.FilterRouteInitializer(filter.FilterProps{
 			Items:      c.Items,
 			ToggleItem: c.ToggleSelection,
 		}),
-		"form": FormRouteInitializer(FormProps{
-			Props: c.NewProps(),
+		"form": form.FormRouteInitializer(form.FormProps{
+			Items: c.Items,
 			Save:  c.ChoiceMap,
 		}),
 	})
