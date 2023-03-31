@@ -24,6 +24,10 @@ func FilterItemsCmd() tea.Cmd {
 	}
 }
 
+type ChangeRouteMsg struct {
+	Name string
+}
+
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type SaveEditMsg struct{}
@@ -40,6 +44,12 @@ func StartFilteringCmd() tea.Cmd {
 func StopFilteringCmd() tea.Cmd {
 	return func() tea.Msg {
 		return StopFilteringMsg{}
+	}
+}
+
+func ChangeRouteCmd(name string) tea.Cmd {
+	return func() tea.Msg {
+		return ChangeRouteMsg{Name: name}
 	}
 }
 

@@ -25,6 +25,7 @@ type Items struct {
 	Limit       int
 	Height      int
 	Width       int
+	Snapshot    string
 	Current     *Item
 }
 
@@ -47,6 +48,7 @@ type Opt func(*Items)
 
 func NewItems(c []map[string]string, opts ...Opt) *Items {
 	items := Items{
+		Choices:  c,
 		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
@@ -131,11 +133,14 @@ func (i *Item) SetValue(val string) {
 	i.Str = val
 }
 
-func (m Items) Chosen() []int {
-	var chosen []int
+func (m Items) Chosen() []map[string]string {
+	var chosen []map[string]string
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
-			chosen = append(chosen, k)
+			c := map[string]string{
+				m.Items[k].Label: m.Items[k].Str,
+			}
+			chosen = append(chosen, c)
 		}
 	}
 	return chosen

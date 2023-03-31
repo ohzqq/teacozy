@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -47,6 +48,17 @@ func NewFieldProps(i *props.Item, fields string) FieldProps {
 	}
 }
 
+func (c Field) Initializer(props *props.Items) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := NewField()
+		return component, component.Init(NewFieldProps(props.Current, props.Snapshot))
+	}
+}
+
+func (c Field) Name() string {
+	return "editField"
+}
+
 func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -54,7 +66,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	case message.StopEditingMsg:
 		m.Input.Reset()
 		m.Input.Blur()
-		cmds = append(cmds, message.StopEditingCmd())
+		cmds = append(cmds, message.ChangeRouteCmd("choose"))
 	case message.SaveEditMsg:
 		m.Input.Blur()
 	case message.StartEditingMsg:
