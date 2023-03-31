@@ -30,14 +30,6 @@ type Prefix struct {
 	Unselected string
 }
 
-func MapChoices(c []string) []map[string]string {
-	choices := make([]map[string]string, len(c))
-	for i, val := range c {
-		choices[i] = map[string]string{"": val}
-	}
-	return choices
-}
-
 func NewItem(t string, idx int) Item {
 	item := Item{
 		Match: fuzzy.Match{

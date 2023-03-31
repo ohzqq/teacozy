@@ -38,11 +38,11 @@ func (c *base) Init(reactea.NoProps) tea.Cmd {
 }
 
 func (c *base) Update(msg tea.Msg) tea.Cmd {
+	c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 	switch msg := msg.(type) {
 	case message.ChangeRouteMsg:
 		reactea.SetCurrentRoute(msg.Name)
 	case message.StartEditingMsg:
-		c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 		return message.ChangeRouteCmd("editField")
 	case tea.KeyMsg:
 		// ctrl+c support

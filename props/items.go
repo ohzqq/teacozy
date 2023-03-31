@@ -96,6 +96,14 @@ func ItemSlice(i []string) *Items {
 	return items
 }
 
+func MapChoices(c []string) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": val}
+	}
+	return choices
+}
+
 func (m *Items) ToggleSelection(idx int) {
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)

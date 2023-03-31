@@ -105,10 +105,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]
 		m.Props().SetCur(cur.Index)
-		cmds = append(cmds, message.StartEditingCmd())
+		return message.ChangeRouteCmd("editField")
 	case message.StartFilteringMsg:
-		reactea.SetCurrentRoute("filter")
-		return nil
+		return message.ChangeRouteCmd("filter")
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, chooseKey.Up):
