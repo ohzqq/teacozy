@@ -15,6 +15,7 @@ import (
 type Field struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[FieldProps]
+
 	Input       textarea.Model
 	quitting    bool
 	Placeholder string

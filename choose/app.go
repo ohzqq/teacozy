@@ -12,10 +12,10 @@ type base struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 	mainRouter reactea.Component[router.Props]
+
 	*props.Items
 	Routes router.Props
-
-	Field *Field
+	Field  *Field
 	*Choose
 }
 
@@ -41,11 +41,9 @@ func (c *base) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.ChangeRouteMsg:
 		reactea.SetCurrentRoute(msg.Name)
-	//case message.StopEditingMsg:
-	//reactea.SetCurrentRoute("default")
 	case message.StartEditingMsg:
 		c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
-		reactea.SetCurrentRoute("editField")
+		return message.ChangeRouteCmd("editField")
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
