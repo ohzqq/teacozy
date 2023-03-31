@@ -11,6 +11,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/message"
+	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -18,7 +19,7 @@ type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[FilterProps]
 	Cursor      int
-	Matches     []Item
+	Matches     []props.Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
 	quitting    bool
@@ -28,7 +29,7 @@ type Filter struct {
 }
 
 type FilterProps struct {
-	*Items
+	*props.Items
 	ToggleItem func(int)
 }
 
@@ -85,10 +86,10 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			idx := m.Props().Visible()[m.Cursor].Index
 			m.Props().ToggleItem(idx)
 		}
-		cmds = append(cmds, DownCmd())
+		cmds = append(cmds, message.DownCmd())
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
-			cmds = append(cmds, ToggleItemCmd())
+			cmds = append(cmds, message.ToggleItemCmd())
 		}
 
 		m.Input.Reset()

@@ -9,6 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -76,36 +77,12 @@ func (c *List) NewProps() Props {
 
 func (c *List) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		//"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		//  component := NewChoice()
-		//  props := ChooseProps{
-		//    Props:      c.NewProps(),
-		//    ToggleItem: c.ToggleSelection,
-		//  }
-		//  return component, component.Init(props)
-		//},
-		//"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		//  component := NewFilter()
-		//  props := FilterProps{
-		//    Props:      c.NewProps(),
-		//    ToggleItem: c.ToggleSelection,
-		//  }
-		//  return component, component.Init(props)
-		//},
-		//"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		//  component := NewForm()
-		//  props := FormProps{
-		//    Props: c.NewProps(),
-		//    Save:  c.ChoiceMap,
-		//  }
-		//  return component, component.Init(props)
-		//},
 		"default": choose.ChooseRouteInitializer(choose.ChooseProps{
 			Items:      c.Items,
 			ToggleItem: c.ToggleSelection,
 		}),
-		"filter": FilterRouteInitializer(FilterProps{
-			Props:      c.NewProps(),
+		"filter": filter.FilterRouteInitializer(filter.FilterProps{
+			Items:      c.Items,
 			ToggleItem: c.ToggleSelection,
 		}),
 		"form": FormRouteInitializer(FormProps{
