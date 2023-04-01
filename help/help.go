@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -18,20 +19,19 @@ type Help struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	Cursor   int
-	Viewport *viewport.Model
-	quitting bool
-	Style    style.List
-	lineInfo string
-	keys     KeyMap
+	Cursor    int
+	Paginator paginator.Model
+	quitting  bool
+	Style     style.List
+	keys      keys.KeyMap
 }
 
-var keys = KeyMap{
-	NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelpCmd()),
-	Up(),
-	Down(),
-	Quit(),
-	ShowHelp(),
+var Keys = keys.KeyMap{
+	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelpCmd()),
+	keys.Up(),
+	keys.Down(),
+	keys.Quit(),
+	keys.ShowHelp(),
 }
 
 type Props struct {
@@ -64,33 +64,58 @@ func (h Help) Name() string {
 func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	switch msg := msg.(type) {
 	case message.HideHelpMsg:
+		return message.ChangeRouteCmd("default")
 	case message.QuitMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 
+	case message.NextMsg:
+		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
+		m.Props().Items.SetCurrent(m.Cursor)
+		m.Paginator.NextPage()
+
+	case message.PrevMsg:
+		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
+		m.Props().Items.SetCurrent(m.Cursor)
+		m.Paginator.PrevPage()
+
+	case message.TopMsg:
+		m.Cursor = 0
+		m.Paginator.Page = 0
+		m.Props().SetCurrent(m.Cursor)
+
+	case message.BottomMsg:
+		m.Cursor = len(m.Props().Visible()) - 1
+		m.Paginator.Page = m.Paginator.TotalPages - 1
+		m.Props().SetCurrent(m.Cursor)
+
 	case message.UpMsg:
-		offset := m.Viewport.YOffset
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-1)
-		if m.Cursor < offset {
-			m.Viewport.SetYOffset(m.Cursor)
+		m.Cursor--
+		if m.Cursor < 0 {
+			m.Cursor = len(m.Props().Visible()) - 1
+			m.Paginator.Page = m.Paginator.TotalPages - 1
+		}
+		if m.Cursor < start {
+			m.Paginator.PrevPage()
 		}
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.DownMsg:
-		h := m.Props().Visible()[m.Cursor].LineHeight()
-		offset := m.Viewport.YOffset - h
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+1)
-		if m.Cursor+h >= offset+m.Viewport.Height {
-			m.Viewport.LineDown(h)
-		} else if m.Cursor == len(m.Props().Visible())-1 {
-			m.Viewport.GotoBottom()
+		m.Cursor++
+		if m.Cursor >= len(m.Props().Visible()) {
+			m.Cursor = 0
+			m.Paginator.Page = 0
+		}
+		if m.Cursor >= end {
+			m.Paginator.NextPage()
 		}
 		m.Props().SetCurrent(m.Cursor)
 
 	case tea.KeyMsg:
-		for _, k := range keys {
+		for _, k := range Keys {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -98,30 +123,39 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, cmd)
 	}
 
-	m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor)
-	m.Props().SetCurrent(m.Cursor)
 	return tea.Batch(cmds...)
 }
 
 func (m *Help) Render(w, h int) string {
-	m.Viewport.Height = m.Props().Height
-	m.Viewport.Width = m.Props().Width
-
 	var s strings.Builder
-	items := m.Props().RenderItems(m.Cursor, m.Props().Visible())
+	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+
+	items := m.Props().RenderItems(
+		m.Cursor%m.Props().Height,
+		m.Props().Visible()[start:end],
+	)
 	s.WriteString(items)
 
-	m.Viewport.SetContent(s.String())
+	var view string
+	view = s.String()
+	if m.Paginator.TotalPages <= 1 {
+		//view = s.String()
+	} else if m.Paginator.TotalPages > 1 {
+		p := style.Footer.Render(m.Paginator.View())
+		//view = lipgloss.JoinVertical(lipgloss.Left, view, p)
+		m.Props().Footer(p)
+	}
 
-	view := m.Viewport.View()
 	return view
 }
 
 func (tm *Help) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 
-	v := viewport.New(0, 0)
-	tm.Viewport = &v
+	tm.Paginator = paginator.New()
+	tm.Paginator.Type = paginator.Arabic
+	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
+	tm.Paginator.PerPage = props.Height
 
 	return nil
 }

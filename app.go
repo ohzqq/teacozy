@@ -12,6 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/field"
 	"github.com/ohzqq/teacozy/filter"
+	"github.com/ohzqq/teacozy/help"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -77,6 +78,15 @@ func New(props *props.Items, routes []Route) *App {
 	return app
 }
 
+func KeymapToProps(km keys.KeyMap) *props.Items {
+	var c []map[string]string
+	for _, k := range km {
+		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
+	}
+	p := props.New(c, props.Limit(0))
+	return p
+}
+
 func (c *App) CloneProps() *props.Items {
 	items := c.Items.Update()
 	items.Width = c.width
@@ -105,10 +115,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		case "prev":
 			route = c.PrevRoute
 		case "help":
-			p := c.help.Props()
-			p.Height = m.Props().Height
-			p.Width = m.Props().Width
-			c.Routes["help"] = keys.New().Initializer(p)
+			p := KeymapToProps(c.help)
+			p.Height = c.Items.Height
+			p.Width = c.Items.Width
+			c.Routes["help"] = help.New().Initializer(p)
 		}
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)

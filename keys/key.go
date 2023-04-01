@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/message"
-	"github.com/ohzqq/teacozy/props"
 )
 
 type KeyMap []*Binding
@@ -16,15 +15,6 @@ type Binding struct {
 	help   string
 	keys   []string
 	TeaCmd tea.Cmd
-}
-
-func (km KeyMap) Props() *props.Items {
-	var c []map[string]string
-	for _, k := range km {
-		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
-	}
-	p := props.New(c, props.Limit(0))
-	return p
 }
 
 func NewBinding(keys ...string) *Binding {
