@@ -1,4 +1,4 @@
-package help
+package list
 
 import (
 	"strings"
@@ -6,8 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/londek/reactea"
-	"github.com/londek/reactea/router"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -15,71 +14,55 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Help struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-
+type List struct {
 	Cursor    int
 	Paginator paginator.Model
 	quitting  bool
 	Style     style.List
 	keys      keys.KeyMap
+	items     *props.Items
 }
 
 var Keys = keys.KeyMap{
-	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelpCmd()),
-	keys.Up(),
-	keys.Down(),
-	keys.Quit(),
-	keys.ShowHelp(),
+	keys.Up().WithKeys("k", "up"),
+	keys.Down().WithKeys("j", "down"),
+	keys.Next().WithKeys("right", "l"),
+	keys.Prev().WithKeys("left", "h"),
+	keys.NewBinding("G").WithHelp("list bottom"),
+	keys.NewBinding("g").WithHelp("list top"),
 }
 
-type Props struct {
-	*props.Items
+func (m *List) Props() *props.Items {
+	return m.items
 }
 
-func NewProps(items *props.Items) Props {
-	return Props{
-		Items: items,
-	}
-}
-
-func New() *Help {
-	return &Help{
+func New(props *props.Items) *List {
+	tm := &List{
 		Style: style.ListDefaults(),
+		keys:  Keys,
+		items: props,
 	}
+
+	tm.Paginator = paginator.New()
+	tm.Paginator.Type = paginator.Arabic
+	tm.Paginator.SetTotalPages((len(props.Visible()) + props.Height - 1) / props.Height)
+	tm.Paginator.PerPage = props.Height
+	return tm
 }
 
-func (c Help) Initializer(props *props.Items) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := New()
-		return component, component.Init(Props{Items: props})
-	}
-}
-
-func (h Help) Name() string {
-	return "help"
-}
-
-func (m *Help) Update(msg tea.Msg) tea.Cmd {
+func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	switch msg := msg.(type) {
-	case message.HideHelpMsg:
-		return message.ChangeRouteCmd("default")
-	case message.QuitMsg:
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
-
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-		m.Props().Items.SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor)
 		m.Paginator.NextPage()
 
 	case message.PrevMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-		m.Props().Items.SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor)
 		m.Paginator.PrevPage()
 
 	case message.TopMsg:
@@ -115,7 +98,7 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetCurrent(m.Cursor)
 
 	case tea.KeyMsg:
-		for _, k := range Keys {
+		for _, k := range m.keys {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -123,10 +106,10 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, cmd)
 	}
 
-	return tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
-func (m *Help) Render(w, h int) string {
+func (m *List) View() string {
 	var s strings.Builder
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
@@ -142,20 +125,11 @@ func (m *Help) Render(w, h int) string {
 		//view = s.String()
 	} else if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
-		//view = lipgloss.JoinVertical(lipgloss.Left, view, p)
-		m.Props().Footer(p)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, p)
+		//m.Props().Footer(p)
 	}
 
 	return view
 }
 
-func (tm *Help) Init(props Props) tea.Cmd {
-	tm.UpdateProps(props)
-
-	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Arabic
-	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
-	tm.Paginator.PerPage = props.Height
-
-	return nil
-}
+func (m List) Init() tea.Cmd { return nil }

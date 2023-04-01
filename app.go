@@ -118,6 +118,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			p := KeymapToProps(c.help)
 			p.Height = c.Items.Height
 			p.Width = c.Items.Width
+			c.Footer("")
 			c.Routes["help"] = help.New().Initializer(p)
 		}
 		c.PrevRoute = reactea.CurrentRoute()

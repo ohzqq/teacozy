@@ -9,6 +9,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -68,7 +69,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case message.ShowHelpMsg:
-		m.Props().Help(keys.Global)
+		k := keys.Global
+		k = append(k, list.Keys...)
+		m.Props().Help(k)
 		cmds = append(cmds, message.ChangeRouteCmd("help"))
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
