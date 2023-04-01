@@ -1,27 +1,36 @@
 package props
 
 import (
+	"bytes"
+	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/slices"
 )
 
 type Items struct {
-	NumSelected int
 	Choices     []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
+	NumSelected int
 	Limit       int
 	Height      int
 	Width       int
 	Snapshot    string
+	Title       string
 	Cur         int
+	Footer      func(string)
+	Header      func(string)
+	args        []string
+	cmd         string
 }
 
 type Opt func(*Items)
 
-func NewItems(c []map[string]string, opts ...Opt) *Items {
+func New(c []map[string]string, opts ...Opt) *Items {
 	items := Items{
 		Choices:  c,
 		Items:    ChoiceMapToMatch(c),
@@ -49,13 +58,16 @@ func (i *Items) Opts(opts ...Opt) {
 }
 
 func (i Items) Update() *Items {
-	items := NewItems(i.Choices)
+	items := New(i.Choices)
 	items.Limit = i.Limit
 	items.Selected = i.Selected
 	items.NumSelected = i.NumSelected
 	items.Height = i.Height
 	items.Width = i.Width
 	items.Cur = i.Cur
+	items.Header = i.Header
+	items.Footer = i.Footer
+	items.Title = i.Title
 	return items
 }
 
@@ -70,6 +82,39 @@ func (m Items) Chosen() []map[string]string {
 		}
 	}
 	return chosen
+}
+
+func (m Items) Exec() error {
+	if m.cmd != "" {
+		for _, c := range m.Chosen() {
+			for _, arg := range c {
+				args := slices.Clone(m.args)
+				args = append(args, arg)
+				cmd := exec.Command(m.cmd, args...)
+				var (
+					stderr bytes.Buffer
+					stdout bytes.Buffer
+				)
+				cmd.Stderr = &stderr
+				cmd.Stdout = &stdout
+
+				//fmt.Println(cmd.String())
+				err := cmd.Run()
+				if err != nil {
+					return fmt.Errorf("command exited with error: %s\n", stderr.String())
+				}
+
+				if out := stdout.String(); out != "" {
+					fmt.Println(out)
+				}
+
+				if err := stderr.String(); err != "" {
+					return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (m Items) Map() []map[string]string {
@@ -96,7 +141,7 @@ func (cp Items) Visible(matches ...string) []Item {
 }
 
 func ItemSlice(i []string) *Items {
-	items := NewItems(MapChoices(i))
+	items := New(MapChoices(i))
 	return items
 }
 
@@ -201,5 +246,37 @@ func Limit(l int) Opt {
 func Height(h int) Opt {
 	return func(i *Items) {
 		i.Height = h
+	}
+}
+
+func Width(w int) Opt {
+	return func(i *Items) {
+		i.Width = w
+	}
+}
+
+func Size(w, h int) Opt {
+	return func(i *Items) {
+		i.Width = w
+		i.Height = h
+	}
+}
+
+func Exec(cmd string, args ...string) Opt {
+	return func(i *Items) {
+		i.args = args
+		i.cmd = cmd
+	}
+}
+
+func NoLimit() Opt {
+	return func(i *Items) {
+		i.Limit = len(i.Choices)
+	}
+}
+
+func Header(t string) Opt {
+	return func(i *Items) {
+		i.Title = t
 	}
 }

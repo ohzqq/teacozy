@@ -2,6 +2,7 @@ package teacozy
 
 import (
 	"fmt"
+	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -28,7 +29,17 @@ type App struct {
 	Routes        map[string]router.RouteInitializer
 	ConfirmAction string
 	PrevRoute     string
-	ConfirmStyle  lipgloss.Style
+	footer        string
+	header        string
+	exec          *exec.Cmd
+	execItem      *exec.Cmd
+	Style         Style
+}
+
+type Style struct {
+	Confirm lipgloss.Style
+	Footer  lipgloss.Style
+	Header  lipgloss.Style
 }
 
 type Route interface {
@@ -36,14 +47,20 @@ type Route interface {
 	Name() string
 }
 
-func New(choices []map[string]string, routes []Route, opts ...props.Opt) *App {
+func New(props *props.Items, routes []Route) *App {
 	app := &App{
-		Items:        props.NewItems(choices, opts...),
-		mainRouter:   router.New(),
-		Routes:       make(map[string]router.RouteInitializer),
-		width:        util.TermHeight(),
-		height:       util.TermWidth(),
-		ConfirmStyle: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
+		Items:      props,
+		mainRouter: router.New(),
+		Routes:     make(map[string]router.RouteInitializer),
+		width:      util.TermHeight(),
+		height:     util.TermWidth(),
+		Style:      DefaultStyle(),
+	}
+	app.Items.Footer = app.Footer
+	app.Items.Header = app.Header
+
+	if app.Items.Title != "" {
+		app.Items.Header(app.Items.Title)
 	}
 
 	for i, r := range routes {
@@ -57,38 +74,7 @@ func New(choices []map[string]string, routes []Route, opts ...props.Opt) *App {
 	return app
 }
 
-func Choose(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
-	l := New(choices, []Route{c}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func Form(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
-	fi := field.NewField()
-	l := New(choices, []Route{c, fi}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func Filter(choices []map[string]string, opts ...props.Opt) *App {
-	c := filter.NewFilter()
-	l := New(choices, []Route{c}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func (c *App) NewProps() *props.Items {
+func (c *App) CloneProps() *props.Items {
 	items := c.Items.Update()
 	items.Width = c.width
 	items.Height = c.height
@@ -135,11 +121,70 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
-	if c.ConfirmAction != "" {
-		confirm := fmt.Sprintf("%s\n", c.ConfirmStyle.Render(c.ConfirmAction+"(y/n)"))
-		view = lipgloss.JoinVertical(lipgloss.Left, view, confirm)
+	if c.header != "" {
+		//h := c.Style.Header.Render(c.header)
+		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
+
+	if c.ConfirmAction != "" {
+		c.Footer(fmt.Sprintf("%s\n", c.Style.Confirm.Render(c.ConfirmAction+"(y/n)")))
+	}
+
+	if c.footer != "" {
+		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
+	}
+
 	//view += "\n current " + reactea.CurrentRoute()
 	//view += "\n prev " + c.PrevRoute
 	return view
+}
+
+func (c *App) Footer(f string) {
+	c.footer = f
+}
+
+func (c *App) Header(f string) {
+	c.header = f
+}
+
+func Choose(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	p := props.New(choices, opts...)
+	l := New(p, []Route{c})
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Form(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	fi := field.NewField()
+	p := props.New(choices, opts...)
+	l := New(p, []Route{c, fi})
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Filter(choices []map[string]string, opts ...props.Opt) *App {
+	c := filter.NewFilter()
+	p := props.New(choices, opts...)
+	l := New(p, []Route{c})
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func DefaultStyle() Style {
+	return Style{
+		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
+		Footer:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+	}
 }
