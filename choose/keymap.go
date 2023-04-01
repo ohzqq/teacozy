@@ -8,6 +8,7 @@ type KeyMap struct {
 	Prev             key.Binding
 	Next             key.Binding
 	ToggleItem       key.Binding
+	Help             key.Binding
 	Quit             key.Binding
 	ReturnSelections key.Binding
 	Filter           key.Binding
@@ -44,6 +45,10 @@ var Key = KeyMap{
 	Prev: key.NewBinding(
 		key.WithKeys("left", "h"),
 		key.WithHelp("left/h", "prev page"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("H"),
+		key.WithHelp("H", "help"),
 	),
 	Edit: key.NewBinding(
 		key.WithKeys("e"),

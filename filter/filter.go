@@ -51,13 +51,6 @@ func NewFilter() *Filter {
 	return &tm
 }
 
-func RouteInitializer(props Props) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewFilter()
-		return component, component.Init(props)
-	}
-}
-
 func (c Filter) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewFilter()

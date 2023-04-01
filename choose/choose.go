@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -66,6 +67,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	switch msg := msg.(type) {
+	case message.ShowHelpMsg:
+		m.Props().Help(keys.Global)
+		cmds = append(cmds, message.ChangeRouteCmd("help"))
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 		m.Props().Items.SetCurrent(m.Cursor)
@@ -143,6 +147,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, message.NextCmd())
 		case key.Matches(msg, Key.ToggleItem):
 			cmds = append(cmds, message.ToggleItemCmd())
+		case key.Matches(msg, Key.Help):
+			return message.ShowHelpCmd()
+			//cmds = append(cmds, message.ShowHelpCmd())
 		case key.Matches(msg, Key.Edit):
 			cmds = append(cmds, message.StartEditingCmd())
 		case key.Matches(msg, Key.Filter):
