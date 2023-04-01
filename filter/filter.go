@@ -88,7 +88,6 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.DownMsg:
-		//h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
 		h := m.Props().Visible()[m.Cursor].LineHeight()
 		offset := m.Viewport.YOffset - h
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
