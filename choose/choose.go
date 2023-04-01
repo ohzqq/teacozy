@@ -28,20 +28,6 @@ type Props struct {
 	*props.Items
 }
 
-type KeyMap struct {
-	Up               key.Binding
-	Down             key.Binding
-	Prev             key.Binding
-	Next             key.Binding
-	ToggleItem       key.Binding
-	Quit             key.Binding
-	ReturnSelections key.Binding
-	Filter           key.Binding
-	Bottom           key.Binding
-	Top              key.Binding
-	Edit             key.Binding
-}
-
 func NewChoice() *Choose {
 	tm := Choose{
 		Style: style.ListDefaults(),
@@ -147,28 +133,28 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, chooseKey.Up):
+		case key.Matches(msg, Key.Up):
 			cmds = append(cmds, message.UpCmd())
-		case key.Matches(msg, chooseKey.Down):
+		case key.Matches(msg, Key.Down):
 			cmds = append(cmds, message.DownCmd())
-		case key.Matches(msg, chooseKey.Prev):
+		case key.Matches(msg, Key.Prev):
 			cmds = append(cmds, message.PrevCmd())
-		case key.Matches(msg, chooseKey.Next):
+		case key.Matches(msg, Key.Next):
 			cmds = append(cmds, message.NextCmd())
-		case key.Matches(msg, chooseKey.ToggleItem):
+		case key.Matches(msg, Key.ToggleItem):
 			cmds = append(cmds, message.ToggleItemCmd())
-		case key.Matches(msg, chooseKey.Edit):
+		case key.Matches(msg, Key.Edit):
 			cmds = append(cmds, message.StartEditingCmd())
-		case key.Matches(msg, chooseKey.Filter):
+		case key.Matches(msg, Key.Filter):
 			cmds = append(cmds, message.StartFilteringCmd())
-		case key.Matches(msg, chooseKey.Bottom):
+		case key.Matches(msg, Key.Bottom):
 			cmds = append(cmds, message.BottomCmd())
-		case key.Matches(msg, chooseKey.Top):
+		case key.Matches(msg, Key.Top):
 			cmds = append(cmds, message.TopCmd())
-		case key.Matches(msg, chooseKey.Quit):
+		case key.Matches(msg, Key.Quit):
 			m.quitting = true
 			cmds = append(cmds, message.ReturnSelectionsCmd())
-		case key.Matches(msg, chooseKey.ReturnSelections):
+		case key.Matches(msg, Key.ReturnSelections):
 			if m.Props().Limit == 1 {
 				return message.ToggleItemCmd()
 			}
@@ -214,59 +200,4 @@ func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
 	return nil
-}
-
-var chooseKey = KeyMap{
-	Next: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("right/l", "next page"),
-	),
-	Prev: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("left/h", "prev page"),
-	),
-	Edit: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit form"),
-	),
-	//key.NewBinding(
-	//  key.WithKeys("V"),
-	//  key.WithHelp("V", "deselect all"),
-	//),
-	//key.NewBinding(
-	//  key.WithKeys("v"),
-	//  key.WithHelp("v", "select all"),
-	//),
-	ToggleItem: key.NewBinding(
-		key.WithKeys(" ", "tab"),
-		key.WithHelp("space", "select item"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("j", "down"),
-		key.WithHelp("j", "move cursor down"),
-	),
-	Up: key.NewBinding(
-		key.WithKeys("k", "up"),
-		key.WithHelp("k", "move cursor up"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("esc", "q", "ctrl+c"),
-		key.WithHelp("esc/q", "quit"),
-	),
-	ReturnSelections: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "return selections"),
-	),
-	Filter: key.NewBinding(
-		key.WithKeys("/"),
-		key.WithHelp("/", "filter items"),
-	),
-	Bottom: key.NewBinding(
-		key.WithKeys("G"),
-		key.WithHelp("G", "last item"),
-	),
-	Top: key.NewBinding(
-		key.WithKeys("g"),
-		key.WithHelp("g", "first item"),
-	),
 }
