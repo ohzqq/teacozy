@@ -20,8 +20,10 @@ type Items struct {
 	Height      int
 	Width       int
 	Snapshot    string
+	Title       string
 	Cur         int
 	Footer      func(string)
+	Header      func(string)
 	args        []string
 	cmd         string
 }
@@ -63,6 +65,9 @@ func (i Items) Update() *Items {
 	items.Height = i.Height
 	items.Width = i.Width
 	items.Cur = i.Cur
+	items.Header = i.Header
+	items.Footer = i.Footer
+	items.Title = i.Title
 	return items
 }
 
@@ -244,9 +249,34 @@ func Height(h int) Opt {
 	}
 }
 
+func Width(w int) Opt {
+	return func(i *Items) {
+		i.Width = w
+	}
+}
+
+func Size(w, h int) Opt {
+	return func(i *Items) {
+		i.Width = w
+		i.Height = h
+	}
+}
+
 func Exec(cmd string, args ...string) Opt {
 	return func(i *Items) {
 		i.args = args
 		i.cmd = cmd
+	}
+}
+
+func NoLimit() Opt {
+	return func(i *Items) {
+		i.Limit = len(i.Choices)
+	}
+}
+
+func Header(t string) Opt {
+	return func(i *Items) {
+		i.Title = t
 	}
 }
