@@ -24,10 +24,10 @@ type ChangeRouteMsg struct {
 
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
-type SaveEditMsg struct{}
 type StopFilteringMsg struct{}
 type StartFilteringMsg struct{}
 type ToggleItemMsg struct{}
+type SaveEditMsg struct{}
 
 func StartFilteringCmd() tea.Cmd {
 	return func() tea.Msg {
