@@ -52,3 +52,15 @@ type ItemPrefix struct {
 	Unselected lipgloss.Style
 	Cursor     lipgloss.Style
 }
+
+func ListDefaults() List {
+	var s List
+	s.Cursor = Cursor
+	s.SelectedPrefix = Selected
+	s.UnselectedPrefix = Unselected
+	s.Text = Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = Prompt
+	return s
+}
