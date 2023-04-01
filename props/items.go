@@ -8,20 +8,21 @@ import (
 )
 
 type Items struct {
-	NumSelected int
 	Choices     []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
+	NumSelected int
 	Limit       int
 	Height      int
 	Width       int
 	Snapshot    string
 	Cur         int
+	Footer      func(string)
 }
 
 type Opt func(*Items)
 
-func NewItems(c []map[string]string, opts ...Opt) *Items {
+func New(c []map[string]string, opts ...Opt) *Items {
 	items := Items{
 		Choices:  c,
 		Items:    ChoiceMapToMatch(c),
@@ -49,7 +50,7 @@ func (i *Items) Opts(opts ...Opt) {
 }
 
 func (i Items) Update() *Items {
-	items := NewItems(i.Choices)
+	items := New(i.Choices)
 	items.Limit = i.Limit
 	items.Selected = i.Selected
 	items.NumSelected = i.NumSelected
@@ -96,7 +97,7 @@ func (cp Items) Visible(matches ...string) []Item {
 }
 
 func ItemSlice(i []string) *Items {
-	items := NewItems(MapChoices(i))
+	items := New(MapChoices(i))
 	return items
 }
 

@@ -51,7 +51,8 @@ func NewFieldProps(i *props.Item, fields string) Props {
 func (c Field) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewField()
-		return component, component.Init(NewFieldProps(props.CurrentItem(), props.Snapshot))
+		p := NewFieldProps(props.CurrentItem(), props.Snapshot)
+		return component, component.Init(p)
 	}
 }
 

@@ -28,6 +28,7 @@ type App struct {
 	Routes        map[string]router.RouteInitializer
 	ConfirmAction string
 	PrevRoute     string
+	footer        string
 	ConfirmStyle  lipgloss.Style
 }
 
@@ -38,13 +39,14 @@ type Route interface {
 
 func New(choices []map[string]string, routes []Route, opts ...props.Opt) *App {
 	app := &App{
-		Items:        props.NewItems(choices, opts...),
+		Items:        props.New(choices, opts...),
 		mainRouter:   router.New(),
 		Routes:       make(map[string]router.RouteInitializer),
 		width:        util.TermHeight(),
 		height:       util.TermWidth(),
 		ConfirmStyle: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
 	}
+	app.Items.Footer = app.Footer
 
 	for i, r := range routes {
 		name := r.Name()
@@ -55,37 +57,6 @@ func New(choices []map[string]string, routes []Route, opts ...props.Opt) *App {
 	}
 
 	return app
-}
-
-func Choose(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
-	l := New(choices, []Route{c}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func Form(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
-	fi := field.NewField()
-	l := New(choices, []Route{c, fi}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func Filter(choices []map[string]string, opts ...props.Opt) *App {
-	c := filter.NewFilter()
-	l := New(choices, []Route{c}, opts...)
-	pro := reactea.NewProgram(l)
-	if err := pro.Start(); err != nil {
-		panic(err)
-	}
-	return l
 }
 
 func (c *App) NewProps() *props.Items {
@@ -136,10 +107,49 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	if c.ConfirmAction != "" {
-		confirm := fmt.Sprintf("%s\n", c.ConfirmStyle.Render(c.ConfirmAction+"(y/n)"))
-		view = lipgloss.JoinVertical(lipgloss.Left, view, confirm)
+		c.Footer(fmt.Sprintf("%s\n", c.ConfirmStyle.Render(c.ConfirmAction+"(y/n)")))
 	}
+
+	if c.footer != "" {
+		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
+	}
+
 	//view += "\n current " + reactea.CurrentRoute()
 	//view += "\n prev " + c.PrevRoute
 	return view
+}
+
+func (c *App) Footer(f string) {
+	c.footer = f
+}
+
+func Choose(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	l := New(choices, []Route{c}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Form(choices []map[string]string, opts ...props.Opt) *App {
+	c := choose.NewChoice()
+	fi := field.NewField()
+	l := New(choices, []Route{c, fi}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func Filter(choices []map[string]string, opts ...props.Opt) *App {
+	c := filter.NewFilter()
+	l := New(choices, []Route{c}, opts...)
+	pro := reactea.NewProgram(l)
+	if err := pro.Start(); err != nil {
+		panic(err)
+	}
+	return l
 }
