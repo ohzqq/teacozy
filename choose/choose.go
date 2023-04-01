@@ -190,6 +190,7 @@ func (m *Choose) Render(w, h int) string {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	items := m.Props().RenderItems(
+		m.Cursor%m.Props().Height,
 		m.Props().Visible()[start:end],
 	)
 	s.WriteString(items)

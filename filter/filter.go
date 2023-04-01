@@ -155,7 +155,7 @@ func (m *Filter) Render(w, h int) string {
 	m.Viewport.Width = m.Props().Width
 
 	var s strings.Builder
-	items := m.Props().RenderItems(m.Matches)
+	items := m.Props().RenderItems(m.Cursor, m.Matches)
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
