@@ -22,6 +22,26 @@ type ChangeRouteMsg struct {
 	Name string
 }
 
+type GetConfirmationMsg struct {
+	Question string
+}
+
+func GetConfirmation(q string) tea.Cmd {
+	return func() tea.Msg {
+		return GetConfirmationMsg{Question: q}
+	}
+}
+
+type ConfirmMsg struct {
+	Confirmed bool
+}
+
+func ConfirmCmd(confirm bool) tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmMsg{Confirmed: confirm}
+	}
+}
+
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type StopFilteringMsg struct{}

@@ -9,7 +9,6 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/field"
 	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/message"
@@ -97,11 +96,6 @@ func (c *App) NewProps() *props.Items {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := confirm.New()
-		props := confirm.NewProps(c.ConfirmAction, c.PrevRoute)
-		return component, component.Init(props)
-	}
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -109,13 +103,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 	switch msg := msg.(type) {
-	case confirm.ConfirmMsg:
+	case message.ConfirmMsg:
 		c.ConfirmAction = ""
-	//reactea.SetCurrentRoute(c.PrevRoute)
-	//return confirm.ConfirmCmd(msg.Confirmed)
-	case confirm.GetConfirmationMsg:
+	case message.GetConfirmationMsg:
 		c.ConfirmAction = msg.Question
-		//return message.ChangeRouteCmd("confirm")
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
@@ -131,9 +122,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		case "ctrl+c":
 			return reactea.Destroy
 		case "y":
-			cmds = append(cmds, confirm.ConfirmCmd(true))
+			cmds = append(cmds, message.ConfirmCmd(true))
 		case "n":
-			cmds = append(cmds, confirm.ConfirmCmd(false))
+			cmds = append(cmds, message.ConfirmCmd(false))
 		}
 	}
 

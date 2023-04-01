@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -67,7 +66,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	case message.StopEditingMsg:
 		m.Input.Blur()
 		cmds = append(cmds, message.ChangeRouteCmd("choose"))
-	case confirm.ConfirmMsg:
+	case message.ConfirmMsg:
 		if msg.Confirmed {
 			cmds = append(cmds, message.SaveEditCmd())
 		}
@@ -95,7 +94,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 				m.quitting = true
 			case key.Matches(msg, formKey.Save):
 				if m.Props().Item.Str != m.Input.Value() {
-					return confirm.GetConfirmation("Save edit?")
+					return message.GetConfirmation("Save edit?")
 				}
 				cmds = append(cmds, message.StopEditingCmd())
 			case key.Matches(msg, formKey.Edit):
