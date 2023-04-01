@@ -64,11 +64,17 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.StopEditingMsg:
-		m.Input.Reset()
 		m.Input.Blur()
 		cmds = append(cmds, message.ChangeRouteCmd("choose"))
+	case message.ConfirmMsg:
+		if msg.Confirmed {
+			cmds = append(cmds, message.SaveEditCmd())
+		}
+		cmds = append(cmds, message.StopEditingCmd())
 	case message.SaveEditMsg:
-		m.Input.Blur()
+		m.Props().Item.Str = m.Input.Value()
+		m.Input.Reset()
+		cmds = append(cmds, message.StopEditingCmd())
 	case message.StartEditingMsg:
 		textarea.Blink()
 		return m.Input.Focus()
@@ -87,7 +93,9 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 			case key.Matches(msg, formKey.Quit):
 				m.quitting = true
 			case key.Matches(msg, formKey.Save):
-				m.Props().Item.Str = m.Input.Value()
+				if m.Props().Item.Str != m.Input.Value() {
+					return message.GetConfirmation("Save edit?")
+				}
 				cmds = append(cmds, message.StopEditingCmd())
 			case key.Matches(msg, formKey.Edit):
 				cmds = append(cmds, message.StartEditingCmd())

@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/message"
@@ -28,6 +27,7 @@ type Filter struct {
 	Placeholder string
 	Prompt      string
 	Style       style.List
+	lineInfo    string
 }
 
 type Props struct {
@@ -78,20 +78,25 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, cmd)
 
 	case message.UpMsg:
+		//h := m.Props().Visible()[m.Cursor].LineHeight()
+		offset := m.Viewport.YOffset
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
-		if m.Cursor < m.Viewport.YOffset {
+		if m.Cursor < offset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
+		//m.lineInfo = fmt.Sprintf("(cursor %d) < (offset %d)\n", m.Cursor, offset)
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.DownMsg:
-		h := lipgloss.Height(m.Props().Visible()[m.Cursor].Str)
+		h := m.Props().Visible()[m.Cursor].LineHeight()
+		offset := m.Viewport.YOffset - h
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
-		if m.Cursor >= m.Viewport.YOffset+m.Viewport.Height-h {
+		if m.Cursor+h >= offset+m.Viewport.Height {
 			m.Viewport.LineDown(h)
 		} else if m.Cursor == len(m.Matches)-1 {
 			m.Viewport.GotoBottom()
 		}
+		//m.lineInfo = fmt.Sprintf("down: %d, (cursor %d) >= %d (offset %d + height %d) \n", h, m.Cursor, offset+m.Viewport.Height, offset, m.Viewport.Height)
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.ToggleItemMsg:
@@ -155,7 +160,7 @@ func (m *Filter) Render(w, h int) string {
 	m.Viewport.Width = m.Props().Width
 
 	var s strings.Builder
-	items := m.Props().RenderItems(m.Matches)
+	items := m.Props().RenderItems(m.Cursor, m.Matches)
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
