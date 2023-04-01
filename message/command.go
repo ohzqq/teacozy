@@ -91,6 +91,14 @@ func ToggleItemCmd() tea.Cmd {
 	}
 }
 
+type ShowHelpMsg struct{}
+
+func ShowHelpCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ShowHelpMsg{}
+	}
+}
+
 type UpMsg struct{}
 type DownMsg struct{}
 type NextMsg struct{}

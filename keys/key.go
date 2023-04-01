@@ -1,58 +1,101 @@
 package keys
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/message"
+	"github.com/ohzqq/teacozy/props"
 )
 
-type KeyMap []Binding
+type KeyMap []*Binding
+
 type Binding struct {
 	key.Binding
-	opts []key.BindingOpt
-	Cmd  tea.Cmd
+	help   string
+	keys   []string
+	TeaCmd tea.Cmd
 }
 
-type BindingOpt func(*Binding)
-
-func Matches(k tea.KeyMsg, b ...Binding) bool {
-	var binds []key.Binding
-	for _, kb := range b {
-		binds = append(binds, kb.Binding)
+func (km KeyMap) Props() *props.Items {
+	var c []map[string]string
+	for _, k := range km {
+		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
 	}
-	return key.Matches(k, binds...)
+	p := props.New(c, props.Limit(0))
+	return p
 }
 
-func NewBinding(opts ...BindingOpt) Binding {
-	k := Binding{}
-	for _, opt := range opts {
-		opt(&k)
+func NewBinding(keys ...string) *Binding {
+	k := Binding{
+		Binding: key.NewBinding(),
 	}
-	k.Binding = key.NewBinding(k.opts...)
+	k.WithKeys(keys...)
+	return &k
+}
+
+func (k *Binding) Cmd(cmd tea.Cmd) *Binding {
+	k.TeaCmd = cmd
 	return k
 }
 
-func (k *Binding) SetCmd(cmd tea.Cmd) {
-	k.Cmd = cmd
+func (k *Binding) WithKeys(keys ...string) *Binding {
+	k.Binding.SetKeys(keys...)
+	k.keys = keys
+	k.WithHelp(k.help)
+	return k
 }
 
-func (k Binding) Matches(msg tea.KeyMsg) bool {
-	return key.Matches(msg, k.Binding)
+func (k *Binding) WithHelp(h string) *Binding {
+	k.help = h
+	k.Binding.SetHelp(strings.Join(k.keys, "/"), h)
+	return k
 }
 
-func WithKeys(keys ...string) BindingOpt {
-	return func(b *Binding) {
-		b.opts = append(b.opts, key.WithKeys(keys...))
-	}
+var Global = KeyMap{
+	Quit(),
+	ShowHelp(),
 }
 
-func WithHelp(k, desc string) BindingOpt {
-	return func(b *Binding) {
-		b.opts = append(b.opts, key.WithHelp(k, desc))
-	}
+func Up() *Binding {
+	return NewBinding("up").
+		WithHelp("move up").
+		Cmd(message.UpCmd())
 }
 
-func WithCmd(cmd tea.Cmd) BindingOpt {
-	return func(b *Binding) {
-		b.Cmd = cmd
-	}
+func Down() *Binding {
+	return NewBinding("down").
+		WithHelp("move down").
+		Cmd(message.DownCmd())
+}
+
+func Next() *Binding {
+	return NewBinding("right").
+		WithHelp("next page").
+		Cmd(message.NextCmd())
+}
+
+func Prev() *Binding {
+	return NewBinding("left").
+		WithHelp("prev page").
+		Cmd(message.PrevCmd())
+}
+
+func ToggleItem() *Binding {
+	return NewBinding("tab").
+		WithHelp("select item").
+		Cmd(message.ToggleItemCmd())
+}
+
+func Quit() *Binding {
+	return NewBinding("ctrl+c").
+		WithHelp("quit program").
+		Cmd(message.QuitCmd())
+}
+
+func ShowHelp() *Binding {
+	return NewBinding("ctrl+h").
+		WithHelp("help").
+		Cmd(message.ShowHelpCmd())
 }
