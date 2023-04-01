@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/slices"
 )
 
 type Items struct {
@@ -21,7 +22,8 @@ type Items struct {
 	Snapshot    string
 	Cur         int
 	Footer      func(string)
-	exec        *exec.Cmd
+	args        []string
+	cmd         string
 }
 
 type Opt func(*Items)
@@ -78,26 +80,33 @@ func (m Items) Chosen() []map[string]string {
 }
 
 func (m Items) Exec() error {
-	if m.exec != nil {
-		var (
-			stderr bytes.Buffer
-			stdout bytes.Buffer
-		)
-		m.exec.Stderr = &stderr
-		m.exec.Stdout = &stdout
+	if m.cmd != "" {
+		for _, c := range m.Chosen() {
+			for _, arg := range c {
+				args := slices.Clone(m.args)
+				args = append(args, arg)
+				cmd := exec.Command(m.cmd, args...)
+				var (
+					stderr bytes.Buffer
+					stdout bytes.Buffer
+				)
+				cmd.Stderr = &stderr
+				cmd.Stdout = &stdout
 
-		//fmt.Println(m.exec.String())
-		err := m.exec.Run()
-		if err != nil {
-			return fmt.Errorf("command exited with error: %s\n", stderr.String())
-		}
+				//fmt.Println(cmd.String())
+				err := cmd.Run()
+				if err != nil {
+					return fmt.Errorf("command exited with error: %s\n", stderr.String())
+				}
 
-		if out := stdout.String(); out != "" {
-			fmt.Println(out)
-		}
+				if out := stdout.String(); out != "" {
+					fmt.Println(out)
+				}
 
-		if err := stderr.String(); err != "" {
-			return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
+				if err := stderr.String(); err != "" {
+					return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
+				}
+			}
 		}
 	}
 	return nil
@@ -235,8 +244,9 @@ func Height(h int) Opt {
 	}
 }
 
-func Exec(cmd *exec.Cmd) Opt {
+func Exec(cmd string, args ...string) Opt {
 	return func(i *Items) {
-		i.exec = cmd
+		i.args = args
+		i.cmd = cmd
 	}
 }
