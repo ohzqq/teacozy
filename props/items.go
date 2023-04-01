@@ -1,6 +1,9 @@
 package props
 
 import (
+	"bytes"
+	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -18,6 +21,7 @@ type Items struct {
 	Snapshot    string
 	Cur         int
 	Footer      func(string)
+	exec        *exec.Cmd
 }
 
 type Opt func(*Items)
@@ -71,6 +75,32 @@ func (m Items) Chosen() []map[string]string {
 		}
 	}
 	return chosen
+}
+
+func (m Items) Exec() error {
+	if m.exec != nil {
+		var (
+			stderr bytes.Buffer
+			stdout bytes.Buffer
+		)
+		m.exec.Stderr = &stderr
+		m.exec.Stdout = &stdout
+
+		//fmt.Println(m.exec.String())
+		err := m.exec.Run()
+		if err != nil {
+			return fmt.Errorf("command exited with error: %s\n", stderr.String())
+		}
+
+		if out := stdout.String(); out != "" {
+			fmt.Println(out)
+		}
+
+		if err := stderr.String(); err != "" {
+			return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
+		}
+	}
+	return nil
 }
 
 func (m Items) Map() []map[string]string {
@@ -202,5 +232,11 @@ func Limit(l int) Opt {
 func Height(h int) Opt {
 	return func(i *Items) {
 		i.Height = h
+	}
+}
+
+func Exec(cmd *exec.Cmd) Opt {
+	return func(i *Items) {
+		i.exec = cmd
 	}
 }

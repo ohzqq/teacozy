@@ -2,6 +2,7 @@ package teacozy
 
 import (
 	"fmt"
+	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -29,6 +30,8 @@ type App struct {
 	ConfirmAction string
 	PrevRoute     string
 	footer        string
+	exec          *exec.Cmd
+	execItem      *exec.Cmd
 	ConfirmStyle  lipgloss.Style
 }
 
@@ -118,6 +121,10 @@ func (c *App) Render(width, height int) string {
 	//view += "\n prev " + c.PrevRoute
 	return view
 }
+
+//func (c *App) Exec(cmd *exec.Cmd) {
+//  c.exec = cmd
+//}
 
 func (c *App) Footer(f string) {
 	c.footer = f

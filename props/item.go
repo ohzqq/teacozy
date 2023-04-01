@@ -1,6 +1,8 @@
 package props
 
 import (
+	"os/exec"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
@@ -21,6 +23,7 @@ type Item struct {
 	selected bool
 	Label    string
 	Width    int
+	exec     *exec.Cmd
 	*Prefix
 }
 
@@ -49,6 +52,10 @@ func DefaultPrefix() *Prefix {
 		Selected:   SelectedPrefix,
 		Unselected: UnselectedPrefix,
 	}
+}
+
+func (i *Item) Exec(cmd *exec.Cmd) {
+	i.exec = cmd
 }
 
 func (i *Item) SetValue(val string) {
