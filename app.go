@@ -12,6 +12,8 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/field"
 	"github.com/ohzqq/teacozy/filter"
+	"github.com/ohzqq/teacozy/help"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/util"
@@ -34,6 +36,7 @@ type App struct {
 	exec          *exec.Cmd
 	execItem      *exec.Cmd
 	Style         Style
+	help          keys.KeyMap
 }
 
 type Style struct {
@@ -58,6 +61,7 @@ func New(props *props.Items, routes []Route) *App {
 	}
 	app.Items.Footer = app.Footer
 	app.Items.Header = app.Header
+	app.Items.Help = app.Help
 
 	if app.Items.Title != "" {
 		app.Items.Header(app.Items.Title)
@@ -72,6 +76,15 @@ func New(props *props.Items, routes []Route) *App {
 	}
 
 	return app
+}
+
+func KeymapToProps(km keys.KeyMap) *props.Items {
+	var c []map[string]string
+	for _, k := range km {
+		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
+	}
+	p := props.New(c, props.Limit(0))
+	return p
 }
 
 func (c *App) CloneProps() *props.Items {
@@ -89,6 +102,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 	switch msg := msg.(type) {
+	//case message.ShowHelpMsg:
+	//fmt.Println("ehlp")
+	//cmds = append(cmds, message.ChangeRouteCmd("help"))
 	case message.ConfirmMsg:
 		c.ConfirmAction = ""
 	case message.GetConfirmationMsg:
@@ -98,6 +114,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch route {
 		case "prev":
 			route = c.PrevRoute
+		case "help":
+			p := KeymapToProps(c.help)
+			p.Height = c.Items.Height
+			p.Width = c.Items.Width
+			c.Footer("")
+			c.Routes["help"] = help.New().Initializer(p)
 		}
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
@@ -107,6 +129,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "ctrl+c":
 			return reactea.Destroy
+		case "ctrl+h":
+			cmds = append(cmds, message.ShowHelpCmd())
+			//println("help")
 		case "y":
 			cmds = append(cmds, message.ConfirmCmd(true))
 		case "n":
@@ -145,6 +170,10 @@ func (c *App) Footer(f string) {
 
 func (c *App) Header(f string) {
 	c.header = f
+}
+
+func (c *App) Help(p keys.KeyMap) {
+	c.help = p
 }
 
 func Choose(choices []map[string]string, opts ...props.Opt) *App {

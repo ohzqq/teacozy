@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/exp/slices"
 )
@@ -24,6 +25,7 @@ type Items struct {
 	Cur         int
 	Footer      func(string)
 	Header      func(string)
+	Help        func(keys.KeyMap)
 	args        []string
 	cmd         string
 }

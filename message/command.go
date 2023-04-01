@@ -12,9 +12,11 @@ func ReturnSelectionsCmd() tea.Cmd {
 	}
 }
 
+type QuitMsg struct{}
+
 func QuitCmd() tea.Cmd {
 	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
+		return QuitMsg{}
 	}
 }
 
@@ -88,6 +90,22 @@ func StartEditingCmd() tea.Cmd {
 func ToggleItemCmd() tea.Cmd {
 	return func() tea.Msg {
 		return ToggleItemMsg{}
+	}
+}
+
+type ShowHelpMsg struct{}
+
+func ShowHelpCmd() tea.Cmd {
+	return func() tea.Msg {
+		return ShowHelpMsg{}
+	}
+}
+
+type HideHelpMsg struct{}
+
+func HideHelpCmd() tea.Cmd {
+	return func() tea.Msg {
+		return HideHelpMsg{}
 	}
 }
 
