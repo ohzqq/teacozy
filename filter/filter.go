@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -29,6 +30,8 @@ type Filter struct {
 	Prompt      string
 	Style       style.List
 	lineInfo    string
+	start       int
+	end         int
 }
 
 type Props struct {
@@ -75,9 +78,9 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.UpMsg:
+		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 		//h := m.Props().Visible()[m.Cursor].LineHeight()
 		offset := m.Viewport.YOffset
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 		if m.Cursor < offset {
 			m.Viewport.SetYOffset(m.Cursor)
 		}
@@ -85,9 +88,9 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.DownMsg:
+		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		h := m.Props().Visible()[m.Cursor].LineHeight()
 		offset := m.Viewport.YOffset - h
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		if m.Cursor+h >= offset+m.Viewport.Height {
 			m.Viewport.LineDown(h)
 		} else if m.Cursor == len(m.Matches)-1 {
@@ -148,12 +151,23 @@ func (m *Filter) Render(w, h int) string {
 	m.Viewport.Width = m.Props().Width
 
 	var s strings.Builder
+
 	items := m.Props().RenderItems(m.Cursor, m.Matches)
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
 
 	view := m.Input.View() + "\n" + m.Viewport.View()
+
+	m.Props().SetFooter(
+		fmt.Sprintf(
+			`height %d
+yoffset %d
+`,
+			m.Viewport.Height,
+			m.Viewport.YOffset,
+			//m.Props().CurrentItem().LineHeight(),
+		))
 	return view
 }
 
@@ -176,4 +190,22 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 
 func (m *Filter) ReturnSelections() tea.Cmd {
 	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+func clamp(v, low, high int) int {
+	return min(max(v, low), high)
 }

@@ -23,6 +23,7 @@ type Items struct {
 	Title       string
 	Cur         int
 	footer      string
+	TotalLines  int
 	SetHeader   func(string)
 	SetBody     func(string)
 	SetFooter   func(string)
@@ -95,39 +96,6 @@ func (m Items) Chosen() []map[string]string {
 	return chosen
 }
 
-func (m Items) Exec() error {
-	if m.cmd != "" {
-		for _, c := range m.Chosen() {
-			for _, arg := range c {
-				args := slices.Clone(m.args)
-				args = append(args, arg)
-				cmd := exec.Command(m.cmd, args...)
-				var (
-					stderr bytes.Buffer
-					stdout bytes.Buffer
-				)
-				cmd.Stderr = &stderr
-				cmd.Stdout = &stdout
-
-				//fmt.Println(cmd.String())
-				err := cmd.Run()
-				if err != nil {
-					return fmt.Errorf("command exited with error: %s\n", stderr.String())
-				}
-
-				if out := stdout.String(); out != "" {
-					fmt.Println(out)
-				}
-
-				if err := stderr.String(); err != "" {
-					return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
-				}
-			}
-		}
-	}
-	return nil
-}
-
 func (m Items) Map() []map[string]string {
 	var items []map[string]string
 	for _, item := range m.Items {
@@ -191,12 +159,45 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		s.WriteString(pre)
 		s.WriteString("]")
 
-		s.WriteString(match.RenderText())
+		s.WriteString(match.Render(m.Width, m.Height))
 		s.WriteRune('\n')
 	}
 	view := s.String()
 	m.SetBody(view)
 	return view
+}
+
+func (m Items) Exec() error {
+	if m.cmd != "" {
+		for _, c := range m.Chosen() {
+			for _, arg := range c {
+				args := slices.Clone(m.args)
+				args = append(args, arg)
+				cmd := exec.Command(m.cmd, args...)
+				var (
+					stderr bytes.Buffer
+					stdout bytes.Buffer
+				)
+				cmd.Stderr = &stderr
+				cmd.Stdout = &stdout
+
+				//fmt.Println(cmd.String())
+				err := cmd.Run()
+				if err != nil {
+					return fmt.Errorf("command exited with error: %s\n", stderr.String())
+				}
+
+				if out := stdout.String(); out != "" {
+					fmt.Println(out)
+				}
+
+				if err := stderr.String(); err != "" {
+					return fmt.Errorf("command exited with error: %s\n%s\n", err, stdout.String())
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func ChoiceMapToMatch(options []map[string]string) []Item {
@@ -294,7 +295,8 @@ func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
 		i.Items = make([]Item, len(choices))
 		for idx, option := range choices {
 			for label, val := range option {
-				item := NewItem(fmt.Sprint(val), idx)
+				text := lipgloss.NewStyle().Width(i.Width).Render(fmt.Sprint(val))
+				item := NewItem(text, idx)
 				item.Label = fmt.Sprint(label)
 				i.Items[idx] = item
 			}

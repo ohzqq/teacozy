@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -65,20 +64,20 @@ func (i Item) Map() map[string]string {
 	return map[string]string{i.Label: i.Str}
 }
 
-func (match Item) RenderText() string {
+func (match Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
 		match.Str,
 		match.MatchedIndexes,
 		match.Style.Match,
 		match.Style.Text,
 	)
-	w := util.TermWidth()
 	s := lipgloss.NewStyle().Width(w).Render(text)
 	return s
 }
 
 func (i Item) LineHeight() int {
-	return lipgloss.Height(i.RenderText())
+	return 1
+	//return lipgloss.Height(i.RenderText())
 }
 
 func DefaultItemStyle() style.ListItem {

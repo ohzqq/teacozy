@@ -136,6 +136,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
+		case "filter":
+			c.Footer("")
 		case "prev":
 			route = c.PrevRoute
 		case "help":
@@ -187,15 +189,16 @@ func (c *App) Render(width, height int) string {
 	//}
 
 	vp := viewport.New(width, height)
-	vp.SetContent(view)
-	//vp.SetContent(
-	//  lipgloss.JoinVertical(
-	//    lipgloss.Left,
-	//    c.header,
-	//    c.mainRouter.Render(width, height),
-	//    c.footer,
-	//  ),
-	//)
+	//vp.SetContent(view)
+	vp.SetContent(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			c.header,
+			c.body,
+			//c.mainRouter.Render(width, height),
+			c.footer,
+		),
+	)
 
 	return vp.View()
 	//view += "\n current " + reactea.CurrentRoute()
