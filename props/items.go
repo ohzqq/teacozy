@@ -53,6 +53,25 @@ func New(c []map[string]string, opts ...Opt) *Items {
 	return &items
 }
 
+func Newish(opts ...Opt) *Items {
+	items := Items{
+		Selected: make(map[int]struct{}),
+	}
+	items.Opts(opts...)
+
+	w, h := util.TermSize()
+	if items.Height == 0 {
+		items.Height = h - 4
+	}
+	if items.Width == 0 {
+		items.Width = w
+	}
+
+	items.SetCurrent(0)
+
+	return &items
+}
+
 func (i *Items) Opts(opts ...Opt) {
 	for _, opt := range opts {
 		opt(i)
@@ -280,5 +299,27 @@ func NoLimit() Opt {
 func Header(t string) Opt {
 	return func(i *Items) {
 		i.Title = t
+	}
+}
+
+func ChoiceSlice[E any](choices []E) Opt {
+	return func(i *Items) {
+		i.Items = make([]Item, len(choices))
+		for idx, option := range choices {
+			i.Items[idx] = NewItem(fmt.Sprint(option), idx)
+		}
+	}
+}
+
+func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
+	return func(i *Items) {
+		i.Items = make([]Item, len(choices))
+		for idx, option := range choices {
+			for label, val := range option {
+				item := NewItem(fmt.Sprint(val), idx)
+				item.Label = fmt.Sprint(label)
+				i.Items[idx] = item
+			}
+		}
 	}
 }

@@ -19,7 +19,7 @@ type List struct {
 	Paginator paginator.Model
 	quitting  bool
 	Style     style.List
-	keys      keys.KeyMap
+	KeyMap    keys.KeyMap
 	items     *props.Items
 }
 
@@ -42,9 +42,9 @@ func (m *List) Props() *props.Items {
 
 func New(props *props.Items) *List {
 	tm := &List{
-		Style: style.ListDefaults(),
-		keys:  Keys,
-		items: props,
+		Style:  style.ListDefaults(),
+		KeyMap: Keys,
+		items:  props,
 	}
 
 	tm.Paginator = paginator.New()
@@ -102,7 +102,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Props().SetCurrent(m.Cursor)
 
 	case tea.KeyMsg:
-		for _, k := range m.keys {
+		for _, k := range m.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}

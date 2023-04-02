@@ -24,6 +24,7 @@ type Choose struct {
 	quitting  bool
 	header    string
 	KeyMap    keys.KeyMap
+	list      *list.List
 	Style     style.List
 }
 
@@ -64,7 +65,7 @@ func (c Choose) Name() string {
 }
 
 func (m *Choose) Update(msg tea.Msg) tea.Cmd {
-	//var cmd tea.Cmd
+	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
@@ -140,40 +141,20 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.StartFilteringMsg:
 		return message.ChangeRoute("filter")
 
+	case message.ReturnSelectionsMsg:
+		if m.Props().Limit == 1 {
+			return message.ToggleItem()
+		}
+		if m.Props().NumSelected == 0 {
+			m.quitting = true
+			return message.ToggleItem()
+		}
+		return message.ReturnSelections()
+
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, Key.Up):
-			cmds = append(cmds, message.Up())
-		case key.Matches(msg, Key.Down):
-			cmds = append(cmds, message.Down())
-		case key.Matches(msg, Key.Prev):
-			cmds = append(cmds, message.Prev())
-		case key.Matches(msg, Key.Next):
-			cmds = append(cmds, message.Next())
-		case key.Matches(msg, Key.ToggleItem):
-			cmds = append(cmds, message.ToggleItem())
-		//case key.Matches(msg, Key.Help):
-		//return message.ShowHelp()
-		//cmds = append(cmds, message.ShowHelpCmd())
-		//case key.Matches(msg, Key.Edit):
-		//cmds = append(cmds, message.StartEditing())
-		//case key.Matches(msg, Key.Filter):
-		//cmds = append(cmds, message.StartFiltering())
-		case key.Matches(msg, Key.Bottom):
-			cmds = append(cmds, message.Bottom())
-		case key.Matches(msg, Key.Top):
-			cmds = append(cmds, message.Top())
 		case key.Matches(msg, Key.Quit):
 			m.quitting = true
-			cmds = append(cmds, message.ReturnSelections())
-		case key.Matches(msg, Key.ReturnSelections):
-			if m.Props().Limit == 1 {
-				return message.ToggleItem()
-			}
-			if m.Props().NumSelected == 0 {
-				m.quitting = true
-				return message.ToggleItem()
-			}
 			cmds = append(cmds, message.ReturnSelections())
 		}
 		for _, k := range m.KeyMap {
@@ -183,6 +164,8 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
+	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
 
@@ -212,6 +195,8 @@ func (m *Choose) Render(w, h int) string {
 
 func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
+
+	tm.list = list.New(props.Items)
 	tm.Paginator = paginator.New()
 	tm.Paginator.Type = paginator.Arabic
 	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
