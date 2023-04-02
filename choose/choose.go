@@ -74,7 +74,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.ShowHelpMsg:
 		k := keys.Global
 		k = append(k, list.Keys...)
-		m.Props().Help(k)
+		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
@@ -187,7 +187,7 @@ func (m *Choose) Render(w, h int) string {
 	} else if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
 		//view = lipgloss.JoinVertical(lipgloss.Left, view, p)
-		m.Props().Footer(p)
+		m.Props().SetFooter(p)
 	}
 
 	return view

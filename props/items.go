@@ -22,9 +22,10 @@ type Items struct {
 	Snapshot    string
 	Title       string
 	Cur         int
-	Footer      func(string)
-	Header      func(string)
-	Help        func(keys.KeyMap)
+	footer      string
+	SetFooter   func(string)
+	SetHeader   func(string)
+	SetHelp     func(keys.KeyMap)
 	args        []string
 	cmd         string
 }
@@ -66,7 +67,6 @@ func (i *Items) NoLimit() *Items {
 }
 
 func (i Items) Update() *Items {
-	//items := New(i.Choices)
 	items := &Items{}
 	items.Items = i.Items
 	items.Limit = i.Limit
@@ -75,8 +75,8 @@ func (i Items) Update() *Items {
 	items.Height = i.Height
 	items.Width = i.Width
 	items.Cur = i.Cur
-	items.Header = i.Header
-	items.Footer = i.Footer
+	items.SetHeader = i.SetHeader
+	items.SetFooter = i.SetFooter
 	items.Title = i.Title
 	return items
 }
@@ -150,11 +150,6 @@ func (cp Items) Visible(matches ...string) []Item {
 	return cp.Items
 }
 
-//func ItemSlice(i []string) *Items {
-//  items := New(MapChoices(i))
-//  return items
-//}
-
 func (m *Items) ToggleSelection(idx int) {
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
@@ -179,7 +174,7 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		}
 
 		switch {
-		case i == cursor:
+		case i == m.CurrentItem().Index:
 			pre = match.Style.Cursor.Render(pre)
 		default:
 			if _, ok := m.Selected[match.Index]; ok {

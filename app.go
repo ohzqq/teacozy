@@ -59,12 +59,12 @@ func New(props *props.Items, routes []Route) *App {
 		height:     util.TermWidth(),
 		Style:      DefaultStyle(),
 	}
-	app.Items.Footer = app.Footer
-	app.Items.Header = app.Header
-	app.Items.Help = app.Help
+	app.Items.SetFooter = app.Footer
+	app.Items.SetHeader = app.Header
+	app.Items.SetHelp = app.Help
 
 	if app.Items.Title != "" {
-		app.Items.Header(app.Items.Title)
+		app.Items.SetHeader(app.Items.Title)
 	}
 
 	for i, r := range routes {
