@@ -42,7 +42,6 @@ func NewItem(t string, idx int) Item {
 		Style:  DefaultItemStyle(),
 		Prefix: DefaultPrefix(),
 	}
-
 	return item
 }
 

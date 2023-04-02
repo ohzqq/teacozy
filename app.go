@@ -83,7 +83,7 @@ func KeymapToProps(km keys.KeyMap) *props.Items {
 	for _, k := range km {
 		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
 	}
-	p := props.New(c, props.Limit(0))
+	p := props.New(props.ChoiceMap(c), props.Limit(0))
 	return p
 }
 
@@ -176,9 +176,9 @@ func (c *App) Help(p keys.KeyMap) {
 	c.help = p
 }
 
-func Choose(choices []map[string]string, opts ...props.Opt) *App {
+func Choose(opts ...props.Opt) *App {
 	c := choose.NewChoice()
-	p := props.New(choices, opts...)
+	p := props.New(opts...)
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
@@ -187,10 +187,10 @@ func Choose(choices []map[string]string, opts ...props.Opt) *App {
 	return l
 }
 
-func Form(choices []map[string]string, opts ...props.Opt) *App {
+func Form(opts ...props.Opt) *App {
 	c := choose.NewChoice()
 	fi := field.NewField()
-	p := props.New(choices, opts...)
+	p := props.New(opts...)
 	l := New(p, []Route{c, fi})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
@@ -199,9 +199,9 @@ func Form(choices []map[string]string, opts ...props.Opt) *App {
 	return l
 }
 
-func Filter(choices []map[string]string, opts ...props.Opt) *App {
+func Filter(opts ...props.Opt) *App {
 	c := filter.NewFilter()
-	p := props.New(choices, opts...)
+	p := props.New(opts...)
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {

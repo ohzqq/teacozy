@@ -13,7 +13,6 @@ import (
 )
 
 type Items struct {
-	Choices     []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
 	NumSelected int
@@ -32,10 +31,8 @@ type Items struct {
 
 type Opt func(*Items)
 
-func New(c []map[string]string, opts ...Opt) *Items {
+func New(opts ...Opt) *Items {
 	items := Items{
-		Choices:  c,
-		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
 	items.Opts(opts...)
@@ -53,23 +50,8 @@ func New(c []map[string]string, opts ...Opt) *Items {
 	return &items
 }
 
-func Newish(opts ...Opt) *Items {
-	items := Items{
-		Selected: make(map[int]struct{}),
-	}
-	items.Opts(opts...)
-
-	w, h := util.TermSize()
-	if items.Height == 0 {
-		items.Height = h - 4
-	}
-	if items.Width == 0 {
-		items.Width = w
-	}
-
-	items.SetCurrent(0)
-
-	return &items
+func (i *Items) ChoiceSlice(c []string) {
+	i.Items = ChoiceMapToMatch(MapChoices(c))
 }
 
 func (i *Items) Opts(opts ...Opt) {
@@ -78,8 +60,15 @@ func (i *Items) Opts(opts ...Opt) {
 	}
 }
 
+func (i *Items) NoLimit() *Items {
+	i.Limit = len(i.Items)
+	return i
+}
+
 func (i Items) Update() *Items {
-	items := New(i.Choices)
+	//items := New(i.Choices)
+	items := &Items{}
+	items.Items = i.Items
 	items.Limit = i.Limit
 	items.Selected = i.Selected
 	items.NumSelected = i.NumSelected
@@ -161,18 +150,10 @@ func (cp Items) Visible(matches ...string) []Item {
 	return cp.Items
 }
 
-func ItemSlice(i []string) *Items {
-	items := New(MapChoices(i))
-	return items
-}
-
-func MapChoices(c []string) []map[string]string {
-	choices := make([]map[string]string, len(c))
-	for i, val := range c {
-		choices[i] = map[string]string{"": val}
-	}
-	return choices
-}
+//func ItemSlice(i []string) *Items {
+//  items := New(MapChoices(i))
+//  return items
+//}
 
 func (m *Items) ToggleSelection(idx int) {
 	if _, ok := m.Selected[idx]; ok {
@@ -185,7 +166,7 @@ func (m *Items) ToggleSelection(idx int) {
 }
 
 func (m *Items) ChoiceMap(choices []map[string]string) {
-	m.Choices = choices
+	m.Items = ChoiceMapToMatch(choices)
 }
 
 func (m Items) RenderItems(cursor int, items []Item) string {
@@ -290,24 +271,23 @@ func Exec(cmd string, args ...string) Opt {
 	}
 }
 
-func NoLimit() Opt {
-	return func(i *Items) {
-		i.Limit = len(i.Choices)
-	}
-}
-
 func Header(t string) Opt {
 	return func(i *Items) {
 		i.Title = t
 	}
 }
 
+func MapChoices[E any](c []E) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": fmt.Sprint(val)}
+	}
+	return choices
+}
+
 func ChoiceSlice[E any](choices []E) Opt {
 	return func(i *Items) {
-		i.Items = make([]Item, len(choices))
-		for idx, option := range choices {
-			i.Items[idx] = NewItem(fmt.Sprint(option), idx)
-		}
+		i.ChoiceMap(MapChoices(choices))
 	}
 }
 
