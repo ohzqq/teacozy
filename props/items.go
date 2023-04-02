@@ -23,8 +23,9 @@ type Items struct {
 	Title       string
 	Cur         int
 	footer      string
-	SetFooter   func(string)
 	SetHeader   func(string)
+	SetBody     func(string)
+	SetFooter   func(string)
 	SetHelp     func(keys.KeyMap)
 	args        []string
 	cmd         string
@@ -193,7 +194,9 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		s.WriteString(match.RenderText())
 		s.WriteRune('\n')
 	}
-	return s.String()
+	view := s.String()
+	m.SetBody(view)
+	return view
 }
 
 func ChoiceMapToMatch(options []map[string]string) []Item {

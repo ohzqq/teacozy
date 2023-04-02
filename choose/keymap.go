@@ -38,6 +38,9 @@ func (m *Choose) KeyMap() keys.KeyMap {
 		keys.NewBinding("/").
 			WithHelp("filter list").
 			Cmd(message.StartFiltering()),
+		keys.NewBinding("v").
+			WithHelp("filter list").
+			Cmd(message.ChangeRoute("view")),
 	}
 	return keys
 }

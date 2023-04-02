@@ -97,6 +97,9 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.ToggleItemMsg:
+		if len(m.Matches) == 0 {
+			return nil
+		}
 		idx := m.Matches[m.Cursor].Index
 
 		if m.Props().NumSelected == 0 && m.quitting {
