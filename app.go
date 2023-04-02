@@ -129,7 +129,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "ctrl+c":
 			return reactea.Destroy
-		case "ctrl+h":
+		case "H":
 			cmds = append(cmds, message.ShowHelp())
 			//println("help")
 		case "y":

@@ -141,11 +141,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		return message.ChangeRoute("filter")
 
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap {
-			if key.Matches(msg, k.Binding) {
-				cmds = append(cmds, k.TeaCmd)
-			}
-		}
 		switch {
 		case key.Matches(msg, Key.Up):
 			cmds = append(cmds, message.Up())
@@ -157,10 +152,13 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, message.Next())
 		case key.Matches(msg, Key.ToggleItem):
 			cmds = append(cmds, message.ToggleItem())
-		case key.Matches(msg, Key.Edit):
-			cmds = append(cmds, message.StartEditing())
-		case key.Matches(msg, Key.Filter):
-			cmds = append(cmds, message.StartFiltering())
+		//case key.Matches(msg, Key.Help):
+		//return message.ShowHelp()
+		//cmds = append(cmds, message.ShowHelpCmd())
+		//case key.Matches(msg, Key.Edit):
+		//cmds = append(cmds, message.StartEditing())
+		//case key.Matches(msg, Key.Filter):
+		//cmds = append(cmds, message.StartFiltering())
 		case key.Matches(msg, Key.Bottom):
 			cmds = append(cmds, message.Bottom())
 		case key.Matches(msg, Key.Top):
@@ -177,6 +175,11 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 				return message.ToggleItem()
 			}
 			cmds = append(cmds, message.ReturnSelections())
+		}
+		for _, k := range m.KeyMap {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
+			}
 		}
 	}
 
