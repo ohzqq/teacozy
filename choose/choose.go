@@ -30,30 +30,20 @@ type Props struct {
 	*props.Items
 }
 
-func NewChoice() *Choose {
+func New() *Choose {
 	tm := Choose{
 		Style: style.ListDefaults(),
 	}
 	return &tm
 }
 
-func RouteInitializer(props Props) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewChoice()
-		return component, component.Init(props)
-	}
-}
-
-func NewProps(items *props.Items) Props {
-	return Props{
-		Items: items,
-	}
-}
-
 func (c Choose) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewChoice()
-		return component, component.Init(NewProps(props))
+		component := New()
+		p := Props{
+			Items: props,
+		}
+		return component, component.Init(p)
 	}
 }
 
@@ -124,9 +114,9 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.ToggleItemMsg:
 		idx := m.Props().Visible()[m.Cursor].Index
 
-		if m.Props().NumSelected == 0 && m.quitting {
-			cmds = append(cmds, message.ReturnSelections())
-		}
+		//if m.Props().NumSelected == 0 && m.quitting {
+		//cmds = append(cmds, message.ReturnSelections())
+		//}
 
 		m.Props().ToggleSelection(idx)
 

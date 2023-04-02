@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -43,7 +44,7 @@ type KeyMap struct {
 	StopFiltering    key.Binding
 }
 
-func NewFilter() *Filter {
+func New() *Filter {
 	tm := Filter{
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
@@ -53,13 +54,29 @@ func NewFilter() *Filter {
 
 func (c Filter) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewFilter()
+		component := New()
 		return component, component.Init(Props{Items: props})
 	}
 }
 
 func (c Filter) Name() string {
 	return "filter"
+}
+
+func (m *Filter) KeyMap() keys.KeyMap {
+	return keys.KeyMap{
+		keys.Up(),
+		keys.Down(),
+		keys.ToggleItem(),
+		keys.Quit(),
+		keys.ShowHelp(),
+		keys.NewBinding("enter").
+			WithHelp("return selections").
+			Cmd(m.ReturnSelections()),
+		keys.NewBinding("esc").
+			WithHelp("stop filtering").
+			Cmd(message.StopFiltering()),
+	}
 }
 
 func (m *Filter) Update(msg tea.Msg) tea.Cmd {
@@ -204,4 +221,8 @@ var filterKey = KeyMap{
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "return selections"),
 	),
+}
+
+func (m *Filter) ReturnSelections() tea.Cmd {
+	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
 }

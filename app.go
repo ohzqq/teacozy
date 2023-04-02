@@ -17,6 +17,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/slices"
 )
 
 type App struct {
@@ -80,6 +81,18 @@ func KeymapToProps(km keys.KeyMap) *props.Items {
 	return p
 }
 
+func (c App) ListRoutes() []string {
+	var r []string
+	for n, _ := range c.Routes {
+		r = append(r, n)
+	}
+	return r
+}
+
+func (c App) HasRoute(r string) bool {
+	return slices.Contains(c.ListRoutes(), r)
+}
+
 func (c *App) NewProps(props *props.Items) *props.Items {
 	c.Footer("")
 	props.SetFooter = c.Footer
@@ -124,7 +137,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
 	case message.ReturnSelectionsMsg:
-		return reactea.Destroy
+		switch reactea.CurrentRoute() {
+		case "filter":
+			if c.HasRoute("choose") {
+				reactea.SetCurrentRoute("choose")
+			}
+		default:
+			return reactea.Destroy
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -177,7 +197,7 @@ func (c *App) Help(p keys.KeyMap) {
 }
 
 func Choose(opts ...props.Opt) *App {
-	c := choose.NewChoice()
+	c := choose.New()
 	p := props.New(opts...)
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)
@@ -188,7 +208,7 @@ func Choose(opts ...props.Opt) *App {
 }
 
 func Form(opts ...props.Opt) *App {
-	c := choose.NewChoice()
+	c := choose.New()
 	fi := field.NewField()
 	p := props.New(opts...)
 	l := New(p, []Route{c, fi})
@@ -200,7 +220,7 @@ func Form(opts ...props.Opt) *App {
 }
 
 func Filter(opts ...props.Opt) *App {
-	c := filter.NewFilter()
+	c := filter.New()
 	p := props.New(opts...)
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)

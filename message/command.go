@@ -4,11 +4,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ReturnSelectionsMsg struct{}
+type ReturnSelectionsMsg struct {
+	Quitting bool
+}
 
 func ReturnSelections() tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
+	}
+}
+
+func ReturnSels(limit, numSel int) tea.Cmd {
+	msg := ReturnSelectionsMsg{}
+	if limit == 1 {
+		return ToggleItem()
+	}
+	if numSel == 0 {
+		msg.Quitting = true
+		return ToggleItem()
+	}
+	return func() tea.Msg {
+		return msg
 	}
 }
 
