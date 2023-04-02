@@ -172,22 +172,12 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 func (m *Choose) Render(w, h int) string {
 	var s strings.Builder
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+	s.WriteString(m.list.View())
 
-	items := m.Props().RenderItems(
-		m.Cursor%m.Props().Height,
-		m.Props().Visible()[start:end],
-	)
-	s.WriteString(items)
+	view := s.String()
 
-	var view string
-	view = s.String()
-	if m.Paginator.TotalPages <= 1 {
-		//view = s.String()
-	} else if m.Paginator.TotalPages > 1 {
-		p := style.Footer.Render(m.Paginator.View())
-		//view = lipgloss.JoinVertical(lipgloss.Left, view, p)
-		m.Props().SetFooter(p)
+	if m.list.Footer != "" {
+		m.Props().SetFooter(m.list.Footer)
 	}
 
 	return view

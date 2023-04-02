@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -21,6 +20,7 @@ type List struct {
 	Style     style.List
 	KeyMap    keys.KeyMap
 	items     *props.Items
+	Footer    string
 }
 
 var Keys = keys.KeyMap{
@@ -125,12 +125,11 @@ func (m *List) View() string {
 
 	var view string
 	view = s.String()
-	if m.Paginator.TotalPages <= 1 {
-		//view = s.String()
-	} else if m.Paginator.TotalPages > 1 {
+	//if m.Paginator.TotalPages <= 1 {
+	//view = s.String()
+	if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
-		view = lipgloss.JoinVertical(lipgloss.Left, view, p)
-		//m.Props().Footer(p)
+		m.Footer = p
 	}
 
 	return view
