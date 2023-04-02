@@ -73,6 +73,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		k = append(k, list.Keys...)
 		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))
+
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 		m.Props().Items.SetCurrent(m.Cursor)
@@ -138,22 +139,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.StartFilteringMsg:
 		return message.ChangeRoute("filter")
 
-	case message.ReturnSelectionsMsg:
-		if m.Props().Limit == 1 {
-			return message.ToggleItem()
-		}
-		if m.Props().NumSelected == 0 {
-			m.quitting = true
-			return message.ToggleItem()
-		}
-		return message.ReturnSelections()
-
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, Key.Quit):
-			m.quitting = true
-			cmds = append(cmds, message.ReturnSelections())
-		}
 		for _, k := range m.KeyMap() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
