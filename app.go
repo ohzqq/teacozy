@@ -139,6 +139,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ReturnSelectionsMsg:
 		switch reactea.CurrentRoute() {
 		case "filter":
+			println("poot")
 			if c.HasRoute("choose") {
 				reactea.SetCurrentRoute("choose")
 			}

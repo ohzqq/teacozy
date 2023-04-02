@@ -83,10 +83,6 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case message.ReturnSelectionsMsg:
-		cmd = tea.Quit
-		cmds = append(cmds, cmd)
-
 	case message.UpMsg:
 		//h := m.Props().Visible()[m.Cursor].LineHeight()
 		offset := m.Viewport.YOffset
