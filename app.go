@@ -116,9 +116,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 	switch msg := msg.(type) {
-	//case message.ShowHelpMsg:
-	//fmt.Println("ehlp")
-	//cmds = append(cmds, message.ChangeRouteCmd("help"))
 	case message.ConfirmMsg:
 		c.ConfirmAction = ""
 	case message.GetConfirmationMsg:
@@ -139,7 +136,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ReturnSelectionsMsg:
 		switch reactea.CurrentRoute() {
 		case "filter":
-			println("poot")
 			if c.HasRoute("choose") {
 				reactea.SetCurrentRoute("choose")
 			}
@@ -150,9 +146,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "ctrl+c":
 			return reactea.Destroy
-		case "H":
-			cmds = append(cmds, message.ShowHelp())
-			//println("help")
 		case "y":
 			cmds = append(cmds, message.Confirm(true))
 		case "n":
@@ -168,7 +161,6 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	if c.header != "" {
-		//h := c.Style.Header.Render(c.header)
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
 

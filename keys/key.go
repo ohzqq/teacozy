@@ -93,7 +93,7 @@ func Quit() *Binding {
 }
 
 func ShowHelp() *Binding {
-	return NewBinding("H").
+	return NewBinding("f1").
 		WithHelp("help").
 		Cmd(message.ShowHelp())
 }

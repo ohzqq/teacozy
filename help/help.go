@@ -63,7 +63,7 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.HideHelpMsg:
-		return message.ChangeRoute("default")
+		return message.ChangeRoute("prev")
 	case message.QuitMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)

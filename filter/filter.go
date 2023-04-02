@@ -35,15 +35,6 @@ type Props struct {
 	*props.Items
 }
 
-type KeyMap struct {
-	Up               key.Binding
-	Down             key.Binding
-	ToggleItem       key.Binding
-	Quit             key.Binding
-	ReturnSelections key.Binding
-	StopFiltering    key.Binding
-}
-
 func New() *Filter {
 	tm := Filter{
 		Style:  style.ListDefaults(),
@@ -128,28 +119,16 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Input.Blur()
 		return message.ChangeRoute("default")
 
+	case message.ShowHelpMsg:
+		k := m.KeyMap()
+		m.Props().SetHelp(k)
+		cmds = append(cmds, message.ChangeRoute("help"))
+
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, filterKey.StopFiltering):
-			cmds = append(cmds, message.StopFiltering())
-		case key.Matches(msg, filterKey.Up):
-			cmds = append(cmds, message.Up())
-		case key.Matches(msg, filterKey.Down):
-			cmds = append(cmds, message.Down())
-		case key.Matches(msg, filterKey.ToggleItem):
-			cmds = append(cmds, message.ToggleItem())
-		case key.Matches(msg, filterKey.Quit):
-			m.quitting = true
-			cmds = append(cmds, message.ReturnSelections())
-		case key.Matches(msg, filterKey.ReturnSelections):
-			if m.Props().Limit == 1 {
-				return message.ToggleItem()
+		for _, k := range m.KeyMap() {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
 			}
-			if m.Props().NumSelected == 0 {
-				m.quitting = true
-				return message.ToggleItem()
-			}
-			cmds = append(cmds, message.ReturnSelections())
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		m.Matches = m.Props().Visible(m.Input.Value())
@@ -190,33 +169,6 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.Input.Focus()
 
 	return nil
-}
-
-var filterKey = KeyMap{
-	ToggleItem: key.NewBinding(
-		key.WithKeys(" ", "tab"),
-		key.WithHelp("space", "select item"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("down"),
-		key.WithHelp("down", "move cursor down"),
-	),
-	Up: key.NewBinding(
-		key.WithKeys("up"),
-		key.WithHelp("up", "move cursor up"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "quit"),
-	),
-	StopFiltering: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "stop filtering"),
-	),
-	ReturnSelections: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "return selections"),
-	),
 }
 
 func (m *Filter) ReturnSelections() tea.Cmd {
