@@ -44,10 +44,9 @@ func (km KeyMap) FullHelp() [][]key.Binding {
 var Keys = keys.KeyMap{
 	keys.ShowHelp(),
 	keys.Quit().WithKeys("ctrl+c", "q"),
-	keys.NewBinding("g").WithHelp("list top"),
 	keys.NewBinding("e").
 		WithHelp("edit field").
-		Cmd(message.EditField()),
+		Cmd(message.StartEditing()),
 	keys.NewBinding("enter").
 		WithHelp("return selections").
 		Cmd(message.ReturnSelections()),

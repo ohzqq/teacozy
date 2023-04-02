@@ -23,6 +23,7 @@ type Choose struct {
 	Paginator paginator.Model
 	quitting  bool
 	header    string
+	KeyMap    keys.KeyMap
 	Style     style.List
 }
 
@@ -32,7 +33,8 @@ type Props struct {
 
 func NewChoice() *Choose {
 	tm := Choose{
-		Style: style.ListDefaults(),
+		Style:  style.ListDefaults(),
+		KeyMap: Keys,
 	}
 	return &tm
 }
@@ -139,6 +141,11 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		return message.ChangeRoute("filter")
 
 	case tea.KeyMsg:
+		for _, k := range m.KeyMap {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
+			}
+		}
 		switch {
 		case key.Matches(msg, Key.Up):
 			cmds = append(cmds, message.Up())
@@ -150,11 +157,8 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, message.Next())
 		case key.Matches(msg, Key.ToggleItem):
 			cmds = append(cmds, message.ToggleItem())
-		case key.Matches(msg, Key.Help):
-			return message.ShowHelp()
-			//cmds = append(cmds, message.ShowHelpCmd())
 		case key.Matches(msg, Key.Edit):
-			cmds = append(cmds, message.EditField())
+			cmds = append(cmds, message.StartEditing())
 		case key.Matches(msg, Key.Filter):
 			cmds = append(cmds, message.StartFiltering())
 		case key.Matches(msg, Key.Bottom):

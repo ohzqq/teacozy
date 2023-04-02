@@ -99,7 +99,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 				}
 				cmds = append(cmds, message.StopEditing())
 			case key.Matches(msg, formKey.Edit):
-				cmds = append(cmds, message.EditField())
+				cmds = append(cmds, message.StartEditing())
 			}
 		}
 	}

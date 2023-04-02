@@ -28,8 +28,12 @@ var Keys = keys.KeyMap{
 	keys.Down().WithKeys("j", "down"),
 	keys.Next().WithKeys("right", "l"),
 	keys.Prev().WithKeys("left", "h"),
-	keys.NewBinding("G").WithHelp("list bottom"),
-	keys.NewBinding("g").WithHelp("list top"),
+	keys.NewBinding("G").
+		WithHelp("list bottom").
+		Cmd(message.Bottom()),
+	keys.NewBinding("g").
+		WithHelp("list top").
+		Cmd(message.Top()),
 }
 
 func (m *List) Props() *props.Items {

@@ -81,7 +81,7 @@ func SaveEdit() tea.Cmd {
 	}
 }
 
-func EditField() tea.Cmd {
+func StartEditing() tea.Cmd {
 	return func() tea.Msg {
 		return StartEditingMsg{}
 	}
