@@ -123,10 +123,8 @@ func (m *List) View() string {
 	)
 	s.WriteString(items)
 
-	var view string
-	view = s.String()
-	//if m.Paginator.TotalPages <= 1 {
-	//view = s.String()
+	view := s.String()
+
 	if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
 		m.Footer = p

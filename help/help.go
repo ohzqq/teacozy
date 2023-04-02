@@ -26,9 +26,7 @@ type Help struct {
 }
 
 var Keys = keys.KeyMap{
-	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelp()),
-	//keys.Up(),
-	//keys.Down(),
+	keys.NewBinding("esc", "q").WithHelp("exit screen").Cmd(message.HideHelp()),
 	keys.Quit(),
 	keys.ShowHelp(),
 }
@@ -85,6 +83,9 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Help) Render(w, h int) string {
+	if m.list.Footer != "" {
+		m.Props().SetFooter(m.list.Footer)
+	}
 	return m.list.View()
 }
 

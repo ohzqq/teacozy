@@ -52,16 +52,13 @@ type Route interface {
 
 func New(props *props.Items, routes []Route) *App {
 	app := &App{
-		Items:      props,
 		mainRouter: router.New(),
 		Routes:     make(map[string]router.RouteInitializer),
 		width:      util.TermHeight(),
 		height:     util.TermWidth(),
 		Style:      DefaultStyle(),
 	}
-	app.Items.SetFooter = app.Footer
-	app.Items.SetHeader = app.Header
-	app.Items.SetHelp = app.Help
+	app.Items = app.NewProps(props)
 
 	if app.Items.Title != "" {
 		app.Items.SetHeader(app.Items.Title)
@@ -85,6 +82,14 @@ func KeymapToProps(km keys.KeyMap) *props.Items {
 	}
 	p := props.New(props.ChoiceMap(c), props.Limit(0))
 	return p
+}
+
+func (c *App) NewProps(props *props.Items) *props.Items {
+	c.Footer("")
+	props.SetFooter = c.Footer
+	props.SetHeader = c.Header
+	props.SetHelp = c.Help
+	return props
 }
 
 func (c *App) CloneProps() *props.Items {
@@ -115,10 +120,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		case "prev":
 			route = c.PrevRoute
 		case "help":
-			p := KeymapToProps(c.help)
+			p := c.NewProps(KeymapToProps(c.help))
 			p.Height = c.Items.Height
 			p.Width = c.Items.Width
-			c.Footer("")
 			c.Routes["help"] = help.New().Initializer(p)
 		}
 		c.PrevRoute = reactea.CurrentRoute()
