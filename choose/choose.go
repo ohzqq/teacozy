@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -23,7 +22,6 @@ type Choose struct {
 	Paginator paginator.Model
 	quitting  bool
 	header    string
-	KeyMap    keys.KeyMap
 	list      *list.List
 	Style     style.List
 }
@@ -34,8 +32,7 @@ type Props struct {
 
 func NewChoice() *Choose {
 	tm := Choose{
-		Style:  style.ListDefaults(),
-		KeyMap: Keys,
+		Style: style.ListDefaults(),
 	}
 	return &tm
 }
@@ -72,7 +69,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case message.ShowHelpMsg:
-		k := Keys
+		k := m.KeyMap()
 		k = append(k, list.Keys...)
 		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))
@@ -157,7 +154,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 			m.quitting = true
 			cmds = append(cmds, message.ReturnSelections())
 		}
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}

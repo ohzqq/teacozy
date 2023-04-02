@@ -2,6 +2,7 @@ package choose
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 )
@@ -19,6 +20,35 @@ type KeyMap struct {
 	Bottom           key.Binding
 	Top              key.Binding
 	Edit             key.Binding
+}
+
+func (m *Choose) ReturnSelections() tea.Cmd {
+	if m.Props().Limit == 1 {
+		return message.ToggleItem()
+	}
+	if m.Props().NumSelected == 0 {
+		m.quitting = true
+		return message.ToggleItem()
+	}
+	return message.ReturnSelections()
+}
+
+func (m *Choose) KeyMap() keys.KeyMap {
+	var keys = keys.KeyMap{
+		keys.ShowHelp(),
+		keys.Quit().WithKeys("ctrl+c", "q"),
+		keys.ToggleItem().WithKeys("tab", " "),
+		keys.NewBinding("e").
+			WithHelp("edit field").
+			Cmd(message.StartEditing()),
+		keys.NewBinding("enter").
+			WithHelp("return selections").
+			Cmd(m.ReturnSelections()),
+		keys.NewBinding("/").
+			WithHelp("filter list").
+			Cmd(message.StartFiltering()),
+	}
+	return keys
 }
 
 var Keys = keys.KeyMap{
