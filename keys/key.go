@@ -43,6 +43,14 @@ func (k *Binding) WithHelp(h string) *Binding {
 	return k
 }
 
+func (km KeyMap) Map() []map[string]string {
+	c := make([]map[string]string, len(km))
+	for i, k := range km {
+		c[i] = map[string]string{k.Help().Key: k.Help().Desc}
+	}
+	return c
+}
+
 var Global = KeyMap{
 	Quit(),
 	ShowHelp(),
@@ -85,7 +93,7 @@ func Quit() *Binding {
 }
 
 func ShowHelp() *Binding {
-	return NewBinding("ctrl+h").
+	return NewBinding("H").
 		WithHelp("help").
 		Cmd(message.ShowHelp())
 }

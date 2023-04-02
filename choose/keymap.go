@@ -21,26 +21,6 @@ type KeyMap struct {
 	Edit             key.Binding
 }
 
-func (km KeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		km.ToggleItem,
-		km.Edit,
-		km.Filter,
-		km.ReturnSelections,
-	}
-}
-
-func (km KeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		[]key.Binding{
-			km.ToggleItem,
-			km.Edit,
-			km.Filter,
-			km.ReturnSelections,
-		},
-	}
-}
-
 var Keys = keys.KeyMap{
 	keys.ShowHelp(),
 	keys.Quit().WithKeys("ctrl+c", "q"),

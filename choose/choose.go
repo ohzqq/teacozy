@@ -72,7 +72,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case message.ShowHelpMsg:
-		k := keys.Global
+		k := Keys
 		k = append(k, list.Keys...)
 		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))

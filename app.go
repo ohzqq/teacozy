@@ -76,11 +76,7 @@ func New(props *props.Items, routes []Route) *App {
 }
 
 func KeymapToProps(km keys.KeyMap) *props.Items {
-	var c []map[string]string
-	for _, k := range km {
-		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
-	}
-	p := props.New(props.ChoiceMap(c), props.Limit(0))
+	p := props.New(props.ChoiceMap(km.Map()), props.Limit(0))
 	return p
 }
 
