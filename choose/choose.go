@@ -72,7 +72,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		k := keys.Global
 		k = append(k, list.Keys...)
 		m.Props().Help(k)
-		cmds = append(cmds, message.ChangeRouteCmd("help"))
+		cmds = append(cmds, message.ChangeRoute("help"))
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 		m.Props().Items.SetCurrent(m.Cursor)
@@ -118,61 +118,61 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]
 		m.Props().SetCurrent(cur.Index)
-		return message.ChangeRouteCmd("editField")
+		return message.ChangeRoute("editField")
 
 	case message.ToggleItemMsg:
 		idx := m.Props().Visible()[m.Cursor].Index
 
 		if m.Props().NumSelected == 0 && m.quitting {
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		}
 
 		m.Props().ToggleSelection(idx)
 
 		if m.Props().Limit == 1 {
-			return message.ReturnSelectionsCmd()
+			return message.ReturnSelections()
 		}
 
-		cmds = append(cmds, message.DownCmd())
+		cmds = append(cmds, message.Down())
 
 	case message.StartFilteringMsg:
-		return message.ChangeRouteCmd("filter")
+		return message.ChangeRoute("filter")
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, Key.Up):
-			cmds = append(cmds, message.UpCmd())
+			cmds = append(cmds, message.Up())
 		case key.Matches(msg, Key.Down):
-			cmds = append(cmds, message.DownCmd())
+			cmds = append(cmds, message.Down())
 		case key.Matches(msg, Key.Prev):
-			cmds = append(cmds, message.PrevCmd())
+			cmds = append(cmds, message.Prev())
 		case key.Matches(msg, Key.Next):
-			cmds = append(cmds, message.NextCmd())
+			cmds = append(cmds, message.Next())
 		case key.Matches(msg, Key.ToggleItem):
-			cmds = append(cmds, message.ToggleItemCmd())
+			cmds = append(cmds, message.ToggleItem())
 		case key.Matches(msg, Key.Help):
-			return message.ShowHelpCmd()
+			return message.ShowHelp()
 			//cmds = append(cmds, message.ShowHelpCmd())
 		case key.Matches(msg, Key.Edit):
-			cmds = append(cmds, message.StartEditingCmd())
+			cmds = append(cmds, message.EditField())
 		case key.Matches(msg, Key.Filter):
-			cmds = append(cmds, message.StartFilteringCmd())
+			cmds = append(cmds, message.StartFiltering())
 		case key.Matches(msg, Key.Bottom):
-			cmds = append(cmds, message.BottomCmd())
+			cmds = append(cmds, message.Bottom())
 		case key.Matches(msg, Key.Top):
-			cmds = append(cmds, message.TopCmd())
+			cmds = append(cmds, message.Top())
 		case key.Matches(msg, Key.Quit):
 			m.quitting = true
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		case key.Matches(msg, Key.ReturnSelections):
 			if m.Props().Limit == 1 {
-				return message.ToggleItemCmd()
+				return message.ToggleItem()
 			}
 			if m.Props().NumSelected == 0 {
 				m.quitting = true
-				return message.ToggleItemCmd()
+				return message.ToggleItem()
 			}
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		}
 	}
 

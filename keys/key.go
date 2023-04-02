@@ -51,41 +51,41 @@ var Global = KeyMap{
 func Up() *Binding {
 	return NewBinding("up").
 		WithHelp("move up").
-		Cmd(message.UpCmd())
+		Cmd(message.Up())
 }
 
 func Down() *Binding {
 	return NewBinding("down").
 		WithHelp("move down").
-		Cmd(message.DownCmd())
+		Cmd(message.Down())
 }
 
 func Next() *Binding {
 	return NewBinding("right").
 		WithHelp("next page").
-		Cmd(message.NextCmd())
+		Cmd(message.Next())
 }
 
 func Prev() *Binding {
 	return NewBinding("left").
 		WithHelp("prev page").
-		Cmd(message.PrevCmd())
+		Cmd(message.Prev())
 }
 
 func ToggleItem() *Binding {
 	return NewBinding("tab").
 		WithHelp("select item").
-		Cmd(message.ToggleItemCmd())
+		Cmd(message.ToggleItem())
 }
 
 func Quit() *Binding {
 	return NewBinding("ctrl+c").
 		WithHelp("quit program").
-		Cmd(message.QuitCmd())
+		Cmd(message.Quit())
 }
 
 func ShowHelp() *Binding {
 	return NewBinding("ctrl+h").
 		WithHelp("help").
-		Cmd(message.ShowHelpCmd())
+		Cmd(message.ShowHelp())
 }

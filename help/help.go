@@ -26,7 +26,7 @@ type Help struct {
 }
 
 var Keys = keys.KeyMap{
-	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelpCmd()),
+	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelp()),
 	//keys.Up(),
 	//keys.Down(),
 	keys.Quit(),
@@ -65,7 +65,7 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.HideHelpMsg:
-		return message.ChangeRouteCmd("default")
+		return message.ChangeRoute("default")
 	case message.QuitMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)

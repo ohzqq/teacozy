@@ -96,47 +96,47 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		idx := m.Matches[m.Cursor].Index
 
 		if m.Props().NumSelected == 0 && m.quitting {
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		}
 
 		m.Props().ToggleSelection(idx)
 
 		if m.Props().Limit == 1 {
-			return message.ReturnSelectionsCmd()
+			return message.ReturnSelections()
 		}
 
-		cmds = append(cmds, message.DownCmd())
+		cmds = append(cmds, message.Down())
 
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
-			cmds = append(cmds, message.ToggleItemCmd())
+			cmds = append(cmds, message.ToggleItem())
 		}
 		m.Input.Reset()
 		m.Input.Blur()
-		return message.ChangeRouteCmd("default")
+		return message.ChangeRoute("default")
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, filterKey.StopFiltering):
-			cmds = append(cmds, message.StopFilteringCmd())
+			cmds = append(cmds, message.StopFiltering())
 		case key.Matches(msg, filterKey.Up):
-			cmds = append(cmds, message.UpCmd())
+			cmds = append(cmds, message.Up())
 		case key.Matches(msg, filterKey.Down):
-			cmds = append(cmds, message.DownCmd())
+			cmds = append(cmds, message.Down())
 		case key.Matches(msg, filterKey.ToggleItem):
-			cmds = append(cmds, message.ToggleItemCmd())
+			cmds = append(cmds, message.ToggleItem())
 		case key.Matches(msg, filterKey.Quit):
 			m.quitting = true
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		case key.Matches(msg, filterKey.ReturnSelections):
 			if m.Props().Limit == 1 {
-				return message.ToggleItemCmd()
+				return message.ToggleItem()
 			}
 			if m.Props().NumSelected == 0 {
 				m.quitting = true
-				return message.ToggleItemCmd()
+				return message.ToggleItem()
 			}
-			cmds = append(cmds, message.ReturnSelectionsCmd())
+			cmds = append(cmds, message.ReturnSelections())
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		m.Matches = m.Props().Visible(m.Input.Value())

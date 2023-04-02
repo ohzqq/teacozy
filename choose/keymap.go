@@ -1,6 +1,10 @@
 package choose
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/message"
+)
 
 type KeyMap struct {
 	Up               key.Binding
@@ -35,6 +39,21 @@ func (km KeyMap) FullHelp() [][]key.Binding {
 			km.ReturnSelections,
 		},
 	}
+}
+
+var Keys = keys.KeyMap{
+	keys.ShowHelp(),
+	keys.Quit().WithKeys("ctrl+c", "q"),
+	keys.NewBinding("g").WithHelp("list top"),
+	keys.NewBinding("e").
+		WithHelp("edit field").
+		Cmd(message.EditField()),
+	keys.NewBinding("enter").
+		WithHelp("return selections").
+		Cmd(message.ReturnSelections()),
+	keys.NewBinding("/").
+		WithHelp("filter list").
+		Cmd(message.StartFiltering()),
 }
 
 var Key = KeyMap{

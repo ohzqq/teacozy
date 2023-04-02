@@ -6,7 +6,7 @@ import (
 
 type ReturnSelectionsMsg struct{}
 
-func ReturnSelectionsCmd() tea.Cmd {
+func ReturnSelections() tea.Cmd {
 	return func() tea.Msg {
 		return ReturnSelectionsMsg{}
 	}
@@ -14,7 +14,7 @@ func ReturnSelectionsCmd() tea.Cmd {
 
 type QuitMsg struct{}
 
-func QuitCmd() tea.Cmd {
+func Quit() tea.Cmd {
 	return func() tea.Msg {
 		return QuitMsg{}
 	}
@@ -38,7 +38,7 @@ type ConfirmMsg struct {
 	Confirmed bool
 }
 
-func ConfirmCmd(confirm bool) tea.Cmd {
+func Confirm(confirm bool) tea.Cmd {
 	return func() tea.Msg {
 		return ConfirmMsg{Confirmed: confirm}
 	}
@@ -51,43 +51,43 @@ type StartFilteringMsg struct{}
 type ToggleItemMsg struct{}
 type SaveEditMsg struct{}
 
-func StartFilteringCmd() tea.Cmd {
+func StartFiltering() tea.Cmd {
 	return func() tea.Msg {
 		return StartFilteringMsg{}
 	}
 }
 
-func StopFilteringCmd() tea.Cmd {
+func StopFiltering() tea.Cmd {
 	return func() tea.Msg {
 		return StopFilteringMsg{}
 	}
 }
 
-func ChangeRouteCmd(name string) tea.Cmd {
+func ChangeRoute(name string) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeRouteMsg{Name: name}
 	}
 }
 
-func StopEditingCmd() tea.Cmd {
+func StopEditing() tea.Cmd {
 	return func() tea.Msg {
 		return StopEditingMsg{}
 	}
 }
 
-func SaveEditCmd() tea.Cmd {
+func SaveEdit() tea.Cmd {
 	return func() tea.Msg {
 		return SaveEditMsg{}
 	}
 }
 
-func StartEditingCmd() tea.Cmd {
+func EditField() tea.Cmd {
 	return func() tea.Msg {
 		return StartEditingMsg{}
 	}
 }
 
-func ToggleItemCmd() tea.Cmd {
+func ToggleItem() tea.Cmd {
 	return func() tea.Msg {
 		return ToggleItemMsg{}
 	}
@@ -95,7 +95,7 @@ func ToggleItemCmd() tea.Cmd {
 
 type ShowHelpMsg struct{}
 
-func ShowHelpCmd() tea.Cmd {
+func ShowHelp() tea.Cmd {
 	return func() tea.Msg {
 		return ShowHelpMsg{}
 	}
@@ -103,7 +103,7 @@ func ShowHelpCmd() tea.Cmd {
 
 type HideHelpMsg struct{}
 
-func HideHelpCmd() tea.Cmd {
+func HideHelp() tea.Cmd {
 	return func() tea.Msg {
 		return HideHelpMsg{}
 	}
@@ -116,37 +116,37 @@ type PrevMsg struct{}
 type TopMsg struct{}
 type BottomMsg struct{}
 
-func UpCmd() tea.Cmd {
+func Up() tea.Cmd {
 	return func() tea.Msg {
 		return UpMsg{}
 	}
 }
 
-func DownCmd() tea.Cmd {
+func Down() tea.Cmd {
 	return func() tea.Msg {
 		return DownMsg{}
 	}
 }
 
-func NextCmd() tea.Cmd {
+func Next() tea.Cmd {
 	return func() tea.Msg {
 		return NextMsg{}
 	}
 }
 
-func PrevCmd() tea.Cmd {
+func Prev() tea.Cmd {
 	return func() tea.Msg {
 		return PrevMsg{}
 	}
 }
 
-func TopCmd() tea.Cmd {
+func Top() tea.Cmd {
 	return func() tea.Msg {
 		return TopMsg{}
 	}
 }
 
-func BottomCmd() tea.Cmd {
+func Bottom() tea.Cmd {
 	return func() tea.Msg {
 		return BottomMsg{}
 	}

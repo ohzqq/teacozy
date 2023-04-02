@@ -130,12 +130,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		case "ctrl+c":
 			return reactea.Destroy
 		case "ctrl+h":
-			cmds = append(cmds, message.ShowHelpCmd())
+			cmds = append(cmds, message.ShowHelp())
 			//println("help")
 		case "y":
-			cmds = append(cmds, message.ConfirmCmd(true))
+			cmds = append(cmds, message.Confirm(true))
 		case "n":
-			cmds = append(cmds, message.ConfirmCmd(false))
+			cmds = append(cmds, message.Confirm(false))
 		}
 	}
 

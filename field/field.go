@@ -66,16 +66,16 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.StopEditingMsg:
 		m.Input.Blur()
-		cmds = append(cmds, message.ChangeRouteCmd("choose"))
+		cmds = append(cmds, message.ChangeRoute("choose"))
 	case message.ConfirmMsg:
 		if msg.Confirmed {
-			cmds = append(cmds, message.SaveEditCmd())
+			cmds = append(cmds, message.SaveEdit())
 		}
-		cmds = append(cmds, message.StopEditingCmd())
+		cmds = append(cmds, message.StopEditing())
 	case message.SaveEditMsg:
 		m.Props().Item.Str = m.Input.Value()
 		m.Input.Reset()
-		cmds = append(cmds, message.StopEditingCmd())
+		cmds = append(cmds, message.StopEditing())
 	case message.StartEditingMsg:
 		textarea.Blink()
 		return m.Input.Focus()
@@ -90,16 +90,16 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 		} else {
 			switch {
 			case key.Matches(msg, formKey.StopEditing):
-				cmds = append(cmds, message.StopEditingCmd())
+				cmds = append(cmds, message.StopEditing())
 			case key.Matches(msg, formKey.Quit):
 				m.quitting = true
 			case key.Matches(msg, formKey.Save):
 				if m.Props().Item.Str != m.Input.Value() {
 					return message.GetConfirmation("Save edit?")
 				}
-				cmds = append(cmds, message.StopEditingCmd())
+				cmds = append(cmds, message.StopEditing())
 			case key.Matches(msg, formKey.Edit):
-				cmds = append(cmds, message.StartEditingCmd())
+				cmds = append(cmds, message.EditField())
 			}
 		}
 	}
