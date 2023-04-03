@@ -118,9 +118,5 @@ func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
 
 	tm.list = list.New(props.Items)
-	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Arabic
-	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
-	tm.Paginator.PerPage = props.Height
 	return nil
 }

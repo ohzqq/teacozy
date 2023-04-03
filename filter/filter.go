@@ -15,7 +15,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Filter struct {
@@ -78,33 +77,65 @@ func (m *Filter) KeyMap() keys.KeyMap {
 func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	start, end := m.Paginator.GetSliceBounds(len(m.Matches))
 	switch msg := msg.(type) {
 	case message.UpMsg:
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
-		//h := m.Props().Visible()[m.Cursor].LineHeight()
-		offset := m.Viewport.YOffset
-		if m.Cursor < offset {
-			m.Viewport.SetYOffset(m.Cursor)
-		}
+		//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
+		//if m.Cursor < offset {
+		//m.Viewport.SetYOffset(m.Cursor)
+		//}
 		//m.lineInfo = fmt.Sprintf("(cursor %d) < (offset %d)\n", m.Cursor, offset)
-		m.Props().SetCurrent(m.Cursor)
+		//m.Props().SetCurrent(m.Cursor)
+
+		m.Cursor--
+		if m.Cursor < 0 {
+			//m.Cursor = len(m.Matches) - 1
+			m.Cursor = 0
+			m.Paginator.Page = m.Paginator.TotalPages - 1
+		}
+		if m.Cursor < start {
+			m.Cursor = end
+			//m.Paginator.PrevPage()
+		}
+
+		h := m.Matches[m.Cursor].LineHeight()
+		offset := m.Viewport.YOffset
+		if o := h - m.Viewport.Height; o > 0 && offset > 0 {
+			//  d += h + m.Cursor
+			m.Viewport.SetYOffset(offset - o)
+			m.Viewport.LineUp(h)
+		} else if m.Cursor >= offset+m.Viewport.Height {
+			m.Viewport.LineUp(h)
+			m.Viewport.SetYOffset(offset - h)
+		}
+
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.DownMsg:
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
-		h := m.Props().Visible()[m.Cursor].LineHeight()
+		//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		offset := m.Viewport.YOffset
-		d := 1
+		//d := 1
+		h := m.Matches[m.Cursor].LineHeight()
 		if o := h - m.Viewport.Height; o > 0 {
-			d += h + m.Cursor
-			//m.Viewport.SetYOffset(2)
-			m.Viewport.LineDown(d)
+			//  d += h + m.Cursor
+			m.Viewport.SetYOffset(o)
+			m.Viewport.LineDown(o)
+		} else if m.Cursor <= offset+m.Viewport.Height {
+			m.Viewport.LineDown(h)
+			m.Viewport.SetYOffset(offset + h)
 		}
-		if m.Cursor >= offset+m.Viewport.Height {
-			m.Viewport.LineDown(d)
-		} else if m.Cursor == len(m.Matches)-1 {
-			m.Viewport.GotoBottom()
+
+		m.Cursor++
+		if m.Cursor >= len(m.Matches) {
+			m.Cursor = end - 1
+			m.Paginator.Page = 0
+			m.Viewport.GotoTop()
 		}
-		m.Props().SetCurrent(m.Cursor)
+		if m.Cursor >= end {
+			m.Cursor = end - 1
+			//m.Paginator.NextPage()
+		}
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.ToggleItemMsg:
 		if len(m.Matches) == 0 {
@@ -145,11 +176,13 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		m.Matches = m.Props().Visible(m.Input.Value())
+		m.Paginator.SetTotalPages((len(m.Matches) + m.Props().Height - 1) / m.Props().Height)
+		m.Paginator.PerPage = m.Props().Height
 		cmds = append(cmds, cmd)
 	}
 
-	m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
-	m.Props().SetCurrent(m.Cursor)
+	//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
+	//m.Props().SetCurrent(m.Cursor)
 	return tea.Batch(cmds...)
 }
 
@@ -180,32 +213,44 @@ func (m *Filter) Render(w, h int) string {
 }
 
 func (m *Filter) LineInfo() string {
-	h := m.Props().Visible()[m.Cursor].LineHeight()
+	h := m.Matches[m.Cursor].LineHeight()
 	offset := m.Viewport.YOffset
 
-	d := 1
-	if h-m.Viewport.Height > 0 {
+	d := 0
+	u := 0
+	y := 0
+	if o := h - m.Viewport.Height; o > 0 {
 		d += h + m.Cursor
+		y = o
+	}
+
+	if o := h - m.Viewport.Height; o > 0 && offset > 0 {
+		u += h - m.Cursor
+		y = offset - o
 	}
 
 	return fmt.Sprintf(lInfo,
-		m.Viewport.TotalLineCount(),
-		h,
-		m.Cursor+h+offset,
-		offset+m.Viewport.Height,
+		m.Cursor,
+		m.Props().Line,
 		offset,
-		m.Viewport.Height,
-		h-m.Viewport.Height,
+		y,
+		h,
+		u,
 		d,
+		m.Viewport.Height,
+		m.Viewport.TotalLineCount(),
 	)
 }
 
 const lInfo = `line info:
-total lines %d
+cursor: %d
+line: %d
+offset: %d set: %d
 lh: %d
-(cursor %d) >= %d (offset %d + height %d) 
-height - lineheight = %d
+up %d
 down %d
+view h: %d
+total lines %d
 `
 
 func (tm *Filter) Init(props Props) tea.Cmd {
