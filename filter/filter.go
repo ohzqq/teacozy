@@ -15,6 +15,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Filter struct {
@@ -80,23 +81,18 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	start, end := m.Paginator.GetSliceBounds(len(m.Matches))
 	switch msg := msg.(type) {
 	case message.UpMsg:
-		//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
-		//if m.Cursor < offset {
-		//m.Viewport.SetYOffset(m.Cursor)
-		//}
-		//m.lineInfo = fmt.Sprintf("(cursor %d) < (offset %d)\n", m.Cursor, offset)
-		//m.Props().SetCurrent(m.Cursor)
+		m.Cursor = util.Clamp(start, end-1, m.Cursor-1)
 
-		m.Cursor--
-		if m.Cursor < 0 {
-			//m.Cursor = len(m.Matches) - 1
-			m.Cursor = 0
-			m.Paginator.Page = m.Paginator.TotalPages - 1
-		}
-		if m.Cursor < start {
-			m.Cursor = end
-			//m.Paginator.PrevPage()
-		}
+		//m.Cursor--
+		//if m.Cursor < 0 {
+		//m.Cursor = len(m.Matches) - 1
+		//m.Cursor = 0
+		//m.Paginator.Page = m.Paginator.TotalPages - 1
+		//}
+		//if m.Cursor < start {
+		//m.Cursor = end
+		//m.Paginator.PrevPage()
+		//}
 
 		h := m.Matches[m.Cursor].LineHeight()
 		offset := m.Viewport.YOffset
@@ -112,29 +108,27 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.DownMsg:
-		//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		offset := m.Viewport.YOffset
-		//d := 1
 		h := m.Matches[m.Cursor].LineHeight()
 		if o := h - m.Viewport.Height; o > 0 {
-			//  d += h + m.Cursor
 			m.Viewport.SetYOffset(o)
 			m.Viewport.LineDown(o)
 		} else if m.Cursor <= offset+m.Viewport.Height {
 			m.Viewport.LineDown(h)
 			m.Viewport.SetYOffset(offset + h)
 		}
+		m.Cursor = util.Clamp(start, end-1, m.Cursor+1)
 
-		m.Cursor++
-		if m.Cursor >= len(m.Matches) {
-			m.Cursor = end - 1
-			m.Paginator.Page = 0
-			m.Viewport.GotoTop()
-		}
-		if m.Cursor >= end {
-			m.Cursor = end - 1
-			//m.Paginator.NextPage()
-		}
+		//m.Cursor++
+		//if m.Cursor >= len(m.Matches) {
+		//m.Cursor = end - 1
+		//m.Paginator.Page = 0
+		//m.Viewport.GotoTop()
+		//}
+		//if m.Cursor >= end {
+		//m.Cursor = end - 1
+		//m.Paginator.NextPage()
+		//}
 		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.ToggleItemMsg:
