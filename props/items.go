@@ -22,6 +22,7 @@ type Items struct {
 	Snapshot    string
 	Title       string
 	Cur         int
+	Line        int
 	footer      string
 	TotalLines  int
 	SetHeader   func(string)

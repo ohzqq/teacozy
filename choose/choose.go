@@ -12,7 +12,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Choose struct {
@@ -55,7 +54,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+	//start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	switch msg := msg.(type) {
 	case message.ShowHelpMsg:
@@ -63,48 +62,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		k = append(k, list.Keys...)
 		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))
-
-	case message.NextMsg:
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-		m.Props().Items.SetCurrent(m.Cursor)
-		m.Paginator.NextPage()
-
-	case message.PrevMsg:
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-		m.Props().Items.SetCurrent(m.Cursor)
-		m.Paginator.PrevPage()
-
-	case message.TopMsg:
-		m.Cursor = 0
-		m.Paginator.Page = 0
-		m.Props().SetCurrent(m.Cursor)
-
-	case message.BottomMsg:
-		m.Cursor = len(m.Props().Visible()) - 1
-		m.Paginator.Page = m.Paginator.TotalPages - 1
-		m.Props().SetCurrent(m.Cursor)
-
-	case message.UpMsg:
-		m.Cursor--
-		if m.Cursor < 0 {
-			m.Cursor = len(m.Props().Visible()) - 1
-			m.Paginator.Page = m.Paginator.TotalPages - 1
-		}
-		if m.Cursor < start {
-			m.Paginator.PrevPage()
-		}
-		m.Props().SetCurrent(m.Cursor)
-
-	case message.DownMsg:
-		m.Cursor++
-		if m.Cursor >= len(m.Props().Visible()) {
-			m.Cursor = 0
-			m.Paginator.Page = 0
-		}
-		if m.Cursor >= end {
-			m.Paginator.NextPage()
-		}
-		m.Props().SetCurrent(m.Cursor)
 
 	case message.StartEditingMsg:
 		cur := m.Props().Visible()[m.Cursor]

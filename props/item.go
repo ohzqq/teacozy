@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -73,11 +74,12 @@ func (match Item) Render(w, h int) string {
 	)
 	s := lipgloss.NewStyle().Width(w).Render(text)
 	return s
+	// return text
 }
 
 func (i Item) LineHeight() int {
-	return 1
-	//return lipgloss.Height(i.RenderText())
+	//return 1
+	return lipgloss.Height(i.Render(util.TermSize()))
 }
 
 func DefaultItemStyle() style.ListItem {

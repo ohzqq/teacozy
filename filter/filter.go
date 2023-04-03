@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,6 +26,7 @@ type Filter struct {
 	Matches     []props.Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
+	Paginator   paginator.Model
 	quitting    bool
 	Placeholder string
 	Prompt      string
@@ -90,13 +92,18 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case message.DownMsg:
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 		h := m.Props().Visible()[m.Cursor].LineHeight()
-		offset := m.Viewport.YOffset - h
-		if m.Cursor+h >= offset+m.Viewport.Height {
-			m.Viewport.LineDown(h)
+		offset := m.Viewport.YOffset
+		d := 1
+		if o := h - m.Viewport.Height; o > 0 {
+			d += h + m.Cursor
+			//m.Viewport.SetYOffset(2)
+			m.Viewport.LineDown(d)
+		}
+		if m.Cursor >= offset+m.Viewport.Height {
+			m.Viewport.LineDown(d)
 		} else if m.Cursor == len(m.Matches)-1 {
 			m.Viewport.GotoBottom()
 		}
-		//m.lineInfo = fmt.Sprintf("down: %d, (cursor %d) >= %d (offset %d + height %d) \n", h, m.Cursor, offset+m.Viewport.Height, offset, m.Viewport.Height)
 		m.Props().SetCurrent(m.Cursor)
 
 	case message.ToggleItemMsg:
@@ -152,24 +159,54 @@ func (m *Filter) Render(w, h int) string {
 
 	var s strings.Builder
 
-	items := m.Props().RenderItems(m.Cursor, m.Matches)
+	start, end := m.Paginator.GetSliceBounds(len(m.Matches))
+
+	//items := m.Props().RenderItems(m.Cursor, m.Matches)
+
+	items := m.Props().RenderItems(
+		m.Cursor%m.Props().Height,
+		m.Matches[start:end],
+	)
 	s.WriteString(items)
 
 	m.Viewport.SetContent(s.String())
 
 	view := m.Input.View() + "\n" + m.Viewport.View()
 
-	m.Props().SetFooter(
-		fmt.Sprintf(
-			`height %d
-yoffset %d
-`,
-			m.Viewport.Height,
-			m.Viewport.YOffset,
-			//m.Props().CurrentItem().LineHeight(),
-		))
+	if m.LineInfo() != "" {
+		m.Props().SetFooter(m.LineInfo())
+	}
 	return view
 }
+
+func (m *Filter) LineInfo() string {
+	h := m.Props().Visible()[m.Cursor].LineHeight()
+	offset := m.Viewport.YOffset
+
+	d := 1
+	if h-m.Viewport.Height > 0 {
+		d += h + m.Cursor
+	}
+
+	return fmt.Sprintf(lInfo,
+		m.Viewport.TotalLineCount(),
+		h,
+		m.Cursor+h+offset,
+		offset+m.Viewport.Height,
+		offset,
+		m.Viewport.Height,
+		h-m.Viewport.Height,
+		d,
+	)
+}
+
+const lInfo = `line info:
+total lines %d
+lh: %d
+(cursor %d) >= %d (offset %d + height %d) 
+height - lineheight = %d
+down %d
+`
 
 func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
@@ -180,6 +217,11 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.Input.PromptStyle = tm.Style.Prompt
 	tm.Input.Placeholder = tm.Placeholder
 	tm.Input.Width = tm.Props().Width
+
+	tm.Paginator = paginator.New()
+	tm.Paginator.Type = paginator.Arabic
+	tm.Paginator.SetTotalPages((len(tm.Props().Visible()) + props.Height - 1) / props.Height)
+	tm.Paginator.PerPage = props.Height
 
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
