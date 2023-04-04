@@ -116,7 +116,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		}
 		m.Input.Reset()
 		m.Input.Blur()
-		return message.ChangeRoute("default")
+		return message.ChangeRoute("prev")
 
 	case message.ShowHelpMsg:
 		k := m.KeyMap()

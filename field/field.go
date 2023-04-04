@@ -16,10 +16,9 @@ type Field struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	Input       textarea.Model
-	quitting    bool
-	Placeholder string
-	Prompt      string
+	Input    textarea.Model
+	quitting bool
+	Prompt   string
 }
 
 type KeyMap struct {
@@ -66,7 +65,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.StopEditingMsg:
 		m.Input.Blur()
-		cmds = append(cmds, message.ChangeRoute("choose"))
+		cmds = append(cmds, message.ChangeRoute("prev"))
 	case message.ConfirmMsg:
 		if msg.Confirmed {
 			cmds = append(cmds, message.SaveEdit())
@@ -119,7 +118,6 @@ func (tm *Field) Init(props Props) tea.Cmd {
 
 	tm.Input = textarea.New()
 	tm.Input.Prompt = tm.Prompt
-	tm.Input.Placeholder = tm.Placeholder
 	tm.Input.ShowLineNumbers = false
 
 	tm.Input.SetValue(tm.Props().Item.Str)

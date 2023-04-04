@@ -33,6 +33,7 @@ type App struct {
 	Routes        map[string]router.RouteInitializer
 	ConfirmAction string
 	PrevRoute     string
+	route         string
 	footer        string
 	header        string
 	body          string
@@ -82,6 +83,15 @@ func New(props *props.Items, routes ...Route) *App {
 	return app
 }
 
+func (c *App) ChangeRoute(r string) {
+	if p := reactea.CurrentRoute(); p == "" {
+		c.PrevRoute = "default"
+	} else {
+		c.PrevRoute = p
+	}
+	reactea.SetCurrentRoute(r)
+}
+
 func (c App) ListRoutes() []string {
 	var r []string
 	for n, _ := range c.Routes {
@@ -110,6 +120,7 @@ func (c *App) CloneProps() *props.Items {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
+	//SetCurrentRoute(c, "default")
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -134,13 +145,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			p.Width = c.Items.Width
 			c.Routes["help"] = help.New().Initializer(p)
 		}
-		c.PrevRoute = reactea.CurrentRoute()
-		reactea.SetCurrentRoute(route)
+		c.ChangeRoute(route)
 	case message.ReturnSelectionsMsg:
 		switch reactea.CurrentRoute() {
 		case "filter":
 			if c.HasRoute("choose") {
-				reactea.SetCurrentRoute("choose")
+				c.ChangeRoute("choose")
 			}
 		default:
 			return reactea.Destroy
@@ -164,6 +174,7 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	if c.header != "" {
+		//c.Footer(c.header)
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
 

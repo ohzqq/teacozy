@@ -9,6 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/message"
+	"github.com/ohzqq/teacozy/props"
 )
 
 type Confirm struct {
@@ -20,17 +21,7 @@ type Confirm struct {
 }
 
 type Props struct {
-	Confirm   func(bool) tea.Cmd
-	Question  string
-	PrevRoute string
-}
-
-func NewProps(q, r string) Props {
-	return Props{
-		Confirm:   ConfirmCmd,
-		PrevRoute: r,
-		Question:  q,
-	}
+	*props.Items
 }
 
 func New() *Confirm {
@@ -39,10 +30,10 @@ func New() *Confirm {
 	}
 }
 
-func Initialize(q, r string) router.RouteInitializer {
+func (c Confirm) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
-		return component, component.Init(NewProps(q, r))
+		return component, component.Init(Props{Items: props})
 	}
 }
 
