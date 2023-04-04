@@ -221,7 +221,7 @@ func WithHelp() Route {
 
 func WithForm() Route {
 	return func() RouteInitializer {
-		return field.NewField()
+		return field.New()
 	}
 }
 

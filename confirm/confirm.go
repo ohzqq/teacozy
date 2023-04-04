@@ -45,27 +45,26 @@ func (c *Confirm) Init(props Props) tea.Cmd {
 func (c *Confirm) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case message.ChangeRouteMsg:
-		reactea.SetCurrentRoute(msg.Name)
 	case message.ReturnSelectionsMsg:
 		return reactea.Destroy
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
-			return reactea.Destroy
 		case "y":
-			cmds = append(cmds, ConfirmCmd(true))
-			cmds = append(cmds, message.ChangeRoute(c.Props().PrevRoute))
+			cmds = append(cmds, message.Confirm(true))
+			//cmds = append(cmds, message.ChangeRoute("prev"))
 		case "n":
-			cmds = append(cmds, ConfirmCmd(false))
-			cmds = append(cmds, message.ChangeRoute(c.Props().PrevRoute))
+			cmds = append(cmds, message.Confirm(false))
+			//cmds = append(cmds, message.ChangeRoute("prev"))
 		}
 	}
 	return tea.Batch(cmds...)
 }
 
 func (c *Confirm) Render(w, h int) string {
-	return fmt.Sprintf("%s\n", c.Style.Render(c.Props().Question+"(y/n)"))
+	//items := c.Props().RenderItems(c.Props().Visible())
+
+	c.Props().SetFooter(fmt.Sprintf("%s\n", c.Style.Render(c.Props().Title+"(y/n)")))
+	return c.Props().Snapshot
 }
 
 type GetConfirmationMsg struct {

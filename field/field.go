@@ -33,14 +33,14 @@ type Props struct {
 	fields string
 }
 
-func NewField() *Field {
+func New() *Field {
 	tm := Field{
 		Prompt: style.PromptPrefix,
 	}
 	return &tm
 }
 
-func NewFieldProps(i *props.Item, fields string) Props {
+func NewProps(i *props.Item, fields string) Props {
 	return Props{
 		Item:   i,
 		fields: fields,
@@ -49,8 +49,8 @@ func NewFieldProps(i *props.Item, fields string) Props {
 
 func (c Field) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := NewField()
-		p := NewFieldProps(props.CurrentItem(), props.Snapshot)
+		component := New()
+		p := NewProps(props.CurrentItem(), props.Snapshot)
 		return component, component.Init(p)
 	}
 }
@@ -65,7 +65,7 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.StopEditingMsg:
 		m.Input.Blur()
-		cmds = append(cmds, message.ChangeRoute("prev"))
+		cmds = append(cmds, message.ChangeRoute("default"))
 	case message.ConfirmMsg:
 		if msg.Confirmed {
 			cmds = append(cmds, message.SaveEdit())

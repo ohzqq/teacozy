@@ -61,18 +61,14 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("help"))
 
 	case message.StartEditingMsg:
-		m.SetCurrent()
 		return message.ChangeRoute("editField")
 
 	case message.ToggleItemMsg:
 		m.SetCurrent()
-
 		m.Props().ToggleSelection()
-
 		if m.Props().Limit == 1 {
 			return message.ReturnSelections()
 		}
-
 		cmds = append(cmds, message.Down())
 
 	case message.StartFilteringMsg:
