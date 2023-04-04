@@ -133,7 +133,7 @@ func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Items = ChoiceMapToMatch(choices)
 }
 
-func (m Items) RenderItems(cursor int, items []Item) string {
+func (m Items) RenderItems(items []Item) string {
 	var s strings.Builder
 	for i, match := range items {
 		pre := "x"

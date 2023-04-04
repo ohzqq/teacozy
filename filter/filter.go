@@ -150,7 +150,7 @@ func (m *Filter) Render(w, h int) string {
 
 	var s strings.Builder
 
-	items := m.Props().RenderItems(m.Cursor, m.Matches)
+	items := m.Props().RenderItems(m.Matches)
 
 	s.WriteString(items)
 
