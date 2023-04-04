@@ -64,10 +64,10 @@ func (c *Confirm) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		case "y":
 			cmds = append(cmds, ConfirmCmd(true))
-			cmds = append(cmds, message.ChangeRouteCmd(c.Props().PrevRoute))
+			cmds = append(cmds, message.ChangeRoute(c.Props().PrevRoute))
 		case "n":
 			cmds = append(cmds, ConfirmCmd(false))
-			cmds = append(cmds, message.ChangeRouteCmd(c.Props().PrevRoute))
+			cmds = append(cmds, message.ChangeRoute(c.Props().PrevRoute))
 		}
 	}
 	return tea.Batch(cmds...)

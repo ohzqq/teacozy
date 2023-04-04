@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -19,8 +18,9 @@ type List struct {
 	Paginator paginator.Model
 	quitting  bool
 	Style     style.List
-	keys      keys.KeyMap
+	KeyMap    keys.KeyMap
 	items     *props.Items
+	Footer    string
 }
 
 var Keys = keys.KeyMap{
@@ -28,8 +28,12 @@ var Keys = keys.KeyMap{
 	keys.Down().WithKeys("j", "down"),
 	keys.Next().WithKeys("right", "l"),
 	keys.Prev().WithKeys("left", "h"),
-	keys.NewBinding("G").WithHelp("list bottom"),
-	keys.NewBinding("g").WithHelp("list top"),
+	keys.NewBinding("G").
+		WithHelp("list bottom").
+		Cmd(message.Bottom()),
+	keys.NewBinding("g").
+		WithHelp("list top").
+		Cmd(message.Top()),
 }
 
 func (m *List) Props() *props.Items {
@@ -38,9 +42,9 @@ func (m *List) Props() *props.Items {
 
 func New(props *props.Items) *List {
 	tm := &List{
-		Style: style.ListDefaults(),
-		keys:  Keys,
-		items: props,
+		Style:  style.ListDefaults(),
+		KeyMap: Keys,
+		items:  props,
 	}
 
 	tm.Paginator = paginator.New()
@@ -50,6 +54,12 @@ func New(props *props.Items) *List {
 	return tm
 }
 
+func (m *List) UpdateItems(items []props.Item) {
+	m.items.Items = items
+	m.Paginator.SetTotalPages((len(m.items.Visible()) + m.items.Height - 1) / m.items.Height)
+	m.Paginator.PerPage = m.items.Height
+}
+
 func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -57,23 +67,23 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	switch msg := msg.(type) {
 	case message.NextMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 		m.Paginator.NextPage()
 
 	case message.PrevMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 		m.Paginator.PrevPage()
 
 	case message.TopMsg:
 		m.Cursor = 0
 		m.Paginator.Page = 0
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.BottomMsg:
 		m.Cursor = len(m.Props().Visible()) - 1
 		m.Paginator.Page = m.Paginator.TotalPages - 1
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.UpMsg:
 		m.Cursor--
@@ -84,7 +94,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		if m.Cursor < start {
 			m.Paginator.PrevPage()
 		}
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case message.DownMsg:
 		m.Cursor++
@@ -95,10 +105,10 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		if m.Cursor >= end {
 			m.Paginator.NextPage()
 		}
-		m.Props().SetCurrent(m.Cursor)
+		m.Props().SetCurrent(m.Cursor % m.Props().Height)
 
 	case tea.KeyMsg:
-		for _, k := range m.keys {
+		for _, k := range m.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -114,19 +124,15 @@ func (m *List) View() string {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	items := m.Props().RenderItems(
-		m.Cursor%m.Props().Height,
 		m.Props().Visible()[start:end],
 	)
 	s.WriteString(items)
 
-	var view string
-	view = s.String()
-	if m.Paginator.TotalPages <= 1 {
-		//view = s.String()
-	} else if m.Paginator.TotalPages > 1 {
+	view := s.String()
+
+	if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
-		view = lipgloss.JoinVertical(lipgloss.Left, view, p)
-		//m.Props().Footer(p)
+		m.Footer = p
 	}
 
 	return view

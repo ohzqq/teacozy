@@ -26,9 +26,7 @@ type Help struct {
 }
 
 var Keys = keys.KeyMap{
-	keys.NewBinding("esc").WithHelp("exit screen").Cmd(message.HideHelpCmd()),
-	//keys.Up(),
-	//keys.Down(),
+	keys.NewBinding("esc", "q").WithHelp("exit screen").Cmd(message.HideHelp()),
 	keys.Quit(),
 	keys.ShowHelp(),
 }
@@ -65,7 +63,7 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.HideHelpMsg:
-		return message.ChangeRouteCmd("default")
+		return message.ChangeRoute("prev")
 	case message.QuitMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
@@ -85,6 +83,9 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Help) Render(w, h int) string {
+	if m.list.Footer != "" {
+		m.Props().SetFooter(m.list.Footer)
+	}
 	return m.list.View()
 }
 

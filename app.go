@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -17,6 +18,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/slices"
 )
 
 type App struct {
@@ -33,10 +35,12 @@ type App struct {
 	PrevRoute     string
 	footer        string
 	header        string
+	body          string
 	exec          *exec.Cmd
 	execItem      *exec.Cmd
 	Style         Style
 	help          keys.KeyMap
+	Viewport      *viewport.Model
 }
 
 type Style struct {
@@ -52,19 +56,16 @@ type Route interface {
 
 func New(props *props.Items, routes []Route) *App {
 	app := &App{
-		Items:      props,
 		mainRouter: router.New(),
 		Routes:     make(map[string]router.RouteInitializer),
 		width:      util.TermHeight(),
 		height:     util.TermWidth(),
 		Style:      DefaultStyle(),
 	}
-	app.Items.Footer = app.Footer
-	app.Items.Header = app.Header
-	app.Items.Help = app.Help
+	app.Items = app.NewProps(props)
 
 	if app.Items.Title != "" {
-		app.Items.Header(app.Items.Title)
+		app.Items.SetHeader(app.Items.Title)
 	}
 
 	for i, r := range routes {
@@ -79,12 +80,28 @@ func New(props *props.Items, routes []Route) *App {
 }
 
 func KeymapToProps(km keys.KeyMap) *props.Items {
-	var c []map[string]string
-	for _, k := range km {
-		c = append(c, map[string]string{k.Help().Key: k.Help().Desc})
-	}
-	p := props.New(c, props.Limit(0))
+	p, _ := props.New(props.ChoiceMap(km.Map()), props.Limit(0))
 	return p
+}
+
+func (c App) ListRoutes() []string {
+	var r []string
+	for n, _ := range c.Routes {
+		r = append(r, n)
+	}
+	return r
+}
+
+func (c App) HasRoute(r string) bool {
+	return slices.Contains(c.ListRoutes(), r)
+}
+
+func (c *App) NewProps(props *props.Items) *props.Items {
+	c.Footer("")
+	props.SetHeader = c.Header
+	props.SetFooter = c.Footer
+	props.SetHelp = c.Help
+	return props
 }
 
 func (c *App) CloneProps() *props.Items {
@@ -102,9 +119,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	c.Snapshot = c.mainRouter.Render(c.Width, c.Height)
 	switch msg := msg.(type) {
-	//case message.ShowHelpMsg:
-	//fmt.Println("ehlp")
-	//cmds = append(cmds, message.ChangeRouteCmd("help"))
 	case message.ConfirmMsg:
 		c.ConfirmAction = ""
 	case message.GetConfirmationMsg:
@@ -112,30 +126,35 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
+		case "filter":
+			c.Footer("")
 		case "prev":
 			route = c.PrevRoute
 		case "help":
-			p := KeymapToProps(c.help)
+			p := c.NewProps(KeymapToProps(c.help))
 			p.Height = c.Items.Height
 			p.Width = c.Items.Width
-			c.Footer("")
 			c.Routes["help"] = help.New().Initializer(p)
 		}
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
 	case message.ReturnSelectionsMsg:
-		return reactea.Destroy
+		switch reactea.CurrentRoute() {
+		case "filter":
+			if c.HasRoute("choose") {
+				reactea.SetCurrentRoute("choose")
+			}
+		default:
+			return reactea.Destroy
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
 			return reactea.Destroy
-		case "ctrl+h":
-			cmds = append(cmds, message.ShowHelpCmd())
-			//println("help")
 		case "y":
-			cmds = append(cmds, message.ConfirmCmd(true))
+			cmds = append(cmds, message.Confirm(true))
 		case "n":
-			cmds = append(cmds, message.ConfirmCmd(false))
+			cmds = append(cmds, message.Confirm(false))
 		}
 	}
 
@@ -147,7 +166,6 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	if c.header != "" {
-		//h := c.Style.Header.Render(c.header)
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
 
@@ -159,26 +177,27 @@ func (c *App) Render(width, height int) string {
 		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	}
 
-	//view += "\n current " + reactea.CurrentRoute()
-	//view += "\n prev " + c.PrevRoute
 	return view
-}
-
-func (c *App) Footer(f string) {
-	c.footer = f
 }
 
 func (c *App) Header(f string) {
 	c.header = f
 }
 
+func (c *App) Footer(f string) {
+	c.footer = f
+}
+
 func (c *App) Help(p keys.KeyMap) {
 	c.help = p
 }
 
-func Choose(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
-	p := props.New(choices, opts...)
+func Choose(opts ...props.Opt) *App {
+	c := choose.New()
+	p, err := props.New(opts...)
+	if err != nil {
+		panic(err)
+	}
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
@@ -187,10 +206,13 @@ func Choose(choices []map[string]string, opts ...props.Opt) *App {
 	return l
 }
 
-func Form(choices []map[string]string, opts ...props.Opt) *App {
-	c := choose.NewChoice()
+func Form(opts ...props.Opt) *App {
+	c := choose.New()
 	fi := field.NewField()
-	p := props.New(choices, opts...)
+	p, err := props.New(opts...)
+	if err != nil {
+		panic(err)
+	}
 	l := New(p, []Route{c, fi})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
@@ -199,9 +221,12 @@ func Form(choices []map[string]string, opts ...props.Opt) *App {
 	return l
 }
 
-func Filter(choices []map[string]string, opts ...props.Opt) *App {
-	c := filter.NewFilter()
-	p := props.New(choices, opts...)
+func Filter(opts ...props.Opt) *App {
+	c := filter.New()
+	p, err := props.New(opts...)
+	if err != nil {
+		panic(err)
+	}
 	l := New(p, []Route{c})
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {

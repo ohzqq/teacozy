@@ -13,7 +13,6 @@ import (
 )
 
 type Items struct {
-	Choices     []map[string]string
 	Items       []Item
 	Selected    map[int]struct{}
 	NumSelected int
@@ -23,19 +22,20 @@ type Items struct {
 	Snapshot    string
 	Title       string
 	Cur         int
-	Footer      func(string)
-	Header      func(string)
-	Help        func(keys.KeyMap)
+	Line        int
+	footer      string
+	TotalLines  int
+	SetHeader   func(string)
+	SetFooter   func(string)
+	SetHelp     func(keys.KeyMap)
 	args        []string
 	cmd         string
 }
 
 type Opt func(*Items)
 
-func New(c []map[string]string, opts ...Opt) *Items {
+func New(opts ...Opt) (*Items, error) {
 	items := Items{
-		Choices:  c,
-		Items:    ChoiceMapToMatch(c),
 		Selected: make(map[int]struct{}),
 	}
 	items.Opts(opts...)
@@ -48,9 +48,17 @@ func New(c []map[string]string, opts ...Opt) *Items {
 		items.Width = w
 	}
 
+	if len(items.Items) < 0 {
+		return &items, fmt.Errorf("at least one item is needed")
+	}
+
 	items.SetCurrent(0)
 
-	return &items
+	return &items, nil
+}
+
+func (i *Items) ChoiceSlice(c []string) {
+	i.Items = ChoiceMapToMatch(MapChoices(c))
 }
 
 func (i *Items) Opts(opts ...Opt) {
@@ -59,16 +67,23 @@ func (i *Items) Opts(opts ...Opt) {
 	}
 }
 
+func (i *Items) NoLimit() *Items {
+	i.Limit = len(i.Items)
+	return i
+}
+
 func (i Items) Update() *Items {
-	items := New(i.Choices)
+	items := &Items{}
+	items.Items = i.Items
 	items.Limit = i.Limit
 	items.Selected = i.Selected
 	items.NumSelected = i.NumSelected
 	items.Height = i.Height
 	items.Width = i.Width
 	items.Cur = i.Cur
-	items.Header = i.Header
-	items.Footer = i.Footer
+	items.SetHeader = i.SetHeader
+	items.SetFooter = i.SetFooter
+	items.SetHelp = i.SetHelp
 	items.Title = i.Title
 	return items
 }
@@ -84,6 +99,76 @@ func (m Items) Chosen() []map[string]string {
 		}
 	}
 	return chosen
+}
+
+func (m Items) Map() []map[string]string {
+	var items []map[string]string
+	for _, item := range m.Items {
+		items = append(items, item.Map())
+	}
+	return items
+}
+
+func (i *Items) SetCurrent(idx int) {
+	i.Cur = idx
+}
+
+func (i Items) CurrentItem() *Item {
+	return &i.Items[i.Cur]
+}
+
+func (cp Items) Visible(matches ...string) []Item {
+	if len(matches) != 0 {
+		return ExactMatches(matches[0], cp.Items)
+	}
+	return cp.Items
+}
+
+func (m *Items) ToggleSelection(idx int) {
+	if _, ok := m.Selected[idx]; ok {
+		delete(m.Selected, idx)
+		m.NumSelected--
+	} else if m.NumSelected < m.Limit {
+		m.Selected[idx] = struct{}{}
+		m.NumSelected++
+	}
+}
+
+func (m *Items) ChoiceMap(choices []map[string]string) {
+	m.Items = ChoiceMapToMatch(choices)
+}
+
+func (m Items) RenderItems(items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == m.CurrentItem().Index:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.Render(m.Width, m.Height))
+		s.WriteRune('\n')
+	}
+	view := s.String()
+	return view
 }
 
 func (m Items) Exec() error {
@@ -117,88 +202,6 @@ func (m Items) Exec() error {
 		}
 	}
 	return nil
-}
-
-func (m Items) Map() []map[string]string {
-	var items []map[string]string
-	for _, item := range m.Items {
-		items = append(items, item.Map())
-	}
-	return items
-}
-
-func (i *Items) SetCurrent(idx int) {
-	i.Cur = idx
-}
-
-func (i Items) CurrentItem() *Item {
-	return &i.Items[i.Cur]
-}
-
-func (cp Items) Visible(matches ...string) []Item {
-	if len(matches) != 0 {
-		return ExactMatches(matches[0], cp.Items)
-	}
-	return cp.Items
-}
-
-func ItemSlice(i []string) *Items {
-	items := New(MapChoices(i))
-	return items
-}
-
-func MapChoices(c []string) []map[string]string {
-	choices := make([]map[string]string, len(c))
-	for i, val := range c {
-		choices[i] = map[string]string{"": val}
-	}
-	return choices
-}
-
-func (m *Items) ToggleSelection(idx int) {
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.NumSelected--
-	} else if m.NumSelected < m.Limit {
-		m.Selected[idx] = struct{}{}
-		m.NumSelected++
-	}
-}
-
-func (m *Items) ChoiceMap(choices []map[string]string) {
-	m.Choices = choices
-}
-
-func (m Items) RenderItems(cursor int, items []Item) string {
-	var s strings.Builder
-	for i, match := range items {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case i == cursor:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = match.Style.Selected.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-
-		s.WriteString(match.RenderText())
-		s.WriteRune('\n')
-	}
-	return s.String()
 }
 
 func ChoiceMapToMatch(options []map[string]string) []Item {
@@ -271,14 +274,36 @@ func Exec(cmd string, args ...string) Opt {
 	}
 }
 
-func NoLimit() Opt {
-	return func(i *Items) {
-		i.Limit = len(i.Choices)
-	}
-}
-
 func Header(t string) Opt {
 	return func(i *Items) {
 		i.Title = t
+	}
+}
+
+func MapChoices[E any](c []E) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": fmt.Sprint(val)}
+	}
+	return choices
+}
+
+func ChoiceSlice[E any](choices []E) Opt {
+	return func(i *Items) {
+		i.ChoiceMap(MapChoices(choices))
+	}
+}
+
+func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
+	return func(i *Items) {
+		i.Items = make([]Item, len(choices))
+		for idx, option := range choices {
+			for label, val := range option {
+				text := lipgloss.NewStyle().Width(i.Width).Render(fmt.Sprint(val))
+				item := NewItem(text, idx)
+				item.Label = fmt.Sprint(label)
+				i.Items[idx] = item
+			}
+		}
 	}
 }

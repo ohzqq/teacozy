@@ -59,6 +59,9 @@ func CalculateHeight(min, height int) int {
 }
 
 func Clamp(min, max, val int) int {
+	if max < 0 {
+		return min
+	}
 	if val < min {
 		return min
 	}
