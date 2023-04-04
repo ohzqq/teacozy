@@ -34,7 +34,7 @@ type Items struct {
 
 type Opt func(*Items)
 
-func New(opts ...Opt) *Items {
+func New(opts ...Opt) (*Items, error) {
 	items := Items{
 		Selected: make(map[int]struct{}),
 	}
@@ -48,9 +48,13 @@ func New(opts ...Opt) *Items {
 		items.Width = w
 	}
 
+	if len(items.Items) < 0 {
+		return &items, fmt.Errorf("at least one item is needed")
+	}
+
 	items.SetCurrent(0)
 
-	return &items
+	return &items, nil
 }
 
 func (i *Items) ChoiceSlice(c []string) {
@@ -79,6 +83,7 @@ func (i Items) Update() *Items {
 	items.Cur = i.Cur
 	items.SetHeader = i.SetHeader
 	items.SetFooter = i.SetFooter
+	items.SetHelp = i.SetHelp
 	items.Title = i.Title
 	return items
 }

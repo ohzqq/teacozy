@@ -54,8 +54,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	//start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
-
 	switch msg := msg.(type) {
 	case message.ShowHelpMsg:
 		k := m.KeyMap()
@@ -70,10 +68,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 
 	case message.ToggleItemMsg:
 		idx := m.Props().Visible()[m.Cursor].Index
-
-		//if m.Props().NumSelected == 0 && m.quitting {
-		//cmds = append(cmds, message.ReturnSelections())
-		//}
 
 		m.Props().ToggleSelection(idx)
 
