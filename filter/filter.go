@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -81,15 +80,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 
 		h := m.Matches[m.Cursor].LineHeight()
-		offset := m.Viewport.YOffset
-		if o := h - m.Viewport.Height; o > 0 && offset > 0 {
-			//  d += h + m.Cursor
-			m.Viewport.SetYOffset(offset - o)
-			m.Viewport.LineUp(h)
-		} else if m.Cursor >= offset+m.Viewport.Height {
-			m.Viewport.LineUp(h)
-			m.Viewport.SetYOffset(offset - h)
-		}
+		m.Viewport.LineUp(h)
 
 		m.Props().SetCurrent(m.Cursor)
 
@@ -99,11 +90,9 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		offset := m.Viewport.YOffset
 		h := m.Matches[m.Cursor].LineHeight()
 		if o := h - m.Viewport.Height; o > 0 {
-			m.Viewport.SetYOffset(o)
 			m.Viewport.LineDown(o)
 		} else if m.Cursor <= offset+m.Viewport.Height {
 			m.Viewport.LineDown(h)
-			m.Viewport.SetYOffset(offset + h)
 		}
 
 		m.Props().SetCurrent(m.Cursor)
@@ -169,52 +158,8 @@ func (m *Filter) Render(w, h int) string {
 
 	view := m.Input.View() + "\n" + m.Viewport.View()
 
-	if m.LineInfo() != "" {
-		m.Props().SetFooter(m.LineInfo())
-	}
 	return view
 }
-
-func (m *Filter) LineInfo() string {
-	h := m.Matches[m.Cursor].LineHeight()
-	offset := m.Viewport.YOffset
-
-	d := 0
-	u := 0
-	y := 0
-	if o := h - m.Viewport.Height; o > 0 {
-		d += h + m.Cursor
-		y = o
-	}
-
-	if o := h - m.Viewport.Height; o > 0 && offset > 0 {
-		u += h - m.Cursor
-		y = offset - o
-	}
-
-	return fmt.Sprintf(lInfo,
-		m.Cursor,
-		m.Props().Line,
-		offset,
-		y,
-		h,
-		u,
-		d,
-		m.Viewport.Height,
-		m.Viewport.TotalLineCount(),
-	)
-}
-
-const lInfo = `line info:
-cursor: %d
-line: %d
-offset: %d set: %d
-lh: %d
-up %d
-down %d
-view h: %d
-total lines %d
-`
 
 func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
