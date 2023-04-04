@@ -1,10 +1,7 @@
 package choose
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
@@ -17,11 +14,11 @@ import (
 type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
-	Paginator paginator.Model
-	quitting  bool
-	header    string
-	list      *list.List
-	Style     style.List
+
+	quitting bool
+	header   string
+	list     *list.List
+	Style    style.List
 }
 
 type Props struct {
@@ -93,22 +90,14 @@ func (m *Choose) SetCurrent() {
 }
 
 func (m *Choose) Render(w, h int) string {
-	var s strings.Builder
-
-	s.WriteString(m.list.View())
-
-	view := s.String()
-
 	if m.list.Footer != "" {
 		m.Props().SetFooter(m.list.Footer)
 	}
-
-	return view
+	return m.list.View()
 }
 
 func (tm *Choose) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
-
 	tm.list = list.New(props.Items)
 	return nil
 }

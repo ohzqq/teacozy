@@ -120,7 +120,6 @@ func (c *App) CloneProps() *props.Items {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	//SetCurrentRoute(c, "default")
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -174,7 +173,6 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	if c.header != "" {
-		//c.Footer(c.header)
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
 

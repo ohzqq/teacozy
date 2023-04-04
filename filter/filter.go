@@ -1,8 +1,6 @@
 package filter
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -28,7 +26,6 @@ type Filter struct {
 	Placeholder string
 	Prompt      string
 	Style       style.List
-	lineInfo    string
 }
 
 type Props struct {
@@ -147,17 +144,9 @@ func (m *Filter) SetCurrent(idx int) {
 func (m *Filter) Render(w, h int) string {
 	m.Viewport.Height = m.Props().Height
 	m.Viewport.Width = m.Props().Width
-
-	var s strings.Builder
-
-	items := m.Props().RenderItems(m.Matches)
-
-	s.WriteString(items)
-
-	m.Viewport.SetContent(s.String())
+	m.Viewport.SetContent(m.Props().RenderItems(m.Matches))
 
 	view := m.Input.View() + "\n" + m.Viewport.View()
-
 	return view
 }
 
