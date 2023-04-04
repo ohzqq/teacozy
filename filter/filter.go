@@ -78,7 +78,9 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 
 		h := m.Matches[m.Cursor].LineHeight()
-		m.Viewport.LineUp(h)
+		if m.Cursor < m.Viewport.YOffset {
+			m.Viewport.LineUp(h)
+		}
 
 		m.Props().SetCurrent(m.Cursor)
 
@@ -161,6 +163,7 @@ func (m *Filter) Render(w, h int) string {
 
 func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
+	//tm.Matches = props.Visible()
 
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt
