@@ -77,44 +77,36 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case message.UpMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
-
 			h := m.Matches[m.Cursor].LineHeight()
 			if m.Cursor < m.Viewport.YOffset {
 				m.Viewport.LineUp(h)
 			}
-
 			m.SetCurrent(m.Cursor)
 		}
 
 	case message.DownMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
-
 			offset := m.Viewport.YOffset
 			h := m.Matches[m.Cursor].LineHeight()
 			if o := h - m.Viewport.Height; o > 0 {
 				m.Viewport.LineDown(o)
 			} else if m.Cursor <= offset+m.Viewport.Height {
 				m.Viewport.LineDown(h)
-
-				m.SetCurrent(m.Cursor)
 			}
+			m.SetCurrent(m.Cursor)
 		}
 
 	case message.ToggleItemMsg:
 		if len(m.Matches) > 0 {
 			m.SetCurrent(m.Matches[m.Cursor].Index)
-
 			if m.Props().NumSelected == 0 && m.quitting {
 				cmds = append(cmds, message.ReturnSelections())
 			}
-
 			m.Props().ToggleSelection()
-
 			if m.Props().Limit == 1 {
 				return message.ReturnSelections()
 			}
-
 			cmds = append(cmds, message.Down())
 		}
 

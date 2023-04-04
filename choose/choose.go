@@ -61,8 +61,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("help"))
 
 	case message.StartEditingMsg:
-		//cur := m.Props().Visible()[m.list.Cursor]
-		//m.Props().SetCurrent(cur.Index)
 		m.SetCurrent()
 		return message.ChangeRoute("editField")
 
