@@ -124,7 +124,8 @@ func (cp Items) Visible(matches ...string) []Item {
 	return cp.Items
 }
 
-func (m *Items) ToggleSelection(idx int) {
+func (m *Items) ToggleSelection() {
+	idx := m.CurrentItem().Index
 	if _, ok := m.Selected[idx]; ok {
 		delete(m.Selected, idx)
 		m.NumSelected--

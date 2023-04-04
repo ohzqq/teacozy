@@ -17,7 +17,6 @@ import (
 type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
-	Cursor    int
 	Paginator paginator.Model
 	quitting  bool
 	header    string
@@ -62,14 +61,15 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("help"))
 
 	case message.StartEditingMsg:
-		cur := m.Props().Visible()[m.Cursor]
-		m.Props().SetCurrent(cur.Index)
+		//cur := m.Props().Visible()[m.list.Cursor]
+		//m.Props().SetCurrent(cur.Index)
+		m.SetCurrent()
 		return message.ChangeRoute("editField")
 
 	case message.ToggleItemMsg:
-		idx := m.Props().Visible()[m.Cursor].Index
+		m.SetCurrent()
 
-		m.Props().ToggleSelection(idx)
+		m.Props().ToggleSelection()
 
 		if m.Props().Limit == 1 {
 			return message.ReturnSelections()
@@ -92,6 +92,10 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 	m.list, cmd = m.list.Update(msg)
 	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
+}
+
+func (m *Choose) SetCurrent() {
+	m.Props().SetCurrent(m.Props().Visible()[m.list.Cursor].Index)
 }
 
 func (m *Choose) Render(w, h int) string {

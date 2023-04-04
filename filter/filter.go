@@ -75,45 +75,48 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.UpMsg:
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
+		if len(m.Matches) > 0 {
+			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 
-		h := m.Matches[m.Cursor].LineHeight()
-		if m.Cursor < m.Viewport.YOffset {
-			m.Viewport.LineUp(h)
+			h := m.Matches[m.Cursor].LineHeight()
+			if m.Cursor < m.Viewport.YOffset {
+				m.Viewport.LineUp(h)
+			}
+
+			m.SetCurrent(m.Cursor)
 		}
-
-		m.Props().SetCurrent(m.Cursor)
 
 	case message.DownMsg:
-		m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
+		if len(m.Matches) > 0 {
+			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 
-		offset := m.Viewport.YOffset
-		h := m.Matches[m.Cursor].LineHeight()
-		if o := h - m.Viewport.Height; o > 0 {
-			m.Viewport.LineDown(o)
-		} else if m.Cursor <= offset+m.Viewport.Height {
-			m.Viewport.LineDown(h)
+			offset := m.Viewport.YOffset
+			h := m.Matches[m.Cursor].LineHeight()
+			if o := h - m.Viewport.Height; o > 0 {
+				m.Viewport.LineDown(o)
+			} else if m.Cursor <= offset+m.Viewport.Height {
+				m.Viewport.LineDown(h)
+
+				m.SetCurrent(m.Cursor)
+			}
 		}
-
-		m.Props().SetCurrent(m.Cursor)
 
 	case message.ToggleItemMsg:
-		if len(m.Matches) == 0 {
-			return nil
+		if len(m.Matches) > 0 {
+			m.SetCurrent(m.Matches[m.Cursor].Index)
+
+			if m.Props().NumSelected == 0 && m.quitting {
+				cmds = append(cmds, message.ReturnSelections())
+			}
+
+			m.Props().ToggleSelection()
+
+			if m.Props().Limit == 1 {
+				return message.ReturnSelections()
+			}
+
+			cmds = append(cmds, message.Down())
 		}
-		idx := m.Matches[m.Cursor].Index
-
-		if m.Props().NumSelected == 0 && m.quitting {
-			cmds = append(cmds, message.ReturnSelections())
-		}
-
-		m.Props().ToggleSelection(idx)
-
-		if m.Props().Limit == 1 {
-			return message.ReturnSelections()
-		}
-
-		cmds = append(cmds, message.Down())
 
 	case message.StopFilteringMsg:
 		if m.Props().Limit == 1 {
@@ -135,13 +138,18 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 		m.Input, cmd = m.Input.Update(msg)
-		m.Matches = m.Props().Visible(m.Input.Value())
+		if v := m.Input.Value(); v != "" {
+			m.Matches = m.Props().Visible(v)
+		}
 		cmds = append(cmds, cmd)
 	}
 
 	m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
-	m.Props().SetCurrent(m.Cursor)
 	return tea.Batch(cmds...)
+}
+
+func (m *Filter) SetCurrent(idx int) {
+	m.Props().SetCurrent(idx)
 }
 
 func (m *Filter) Render(w, h int) string {
@@ -163,7 +171,6 @@ func (m *Filter) Render(w, h int) string {
 
 func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
-	//tm.Matches = props.Visible()
 
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt
