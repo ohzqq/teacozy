@@ -29,8 +29,6 @@ type Filter struct {
 	Prompt      string
 	Style       style.List
 	lineInfo    string
-	start       int
-	end         int
 }
 
 type Props struct {
@@ -163,7 +161,6 @@ func (m *Filter) Render(w, h int) string {
 
 func (tm *Filter) Init(props Props) tea.Cmd {
 	tm.UpdateProps(props)
-	tm.Matches = tm.Props().Visible()
 
 	tm.Input = textinput.New()
 	tm.Input.Prompt = tm.Prompt

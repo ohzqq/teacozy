@@ -54,6 +54,12 @@ func New(props *props.Items) *List {
 	return tm
 }
 
+func (m *List) UpdateItems(items []props.Item) {
+	m.items.Items = items
+	m.Paginator.SetTotalPages((len(m.items.Visible()) + m.items.Height - 1) / m.items.Height)
+	m.Paginator.PerPage = m.items.Height
+}
+
 func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
