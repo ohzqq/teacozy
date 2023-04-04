@@ -26,7 +26,6 @@ type Items struct {
 	footer      string
 	TotalLines  int
 	SetHeader   func(string)
-	SetBody     func(string)
 	SetFooter   func(string)
 	SetHelp     func(keys.KeyMap)
 	args        []string
@@ -164,7 +163,6 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		s.WriteRune('\n')
 	}
 	view := s.String()
-	//m.SetBody(view)
 	return view
 }
 

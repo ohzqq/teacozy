@@ -18,7 +18,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/util"
-	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/slices"
 )
 
@@ -100,7 +99,6 @@ func (c App) HasRoute(r string) bool {
 func (c *App) NewProps(props *props.Items) *props.Items {
 	c.Footer("")
 	props.SetHeader = c.Header
-	props.SetBody = c.Body
 	props.SetFooter = c.Footer
 	props.SetHelp = c.Help
 	return props
@@ -114,15 +112,6 @@ func (c *App) CloneProps() *props.Items {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.Routes["view"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		comp := reactea.Componentify[view.Props](view.Renderer)
-		p := view.Props{
-			Header: c.header,
-			Body:   c.body,
-			Footer: c.footer,
-		}
-		return comp, comp.Init(p)
-	}
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -175,7 +164,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
-	c.Body(view)
 
 	if c.header != "" {
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
@@ -189,30 +177,11 @@ func (c *App) Render(width, height int) string {
 		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	}
 
-	//vp := viewport.New(width, height)
-	//vp.SetContent(view)
-	//vp.SetContent(
-	//  lipgloss.JoinVertical(
-	//    lipgloss.Left,
-	//    c.header,
-	//    c.body,
-	//    //c.mainRouter.Render(width, height),
-	//    c.footer,
-	//  ),
-	//)
-
-	//return vp.View()
-	//view += "\n current " + reactea.CurrentRoute()
-	//view += "\n prev " + c.PrevRoute
 	return view
 }
 
 func (c *App) Header(f string) {
 	c.header = f
-}
-
-func (c *App) Body(f string) {
-	c.body = f
 }
 
 func (c *App) Footer(f string) {
