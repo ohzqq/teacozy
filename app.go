@@ -49,12 +49,14 @@ type Style struct {
 	Header  lipgloss.Style
 }
 
-type Route interface {
+type Route func() RouteInitializer
+
+type RouteInitializer interface {
 	Initializer(*props.Items) router.RouteInitializer
 	Name() string
 }
 
-func New(props *props.Items, routes []Route) *App {
+func New(props *props.Items, routes ...Route) *App {
 	app := &App{
 		mainRouter: router.New(),
 		Routes:     make(map[string]router.RouteInitializer),
@@ -68,7 +70,8 @@ func New(props *props.Items, routes []Route) *App {
 		app.Items.SetHeader(app.Items.Title)
 	}
 
-	for i, r := range routes {
+	for i, init := range routes {
+		r := init()
 		name := r.Name()
 		if i == 0 {
 			app.Routes["default"] = r.Initializer(app.Items)
@@ -77,11 +80,6 @@ func New(props *props.Items, routes []Route) *App {
 	}
 
 	return app
-}
-
-func KeymapToProps(km keys.KeyMap) *props.Items {
-	p, _ := props.New(props.ChoiceMap(km.Map()), props.Limit(0))
-	return p
 }
 
 func (c App) ListRoutes() []string {
@@ -192,13 +190,36 @@ func (c *App) Help(p keys.KeyMap) {
 	c.help = p
 }
 
+func WithChoice() Route {
+	return func() RouteInitializer {
+		return choose.New()
+	}
+}
+
+func WithFilter() Route {
+	return func() RouteInitializer {
+		return filter.New()
+	}
+}
+
+func WithHelp() Route {
+	return func() RouteInitializer {
+		return help.New()
+	}
+}
+
+func WithForm() Route {
+	return func() RouteInitializer {
+		return field.NewField()
+	}
+}
+
 func Choose(opts ...props.Opt) *App {
-	c := choose.New()
 	p, err := props.New(opts...)
 	if err != nil {
 		panic(err)
 	}
-	l := New(p, []Route{c})
+	l := New(p, WithChoice())
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
 		panic(err)
@@ -207,13 +228,11 @@ func Choose(opts ...props.Opt) *App {
 }
 
 func Form(opts ...props.Opt) *App {
-	c := choose.New()
-	fi := field.NewField()
 	p, err := props.New(opts...)
 	if err != nil {
 		panic(err)
 	}
-	l := New(p, []Route{c, fi})
+	l := New(p, WithChoice(), WithForm())
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
 		panic(err)
@@ -222,12 +241,11 @@ func Form(opts ...props.Opt) *App {
 }
 
 func Filter(opts ...props.Opt) *App {
-	c := filter.New()
 	p, err := props.New(opts...)
 	if err != nil {
 		panic(err)
 	}
-	l := New(p, []Route{c})
+	l := New(p, WithFilter())
 	pro := reactea.NewProgram(l)
 	if err := pro.Start(); err != nil {
 		panic(err)
@@ -241,4 +259,9 @@ func DefaultStyle() Style {
 		Footer:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 	}
+}
+
+func KeymapToProps(km keys.KeyMap) *props.Items {
+	p, _ := props.New(props.ChoiceMap(km.Map()), props.Limit(0))
+	return p
 }
