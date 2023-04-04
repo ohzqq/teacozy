@@ -1,6 +1,7 @@
 package teacozy
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -180,30 +181,30 @@ func (c *App) Render(width, height int) string {
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
 
-	//if c.ConfirmAction != "" {
-	//c.Footer(fmt.Sprintf("%s\n", c.Style.Confirm.Render(c.ConfirmAction+"(y/n)")))
-	//}
+	if c.ConfirmAction != "" {
+		c.Footer(fmt.Sprintf("%s\n", c.Style.Confirm.Render(c.ConfirmAction+"(y/n)")))
+	}
 
-	//if c.footer != "" {
-	//view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
-	//}
+	if c.footer != "" {
+		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
+	}
 
-	vp := viewport.New(width, height)
+	//vp := viewport.New(width, height)
 	//vp.SetContent(view)
-	vp.SetContent(
-		lipgloss.JoinVertical(
-			lipgloss.Left,
-			c.header,
-			c.body,
-			//c.mainRouter.Render(width, height),
-			c.footer,
-		),
-	)
+	//vp.SetContent(
+	//  lipgloss.JoinVertical(
+	//    lipgloss.Left,
+	//    c.header,
+	//    c.body,
+	//    //c.mainRouter.Render(width, height),
+	//    c.footer,
+	//  ),
+	//)
 
-	return vp.View()
+	//return vp.View()
 	//view += "\n current " + reactea.CurrentRoute()
 	//view += "\n prev " + c.PrevRoute
-	//return view
+	return view
 }
 
 func (c *App) Header(f string) {

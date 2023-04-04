@@ -164,7 +164,7 @@ func (m Items) RenderItems(cursor int, items []Item) string {
 		s.WriteRune('\n')
 	}
 	view := s.String()
-	m.SetBody(view)
+	//m.SetBody(view)
 	return view
 }
 
