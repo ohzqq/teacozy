@@ -107,9 +107,9 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			cmds = append(cmds, message.Prev())
 		}
 		m.SetCurrent()
-		//h := m.Props().CurrentItem().LineHeight()
-		if m.Cursor < m.Viewport.YOffset {
-			m.Viewport.LineUp(1)
+		h := m.Props().CurrentItem().LineHeight()
+		if m.Props().Lines > m.Props().Height {
+			m.Viewport.LineUp(h)
 		}
 
 	case message.DownMsg:
