@@ -9,13 +9,13 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/choose"
-	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/field"
 	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/help"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
+	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/exp/slices"
 )
@@ -36,14 +36,8 @@ type App struct {
 	header        string
 	exec          *exec.Cmd
 	execItem      *exec.Cmd
-	Style         Style
+	Style         style.App
 	help          keys.KeyMap
-}
-
-type Style struct {
-	Confirm lipgloss.Style
-	Footer  lipgloss.Style
-	Header  lipgloss.Style
 }
 
 type Route func() RouteInitializer
@@ -59,7 +53,7 @@ func New(props *props.Items, routes ...Route) *App {
 		Routes:     make(map[string]router.RouteInitializer),
 		width:      util.TermHeight(),
 		height:     util.TermWidth(),
-		Style:      DefaultStyle(),
+		Style:      style.DefaultAppStyle(),
 	}
 	app.Items = app.NewProps(props)
 
@@ -77,27 +71,6 @@ func New(props *props.Items, routes ...Route) *App {
 	}
 
 	return app
-}
-
-func (c *App) ChangeRoute(r string) {
-	if p := reactea.CurrentRoute(); p == "" {
-		c.PrevRoute = "default"
-	} else {
-		c.PrevRoute = p
-	}
-	reactea.SetCurrentRoute(r)
-}
-
-func (c App) ListRoutes() []string {
-	var r []string
-	for n, _ := range c.Routes {
-		r = append(r, n)
-	}
-	return r
-}
-
-func (c App) HasRoute(r string) bool {
-	return slices.Contains(c.ListRoutes(), r)
 }
 
 func (c *App) NewProps(props *props.Items) *props.Items {
@@ -195,6 +168,27 @@ func (c *App) Help(p keys.KeyMap) {
 	c.help = p
 }
 
+func (c *App) ChangeRoute(r string) {
+	if p := reactea.CurrentRoute(); p == "" {
+		c.PrevRoute = "default"
+	} else {
+		c.PrevRoute = p
+	}
+	reactea.SetCurrentRoute(r)
+}
+
+func (c App) ListRoutes() []string {
+	var r []string
+	for n, _ := range c.Routes {
+		r = append(r, n)
+	}
+	return r
+}
+
+func (c App) HasRoute(r string) bool {
+	return slices.Contains(c.ListRoutes(), r)
+}
+
 func WithChoice() Route {
 	return func() RouteInitializer {
 		return choose.New()
@@ -256,14 +250,6 @@ func Filter(opts ...props.Opt) *App {
 		panic(err)
 	}
 	return l
-}
-
-func DefaultStyle() Style {
-	return Style{
-		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
-		Footer:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
-		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
-	}
 }
 
 func KeymapToProps(km keys.KeyMap) *props.Items {
