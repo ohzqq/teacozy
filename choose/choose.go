@@ -5,6 +5,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/field"
+	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/message"
@@ -58,7 +60,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		m.Props().SetHelp(k)
 		cmds = append(cmds, message.ChangeRoute("help"))
 
-	case message.StartEditingMsg:
+	case field.StartEditingMsg:
 		return message.ChangeRoute("editField")
 
 	case message.ToggleItemMsg:
@@ -69,7 +71,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		}
 		cmds = append(cmds, message.Down())
 
-	case message.StartFilteringMsg:
+	case filter.StartFilteringMsg:
 		return message.ChangeRoute("filter")
 
 	case tea.KeyMsg:
@@ -131,13 +133,13 @@ func (m *Choose) KeyMap() keys.KeyMap {
 		keys.ToggleItem().WithKeys("tab", " "),
 		keys.NewBinding("e").
 			WithHelp("edit field").
-			Cmd(message.StartEditing()),
+			Cmd(field.StartEditing()),
 		keys.NewBinding("enter").
 			WithHelp("return selections").
 			Cmd(m.ReturnSelections()),
 		keys.NewBinding("/").
 			WithHelp("filter list").
-			Cmd(message.StartFiltering()),
+			Cmd(filter.StartFiltering()),
 		keys.NewBinding("v").
 			WithHelp("toggle all items").
 			Cmd(m.ToggleAllItems()),

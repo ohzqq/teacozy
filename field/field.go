@@ -33,10 +33,10 @@ func (m Field) KeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding("esc").
 			WithHelp("stop editing").
-			Cmd(message.StopEditing()),
+			Cmd(StopEditing()),
 		keys.NewBinding("e").
 			WithHelp("edit field").
-			Cmd(message.StartEditing()),
+			Cmd(StartEditing()),
 		keys.NewBinding("ctrl+s").
 			WithHelp("save edits").
 			Cmd(m.SaveEdit()),
@@ -79,19 +79,19 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case message.StopEditingMsg:
+	case StopEditingMsg:
 		m.Input.Blur()
 		cmds = append(cmds, message.ChangeRoute("default"))
 	case message.ConfirmMsg:
 		if msg.Confirmed {
-			cmds = append(cmds, message.SaveEdit())
+			cmds = append(cmds, SaveEdit())
 		}
-		cmds = append(cmds, message.StopEditing())
-	case message.SaveEditMsg:
+		cmds = append(cmds, StopEditing())
+	case SaveEditMsg:
 		m.Props().Item.Str = m.Input.Value()
 		m.Input.Reset()
-		cmds = append(cmds, message.StopEditing())
-	case message.StartEditingMsg:
+		cmds = append(cmds, StopEditing())
+	case StartEditingMsg:
 		textarea.Blink()
 		return m.Input.Focus()
 	case tea.KeyMsg:
@@ -120,7 +120,7 @@ func (m *Field) SaveEdit() tea.Cmd {
 	if m.Props().Item.Str != m.Input.Value() {
 		return message.GetConfirmation("Save edit?")
 	}
-	return message.StopEditing()
+	return StopEditing()
 }
 
 func (m *Field) Render(w, h int) string {
@@ -160,4 +160,28 @@ var formKey = KeyMap{
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "edit field"),
 	),
+}
+
+type StopEditingMsg struct{}
+
+func StopEditing() tea.Cmd {
+	return func() tea.Msg {
+		return StopEditingMsg{}
+	}
+}
+
+type SaveEditMsg struct{}
+
+func SaveEdit() tea.Cmd {
+	return func() tea.Msg {
+		return SaveEditMsg{}
+	}
+}
+
+type StartEditingMsg struct{}
+
+func StartEditing() tea.Cmd {
+	return func() tea.Msg {
+		return StartEditingMsg{}
+	}
 }

@@ -63,7 +63,7 @@ func (m *Filter) KeyMap() keys.KeyMap {
 			Cmd(m.ReturnSelections()),
 		keys.NewBinding("esc").
 			WithHelp("stop filtering").
-			Cmd(message.StopFiltering()),
+			Cmd(StopFiltering()),
 	}
 }
 
@@ -108,7 +108,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, message.Down())
 		}
 
-	case message.StopFilteringMsg:
+	case StopFilteringMsg:
 		if m.Props().Limit == 1 {
 			cmds = append(cmds, message.ToggleItem())
 		}
@@ -172,4 +172,20 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 
 func (m *Filter) ReturnSelections() tea.Cmd {
 	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
+}
+
+type StartFilteringMsg struct{}
+
+func StartFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StartFilteringMsg{}
+	}
+}
+
+type StopFilteringMsg struct{}
+
+func StopFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StopFilteringMsg{}
+	}
 }

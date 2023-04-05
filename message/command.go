@@ -54,48 +54,13 @@ func Confirm(confirm bool) tea.Cmd {
 	}
 }
 
-type StopEditingMsg struct{}
-type StartEditingMsg struct{}
-type StopFilteringMsg struct{}
-type StartFilteringMsg struct{}
-type ToggleItemMsg struct{}
-type SaveEditMsg struct{}
-
-func StartFiltering() tea.Cmd {
-	return func() tea.Msg {
-		return StartFilteringMsg{}
-	}
-}
-
-func StopFiltering() tea.Cmd {
-	return func() tea.Msg {
-		return StopFilteringMsg{}
-	}
-}
-
 func ChangeRoute(name string) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeRouteMsg{Name: name}
 	}
 }
 
-func StopEditing() tea.Cmd {
-	return func() tea.Msg {
-		return StopEditingMsg{}
-	}
-}
-
-func SaveEdit() tea.Cmd {
-	return func() tea.Msg {
-		return SaveEditMsg{}
-	}
-}
-
-func StartEditing() tea.Cmd {
-	return func() tea.Msg {
-		return StartEditingMsg{}
-	}
-}
+type ToggleItemMsg struct{}
 
 func ToggleItem() tea.Cmd {
 	return func() tea.Msg {
@@ -119,35 +84,24 @@ func HideHelp() tea.Cmd {
 	}
 }
 
-type UpMsg struct {
-	Lines int
-}
+type UpMsg struct{}
 
-type DownMsg struct {
-	Lines int
-}
+type DownMsg struct{}
+
 type NextMsg struct{}
 type PrevMsg struct{}
 type TopMsg struct{}
 type BottomMsg struct{}
 
-func Up(l ...int) tea.Cmd {
+func Up() tea.Cmd {
 	return func() tea.Msg {
-		lines := 1
-		if len(l) > 0 {
-			lines = l[0]
-		}
-		return UpMsg{Lines: lines}
+		return UpMsg{}
 	}
 }
 
-func Down(l ...int) tea.Cmd {
+func Down() tea.Cmd {
 	return func() tea.Msg {
-		lines := 1
-		if len(l) > 0 {
-			lines = l[0]
-		}
-		return DownMsg{Lines: lines}
+		return DownMsg{}
 	}
 }
 
