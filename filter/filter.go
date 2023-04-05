@@ -99,11 +99,11 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		if len(m.Matches) > 0 {
 			m.SetCurrent(m.Matches[m.Cursor].Index)
 			if m.Props().NumSelected == 0 && m.quitting {
-				cmds = append(cmds, message.ReturnSelections())
+				cmds = append(cmds, m.ReturnSelections())
 			}
 			m.Props().ToggleSelection()
 			if m.Props().Limit == 1 {
-				return message.ReturnSelections()
+				return m.ReturnSelections()
 			}
 			cmds = append(cmds, message.Down())
 		}

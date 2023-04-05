@@ -8,12 +8,6 @@ type ReturnSelectionsMsg struct {
 	Quitting bool
 }
 
-func ReturnSelections() tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
-	}
-}
-
 func ReturnSels(limit, numSel int) tea.Cmd {
 	msg := ReturnSelectionsMsg{}
 	if limit == 1 {
@@ -180,36 +174,3 @@ func Bottom() tea.Cmd {
 		return BottomMsg{}
 	}
 }
-
-//func SelectAllItemsCmd(m *Choose) tea.Cmd {
-//  return func() tea.Msg {
-//    if m.limit <= 1 {
-//      return nil
-//    }
-//    for i := range m.Matches {
-//      if m.numSelected >= m.limit {
-//        break // do not exceed given limit
-//      }
-//      if _, ok := m.Selected[i]; ok {
-//        continue
-//      } else {
-//        m.Selected[m.Matches[i].Index] = struct{}{}
-//        m.numSelected++
-//      }
-//    }
-//    return nil
-//  }
-//}
-
-//func DeselectAllItemsCmd(m *Choose) tea.Cmd {
-//  return func() tea.Msg {
-//    if m.limit <= 1 {
-//      return nil
-//    }
-
-//    maps.Clear(m.Selected)
-//    m.numSelected = 0
-
-//    return nil
-//  }
-//}

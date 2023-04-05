@@ -65,7 +65,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		m.SetCurrent()
 		m.Props().ToggleSelection()
 		if m.Props().Limit == 1 {
-			return message.ReturnSelections()
+			return m.ReturnSelections()
 		}
 		cmds = append(cmds, message.Down())
 
@@ -106,9 +106,20 @@ func (m *Choose) ReturnSelections() tea.Cmd {
 	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
 }
 
+func (m *Choose) ToggleAllItems() tea.Cmd {
+	return func() tea.Msg {
+		var items []int
+		for _, item := range m.Props().Items.Items {
+			items = append(items, item.Index)
+		}
+		m.Props().ToggleSelection(items...)
+		return nil
+	}
+}
+
 func (m *Choose) quit() tea.Cmd {
 	m.quitting = true
-	return message.ReturnSelections()
+	return m.ReturnSelections()
 }
 
 func (m *Choose) KeyMap() keys.KeyMap {
@@ -128,21 +139,8 @@ func (m *Choose) KeyMap() keys.KeyMap {
 			WithHelp("filter list").
 			Cmd(message.StartFiltering()),
 		keys.NewBinding("v").
-			WithHelp("filter list").
-			Cmd(message.ChangeRoute("view")),
+			WithHelp("toggle all items").
+			Cmd(m.ToggleAllItems()),
 	}
 	return keys
 }
-
-// key.NewBinding(
-//
-//	key.WithKeys("V"),
-//	key.WithHelp("V", "deselect all"),
-//
-// ),
-// key.NewBinding(
-//
-//	key.WithKeys("v"),
-//	key.WithHelp("v", "select all"),
-//
-// ),

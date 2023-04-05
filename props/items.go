@@ -126,14 +126,18 @@ func (cp Items) Visible(matches ...string) []Item {
 	return cp.Items
 }
 
-func (m *Items) ToggleSelection() {
-	idx := m.CurrentItem().Index
-	if _, ok := m.Selected[idx]; ok {
-		delete(m.Selected, idx)
-		m.NumSelected--
-	} else if m.NumSelected < m.Limit {
-		m.Selected[idx] = struct{}{}
-		m.NumSelected++
+func (m *Items) ToggleSelection(items ...int) {
+	if len(items) == 0 {
+		items = []int{m.CurrentItem().Index}
+	}
+	for _, idx := range items {
+		if _, ok := m.Selected[idx]; ok {
+			delete(m.Selected, idx)
+			m.NumSelected--
+		} else if m.NumSelected < m.Limit {
+			m.Selected[idx] = struct{}{}
+			m.NumSelected++
+		}
 	}
 }
 
