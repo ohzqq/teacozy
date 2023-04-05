@@ -74,16 +74,18 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	case message.UpMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
+			m.SetCurrent(m.Cursor)
 			h := m.Matches[m.Cursor].LineHeight()
 			if m.Cursor < m.Viewport.YOffset {
 				m.Viewport.LineUp(h)
 			}
-			m.SetCurrent(m.Cursor)
 		}
 
 	case message.DownMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
+			m.SetCurrent(m.Cursor)
+
 			offset := m.Viewport.YOffset
 			h := m.Matches[m.Cursor].LineHeight()
 			if o := h - m.Viewport.Height; o > 0 {
@@ -91,7 +93,6 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			} else if m.Cursor <= offset+m.Viewport.Height {
 				m.Viewport.LineDown(h)
 			}
-			m.SetCurrent(m.Cursor)
 		}
 
 	case message.ToggleItemMsg:
@@ -130,6 +131,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		if v := m.Input.Value(); v != "" {
 			m.Matches = m.Props().Visible(v)
 		}
+		cmds = append(cmds, message.Top())
 		cmds = append(cmds, cmd)
 	}
 

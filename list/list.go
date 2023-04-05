@@ -77,13 +77,13 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 
 	case message.TopMsg:
 		m.Cursor = 0
-		m.Paginator.Page = 0
 		m.SetCurrent()
+		m.Paginator.Page = 0
 
 	case message.BottomMsg:
 		m.Cursor = len(m.Props().Visible()) - 1
-		m.Paginator.Page = m.Paginator.TotalPages - 1
 		m.SetCurrent()
+		m.Paginator.Page = m.Paginator.TotalPages - 1
 
 	case message.UpMsg:
 		m.Cursor--

@@ -22,9 +22,9 @@ type Items struct {
 	Snapshot    string
 	Title       string
 	Cur         int
-	Line        int
 	footer      string
-	TotalLines  int
+	body        string
+	TotalLines  func(int)
 	SetHeader   func(string)
 	SetFooter   func(string)
 	SetHelp     func(keys.KeyMap)
@@ -84,6 +84,7 @@ func (i Items) Update() *Items {
 	items.SetHeader = i.SetHeader
 	items.SetFooter = i.SetFooter
 	items.SetHelp = i.SetHelp
+	items.TotalLines = i.TotalLines
 	items.Title = i.Title
 	return items
 }
@@ -139,7 +140,7 @@ func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Items = ChoiceMapToMatch(choices)
 }
 
-func (m Items) RenderItems(items []Item) string {
+func (m *Items) RenderItems(items []Item) string {
 	var s strings.Builder
 	for i, match := range items {
 		pre := "x"
@@ -169,6 +170,10 @@ func (m Items) RenderItems(items []Item) string {
 		s.WriteRune('\n')
 	}
 	view := s.String()
+	m.body = view
+
+	m.TotalLines(lipgloss.Height(view))
+
 	return view
 }
 

@@ -37,6 +37,7 @@ type App struct {
 	footer        string
 	header        string
 	body          string
+	totalLines    int
 	exec          *exec.Cmd
 	execItem      *exec.Cmd
 	Style         Style
@@ -80,6 +81,8 @@ func New(props *props.Items, routes ...Route) *App {
 		app.Routes[name] = r.Initializer(app.Items)
 	}
 
+	v := viewport.New(app.width, app.height)
+	app.Viewport = &v
 	return app
 }
 
@@ -109,6 +112,7 @@ func (c *App) NewProps(props *props.Items) *props.Items {
 	props.SetHeader = c.Header
 	props.SetFooter = c.Footer
 	props.SetHelp = c.Help
+	props.TotalLines = c.TotalLines
 	return props
 }
 
@@ -172,6 +176,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
+	var t string
+	if l := c.totalLines; l > 5 {
+		t = " " + fmt.Sprint(l)
+	}
+
 	if c.header != "" {
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
@@ -181,10 +190,14 @@ func (c *App) Render(width, height int) string {
 	}
 
 	if c.footer != "" {
-		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer, t)
 	}
 
 	return view
+}
+
+func (c *App) TotalLines(f int) {
+	c.totalLines = f
 }
 
 func (c *App) Header(f string) {

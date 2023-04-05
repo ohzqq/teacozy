@@ -125,22 +125,35 @@ func HideHelp() tea.Cmd {
 	}
 }
 
-type UpMsg struct{}
-type DownMsg struct{}
+type UpMsg struct {
+	Lines int
+}
+
+type DownMsg struct {
+	Lines int
+}
 type NextMsg struct{}
 type PrevMsg struct{}
 type TopMsg struct{}
 type BottomMsg struct{}
 
-func Up() tea.Cmd {
+func Up(l ...int) tea.Cmd {
 	return func() tea.Msg {
-		return UpMsg{}
+		lines := 1
+		if len(l) > 0 {
+			lines = l[0]
+		}
+		return UpMsg{Lines: lines}
 	}
 }
 
-func Down() tea.Cmd {
+func Down(l ...int) tea.Cmd {
 	return func() tea.Msg {
-		return DownMsg{}
+		lines := 1
+		if len(l) > 0 {
+			lines = l[0]
+		}
+		return DownMsg{Lines: lines}
 	}
 }
 
