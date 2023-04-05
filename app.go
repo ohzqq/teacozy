@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -42,7 +41,6 @@ type App struct {
 	execItem      *exec.Cmd
 	Style         Style
 	help          keys.KeyMap
-	Viewport      *viewport.Model
 }
 
 type Style struct {
@@ -81,8 +79,6 @@ func New(props *props.Items, routes ...Route) *App {
 		app.Routes[name] = r.Initializer(app.Items)
 	}
 
-	v := viewport.New(app.width, app.height)
-	app.Viewport = &v
 	return app
 }
 
@@ -113,15 +109,17 @@ func (c *App) NewProps(props *props.Items) *props.Items {
 	props.SetFooter = c.Footer
 	props.SetHelp = c.Help
 	props.TotalLines = c.TotalLines
+	props.Lines = c.totalLines
 	return props
 }
 
-func (c *App) CloneProps() *props.Items {
-	items := c.Items.Update()
-	items.Width = c.width
-	items.Height = c.height
-	return items
-}
+//func (c *App) CloneProps() *props.Items {
+//  items := c.Items.Update()
+//  items.Width = c.width
+//  items.Height = c.height
+//  items.Lines = c.totalLines
+//  return items
+//}
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(c.Routes)
@@ -177,9 +175,9 @@ func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
 	var t string
-	if l := c.totalLines; l > 5 {
-		t = " " + fmt.Sprint(l)
-	}
+	//if l := c.totalLines; l > 5 {
+	//  t = " " + fmt.Sprint(l)
+	//}
 
 	if c.header != "" {
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)

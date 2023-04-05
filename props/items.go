@@ -24,6 +24,7 @@ type Items struct {
 	Cur         int
 	footer      string
 	body        string
+	Lines       int
 	TotalLines  func(int)
 	SetHeader   func(string)
 	SetFooter   func(string)
@@ -85,6 +86,7 @@ func (i Items) Update() *Items {
 	items.SetFooter = i.SetFooter
 	items.SetHelp = i.SetHelp
 	items.TotalLines = i.TotalLines
+	items.Lines = i.Lines
 	items.Title = i.Title
 	return items
 }
@@ -170,9 +172,9 @@ func (m *Items) RenderItems(items []Item) string {
 		s.WriteRune('\n')
 	}
 	view := s.String()
-	m.body = view
 
-	m.TotalLines(lipgloss.Height(view))
+	m.Lines = lipgloss.Height(view)
+	m.TotalLines(m.Lines)
 
 	return view
 }

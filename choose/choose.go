@@ -69,7 +69,6 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.Down())
 
 	case message.StartFilteringMsg:
-		m.Props().SetFooter("")
 		return message.ChangeRoute("filter")
 
 	case tea.KeyMsg:

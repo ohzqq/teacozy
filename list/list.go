@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
@@ -16,6 +17,7 @@ import (
 type List struct {
 	Cursor    int
 	Paginator paginator.Model
+	Viewport  *viewport.Model
 	quitting  bool
 	Style     style.List
 	KeyMap    keys.KeyMap
@@ -51,6 +53,10 @@ func New(props *props.Items) *List {
 	tm.Paginator.Type = paginator.Arabic
 	tm.Paginator.SetTotalPages((len(props.Visible()) + props.Height - 1) / props.Height)
 	tm.Paginator.PerPage = props.Height
+
+	v := viewport.New(props.Width, props.Height)
+	tm.Viewport = &v
+
 	return tm
 }
 
