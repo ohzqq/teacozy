@@ -1,8 +1,6 @@
 package list
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -75,43 +73,68 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 		m.SetCurrent()
 		m.Paginator.NextPage()
+		m.Viewport.GotoTop()
 
 	case message.PrevMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
 		m.SetCurrent()
 		m.Paginator.PrevPage()
+		m.Viewport.GotoBottom()
 
 	case message.TopMsg:
 		m.Cursor = 0
 		m.SetCurrent()
 		m.Paginator.Page = 0
+		m.Viewport.GotoTop()
 
 	case message.BottomMsg:
 		m.Cursor = len(m.Props().Visible()) - 1
 		m.SetCurrent()
 		m.Paginator.Page = m.Paginator.TotalPages - 1
+		m.Viewport.GotoBottom()
 
 	case message.UpMsg:
 		m.Cursor--
+		h := m.Props().CurrentItem().LineHeight()
+		if m.Props().Lines > m.Props().Height {
+			m.Viewport.LineUp(h)
+		}
 		if m.Cursor < 0 {
 			m.Cursor = len(m.Props().Visible()) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1
+			m.Viewport.GotoBottom()
+			//cmds = append(cmds, message.Prev())
 		}
 		if m.Cursor < start {
-			m.Paginator.PrevPage()
+			//m.Paginator.PrevPage()
+			//m.Viewport.GotoBottom()
+			m.Cursor = len(m.Props().Visible()) - 1
+			cmds = append(cmds, message.Prev())
 		}
 		m.SetCurrent()
 
 	case message.DownMsg:
 		m.Cursor++
+
 		if m.Cursor >= len(m.Props().Visible()) {
 			m.Cursor = 0
 			m.Paginator.Page = 0
+			m.Viewport.GotoTop()
 		}
 		if m.Cursor >= end {
-			m.Paginator.NextPage()
+			m.Cursor = 0
+			//return m, message.Next()
+			//m.Paginator.NextPage()
+			//m.Viewport.GotoTop()
+			cmds = append(cmds, message.Next())
 		}
+
 		m.SetCurrent()
+
+		h := m.Props().CurrentItem().LineHeight()
+		if m.Props().Lines > m.Props().Height {
+			m.Viewport.LineDown(h)
+		}
 
 	case tea.KeyMsg:
 		for _, k := range m.KeyMap {
@@ -130,15 +153,17 @@ func (m *List) SetCurrent() {
 }
 
 func (m *List) View() string {
-	var s strings.Builder
+	//var s strings.Builder
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	items := m.Props().RenderItems(
 		m.Props().Visible()[start:end],
 	)
-	s.WriteString(items)
+	//s.WriteString(items)
+	m.Viewport.SetContent(items)
 
-	view := s.String()
+	view := m.Viewport.View()
+	//view := s.String()
 
 	if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())
