@@ -144,6 +144,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		default:
 			return reactea.Destroy
 		}
+	case message.QuitMsg:
+		return reactea.Destroy
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":

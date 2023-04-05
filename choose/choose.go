@@ -121,14 +121,14 @@ func (m *Choose) ToggleAllItems() tea.Cmd {
 
 func (m *Choose) quit() tea.Cmd {
 	m.quitting = true
-	return m.ReturnSelections()
+	return message.Quit()
 }
 
 func (m *Choose) KeyMap() keys.KeyMap {
 	var keys = keys.KeyMap{
 		keys.ShowHelp(),
 		keys.Quit().
-			WithKeys("ctrl+c", "q").
+			WithKeys("ctrl+c", "q", "esc").
 			Cmd(m.quit()),
 		keys.ToggleItem().WithKeys("tab", " "),
 		keys.NewBinding("e").

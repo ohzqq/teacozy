@@ -22,13 +22,6 @@ type Field struct {
 	Prompt   string
 }
 
-type KeyMap struct {
-	Quit        key.Binding
-	StopEditing key.Binding
-	Save        key.Binding
-	Edit        key.Binding
-}
-
 func (m Field) KeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding("esc").
@@ -40,13 +33,15 @@ func (m Field) KeyMap() keys.KeyMap {
 		keys.NewBinding("ctrl+s").
 			WithHelp("save edits").
 			Cmd(m.SaveEdit()),
+		keys.ShowHelp(),
 	}
 	return km
 }
 
 type Props struct {
 	*props.Item
-	fields string
+	fields  string
+	SetHelp func(keys.KeyMap)
 }
 
 func New() *Field {
@@ -56,17 +51,14 @@ func New() *Field {
 	return &tm
 }
 
-func NewProps(i *props.Item, fields string) Props {
-	return Props{
-		Item:   i,
-		fields: fields,
-	}
-}
-
 func (c Field) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
-		p := NewProps(props.CurrentItem(), props.Snapshot)
+		p := Props{
+			Item:    props.CurrentItem(),
+			fields:  props.Snapshot,
+			SetHelp: props.SetHelp,
+		}
 		return component, component.Init(p)
 	}
 }
@@ -82,18 +74,26 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 	case StopEditingMsg:
 		m.Input.Blur()
 		cmds = append(cmds, message.ChangeRoute("default"))
+
 	case message.ConfirmMsg:
 		if msg.Confirmed {
 			cmds = append(cmds, SaveEdit())
 		}
 		cmds = append(cmds, StopEditing())
+
 	case SaveEditMsg:
 		m.Props().Item.Str = m.Input.Value()
 		m.Input.Reset()
 		cmds = append(cmds, StopEditing())
+
 	case StartEditingMsg:
 		textarea.Blink()
 		return m.Input.Focus()
+
+	case message.ShowHelpMsg:
+		m.Props().SetHelp(m.KeyMap())
+		cmds = append(cmds, message.ChangeRoute("help"))
+
 	case tea.KeyMsg:
 		if m.Input.Focused() {
 			for _, k := range m.KeyMap() {
@@ -130,36 +130,16 @@ func (m *Field) Render(w, h int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, m.Props().fields, m.Input.View())
 }
 
-func (tm *Field) Init(props Props) tea.Cmd {
-	tm.UpdateProps(props)
+func (m *Field) Init(props Props) tea.Cmd {
+	m.UpdateProps(props)
 
-	tm.Input = textarea.New()
-	tm.Input.Prompt = tm.Prompt
-	tm.Input.ShowLineNumbers = false
-
-	tm.Input.SetValue(tm.Props().Item.Str)
+	m.Input = textarea.New()
+	m.Input.Prompt = m.Prompt
+	m.Input.ShowLineNumbers = false
+	m.Input.SetValue(m.Props().Item.Str)
 
 	textarea.Blink()
-	return tm.Input.Focus()
-}
-
-var formKey = KeyMap{
-	Save: key.NewBinding(
-		key.WithKeys("ctrl+w"),
-		key.WithHelp("ctrl+w", "save"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "quit"),
-	),
-	StopEditing: key.NewBinding(
-		key.WithKeys("esc", "q"),
-		key.WithHelp("esc/q", "stop editing"),
-	),
-	Edit: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "edit field"),
-	),
+	return m.Input.Focus()
 }
 
 type StopEditingMsg struct{}
