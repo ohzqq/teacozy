@@ -95,16 +95,15 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 
 	case message.UpMsg:
 		m.Cursor--
-		if m.Cursor < 0 {
-			m.Cursor = len(m.Props().Visible()) - 1
-			m.Paginator.Page = m.Paginator.TotalPages - 1
-			m.Viewport.GotoTop()
-		}
 		if m.Cursor < start {
-			m.Cursor = len(m.Props().Visible()) - 1
-			m.Paginator.PrevPage()
-			m.Viewport.GotoBottom()
-			cmds = append(cmds, message.Prev())
+			if m.Paginator.Page > 0 {
+				m.Cursor = len(m.Props().Visible()) - 1
+				m.Paginator.PrevPage()
+				m.Viewport.GotoBottom()
+				cmds = append(cmds, message.Prev())
+			} else {
+				m.Cursor = 0
+			}
 		}
 		m.SetCurrent()
 		h := m.Props().CurrentItem().LineHeight()
@@ -115,17 +114,13 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case message.DownMsg:
 		m.Cursor++
 
-		if m.Cursor >= len(m.Props().Visible()) {
-			m.Cursor = 0
-			m.Paginator.Page = 0
-			m.Viewport.GotoTop()
-		}
 		if m.Cursor >= end {
-			m.Cursor = 0
-			//return m, message.Next()
-			//m.Paginator.NextPage()
-			//m.Viewport.GotoTop()
-			cmds = append(cmds, message.Next())
+			if !m.Paginator.OnLastPage() {
+				m.Cursor = 0
+				cmds = append(cmds, message.Next())
+			} else {
+				m.Cursor = len(m.Props().Visible()) - 1
+			}
 		}
 
 		m.SetCurrent()
