@@ -26,6 +26,8 @@ var (
 	Subdued     = lipgloss.NewStyle().Foreground(color.White())
 	VerySubdued = lipgloss.NewStyle().Foreground(color.Grey())
 	Foreground  = lipgloss.NewStyle().Foreground(color.Fg())
+	Label       = lipgloss.NewStyle().Foreground(color.Purple())
+	Footer      = lipgloss.NewStyle().Foreground(color.Blue())
 )
 
 type List struct {
@@ -36,4 +38,29 @@ type List struct {
 	UnselectedPrefix lipgloss.Style
 	Header           lipgloss.Style
 	Prompt           lipgloss.Style
+}
+
+type ListItem struct {
+	Match lipgloss.Style
+	Text  lipgloss.Style
+	Label lipgloss.Style
+	ItemPrefix
+}
+
+type ItemPrefix struct {
+	Selected   lipgloss.Style
+	Unselected lipgloss.Style
+	Cursor     lipgloss.Style
+}
+
+func ListDefaults() List {
+	var s List
+	s.Cursor = Cursor
+	s.SelectedPrefix = Selected
+	s.UnselectedPrefix = Unselected
+	s.Text = Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = Prompt
+	return s
 }
