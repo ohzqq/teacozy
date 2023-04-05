@@ -95,23 +95,22 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 
 	case message.UpMsg:
 		m.Cursor--
-		h := m.Props().CurrentItem().LineHeight()
-		if m.Props().Lines > m.Props().Height {
-			m.Viewport.LineUp(h)
-		}
 		if m.Cursor < 0 {
 			m.Cursor = len(m.Props().Visible()) - 1
 			m.Paginator.Page = m.Paginator.TotalPages - 1
-			m.Viewport.GotoBottom()
-			//cmds = append(cmds, message.Prev())
+			m.Viewport.GotoTop()
 		}
 		if m.Cursor < start {
-			//m.Paginator.PrevPage()
-			//m.Viewport.GotoBottom()
 			m.Cursor = len(m.Props().Visible()) - 1
+			m.Paginator.PrevPage()
+			m.Viewport.GotoBottom()
 			cmds = append(cmds, message.Prev())
 		}
 		m.SetCurrent()
+		//h := m.Props().CurrentItem().LineHeight()
+		if m.Cursor < m.Viewport.YOffset {
+			m.Viewport.LineUp(1)
+		}
 
 	case message.DownMsg:
 		m.Cursor++
