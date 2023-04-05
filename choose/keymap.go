@@ -7,13 +7,6 @@ import (
 )
 
 func (m *Choose) ReturnSelections() tea.Cmd {
-	//if m.Props().Limit == 1 {
-	//  return message.ToggleItem()
-	//}
-	//if m.Props().NumSelected == 0 {
-	//  m.quitting = true
-	//  return message.ToggleItem()
-	//}
 	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
 }
 

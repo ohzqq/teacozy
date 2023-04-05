@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
@@ -26,6 +27,21 @@ type KeyMap struct {
 	StopEditing key.Binding
 	Save        key.Binding
 	Edit        key.Binding
+}
+
+func (m Field) KeyMap() keys.KeyMap {
+	km := keys.KeyMap{
+		keys.NewBinding("esc").
+			WithHelp("stop editing").
+			Cmd(message.StopEditing()),
+		keys.NewBinding("e").
+			WithHelp("edit field").
+			Cmd(message.StartEditing()),
+		keys.NewBinding("ctrl+s").
+			WithHelp("save edits").
+			Cmd(m.SaveEdit()),
+	}
+	return km
 }
 
 type Props struct {
@@ -80,30 +96,31 @@ func (m *Field) Update(msg tea.Msg) tea.Cmd {
 		return m.Input.Focus()
 	case tea.KeyMsg:
 		if m.Input.Focused() {
-			switch {
-			case key.Matches(msg, formKey.Save):
-				m.Input.Blur()
+			for _, k := range m.KeyMap() {
+				if key.Matches(msg, k.Binding) {
+					m.Input.Blur()
+					cmds = append(cmds, k.TeaCmd)
+				}
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			cmds = append(cmds, cmd)
 		} else {
-			switch {
-			case key.Matches(msg, formKey.StopEditing):
-				cmds = append(cmds, message.StopEditing())
-			case key.Matches(msg, formKey.Quit):
-				m.quitting = true
-			case key.Matches(msg, formKey.Save):
-				if m.Props().Item.Str != m.Input.Value() {
-					return message.GetConfirmation("Save edit?")
+			for _, k := range m.KeyMap() {
+				if key.Matches(msg, k.Binding) {
+					cmds = append(cmds, k.TeaCmd)
 				}
-				cmds = append(cmds, message.StopEditing())
-			case key.Matches(msg, formKey.Edit):
-				cmds = append(cmds, message.StartEditing())
 			}
 		}
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Field) SaveEdit() tea.Cmd {
+	if m.Props().Item.Str != m.Input.Value() {
+		return message.GetConfirmation("Save edit?")
+	}
+	return message.StopEditing()
 }
 
 func (m *Field) Render(w, h int) string {

@@ -23,7 +23,6 @@ type Items struct {
 	Title       string
 	Cur         int
 	footer      string
-	body        string
 	Lines       int
 	TotalLines  func(int)
 	SetHeader   func(string)

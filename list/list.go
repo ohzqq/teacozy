@@ -64,15 +64,13 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	switch msg := msg.(type) {
 	case message.NextMsg:
-		//m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-		m.Cursor = 0
+		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
 		m.SetCurrent()
 		m.Paginator.NextPage()
 		m.Viewport.GotoTop()
 
 	case message.PrevMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-		//m.Cursor = 0
 		m.SetCurrent()
 		m.Paginator.PrevPage()
 		m.Viewport.GotoBottom()
@@ -96,7 +94,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				m.Cursor = len(m.Props().Visible()) - 1
 				m.Paginator.PrevPage()
 				m.Viewport.GotoBottom()
-				//cmds = append(cmds, message.Prev())
+				cmds = append(cmds, message.Prev())
 			} else {
 				m.Cursor = 0
 			}
