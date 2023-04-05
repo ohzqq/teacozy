@@ -18,33 +18,14 @@ type List struct {
 	Viewport  *viewport.Model
 	quitting  bool
 	Style     style.List
-	KeyMap    keys.KeyMap
 	items     *props.Items
 	Footer    string
 }
 
-var Keys = keys.KeyMap{
-	keys.Up().WithKeys("k", "up"),
-	keys.Down().WithKeys("j", "down"),
-	keys.Next().WithKeys("right", "l"),
-	keys.Prev().WithKeys("left", "h"),
-	keys.NewBinding("G").
-		WithHelp("list bottom").
-		Cmd(message.Bottom()),
-	keys.NewBinding("g").
-		WithHelp("list top").
-		Cmd(message.Top()),
-}
-
-func (m *List) Props() *props.Items {
-	return m.items
-}
-
 func New(props *props.Items) *List {
 	tm := &List{
-		Style:  style.ListDefaults(),
-		KeyMap: Keys,
-		items:  props,
+		Style: style.ListDefaults(),
+		items: props,
 	}
 
 	tm.Paginator = paginator.New()
@@ -56,6 +37,26 @@ func New(props *props.Items) *List {
 	tm.Viewport = &v
 
 	return tm
+}
+
+func (m List) KeyMap() keys.KeyMap {
+	km := keys.KeyMap{
+		keys.Up().WithKeys("k", "up"),
+		keys.Down().WithKeys("j", "down"),
+		keys.Next().WithKeys("right", "l"),
+		keys.Prev().WithKeys("left", "h"),
+		keys.NewBinding("G").
+			WithHelp("list bottom").
+			Cmd(message.Bottom()),
+		keys.NewBinding("g").
+			WithHelp("list top").
+			Cmd(message.Top()),
+	}
+	return km
+}
+
+func (m *List) Props() *props.Items {
+	return m.items
 }
 
 func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
@@ -122,7 +123,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
