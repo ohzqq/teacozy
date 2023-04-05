@@ -58,25 +58,21 @@ func New(props *props.Items) *List {
 	return tm
 }
 
-func (m *List) UpdateItems(items []props.Item) {
-	m.items.Items = items
-	m.Paginator.SetTotalPages((len(m.items.Visible()) + m.items.Height - 1) / m.items.Height)
-	m.Paginator.PerPage = m.items.Height
-}
-
 func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 	switch msg := msg.(type) {
 	case message.NextMsg:
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
+		//m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
+		m.Cursor = 0
 		m.SetCurrent()
 		m.Paginator.NextPage()
 		m.Viewport.GotoTop()
 
 	case message.PrevMsg:
 		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
+		//m.Cursor = 0
 		m.SetCurrent()
 		m.Paginator.PrevPage()
 		m.Viewport.GotoBottom()
@@ -100,7 +96,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				m.Cursor = len(m.Props().Visible()) - 1
 				m.Paginator.PrevPage()
 				m.Viewport.GotoBottom()
-				cmds = append(cmds, message.Prev())
+				//cmds = append(cmds, message.Prev())
 			} else {
 				m.Cursor = 0
 			}
@@ -113,18 +109,15 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 
 	case message.DownMsg:
 		m.Cursor++
-
 		if m.Cursor >= end {
-			if !m.Paginator.OnLastPage() {
+			if m.Paginator.OnLastPage() {
+				m.Cursor = len(m.Props().Visible()) - 1
+			} else {
 				m.Cursor = 0
 				cmds = append(cmds, message.Next())
-			} else {
-				m.Cursor = len(m.Props().Visible()) - 1
 			}
 		}
-
 		m.SetCurrent()
-
 		h := m.Props().CurrentItem().LineHeight()
 		if m.Props().Lines > m.Props().Height {
 			m.Viewport.LineDown(h)
@@ -147,17 +140,14 @@ func (m *List) SetCurrent() {
 }
 
 func (m *List) View() string {
-	//var s strings.Builder
 	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
 
 	items := m.Props().RenderItems(
 		m.Props().Visible()[start:end],
 	)
-	//s.WriteString(items)
 	m.Viewport.SetContent(items)
 
 	view := m.Viewport.View()
-	//view := s.String()
 
 	if m.Paginator.TotalPages > 1 {
 		p := style.Footer.Render(m.Paginator.View())

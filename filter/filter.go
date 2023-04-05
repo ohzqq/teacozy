@@ -130,6 +130,8 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		m.Input, cmd = m.Input.Update(msg)
 		if v := m.Input.Value(); v != "" {
 			m.Matches = m.Props().Visible(v)
+		} else {
+			m.Matches = []props.Item{}
 		}
 		cmds = append(cmds, message.Top())
 		cmds = append(cmds, cmd)

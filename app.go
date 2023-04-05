@@ -32,11 +32,8 @@ type App struct {
 	Routes        map[string]router.RouteInitializer
 	ConfirmAction string
 	PrevRoute     string
-	route         string
 	footer        string
 	header        string
-	body          string
-	totalLines    int
 	exec          *exec.Cmd
 	execItem      *exec.Cmd
 	Style         Style
@@ -109,17 +106,8 @@ func (c *App) NewProps(props *props.Items) *props.Items {
 	props.SetFooter = c.Footer
 	props.SetHelp = c.Help
 	props.TotalLines = c.TotalLines
-	props.Lines = c.totalLines
 	return props
 }
-
-//func (c *App) CloneProps() *props.Items {
-//  items := c.Items.Update()
-//  items.Width = c.width
-//  items.Height = c.height
-//  items.Lines = c.totalLines
-//  return items
-//}
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(c.Routes)
@@ -174,11 +162,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
-	var t string
-	//if l := c.totalLines; l > 5 {
-	//  t = " " + fmt.Sprint(l)
-	//}
-
 	if c.header != "" {
 		view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
 	}
@@ -188,14 +171,14 @@ func (c *App) Render(width, height int) string {
 	}
 
 	if c.footer != "" {
-		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer, t)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	}
 
 	return view
 }
 
 func (c *App) TotalLines(f int) {
-	c.totalLines = f
+	c.Items.Lines = f
 }
 
 func (c *App) Header(f string) {
