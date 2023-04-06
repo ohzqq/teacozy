@@ -66,7 +66,6 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	case message.QuitMsg:
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
-
 	case tea.KeyMsg:
 		for _, k := range m.KeyMap() {
 			if key.Matches(msg, k.Binding) {
