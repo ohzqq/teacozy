@@ -1,4 +1,4 @@
-package help
+package view
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -12,7 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type Help struct {
+type View struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
@@ -31,13 +31,13 @@ func NewProps(items *props.Items) Props {
 	}
 }
 
-func New() *Help {
-	return &Help{
+func New() *View {
+	return &View{
 		Style: style.ListDefaults(),
 	}
 }
 
-func (m Help) KeyMap() keys.KeyMap {
+func (m View) KeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.NewBinding("esc", "q").WithHelp("exit screen").Cmd(message.HideHelp()),
 		keys.Quit(),
@@ -46,18 +46,18 @@ func (m Help) KeyMap() keys.KeyMap {
 	return km
 }
 
-func (m Help) Initializer(props *props.Items) router.RouteInitializer {
+func (m View) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
 		return component, component.Init(Props{Items: props})
 	}
 }
 
-func (m Help) Name() string {
-	return "help"
+func (m View) Name() string {
+	return "view"
 }
 
-func (m *Help) Update(msg tea.Msg) tea.Cmd {
+func (m *View) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -80,31 +80,31 @@ func (m *Help) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Help) Render(w, h int) string {
+func (m *View) Render(w, h int) string {
 	if m.list.Footer != "" {
 		m.Props().SetFooter(m.list.Footer)
 	}
 	return m.list.View()
 }
 
-func (m *Help) Init(props Props) tea.Cmd {
+func (m *View) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 	m.list = list.New(props.Items)
 	return nil
 }
 
-type ShowHelpMsg struct{}
+type ShowViewMsg struct{}
 
-func ShowHelp() tea.Cmd {
+func ShowView() tea.Cmd {
 	return func() tea.Msg {
-		return ShowHelpMsg{}
+		return ShowViewMsg{}
 	}
 }
 
-type HideHelpMsg struct{}
+type HideViewMsg struct{}
 
-func HideHelp() tea.Cmd {
+func HideView() tea.Cmd {
 	return func() tea.Msg {
-		return HideHelpMsg{}
+		return HideViewMsg{}
 	}
 }
