@@ -11,12 +11,12 @@ import (
 	"github.com/ohzqq/teacozy/choose"
 	"github.com/ohzqq/teacozy/field"
 	"github.com/ohzqq/teacozy/filter"
-	"github.com/ohzqq/teacozy/help"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
+	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/slices"
 )
 
@@ -105,7 +105,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			p := c.NewProps(KeymapToProps(c.help))
 			p.Height = c.Items.Height
 			p.Width = c.Items.Width
-			c.Routes["help"] = help.New().Initializer(p)
+			c.Routes["help"] = view.New().Initializer(p)
 		}
 		c.ChangeRoute(route)
 	case message.ReturnSelectionsMsg:
@@ -201,9 +201,9 @@ func WithFilter() Route {
 	}
 }
 
-func WithHelp() Route {
+func WithView() Route {
 	return func() RouteInitializer {
-		return help.New()
+		return view.New()
 	}
 }
 

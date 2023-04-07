@@ -103,6 +103,16 @@ func (m Items) Chosen() []map[string]string {
 	return chosen
 }
 
+func (m Items) Selections() []int {
+	var chosen []int
+	if len(m.Selected) > 0 {
+		for k := range m.Selected {
+			chosen = append(chosen, k)
+		}
+	}
+	return chosen
+}
+
 func (m Items) Map() []map[string]string {
 	var items []map[string]string
 	for _, item := range m.Items {
