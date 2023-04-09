@@ -73,9 +73,8 @@ func (i Item) Render(w, h int) string {
 		i.Style.Match,
 		i.Style.Text,
 	)
-	s := lipgloss.NewStyle().Padding(i.Depth).Width(w).Render(text)
+	s := lipgloss.NewStyle().Render(text)
 	return s
-	// return text
 }
 
 func (i Item) LineHeight() int {
