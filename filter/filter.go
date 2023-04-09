@@ -217,7 +217,6 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
 	tm.Matches = props.Visible()
-	tm.UpdateViewport()
 
 	tm.Input.Focus()
 
