@@ -23,6 +23,7 @@ type Item struct {
 	selected bool
 	Label    string
 	Width    int
+	Depth    int
 	exec     *exec.Cmd
 	*Prefix
 }
@@ -65,14 +66,14 @@ func (i Item) Map() map[string]string {
 	return map[string]string{i.Label: i.Str}
 }
 
-func (match Item) Render(w, h int) string {
+func (i Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
-		match.Str,
-		match.MatchedIndexes,
-		match.Style.Match,
-		match.Style.Text,
+		i.Str,
+		i.MatchedIndexes,
+		i.Style.Match,
+		i.Style.Text,
 	)
-	s := lipgloss.NewStyle().Width(w).Render(text)
+	s := lipgloss.NewStyle().Padding(i.Depth).Width(w).Render(text)
 	return s
 	// return text
 }
