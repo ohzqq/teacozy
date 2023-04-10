@@ -11,6 +11,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Filter struct {
@@ -73,52 +74,28 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.UpMsg:
-		n := 1
-		m.Cursor = clamp(m.Cursor-n, 0, len(m.Props().Visible())-1)
-		switch {
-		case m.start == 0:
-			m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
-		case m.start < m.Viewport.Height:
-			m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
-		case m.Viewport.YOffset >= 1:
-			m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
+		if len(m.Matches) > 0 {
+			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
+			m.SetCurrent(m.Cursor)
+			h := m.Matches[m.Cursor].LineHeight()
+			if m.Cursor < m.Viewport.YOffset {
+				m.Viewport.LineUp(h)
+			}
 		}
-		m.UpdateViewport()
-		//if len(m.Matches) > 0 {
-		//  m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
-		//  m.SetCurrent(m.Cursor)
-		//  h := m.Matches[m.Cursor].LineHeight()
-		//  if m.Cursor < m.Viewport.YOffset {
-		//    m.Viewport.LineUp(h)
-		//  }
-		//}
 
 	case message.DownMsg:
-		n := 1
-		m.Cursor = clamp(m.Cursor+n, 0, len(m.Props().Visible())-1)
-		m.UpdateViewport()
+		if len(m.Matches) > 0 {
+			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
+			m.SetCurrent(m.Cursor)
 
-		switch {
-		case m.end == len(m.Props().Visible()):
-			m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
-		case m.Cursor > (m.end-m.start)/2:
-			m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
-		case m.Viewport.YOffset > 1:
-		case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
-			m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
+			offset := m.Viewport.YOffset
+			h := m.Matches[m.Cursor].LineHeight()
+			if o := h - m.Viewport.Height; o > 0 {
+				m.Viewport.LineDown(o)
+			} else if m.Cursor <= offset+m.Viewport.Height {
+				m.Viewport.LineDown(h)
+			}
 		}
-		//if len(m.Matches) > 0 {
-		//  m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
-		//  m.SetCurrent(m.Cursor)
-
-		//  offset := m.Viewport.YOffset
-		//  h := m.Matches[m.Cursor].LineHeight()
-		//  if o := h - m.Viewport.Height; o > 0 {
-		//    m.Viewport.LineDown(o)
-		//  } else if m.Cursor <= offset+m.Viewport.Height {
-		//    m.Viewport.LineDown(h)
-		//  }
-		//}
 
 	case message.ToggleItemMsg:
 		if len(m.Matches) > 0 {
@@ -172,34 +149,10 @@ func (m *Filter) SetCurrent(idx int) {
 	m.Props().SetCurrent(idx)
 }
 
-// UpdateViewport updates the list content based on the previously defined
-// columns and rows.
-func (m *Filter) UpdateViewport() {
-	//renderedRows := make([]string, 0, len(m.Matches))
-	var renderedRows string
-
-	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
-	// Constant runtime, independent of number of rows in a table.
-	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
-	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Viewport.Height, 0, m.Cursor)
-	} else {
-		m.start = 0
-	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Visible()))
-	//for i := m.start; i < m.end; i++ {
-	renderedRows = m.Props().RenderItems(m.Matches[m.start:m.end])
-	//renderedRows = append(renderedRows, strconv.Itoa(i))
-	//}
-
-	m.Viewport.SetContent(renderedRows)
-}
-
 func (m *Filter) Render(w, h int) string {
 	m.Viewport.Height = m.Props().Height
 	m.Viewport.Width = m.Props().Width
-	m.UpdateViewport()
-	//m.Viewport.SetContent(m.Props().RenderItems(m.Matches))
+	m.Viewport.SetContent(m.Props().RenderItems(m.Matches))
 
 	view := m.Input.View() + "\n" + m.Viewport.View()
 	return view

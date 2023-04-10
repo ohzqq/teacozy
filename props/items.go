@@ -121,6 +121,14 @@ func (m Items) Map() []map[string]string {
 	return items
 }
 
+func (m Items) Slice() []string {
+	var items []string
+	for _, item := range m.Items {
+		items = append(items, item.String())
+	}
+	return items
+}
+
 func (i *Items) SetCurrent(idx int) {
 	i.Cur = idx
 }

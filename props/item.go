@@ -66,6 +66,10 @@ func (i Item) Map() map[string]string {
 	return map[string]string{i.Label: i.Str}
 }
 
+func (i Item) String() string {
+	return i.Str
+}
+
 func (i Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
 		i.Str,

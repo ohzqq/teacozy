@@ -15,6 +15,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/table"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/slices"
@@ -210,6 +211,12 @@ func WithView() Route {
 func WithForm() Route {
 	return func() RouteInitializer {
 		return field.New()
+	}
+}
+
+func WithTable() Route {
+	return func() RouteInitializer {
+		return table.New()
 	}
 }
 
