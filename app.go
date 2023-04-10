@@ -15,7 +15,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/table"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/slices"
@@ -214,11 +213,11 @@ func WithForm() Route {
 	}
 }
 
-func WithTable() Route {
-	return func() RouteInitializer {
-		return table.New()
-	}
-}
+//func WithTable() Route {
+//  return func() RouteInitializer {
+//    return table.New()
+//  }
+//}
 
 func Choose(opts ...props.Opt) *App {
 	p, err := props.New(opts...)
