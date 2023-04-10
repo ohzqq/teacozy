@@ -1,13 +1,14 @@
 package table
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -72,7 +73,7 @@ func New(opts ...Option) Model {
 		opt(&m)
 	}
 
-	m.UpdateViewport()
+	m.Render()
 
 	return m
 }
@@ -131,11 +132,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if v := m.Input.Value(); v != "" {
 			//m.Matches = m.Props().Visible(m.Input.Value())
 			m.rows = m.Props().Visible(v)
-			m.UpdateViewport()
+			m.Render()
 		} else {
 			//m.Matches = []props.Item{}
 			m.rows = m.Props().Visible()
-			m.UpdateViewport()
+			m.Render()
 		}
 		cmds = append(cmds, cmd)
 	}
@@ -145,16 +146,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the component.
 func (m Model) View() string {
-	m.UpdateViewport()
+	m.Render()
 	//fmt.Println(m.start, m.end, len(m.rows))
 	//m.Viewport.SetContent(m.Props().RenderItems(m.rows))
 	view := m.Input.View() + "\n" + m.Viewport.View()
 	return view
 }
 
-// UpdateViewport updates the list content based on the previously defined
+// Render updates the list content based on the previously defined
 // columns and rows.
-func (m *Model) UpdateViewport() {
+func (m *Model) Render() {
 	//m.Props().SetCurrent(m.SelectedRow().Index)
 	renderedRows := make([]string, 0, len(m.rows))
 	//renderedRows := make([]props.Item, 0, len(m.rows))
@@ -180,13 +181,34 @@ func (m *Model) UpdateViewport() {
 func (m *Model) renderRow(rowID int) string {
 	row := m.rows[rowID]
 
-	//row := lipgloss.JoinHorizontal(lipgloss.Left, s...)
+	var s strings.Builder
+	pre := "x"
 
-	if rowID == m.Cursor {
-		return lipgloss.NewStyle().Foreground(color.Cyan()).Render(row.Str)
+	if row.Label != "" {
+		pre = row.Label
 	}
 
-	return row.Render(m.Viewport.Width, m.Viewport.Height)
+	switch {
+	case rowID == m.Cursor:
+		pre = row.Style.Cursor.Render(pre)
+	default:
+		//if _, ok := m.Selected[row.Index]; ok {
+		//pre = row.Style.Selected.Render(pre)
+		//} else if row.Label == "" {
+		if row.Label == "" {
+			pre = strings.Repeat(" ", lipgloss.Width(pre))
+		} else {
+			pre = row.Style.Label.Render(pre)
+		}
+	}
+
+	s.WriteString("[")
+	s.WriteString(pre)
+	s.WriteString("]")
+
+	s.WriteString(row.Render(m.Viewport.Width, m.Viewport.Height))
+
+	return s.String()
 }
 
 // SelectedRow returns the selected row.
@@ -195,7 +217,6 @@ func (m Model) SelectedRow() props.Item {
 	if m.Cursor < 0 || m.Cursor >= len(m.Props().Items) {
 		return props.Item{}
 	}
-
 	return m.Props().Items[m.Cursor]
 }
 
@@ -205,13 +226,12 @@ func (m *Model) MoveUp(n int) {
 	m.Cursor = clamp(m.Cursor-n, 0, len(m.Props().Items)-1)
 	switch {
 	case m.start == 0:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
+		m.Viewport.LineUp(clamp(m.Viewport.YOffset, 0, m.Cursor))
 	case m.start < m.Viewport.Height:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
+		m.Viewport.LineUp(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
 	case m.Viewport.YOffset >= 1:
 		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
 	}
-	//m.UpdateViewport()
 }
 
 // MoveDown moves the selection down by any number of rows.
@@ -222,14 +242,11 @@ func (m *Model) MoveDown(n int) {
 
 	switch {
 	case m.end == len(m.rows):
-		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
 		m.Viewport.LineDown(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
 	case m.Cursor > (m.end-m.start)/2:
-		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
 		m.Viewport.LineDown(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
 	case m.Viewport.YOffset > 1:
 	case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
-		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
 		m.Viewport.LineDown(clamp(m.Viewport.YOffset+1, 0, 1))
 	}
 
@@ -312,13 +329,13 @@ func (m Model) Focused() bool {
 // interact.
 func (m *Model) Focus() {
 	m.focus = true
-	m.UpdateViewport()
+	m.Render()
 }
 
 // Blur blurs the table, preventing selection or movement.
 func (m *Model) Blur() {
 	m.focus = false
-	m.UpdateViewport()
+	m.Render()
 }
 
 // Rows returns the current rows.
@@ -329,19 +346,19 @@ func (m Model) Rows() []props.Item {
 // SetRows sets a new rows state.
 func (m *Model) SetRows(r []props.Item) {
 	m.rows = r
-	m.UpdateViewport()
+	m.Render()
 }
 
 // SetWidth sets the width of the viewport of the table.
 func (m *Model) SetWidth(w int) {
 	m.Viewport.Width = w
-	m.UpdateViewport()
+	m.Render()
 }
 
 // SetHeight sets the height of the viewport of the table.
 func (m *Model) SetHeight(h int) {
 	m.Viewport.Height = h
-	m.UpdateViewport()
+	m.Render()
 }
 
 // Height returns the viewport height of the table.
@@ -362,5 +379,5 @@ func (m Model) GetCursor() int {
 // SetCursor sets the cursor position in the table.
 func (m *Model) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.rows)-1)
-	m.UpdateViewport()
+	m.Render()
 }
