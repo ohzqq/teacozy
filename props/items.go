@@ -194,8 +194,8 @@ func (m *Items) RenderItems(items []Item) string {
 	}
 	view := s.String()
 
-	m.Lines = lipgloss.Height(view)
-	m.TotalLines(m.Lines)
+	//m.Lines = lipgloss.Height(view)
+	//m.TotalLines(m.Lines)
 
 	return view
 }

@@ -20,6 +20,7 @@ type Model struct {
 	reactea.BasicPropfulComponent[Props]
 
 	//rows        []string
+	props       *props.Items
 	rows        []props.Item
 	Cursor      int
 	focus       bool
@@ -36,7 +37,11 @@ type Model struct {
 }
 
 type Props struct {
-	rows []string
+	*props.Items
+}
+
+func (m Model) Props() *props.Items {
+	return m.props
 }
 
 // Option is used to set options in New. For example:
@@ -48,7 +53,7 @@ type Option func(*Model)
 func New(opts ...Option) Model {
 	m := Model{
 		Cursor:   0,
-		Viewport: viewport.New(0, 20),
+		Viewport: viewport.New(0, 10),
 
 		focus: true,
 
@@ -61,6 +66,7 @@ func New(opts ...Option) Model {
 	m.Input.PromptStyle = m.Style.Prompt
 	m.Input.Placeholder = m.Placeholder
 	//m.Input.Width = tm.Props().Width
+	m.Input.Focus()
 
 	for _, opt := range opts {
 		opt(&m)
@@ -100,6 +106,9 @@ func (m Model) Km() keys.KeyMap {
 
 // Update is the Bubble Tea update loop.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case message.QuitMsg:
 		return m, tea.Quit
@@ -114,18 +123,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		for _, k := range m.Km() {
 			if key.Matches(msg, k.Binding) {
-				return m, k.TeaCmd
+				cmds = append(cmds, k.TeaCmd)
 			}
 		}
+		m.Input, cmd = m.Input.Update(msg)
+
+		if v := m.Input.Value(); v != "" {
+			//m.Matches = m.Props().Visible(m.Input.Value())
+			m.rows = m.Props().Visible(v)
+			m.UpdateViewport()
+		} else {
+			//m.Matches = []props.Item{}
+			m.rows = m.Props().Visible()
+			m.UpdateViewport()
+		}
+		cmds = append(cmds, cmd)
 	}
 
-	return m, nil
+	return m, tea.Batch(cmds...)
+}
+
+// View renders the component.
+func (m Model) View() string {
+	m.UpdateViewport()
+	//fmt.Println(m.start, m.end, len(m.rows))
+	//m.Viewport.SetContent(m.Props().RenderItems(m.rows))
+	view := m.Input.View() + "\n" + m.Viewport.View()
+	return view
 }
 
 // UpdateViewport updates the list content based on the previously defined
 // columns and rows.
 func (m *Model) UpdateViewport() {
+	//m.Props().SetCurrent(m.SelectedRow().Index)
 	renderedRows := make([]string, 0, len(m.rows))
+	//renderedRows := make([]props.Item, 0, len(m.rows))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
@@ -160,17 +192,17 @@ func (m *Model) renderRow(rowID int) string {
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) SelectedRow() props.Item {
-	if m.Cursor < 0 || m.Cursor >= len(m.rows) {
+	if m.Cursor < 0 || m.Cursor >= len(m.Props().Items) {
 		return props.Item{}
 	}
 
-	return m.rows[m.Cursor]
+	return m.Props().Items[m.Cursor]
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *Model) MoveUp(n int) {
-	m.Cursor = clamp(m.Cursor-n, 0, len(m.rows)-1)
+	m.Cursor = clamp(m.Cursor-n, 0, len(m.Props().Items)-1)
 	switch {
 	case m.start == 0:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
@@ -179,24 +211,28 @@ func (m *Model) MoveUp(n int) {
 	case m.Viewport.YOffset >= 1:
 		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
 	}
-	m.UpdateViewport()
+	//m.UpdateViewport()
 }
 
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
-	m.Cursor = clamp(m.Cursor+n, 0, len(m.rows)-1)
-	m.UpdateViewport()
+	m.Cursor = clamp(m.Cursor+n, 0, len(m.Props().Items)-1)
+	//m.UpdateViewport()
 
 	switch {
 	case m.end == len(m.rows):
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
+		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
+		m.Viewport.LineDown(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
 	case m.Cursor > (m.end-m.start)/2:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
+		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
+		m.Viewport.LineDown(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
 	case m.Viewport.YOffset > 1:
 	case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
+		//m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
+		m.Viewport.LineDown(clamp(m.Viewport.YOffset+1, 0, 1))
 	}
+
 }
 
 // GotoTop moves the selection to the first row.
@@ -232,9 +268,10 @@ func clamp(v, low, high int) int {
 }
 
 // WithRows sets the table rows (data).
-func WithRows(rows []props.Item) Option {
+func WithRows(rows *props.Items) Option {
 	return func(m *Model) {
-		m.rows = rows
+		m.props = rows
+		m.rows = rows.Visible()
 	}
 }
 
@@ -282,11 +319,6 @@ func (m *Model) Focus() {
 func (m *Model) Blur() {
 	m.focus = false
 	m.UpdateViewport()
-}
-
-// View renders the component.
-func (m Model) View() string {
-	return m.Viewport.View()
 }
 
 // Rows returns the current rows.
