@@ -1,6 +1,7 @@
 package table
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -94,8 +95,18 @@ func (m *Model) Init(props Props) tea.Cmd {
 func (m Model) Km() keys.KeyMap {
 	var km = keys.KeyMap{
 		keys.Quit(),
+		keys.ToggleItem(),
 		keys.Up().WithKeys("up"),
 		keys.Down().WithKeys("down"),
+		keys.NewBinding("enter").
+			WithHelp("return selections").
+			Cmd(m.ReturnSelections()),
+		keys.NewBinding("/").
+			WithHelp("filter list").
+			Cmd(StartFiltering()),
+		keys.NewBinding("esc").
+			WithHelp("stop filtering").
+			Cmd(StopFiltering()),
 		keys.NewBinding("ctrl+u").
 			WithHelp("½ page up").
 			Cmd(message.Up(m.Viewport.Height / 2)),
@@ -118,7 +129,10 @@ func (m Model) Km() keys.KeyMap {
 	return km
 }
 
-// Update is the Bubble Tea update loop.
+func (m *Model) ReturnSelections() tea.Cmd {
+	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
+}
+
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -126,6 +140,29 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.QuitMsg:
 		return tea.Quit
+	case StopFilteringMsg:
+		m.Input.Reset()
+		m.Input.Blur()
+		cur := m.SelectedRow().Index
+		m.rows = m.Props().Visible()
+		m.SetCursor(cur)
+		m.Props().SetFooter(strconv.Itoa(m.Cursor))
+		//m.UpdateRows()
+
+	case StartFilteringMsg:
+		m.Input.Focus()
+	case message.ToggleItemMsg:
+		if len(m.rows) > 0 {
+			m.Props().SetCurrent(m.rows[m.Cursor].Index)
+			if m.Props().NumSelected == 0 && m.quitting {
+				cmds = append(cmds, m.ReturnSelections())
+			}
+			m.Props().ToggleSelection()
+			if m.Props().Limit == 1 {
+				return m.ReturnSelections()
+			}
+			cmds = append(cmds, message.Down())
+		}
 	case message.DownMsg:
 		m.MoveDown(msg.Lines)
 	case message.UpMsg:
@@ -135,41 +172,41 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case message.BottomMsg:
 		m.GotoBottom()
 	case tea.KeyMsg:
-		for _, k := range m.Km() {
-			if key.Matches(msg, k.Binding) {
-				cmds = append(cmds, k.TeaCmd)
+		if m.Input.Focused() {
+			for _, k := range m.Km() {
+				if key.Matches(msg, k.Binding) {
+					cmds = append(cmds, k.TeaCmd)
+				}
+			}
+			m.Input, cmd = m.Input.Update(msg)
+			if v := m.Input.Value(); v != "" {
+				m.rows = m.Props().Visible(v)
+			} else {
+				m.rows = m.Props().Visible()
+			}
+			cmds = append(cmds, cmd)
+		} else {
+			for _, k := range m.UnfilteredKeyMap() {
+				if key.Matches(msg, k.Binding) {
+					cmds = append(cmds, k.TeaCmd)
+				}
 			}
 		}
-		m.Input, cmd = m.Input.Update(msg)
-
-		if v := m.Input.Value(); v != "" {
-			m.rows = m.Props().Visible(v)
-			//m.UpdateRows()
-		} else {
-			m.rows = m.Props().Visible()
-			//m.UpdateRows()
-		}
-		cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
 }
 
-// View renders the component.
-func (m Model) View() string {
-	m.UpdateRows()
-	//fmt.Println(m.start, m.end, len(m.rows))
-	//m.Viewport.SetContent(m.Props().RenderItems(m.rows))
-	view := m.Input.View() + "\n" + m.Viewport.View()
-	return view
-}
-
 func (m Model) Render(w, h int) string {
-	m.Viewport.Height = m.Props().Height
+	m.Viewport.Height = m.Props().Height - 1
 	m.Viewport.Width = m.Props().Width
 	m.UpdateRows()
 
-	view := m.Input.View() + "\n" + m.Viewport.View()
+	view := m.Viewport.View()
+	if m.Input.Focused() {
+		view = m.Input.View() + "\n" + view
+	}
+
 	return view
 }
 
@@ -210,10 +247,10 @@ func (m *Model) renderRow(rowID int) string {
 	case rowID == m.Cursor:
 		pre = row.Style.Cursor.Render(pre)
 	default:
-		//if _, ok := m.Selected[row.Index]; ok {
-		//pre = row.Style.Selected.Render(pre)
-		//} else if row.Label == "" {
-		if row.Label == "" {
+		if _, ok := m.Props().Selected[row.Index]; ok {
+			pre = row.Style.Selected.Render(pre)
+		} else if row.Label == "" {
+			//if row.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))
 		} else {
 			pre = row.Style.Label.Render(pre)
@@ -232,10 +269,8 @@ func (m *Model) renderRow(rowID int) string {
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) SelectedRow() props.Item {
-	if m.Cursor < 0 || m.Cursor >= len(m.Props().Items.Items) {
-		return props.Item{}
-	}
-	return m.rows[m.Cursor]
+	row := m.Props().Items.Items[m.rows[m.Cursor].Index]
+	return row
 }
 
 // MoveUp moves the selection up by any number of rows.
@@ -279,8 +314,6 @@ func (m *Model) GotoBottom() {
 	m.MoveDown(len(m.rows))
 }
 
-//func (m Model) Init() tea.Cmd { return nil }
-
 func max(a, b int) int {
 	if a > b {
 		return a
@@ -295,6 +328,52 @@ func min(a, b int) int {
 	}
 
 	return b
+}
+
+func (m *Model) ToggleAllItems() tea.Cmd {
+	return func() tea.Msg {
+		var items []int
+		for _, item := range m.Props().Items.Items {
+			items = append(items, item.Index)
+		}
+		m.Props().ToggleSelection(items...)
+		return nil
+	}
+}
+
+func (m *Model) quit() tea.Cmd {
+	m.quitting = true
+	return message.Quit()
+}
+
+func (m Model) UnfilteredKeyMap() keys.KeyMap {
+	km := keys.KeyMap{
+		keys.Up().WithKeys("k", "up"),
+		keys.Down().WithKeys("j", "down"),
+		keys.Next().WithKeys("right", "l"),
+		keys.Prev().WithKeys("left", "h"),
+		keys.NewBinding("/").
+			WithHelp("filter list").
+			Cmd(StartFiltering()),
+		keys.NewBinding("G").
+			WithHelp("list bottom").
+			Cmd(message.Bottom()),
+		keys.NewBinding("g").
+			WithHelp("list top").
+			Cmd(message.Top()),
+		keys.NewBinding("v").
+			WithHelp("toggle all items").
+			Cmd(m.ToggleAllItems()),
+		keys.NewBinding("enter").
+			WithHelp("return selections").
+			Cmd(m.ReturnSelections()),
+		keys.ToggleItem().WithKeys("tab", " "),
+		keys.ShowHelp(),
+		keys.Quit().
+			WithKeys("ctrl+c", "q", "esc").
+			Cmd(m.quit()),
+	}
+	return km
 }
 
 func clamp(v, low, high int) int {
@@ -397,4 +476,20 @@ func (m Model) GetCursor() int {
 func (m *Model) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.rows)-1)
 	m.UpdateRows()
+}
+
+type StopFilteringMsg struct{}
+
+func StopFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StopFilteringMsg{}
+	}
+}
+
+type StartFilteringMsg struct{}
+
+func StartFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StartFilteringMsg{}
+	}
 }
