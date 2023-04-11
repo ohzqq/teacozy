@@ -110,7 +110,6 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 
 	case message.ToggleItemMsg:
 		if len(m.Matches) > 0 {
-			//m.Props().SetCurrent(m.Matches[m.Props().Cursor].Index)
 			m.Props().ToggleSelection()
 			cmds = append(cmds, message.Down())
 		}
@@ -144,6 +143,10 @@ func (m List) Render(w, h int) string {
 	view := m.Viewport.View()
 
 	return view
+}
+
+func (m List) View() string {
+	return m.Viewport.View()
 }
 
 // UpdateRows updates the list content based on the previously defined
