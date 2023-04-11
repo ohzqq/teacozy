@@ -7,8 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/londek/reactea"
-	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -17,9 +15,7 @@ import (
 
 // List defines a state for the table widget.
 type List struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-
+	*props.Items
 	Matches     []props.Item
 	Cursor      int
 	focus       bool
@@ -35,23 +31,12 @@ type List struct {
 
 type option func(*List)
 
-func (c List) Initializer(props *props.Items) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := New()
-		return component, component.Init(Props{Items: props})
-	}
-}
-
-func (c List) Name() string {
-	return "list"
-}
-
 // New creates a new model for the table widget.
-func New(opts ...option) *List {
+func New(props *props.Items, opts ...option) *List {
 	m := List{
 		Cursor: 0,
-
-		focus: true,
+		focus:  true,
+		Items:  props,
 
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
@@ -61,15 +46,17 @@ func New(opts ...option) *List {
 		opt(&m)
 	}
 
+	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
+	m.Matches = m.Props().Visible()
+
 	return &m
 }
 
-func (m *List) Init(props Props) tea.Cmd {
-	m.UpdateProps(props)
+func (m List) Props() *props.Items {
+	return m.Items
+}
 
-	m.Viewport = viewport.New(props.Width, props.Height)
-	m.Matches = props.Visible()
-
+func (m *List) Init() tea.Cmd {
 	return nil
 }
 
@@ -101,12 +88,12 @@ func (m List) KeyMap() keys.KeyMap {
 	return km
 }
 
-func (m *List) Update(msg tea.Msg) tea.Cmd {
+func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case message.QuitMsg:
-		return tea.Quit
+		return m, tea.Quit
 
 	case message.ToggleItemMsg:
 		if len(m.Matches) > 0 {
@@ -132,17 +119,7 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	return tea.Batch(cmds...)
-}
-
-func (m List) Render(w, h int) string {
-	m.Viewport.Height = m.Props().Height - 1
-	m.Viewport.Width = m.Props().Width
-	m.UpdateRows()
-
-	view := m.Viewport.View()
-
-	return view
+	return m, tea.Batch(cmds...)
 }
 
 func (m List) View() string {

@@ -30,6 +30,8 @@ type Model struct {
 	Prompt      string
 	Style       style.List
 
+	list *List
+
 	Input textinput.Model
 
 	Viewport viewport.Model
@@ -48,7 +50,7 @@ type Option func(*Model)
 
 func (c Model) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := New()
+		component := NewTable()
 		return component, component.Init(Props{Items: props})
 	}
 }
@@ -84,6 +86,8 @@ func (m *Model) Init(props Props) tea.Cmd {
 	m.Input.Width = props.Width
 	m.Input.Focus()
 
+	m.list = New(props.Items)
+
 	m.Viewport = viewport.New(props.Width, props.Height)
 	m.Matches = props.Visible()
 
@@ -92,10 +96,6 @@ func (m *Model) Init(props Props) tea.Cmd {
 
 func (m Model) KeyMap() keys.KeyMap {
 	var km = keys.KeyMap{
-		keys.Quit(),
-		keys.ToggleItem(),
-		keys.Up().WithKeys("up"),
-		keys.Down().WithKeys("down"),
 		keys.NewBinding("enter").
 			WithHelp("return selections").
 			Cmd(m.ReturnSelections()),
@@ -105,24 +105,6 @@ func (m Model) KeyMap() keys.KeyMap {
 		keys.NewBinding("esc").
 			WithHelp("stop filtering").
 			Cmd(StopFiltering()),
-		keys.NewBinding("ctrl+u").
-			WithHelp("½ page up").
-			Cmd(message.Up(m.Viewport.Height / 2)),
-		keys.NewBinding("ctrl+d").
-			WithHelp("½ page down").
-			Cmd(message.Down(m.Viewport.Height / 2)),
-		keys.NewBinding("pgup").
-			WithHelp("page up").
-			Cmd(message.Up(m.Viewport.Height)),
-		keys.NewBinding("pgdown").
-			WithHelp("page down").
-			Cmd(message.Down(m.Viewport.Height)),
-		keys.NewBinding("end").
-			WithHelp("list bottom").
-			Cmd(message.Bottom()),
-		keys.NewBinding("home").
-			WithHelp("list top").
-			Cmd(message.Top()),
 	}
 	return km
 }
@@ -175,6 +157,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 					cmds = append(cmds, k.TeaCmd)
 				}
 			}
+			m.list, cmd = m.list.Update(msg)
+			cmds = append(cmds, cmd)
+
 			m.Input, cmd = m.Input.Update(msg)
 			if v := m.Input.Value(); v != "" {
 				m.Matches = m.Props().Visible(v)
