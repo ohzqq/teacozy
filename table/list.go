@@ -38,7 +38,6 @@ func New(props *props.Items, opts ...option) *List {
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
-	m.KeyMap = m.DefaultKeyMap()
 
 	for _, opt := range opts {
 		opt(&m)
@@ -46,6 +45,8 @@ func New(props *props.Items, opts ...option) *List {
 
 	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
 	m.Props().Matches = m.Props().Visible()
+
+	m.KeyMap = m.DefaultKeyMap()
 	m.UpdateItems()
 
 	return &m

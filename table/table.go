@@ -76,7 +76,8 @@ func (m *Model) Init(props Props) tea.Cmd {
 	m.list = New(props.Items)
 	m.list.Focus()
 
-	m.Viewport = viewport.New(props.Width, props.Height)
+	m.list.SetWidth(props.Width)
+	m.list.SetHeight(props.Height)
 
 	return nil
 }
@@ -150,8 +151,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m Model) Render(w, h int) string {
-	m.Viewport.Height = m.Props().Height - 1
-	m.Viewport.Width = m.Props().Width
+	m.list.SetHeight(m.Props().Height - 1)
+	m.list.SetWidth(m.Props().Width)
 	m.list.UpdateItems()
 
 	view := m.list.View()
