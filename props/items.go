@@ -22,6 +22,7 @@ type Items struct {
 	Snapshot    string
 	Title       string
 	Cur         int
+	Cursor      int
 	footer      string
 	Lines       int
 	TotalLines  func(int)
@@ -37,6 +38,7 @@ type Opt func(*Items)
 func New(opts ...Opt) (*Items, error) {
 	items := Items{
 		Selected: make(map[int]struct{}),
+		Cursor:   0,
 	}
 	items.Opts(opts...)
 
@@ -131,6 +133,10 @@ func (m Items) Slice() []string {
 
 func (i *Items) SetCurrent(idx int) {
 	i.Cur = idx
+}
+
+func (i *Items) SetCursor(idx int) {
+	i.Cursor = idx
 }
 
 func (i Items) CurrentItem() *Item {

@@ -22,9 +22,7 @@ type Model struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	//rows        []string
-	props       *props.Items
-	rows        []props.Item
+	Matches     []props.Item
 	Cursor      int
 	focus       bool
 	quitting    bool
@@ -87,7 +85,7 @@ func (m *Model) Init(props Props) tea.Cmd {
 	m.Input.Focus()
 
 	m.Viewport = viewport.New(props.Width, props.Height)
-	m.rows = props.Visible()
+	m.Matches = props.Visible()
 
 	return nil
 }
@@ -144,16 +142,16 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.Input.Reset()
 		m.Input.Blur()
 		cur := m.SelectedRow().Index
-		m.rows = m.Props().Visible()
+		m.Matches = m.Props().Visible()
 		m.SetCursor(cur)
-		m.Props().SetFooter(strconv.Itoa(m.Cursor))
+		m.Props().SetFooter(strconv.Itoa(m.Props().Cursor))
 		//m.UpdateRows()
 
 	case StartFilteringMsg:
 		m.Input.Focus()
 	case message.ToggleItemMsg:
-		if len(m.rows) > 0 {
-			m.Props().SetCurrent(m.rows[m.Cursor].Index)
+		if len(m.Matches) > 0 {
+			m.Props().SetCurrent(m.Matches[m.Props().Cursor].Index)
 			if m.Props().NumSelected == 0 && m.quitting {
 				cmds = append(cmds, m.ReturnSelections())
 			}
@@ -180,9 +178,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			}
 			m.Input, cmd = m.Input.Update(msg)
 			if v := m.Input.Value(); v != "" {
-				m.rows = m.Props().Visible(v)
+				m.Matches = m.Props().Visible(v)
 			} else {
-				m.rows = m.Props().Visible()
+				m.Matches = m.Props().Visible()
 			}
 			cmds = append(cmds, cmd)
 		} else {
@@ -213,17 +211,17 @@ func (m Model) Render(w, h int) string {
 // UpdateRows updates the list content based on the previously defined
 // columns and rows.
 func (m *Model) UpdateRows() {
-	renderedRows := make([]string, 0, len(m.rows))
+	renderedRows := make([]string, 0, len(m.Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
-	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Viewport.Height, 0, m.Cursor)
+	if m.Props().Cursor >= 0 {
+		m.start = clamp(m.Props().Cursor-m.Viewport.Height, 0, m.Props().Cursor)
 	} else {
 		m.start = 0
 	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.rows))
+	m.end = clamp(m.Props().Cursor+m.Viewport.Height, m.Props().Cursor, len(m.Matches))
 	for i := m.start; i < m.end; i++ {
 		renderedRows = append(renderedRows, m.renderRow(i))
 	}
@@ -234,7 +232,7 @@ func (m *Model) UpdateRows() {
 }
 
 func (m *Model) renderRow(rowID int) string {
-	row := m.rows[rowID]
+	row := m.Matches[rowID]
 
 	var s strings.Builder
 	pre := "x"
@@ -244,7 +242,7 @@ func (m *Model) renderRow(rowID int) string {
 	}
 
 	switch {
-	case rowID == m.Cursor:
+	case rowID == m.Props().Cursor:
 		pre = row.Style.Cursor.Render(pre)
 	default:
 		if _, ok := m.Props().Selected[row.Index]; ok {
@@ -269,20 +267,20 @@ func (m *Model) renderRow(rowID int) string {
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) SelectedRow() props.Item {
-	row := m.Props().Items.Items[m.rows[m.Cursor].Index]
+	row := m.Props().Items.Items[m.Matches[m.Props().Cursor].Index]
 	return row
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *Model) MoveUp(n int) {
-	m.Cursor = clamp(m.Cursor-n, 0, len(m.rows)-1)
+	m.Props().Cursor = clamp(m.Props().Cursor-n, 0, len(m.Matches)-1)
 	m.UpdateRows()
 	switch {
 	case m.start == 0:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Props().Cursor))
 	case m.start < m.Viewport.Height:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Props().Cursor))
 	case m.Viewport.YOffset >= 1:
 		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
 	}
@@ -291,27 +289,27 @@ func (m *Model) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
-	m.Cursor = clamp(m.Cursor+n, 0, len(m.rows)-1)
+	m.Props().Cursor = clamp(m.Props().Cursor+n, 0, len(m.Matches)-1)
 	m.UpdateRows()
 	switch {
-	case m.end == len(m.rows):
+	case m.end == len(m.Matches):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
-	case m.Cursor > (m.end-m.start)/2:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
+	case m.Props().Cursor > (m.end-m.start)/2:
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Props().Cursor))
 	case m.Viewport.YOffset > 1:
-	case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
+	case m.Props().Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
 	}
 }
 
 // GotoTop moves the selection to the first row.
 func (m *Model) GotoTop() {
-	m.MoveUp(m.Cursor)
+	m.MoveUp(m.Props().Cursor)
 }
 
 // GotoBottom moves the selection to the last row.
 func (m *Model) GotoBottom() {
-	m.MoveDown(len(m.rows))
+	m.MoveDown(len(m.Matches))
 }
 
 func max(a, b int) int {
@@ -383,8 +381,7 @@ func clamp(v, low, high int) int {
 // WithRows sets the table rows (data).
 func WithRows(rows *props.Items) Option {
 	return func(m *Model) {
-		m.props = rows
-		m.rows = rows.Visible()
+		m.Matches = rows.Visible()
 	}
 }
 
@@ -436,12 +433,12 @@ func (m *Model) Blur() {
 
 // Rows returns the current rows.
 func (m Model) Rows() []props.Item {
-	return m.rows
+	return m.Matches
 }
 
 // SetRows sets a new rows state.
 func (m *Model) SetRows(r []props.Item) {
-	m.rows = r
+	m.Matches = r
 	m.UpdateRows()
 }
 
@@ -469,12 +466,12 @@ func (m Model) Width() int {
 
 // Cursor returns the index of the selected row.
 func (m Model) GetCursor() int {
-	return m.Cursor
+	return m.Props().Cursor
 }
 
 // SetCursor sets the cursor position in the table.
 func (m *Model) SetCursor(n int) {
-	m.Cursor = clamp(n, 0, len(m.rows)-1)
+	m.Props().SetCursor(clamp(n, 0, len(m.Matches)-1))
 	m.UpdateRows()
 }
 
