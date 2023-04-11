@@ -18,9 +18,6 @@ type Model struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	Matches     []props.Item
-	Cursor      int
-	focus       bool
 	quitting    bool
 	Placeholder string
 	Prompt      string
@@ -31,8 +28,6 @@ type Model struct {
 	Input textinput.Model
 
 	Viewport viewport.Model
-	start    int
-	end      int
 }
 
 type Props struct {
@@ -58,10 +53,6 @@ func (c Model) Name() string {
 // New creates a new model for the table widget.
 func NewTable(opts ...Option) *Model {
 	m := Model{
-		Cursor: 0,
-
-		focus: true,
-
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
@@ -86,7 +77,6 @@ func (m *Model) Init(props Props) tea.Cmd {
 	m.list.Focus()
 
 	m.Viewport = viewport.New(props.Width, props.Height)
-	m.Matches = props.Visible()
 
 	return nil
 }
@@ -144,11 +134,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		if m.Input.Focused() {
 			m.Input, cmd = m.Input.Update(msg)
-			if v := m.Input.Value(); v != "" {
-				m.list.SetItems(m.Props().Filter(v))
-			} else {
-				m.list.SetItems(m.Props().Visible())
-			}
+			m.Props().Filter(m.Input.Value())
 			cmds = append(cmds, cmd)
 		}
 		for _, k := range m.KeyMap() {
@@ -166,7 +152,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m Model) Render(w, h int) string {
 	m.Viewport.Height = m.Props().Height - 1
 	m.Viewport.Width = m.Props().Width
-	m.list.UpdateRows()
+	m.list.UpdateItems()
 
 	view := m.list.View()
 	if m.Input.Focused() {

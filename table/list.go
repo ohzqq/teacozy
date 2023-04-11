@@ -15,13 +15,13 @@ import (
 
 // List defines a state for the table widget.
 type List struct {
-	*props.Items
-	Matches     []props.Item
+	props       *props.Items
 	focus       bool
 	quitting    bool
 	Placeholder string
 	Prompt      string
 	Style       style.List
+	KeyMap      keys.KeyMap
 
 	Viewport viewport.Model
 	start    int
@@ -33,33 +33,37 @@ type option func(*List)
 // New creates a new model for the table widget.
 func New(props *props.Items, opts ...option) *List {
 	m := List{
-		focus: false,
-		Items: props,
-
+		focus:  false,
+		props:  props,
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
+	m.KeyMap = m.DefaultKeyMap()
 
 	for _, opt := range opts {
 		opt(&m)
 	}
 
 	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
-	m.Matches = m.Props().Visible()
-	m.UpdateRows()
+	m.Props().Matches = m.Props().Visible()
+	m.UpdateItems()
 
 	return &m
 }
 
+func (m *List) UpdateProps(props *props.Items) {
+	m.props = props
+}
+
 func (m List) Props() *props.Items {
-	return m.Items
+	return m.props
 }
 
 func (m *List) Init() tea.Cmd {
 	return nil
 }
 
-func (m List) KeyMap() keys.KeyMap {
+func (m List) DefaultKeyMap() keys.KeyMap {
 	var km = keys.KeyMap{
 		keys.Quit(),
 		keys.ToggleItem(),
@@ -104,7 +108,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.GotoBottom()
 	case tea.KeyMsg:
 		if m.Focused() {
-			for _, k := range m.KeyMap() {
+			for _, k := range m.KeyMap {
 				if key.Matches(msg, k.Binding) {
 					cmds = append(cmds, k.TeaCmd)
 				}
@@ -119,10 +123,10 @@ func (m List) View() string {
 	return m.Viewport.View()
 }
 
-// UpdateRows updates the list content based on the previously defined
+// UpdateItems updates the list content based on the previously defined
 // columns and rows.
-func (m *List) UpdateRows() {
-	renderedRows := make([]string, 0, len(m.Matches))
+func (m *List) UpdateItems() {
+	renderedRows := make([]string, 0, len(m.Props().Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
@@ -131,8 +135,14 @@ func (m *List) UpdateRows() {
 		m.start = clamp(m.Props().Cursor-m.Viewport.Height, 0, m.Props().Cursor)
 	} else {
 		m.start = 0
+		m.SetCursor(0)
 	}
-	m.end = clamp(m.Props().Cursor+m.Viewport.Height, m.Props().Cursor, len(m.Matches))
+	m.end = clamp(m.Props().Cursor+m.Viewport.Height, m.Props().Cursor, len(m.Props().Matches))
+
+	if m.Props().Cursor > m.end {
+		m.Props().SetCursor(clamp(m.Props().Cursor+m.Viewport.Height, m.Props().Cursor, len(m.Props().Matches)-1))
+	}
+
 	for i := m.start; i < m.end; i++ {
 		renderedRows = append(renderedRows, m.renderRow(i))
 	}
@@ -143,7 +153,7 @@ func (m *List) UpdateRows() {
 }
 
 func (m *List) renderRow(rowID int) string {
-	row := m.Matches[rowID]
+	row := m.Props().Matches[rowID]
 
 	var s strings.Builder
 	pre := "x"
@@ -177,15 +187,15 @@ func (m *List) renderRow(rowID int) string {
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m List) CurrentItem() props.Item {
-	row := m.Props().GetItem(m.Matches[m.Props().Cursor].Index)
+	row := m.Props().GetItem(m.Props().Matches[m.Props().Cursor].Index)
 	return row
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *List) MoveUp(n int) {
-	m.Props().SetCursor(clamp(m.Props().Cursor-n, 0, len(m.Matches)-1))
-	m.UpdateRows()
+	m.Props().SetCursor(clamp(m.Props().Cursor-n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
 	switch {
 	case m.start == 0:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Props().Cursor))
@@ -200,10 +210,10 @@ func (m *List) MoveUp(n int) {
 // It can not go below the last row.
 func (m *List) MoveDown(n int) {
 	//fmt.Println(n)
-	m.Props().SetCursor(clamp(m.Props().Cursor+n, 0, len(m.Matches)-1))
-	m.UpdateRows()
+	m.Props().SetCursor(clamp(m.Props().Cursor+n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
 	switch {
-	case m.end == len(m.Matches):
+	case m.end == len(m.Props().Matches):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
 	case m.Props().Cursor > (m.end-m.start)/2:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Props().Cursor))
@@ -220,7 +230,7 @@ func (m *List) GotoTop() {
 
 // GotoBottom moves the selection to the last row.
 func (m *List) GotoBottom() {
-	m.MoveDown(len(m.Matches))
+	m.MoveDown(len(m.Props().Matches))
 }
 
 func (m *List) ToggleAllItems() tea.Cmd {
@@ -248,37 +258,37 @@ func (m List) Focused() bool {
 // interact.
 func (m *List) Focus() {
 	m.focus = true
-	m.Matches = m.Props().Visible()
-	m.UpdateRows()
+	m.Props().Matches = m.Props().Visible()
+	m.UpdateItems()
 }
 
 // Blur blurs the table, preventing selection or movement.
 func (m *List) Blur() {
 	m.focus = false
-	m.UpdateRows()
+	m.UpdateItems()
 }
 
 // VisibleItems returns the current rows.
 func (m List) VisibleItems() []props.Item {
-	return m.Matches
+	return m.Props().Matches
 }
 
 // SetItems sets a new rows state.
 func (m *List) SetItems(r []props.Item) {
-	m.Matches = r
-	m.UpdateRows()
+	m.Props().Matches = r
+	m.UpdateItems()
 }
 
 // SetWidth sets the width of the viewport of the table.
 func (m *List) SetWidth(w int) {
 	m.Viewport.Width = w
-	m.UpdateRows()
+	m.UpdateItems()
 }
 
 // SetHeight sets the height of the viewport of the table.
 func (m *List) SetHeight(h int) {
 	m.Viewport.Height = h
-	m.UpdateRows()
+	m.UpdateItems()
 }
 
 // Height returns the viewport height of the table.
@@ -298,6 +308,6 @@ func (m List) GetCursor() int {
 
 // SetCursor sets the cursor position in the table.
 func (m *List) SetCursor(n int) {
-	m.Props().SetCursor(clamp(n, 0, len(m.Matches)-1))
-	m.UpdateRows()
+	m.Props().SetCursor(clamp(n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
 }

@@ -14,6 +14,7 @@ import (
 
 type Items struct {
 	Items       []Item
+	Matches     []Item
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
@@ -151,14 +152,12 @@ func (i Items) GetItem(idx int) Item {
 	return i.Items[idx]
 }
 
-func (i Items) Filter(search string) []Item {
-	return ExactMatches(search, i.Items)
+func (i *Items) Filter(search string) []Item {
+	i.Matches = ExactMatches(search, i.Items)
+	return i.Matches
 }
 
 func (cp Items) Visible(matches ...string) []Item {
-	if len(matches) != 0 {
-		return ExactMatches(matches[0], cp.Items)
-	}
 	return cp.Items
 }
 
