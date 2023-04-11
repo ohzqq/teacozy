@@ -58,7 +58,7 @@ func (c Model) Name() string {
 }
 
 // New creates a new model for the table widget.
-func New(opts ...Option) *Model {
+func NewTable(opts ...Option) *Model {
 	m := Model{
 		Cursor: 0,
 
