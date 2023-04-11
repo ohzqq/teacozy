@@ -94,9 +94,6 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case message.QuitMsg:
 		return m, tea.Quit
 
-	case message.ToggleItemMsg:
-		m.Props().ToggleSelection(m.CurrentItem().Index)
-		cmds = append(cmds, message.Down(1))
 	case message.DownMsg:
 		m.MoveDown(msg.Lines)
 	case message.UpMsg:

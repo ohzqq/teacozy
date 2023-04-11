@@ -129,12 +129,16 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	case message.ToggleItemMsg:
 		if len(m.list.VisibleItems()) > 0 {
-			if m.Props().NumSelected == 0 && m.quitting {
+			m.Props().ToggleSelection(m.list.CurrentItem().Index)
+			switch {
+			case m.Props().NumSelected == 0 && m.quitting:
 				cmds = append(cmds, m.ReturnSelections())
+			case m.Props().Limit == 1:
+				cmds = append(cmds, m.ReturnSelections())
+			case m.Props().NumSelected > 0 || m.Props().Limit > 1:
+				cmds = append(cmds, message.Down(1))
 			}
-			if m.Props().Limit == 1 {
-				return m.ReturnSelections()
-			}
+
 		}
 
 	case tea.KeyMsg:
