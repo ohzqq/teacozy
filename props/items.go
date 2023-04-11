@@ -136,7 +136,7 @@ func (m Items) Slice() []string {
 }
 
 func (i *Items) SetCurrent(idx int) {
-	i.Cur = idx
+	i.Cursor = idx
 }
 
 func (i *Items) SetCursor(idx int) {
@@ -149,6 +149,10 @@ func (i Items) CurrentItem() *Item {
 
 func (i Items) GetItem(idx int) Item {
 	return i.Items[idx]
+}
+
+func (i Items) Filter(search string) []Item {
+	return ExactMatches(search, i.Items)
 }
 
 func (cp Items) Visible(matches ...string) []Item {
@@ -175,43 +179,6 @@ func (m *Items) ToggleSelection(items ...int) {
 
 func (m *Items) ChoiceMap(choices []map[string]string) {
 	m.Items = ChoiceMapToMatch(choices)
-}
-
-func (m *Items) RenderItems(items []Item) string {
-	var s strings.Builder
-	for i, match := range items {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case i == m.CurrentItem().Index:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = match.Style.Selected.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-
-		s.WriteString(match.Render(m.Width, m.Height))
-		s.WriteRune('\n')
-	}
-	view := s.String()
-
-	//m.Lines = lipgloss.Height(view)
-	//m.TotalLines(m.Lines)
-
-	return view
 }
 
 func (m Items) Exec() error {
@@ -349,4 +316,41 @@ func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
 			}
 		}
 	}
+}
+
+func (m *Items) RenderItems(items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == m.CurrentItem().Index:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.Render(m.Width, m.Height))
+		s.WriteRune('\n')
+	}
+	view := s.String()
+
+	//m.Lines = lipgloss.Height(view)
+	//m.TotalLines(m.Lines)
+
+	return view
 }

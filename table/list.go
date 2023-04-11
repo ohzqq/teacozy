@@ -17,7 +17,6 @@ import (
 type List struct {
 	*props.Items
 	Matches     []props.Item
-	Cursor      int
 	focus       bool
 	quitting    bool
 	Placeholder string
@@ -34,9 +33,8 @@ type option func(*List)
 // New creates a new model for the table widget.
 func New(props *props.Items, opts ...option) *List {
 	m := List{
-		Cursor: 0,
-		focus:  true,
-		Items:  props,
+		focus: false,
+		Items: props,
 
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
@@ -48,6 +46,7 @@ func New(props *props.Items, opts ...option) *List {
 
 	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
 	m.Matches = m.Props().Visible()
+	m.UpdateRows()
 
 	return &m
 }
@@ -96,11 +95,8 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		return m, tea.Quit
 
 	case message.ToggleItemMsg:
-		if len(m.Matches) > 0 {
-			m.Props().ToggleSelection()
-			cmds = append(cmds, message.Down())
-		}
-
+		m.Props().ToggleSelection(m.CurrentItem().Index)
+		cmds = append(cmds, message.Down(1))
 	case message.DownMsg:
 		m.MoveDown(msg.Lines)
 	case message.UpMsg:
@@ -183,7 +179,7 @@ func (m *List) renderRow(rowID int) string {
 
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
-func (m List) SelectedRow() props.Item {
+func (m List) CurrentItem() props.Item {
 	row := m.Props().GetItem(m.Matches[m.Props().Cursor].Index)
 	return row
 }
@@ -206,6 +202,7 @@ func (m *List) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *List) MoveDown(n int) {
+	//fmt.Println(n)
 	m.Props().SetCursor(clamp(m.Props().Cursor+n, 0, len(m.Matches)-1))
 	m.UpdateRows()
 	switch {
@@ -254,6 +251,7 @@ func (m List) Focused() bool {
 // interact.
 func (m *List) Focus() {
 	m.focus = true
+	m.Matches = m.Props().Visible()
 	m.UpdateRows()
 }
 
