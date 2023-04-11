@@ -74,6 +74,10 @@ func (i *Items) NoLimit() *Items {
 	return i
 }
 
+func (i Items) AllItems() []Item {
+	return i.Items
+}
+
 func (i Items) Update() *Items {
 	items := &Items{}
 	items.Items = i.Items
@@ -140,7 +144,11 @@ func (i *Items) SetCursor(idx int) {
 }
 
 func (i Items) CurrentItem() *Item {
-	return &i.Items[i.Cur]
+	return &i.Items[i.Cursor]
+}
+
+func (i Items) GetItem(idx int) Item {
+	return i.Items[idx]
 }
 
 func (cp Items) Visible(matches ...string) []Item {

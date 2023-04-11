@@ -90,7 +90,7 @@ func (m *Model) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func (m Model) Km() keys.KeyMap {
+func (m Model) KeyMap() keys.KeyMap {
 	var km = keys.KeyMap{
 		keys.Quit(),
 		keys.ToggleItem(),
@@ -145,7 +145,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.Matches = m.Props().Visible()
 		m.SetCursor(cur)
 		m.Props().SetFooter(strconv.Itoa(m.Props().Cursor))
-		//m.UpdateRows()
 
 	case StartFilteringMsg:
 		m.Input.Focus()
@@ -171,7 +170,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.GotoBottom()
 	case tea.KeyMsg:
 		if m.Input.Focused() {
-			for _, k := range m.Km() {
+			for _, k := range m.KeyMap() {
 				if key.Matches(msg, k.Binding) {
 					cmds = append(cmds, k.TeaCmd)
 				}
@@ -248,7 +247,6 @@ func (m *Model) renderRow(rowID int) string {
 		if _, ok := m.Props().Selected[row.Index]; ok {
 			pre = row.Style.Selected.Render(pre)
 		} else if row.Label == "" {
-			//if row.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))
 		} else {
 			pre = row.Style.Label.Render(pre)
@@ -267,14 +265,14 @@ func (m *Model) renderRow(rowID int) string {
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) SelectedRow() props.Item {
-	row := m.Props().Items.Items[m.Matches[m.Props().Cursor].Index]
+	row := m.Props().GetItem(m.Matches[m.Props().Cursor].Index)
 	return row
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *Model) MoveUp(n int) {
-	m.Props().Cursor = clamp(m.Props().Cursor-n, 0, len(m.Matches)-1)
+	m.Props().SetCursor(clamp(m.Props().Cursor-n, 0, len(m.Matches)-1))
 	m.UpdateRows()
 	switch {
 	case m.start == 0:
@@ -289,7 +287,7 @@ func (m *Model) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
-	m.Props().Cursor = clamp(m.Props().Cursor+n, 0, len(m.Matches)-1)
+	m.Props().SetCursor(clamp(m.Props().Cursor+n, 0, len(m.Matches)-1))
 	m.UpdateRows()
 	switch {
 	case m.end == len(m.Matches):
