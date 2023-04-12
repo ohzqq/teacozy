@@ -21,17 +21,19 @@ type List struct {
 	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	props    *props.Items
-	focus    bool
-	quitting bool
-	Selected map[int]struct{}
-	Cursor   int
-	height   int
-	width    int
-	Style    style.List
-	KeyMap   keys.KeyMap
-	Items    []Item
-	Matches  []Item
+	items       *props.Items
+	choices     []map[string]string
+	focus       bool
+	quitting    bool
+	Selected    map[int]struct{}
+	Cursor      int
+	height      int
+	width       int
+	NumSelected int
+	Limit       int
+	Style       style.List
+	KeyMap      keys.KeyMap
+	props       *Props
 
 	Viewport viewport.Model
 	start    int
@@ -39,24 +41,27 @@ type List struct {
 }
 
 type Props struct {
-	Items []Item
+	Items   []Item
+	Matches []Item
 }
 
-func New(props *props.Items, opts ...Option) *List {
+func New(props []string, opts ...Option) *List {
 	m := List{
 		focus:  true,
-		props:  props,
 		width:  util.TermWidth(),
 		height: util.TermHeight(),
 		Style:  style.ListDefaults(),
+		props: &Props{
+			Items:   ChoicesToMatch(props),
+			Matches: ChoicesToMatch(props),
+		},
 	}
 
 	for _, opt := range opts {
 		opt(&m)
 	}
 
-	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
-	m.Props().Matches = m.Props().Visible()
+	m.Viewport = viewport.New(m.width, m.height)
 
 	m.KeyMap = m.DefaultKeyMap()
 	m.UpdateItems()
@@ -68,7 +73,7 @@ func New(props *props.Items, opts ...Option) *List {
 //  m.props = props
 //}
 
-func (m List) Props() *props.Items {
+func (m *List) Props() *Props {
 	return m.props
 }
 
@@ -191,7 +196,7 @@ func (m *List) renderRow(rowID int) string {
 	case rowID == m.Cursor:
 		pre = row.Style.Cursor.Render(pre)
 	default:
-		if _, ok := m.Props().Selected[row.Index]; ok {
+		if _, ok := m.Selected[row.Index]; ok {
 			pre = row.Style.Selected.Render(pre)
 		} else if row.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))
@@ -211,9 +216,8 @@ func (m *List) renderRow(rowID int) string {
 
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
-func (m List) CurrentItem() props.Item {
-	row := m.Props().GetItem(m.Props().Matches[m.Cursor].Index)
-	return row
+func (m List) CurrentItem() Item {
+	return m.Props().Matches[m.Cursor]
 }
 
 // MoveUp moves the selection up by any number of rows.
@@ -257,16 +261,16 @@ func (m *List) GotoBottom() {
 	m.MoveDown(len(m.Props().Matches))
 }
 
-func (m *List) ToggleAllItems() tea.Cmd {
-	return func() tea.Msg {
-		var items []int
-		for _, item := range m.Props().AllItems() {
-			items = append(items, item.Index)
-		}
-		m.Props().ToggleSelection(items...)
-		return nil
-	}
-}
+//func (m *List) ToggleAllItems() tea.Cmd {
+//  return func() tea.Msg {
+//    var items []int
+//    for _, item := range m.Props().AllItems() {
+//      items = append(items, item.Index)
+//    }
+//    m.Props().ToggleSelection(items...)
+//    return nil
+//  }
+//}
 
 func (m *List) quit() tea.Cmd {
 	m.quitting = true
@@ -282,7 +286,7 @@ func (m List) Focused() bool {
 // interact.
 func (m *List) Focus() {
 	m.focus = true
-	m.Props().Matches = m.Props().Visible()
+	m.Props().Matches = m.Props().Items
 	m.UpdateItems()
 }
 
@@ -293,12 +297,12 @@ func (m *List) Blur() {
 }
 
 // VisibleItems returns the current rows.
-func (m List) VisibleItems() []props.Item {
+func (m List) VisibleItems() []Item {
 	return m.Props().Matches
 }
 
 // SetItems sets a new rows state.
-func (m *List) SetItems(r []props.Item) {
+func (m *List) SetItems(r []Item) {
 	m.Props().Matches = r
 	m.UpdateItems()
 }
