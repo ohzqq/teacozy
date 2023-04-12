@@ -3,7 +3,6 @@ package table
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
@@ -13,8 +12,8 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-// Model defines a state for the table widget.
-type Model struct {
+// Filter defines a state for the table widget.
+type Filter struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
@@ -26,8 +25,6 @@ type Model struct {
 	list *List
 
 	Input textinput.Model
-
-	Viewport viewport.Model
 }
 
 type Props struct {
@@ -37,22 +34,22 @@ type Props struct {
 // Option is used to set options in New. For example:
 //
 //	table := New(WithColumns([]Column{{Title: "ID", Width: 10}}))
-type Option func(*Model)
+type Option func(*Filter)
 
-func (c Model) Initializer(props *props.Items) router.RouteInitializer {
+func (c Filter) Initializer(props *props.Items) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := NewTable()
 		return component, component.Init(Props{Items: props})
 	}
 }
 
-func (c Model) Name() string {
+func (c Filter) Name() string {
 	return "table"
 }
 
 // New creates a new model for the table widget.
-func NewTable(opts ...Option) *Model {
-	m := Model{
+func NewTable(opts ...Option) *Filter {
+	m := Filter{
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
 	}
@@ -64,7 +61,7 @@ func NewTable(opts ...Option) *Model {
 	return &m
 }
 
-func (m *Model) Init(props Props) tea.Cmd {
+func (m *Filter) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 	m.Input = textinput.New()
 	m.Input.Prompt = m.Prompt
@@ -82,7 +79,7 @@ func (m *Model) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func (m Model) KeyMap() keys.KeyMap {
+func (m Filter) KeyMap() keys.KeyMap {
 	var km = keys.KeyMap{
 		//keys.ToggleItem(),
 		keys.NewBinding("enter").
@@ -98,11 +95,11 @@ func (m Model) KeyMap() keys.KeyMap {
 	return km
 }
 
-func (m *Model) ReturnSelections() tea.Cmd {
+func (m *Filter) ReturnSelections() tea.Cmd {
 	return message.ReturnSels(m.Props().Limit, m.Props().NumSelected)
 }
 
-func (m *Model) Update(msg tea.Msg) tea.Cmd {
+func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -150,7 +147,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m Model) Render(w, h int) string {
+func (m Filter) Render(w, h int) string {
 	m.list.SetHeight(m.Props().Height - 1)
 	m.list.SetWidth(m.Props().Width)
 	m.list.UpdateItems()
@@ -179,7 +176,7 @@ func min(a, b int) int {
 	return b
 }
 
-func (m *Model) ToggleAllItems() tea.Cmd {
+func (m *Filter) ToggleAllItems() tea.Cmd {
 	return func() tea.Msg {
 		var items []int
 		for _, item := range m.Props().Items.Items {
@@ -190,7 +187,7 @@ func (m *Model) ToggleAllItems() tea.Cmd {
 	}
 }
 
-func (m Model) UnfilteredKeyMap() keys.KeyMap {
+func (m Filter) UnfilteredKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Up().WithKeys("k", "up"),
 		keys.Down().WithKeys("j", "down"),
@@ -220,7 +217,7 @@ func (m Model) UnfilteredKeyMap() keys.KeyMap {
 	return km
 }
 
-func (m *Model) quit() tea.Cmd {
+func (m *Filter) quit() tea.Cmd {
 	m.quitting = true
 	return message.Quit()
 }
