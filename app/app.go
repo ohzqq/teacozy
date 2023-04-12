@@ -3,10 +3,10 @@ package app
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/key"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
@@ -30,21 +30,20 @@ type List struct {
 
 type Option func(*List)
 
-func New(opts ...Option) *List {
+func New(props *props.Items, opts ...Option) *List {
 	m := List{
-		focus:  false,
+		focus:  true,
 		props:  props,
 		width:  util.TermWidth(),
 		height: util.TermHeight(),
 		Style:  style.ListDefaults(),
-		Prompt: style.PromptPrefix,
 	}
 
 	for _, opt := range opts {
 		opt(&m)
 	}
 
-	m.Viewport = viewport.New(m.width, m.height)
+	m.Viewport = viewport.New(m.Props().Width, m.Props().Height)
 	m.Props().Matches = m.Props().Visible()
 
 	m.KeyMap = m.DefaultKeyMap()
@@ -93,12 +92,12 @@ func (m List) DefaultKeyMap() keys.KeyMap {
 	return km
 }
 
-func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
+func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case message.QuitMsg:
-		return m, tea.Quit
+		cmds = append(cmds, tea.Quit)
 
 	case message.DownMsg:
 		m.MoveDown(msg.Lines)
@@ -122,6 +121,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 }
 
 func (m List) View() string {
+	m.UpdateItems()
 	return m.Viewport.View()
 }
 
@@ -312,4 +312,24 @@ func (m List) GetCursor() int {
 func (m *List) SetCursor(n int) {
 	m.Props().SetCursor(clamp(n, 0, len(m.Props().Matches)-1))
 	m.UpdateItems()
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+func clamp(v, low, high int) int {
+	return min(max(v, low), high)
 }

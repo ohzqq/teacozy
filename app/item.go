@@ -1,9 +1,12 @@
-package props
+package app
 
 import (
 	"os/exec"
+	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -18,14 +21,24 @@ const (
 )
 
 type Item struct {
+	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
+	reactea.BasicPropfulComponent[ItemProps]
+
 	fuzzy.Match
-	Style    style.ListItem
-	selected bool
-	Label    string
-	Width    int
-	Depth    int
-	exec     *exec.Cmd
 	*Prefix
+
+	Label string
+	exec  *exec.Cmd
+	Style style.ListItem
+}
+
+type ItemProps struct {
+	fuzzy.Match
+
+	Current  bool
+	Selected bool
+	Label    string
+	exec     *exec.Cmd
 }
 
 type Prefix struct {
@@ -44,6 +57,11 @@ func NewItem(t string, idx int) Item {
 		Prefix: DefaultPrefix(),
 	}
 	return item
+}
+
+func (i *Item) Init(props ItemProps) tea.Cmd {
+	i.UpdateProps(props)
+	return nil
 }
 
 func DefaultPrefix() *Prefix {
@@ -71,14 +89,39 @@ func (i Item) String() string {
 }
 
 func (i Item) Render(w, h int) string {
+	var s strings.Builder
+	pre := "x"
+
+	if i.Props().Label != "" {
+		pre = i.Props().Label
+	}
+
+	switch {
+	case i.Props().Current:
+		pre = i.Style.Cursor.Render(pre)
+	default:
+		if i.Props().Selected {
+			pre = i.Style.Selected.Render(pre)
+		} else if i.Props().Label == "" {
+			pre = strings.Repeat(" ", lipgloss.Width(pre))
+		} else {
+			pre = i.Style.Label.Render(pre)
+		}
+	}
+
+	s.WriteString("[")
+	s.WriteString(pre)
+	s.WriteString("]")
+
 	text := lipgloss.StyleRunes(
-		i.Str,
-		i.MatchedIndexes,
+		i.Props().Str,
+		i.Props().MatchedIndexes,
 		i.Style.Match,
 		i.Style.Text,
 	)
-	s := lipgloss.NewStyle().Render(text)
-	return s
+	s.WriteString(lipgloss.NewStyle().Render(text))
+
+	return s.String()
 }
 
 func (i Item) LineHeight() int {
