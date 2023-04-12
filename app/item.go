@@ -10,7 +10,6 @@ import (
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -86,7 +85,7 @@ func (i Item) String() string {
 	return i.Str
 }
 
-func (i Item) Render(w, h int) string {
+func (i Item) Render(cur bool, w, h int) string {
 	var s strings.Builder
 	pre := "x"
 
@@ -95,7 +94,7 @@ func (i Item) Render(w, h int) string {
 	}
 
 	switch {
-	case i.Props().Current:
+	case cur:
 		pre = i.Style.Cursor.Render(pre)
 	default:
 		if i.Props().Selected {
@@ -120,11 +119,6 @@ func (i Item) Render(w, h int) string {
 	s.WriteString(lipgloss.NewStyle().Render(text))
 
 	return s.String()
-}
-
-func (i Item) LineHeight() int {
-	//return 1
-	return lipgloss.Height(i.Render(util.TermSize()))
 }
 
 func DefaultItemStyle() style.ListItem {
