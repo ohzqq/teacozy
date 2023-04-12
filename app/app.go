@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/match"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -21,7 +20,6 @@ type List struct {
 	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	items       *match.Component
 	choices     []map[string]string
 	focus       bool
 	quitting    bool
@@ -71,7 +69,6 @@ func New(props []string, opts ...Option) *List {
 			Items:   ChoicesToMatch(props),
 			Matches: ChoicesToMatch(props),
 		},
-		items:   match.New(),
 		choices: MapChoices(props),
 	}
 
@@ -168,14 +165,8 @@ func (m *List) Render(w, h int) string {
 	m.SetWidth(m.width)
 	m.SetHeight(m.height)
 	m.UpdateItems()
-
-	renderedRows := make([]string, 0, len(m.matches))
-
-	for i := m.start; i < m.end; i++ {
-		renderedRows = append(renderedRows, m.matches[i])
-	}
 	m.Viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+		lipgloss.JoinVertical(lipgloss.Left, m.matches...),
 	)
 	return m.View()
 }
@@ -183,6 +174,8 @@ func (m *List) Render(w, h int) string {
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
 func (m *List) UpdateItems() {
+	renderedRows := make([]string, 0, len(m.Props().Matches))
+
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
@@ -192,30 +185,31 @@ func (m *List) UpdateItems() {
 		m.start = 0
 		m.SetCursor(0)
 	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.matches))
+	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches))
 
 	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.matches)-1))
+		m.SetCursor(clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches)-1))
 	}
 
-	props := match.Props{
-		Choices:  m.choices,
-		Selected: m.Selected,
-		Cursor:   m.Cursor,
-		Matches:  m.SetMatches,
-		Search:   "b",
+	for i := m.start; i < m.end; i++ {
+		renderedRows = append(renderedRows, m.renderRow(i))
 	}
-	m.items.Init(props)
-	m.items.Render(m.Viewport.Width, m.Viewport.Height)
+	m.SetMatches(renderedRows)
 
 }
 
 func (m *List) renderRow(rowID int) string {
-	row := m.matches[rowID]
+	row := m.Props().Matches[rowID]
 
 	var s strings.Builder
 
-	s.WriteString(row)
+	var cur bool
+	switch {
+	case rowID == m.Cursor:
+		cur = true
+	}
+
+	s.WriteString(row.Render(cur, m.Viewport.Width, m.Viewport.Height))
 
 	return s.String()
 }
