@@ -8,6 +8,12 @@ type ReturnSelectionsMsg struct {
 	Quitting bool
 }
 
+func ReturnSelections() tea.Cmd {
+	return func() tea.Msg {
+		return ReturnSelectionsMsg{}
+	}
+}
+
 func ReturnSels(limit, numSel int) tea.Cmd {
 	msg := ReturnSelectionsMsg{}
 	if limit == 1 {
@@ -65,6 +71,14 @@ type ToggleItemMsg struct{}
 func ToggleItem() tea.Cmd {
 	return func() tea.Msg {
 		return ToggleItemMsg{}
+	}
+}
+
+type ToggleAllItemsMsg struct{}
+
+func ToggleAllItems() tea.Cmd {
+	return func() tea.Msg {
+		return ToggleAllItemsMsg{}
 	}
 }
 

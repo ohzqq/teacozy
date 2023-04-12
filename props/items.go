@@ -22,6 +22,7 @@ type Items struct {
 	Width       int
 	Snapshot    string
 	Title       string
+	Quitting    bool
 	Cur         int
 	Cursor      int
 	footer      string
@@ -314,6 +315,7 @@ func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
 				i.Items[idx] = item
 			}
 		}
+		i.Matches = i.Items
 	}
 }
 

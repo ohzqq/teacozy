@@ -17,10 +17,9 @@ type Choose struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	quitting    bool
-	Placeholder string
-	Prompt      string
-	Style       style.List
+	quitting bool
+	Style    style.List
+	keys     keys.KeyMap
 
 	list *List
 
@@ -45,8 +44,7 @@ func (c Choose) Name() string {
 // New creates a new model for the table widget.
 func NewChoice() *Choose {
 	m := Choose{
-		Style:  style.ListDefaults(),
-		Prompt: style.PromptPrefix,
+		Style: style.ListDefaults(),
 	}
 
 	return &m
@@ -61,6 +59,18 @@ func (m *Choose) Init(props Props) tea.Cmd {
 	m.Viewport = viewport.New(props.Width, props.Height)
 
 	return nil
+}
+
+func (m *Choose) SetKeyMap() {
+	m.list.KeyMap.Get("up").AddKeys("k")
+	m.list.KeyMap.Get("down").AddKeys("j")
+	m.list.KeyMap.Get("end").AddKeys("G")
+	m.list.KeyMap.Get("home").AddKeys("g")
+	m.list.KeyMap.Get("tab").AddKeys(" ")
+	m.list.KeyMap.Get("ctrl+c").AddKeys("q", "esc")
+
+	m.keys = m.KeyMap()
+
 }
 
 func (m Choose) KeyMap() keys.KeyMap {
@@ -133,8 +143,8 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m Choose) Render(w, h int) string {
-	m.Viewport.Height = m.Props().Height - 1
-	m.Viewport.Width = m.Props().Width
+	m.list.SetHeight(m.Props().Height - 1)
+	m.list.SetWidth(m.Props().Width)
 	m.list.UpdateItems()
 
 	view := m.list.View()

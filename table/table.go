@@ -108,7 +108,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case message.QuitMsg:
-		return tea.Quit
+		return reactea.Destroy
 
 	case StopFilteringMsg:
 		m.Input.Reset()
