@@ -61,10 +61,6 @@ func New(opts ...Opt) (*Items, error) {
 	return &items, nil
 }
 
-func (i *Items) ChoiceSlice(c []string) {
-	i.Items = ChoiceMapToMatch(MapChoices(c))
-}
-
 func (i *Items) Opts(opts ...Opt) {
 	for _, opt := range opts {
 		opt(i)
@@ -177,10 +173,6 @@ func (m *Items) ToggleSelection(items ...int) {
 	}
 }
 
-func (m *Items) ChoiceMap(choices []map[string]string) {
-	m.Items = ChoiceMapToMatch(choices)
-}
-
 func (m Items) Exec() error {
 	if m.cmd != "" {
 		for _, c := range m.Chosen() {
@@ -212,6 +204,14 @@ func (m Items) Exec() error {
 		}
 	}
 	return nil
+}
+
+func (i *Items) ChoiceSlice(c []string) {
+	i.Items = ChoiceMapToMatch(MapChoices(c))
+}
+
+func (m *Items) ChoiceMap(choices []map[string]string) {
+	m.Items = ChoiceMapToMatch(choices)
 }
 
 func ChoiceMapToMatch(options []map[string]string) []Item {
@@ -250,44 +250,6 @@ func ExactMatches(search string, choices []Item) []Item {
 	}
 
 	return matches
-}
-
-func Limit(l int) Opt {
-	return func(i *Items) {
-		i.Limit = l
-	}
-}
-
-func Height(h int) Opt {
-	return func(i *Items) {
-		i.Height = h
-	}
-}
-
-func Width(w int) Opt {
-	return func(i *Items) {
-		i.Width = w
-	}
-}
-
-func Size(w, h int) Opt {
-	return func(i *Items) {
-		i.Width = w
-		i.Height = h
-	}
-}
-
-func Exec(cmd string, args ...string) Opt {
-	return func(i *Items) {
-		i.args = args
-		i.cmd = cmd
-	}
-}
-
-func Header(t string) Opt {
-	return func(i *Items) {
-		i.Title = t
-	}
 }
 
 func MapChoices[E any](c []E) []map[string]string {
@@ -354,4 +316,42 @@ func (m *Items) RenderItems(items []Item) string {
 	//m.TotalLines(m.Lines)
 
 	return view
+}
+
+func Limit(l int) Opt {
+	return func(i *Items) {
+		i.Limit = l
+	}
+}
+
+func Height(h int) Opt {
+	return func(i *Items) {
+		i.Height = h
+	}
+}
+
+func Width(w int) Opt {
+	return func(i *Items) {
+		i.Width = w
+	}
+}
+
+func Size(w, h int) Opt {
+	return func(i *Items) {
+		i.Width = w
+		i.Height = h
+	}
+}
+
+func Exec(cmd string, args ...string) Opt {
+	return func(i *Items) {
+		i.args = args
+		i.cmd = cmd
+	}
+}
+
+func Header(t string) Opt {
+	return func(i *Items) {
+		i.Title = t
+	}
 }

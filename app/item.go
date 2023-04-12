@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -33,11 +34,8 @@ type Item struct {
 }
 
 type ItemProps struct {
-	fuzzy.Match
-
 	Current  bool
 	Selected bool
-	Label    string
 	exec     *exec.Cmd
 }
 
@@ -92,8 +90,8 @@ func (i Item) Render(w, h int) string {
 	var s strings.Builder
 	pre := "x"
 
-	if i.Props().Label != "" {
-		pre = i.Props().Label
+	if i.Label != "" {
+		pre = i.Label
 	}
 
 	switch {
@@ -102,7 +100,7 @@ func (i Item) Render(w, h int) string {
 	default:
 		if i.Props().Selected {
 			pre = i.Style.Selected.Render(pre)
-		} else if i.Props().Label == "" {
+		} else if i.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))
 		} else {
 			pre = i.Style.Label.Render(pre)
@@ -114,8 +112,8 @@ func (i Item) Render(w, h int) string {
 	s.WriteString("]")
 
 	text := lipgloss.StyleRunes(
-		i.Props().Str,
-		i.Props().MatchedIndexes,
+		i.Str,
+		i.MatchedIndexes,
 		i.Style.Match,
 		i.Style.Text,
 	)
@@ -139,4 +137,50 @@ func DefaultItemStyle() style.ListItem {
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 
 	return s
+}
+
+func ChoiceMapToMatch(options []map[string]string) []Item {
+	matches := make([]Item, len(options))
+	for i, option := range options {
+		for label, val := range option {
+			item := NewItem(val, i)
+			item.Label = label
+			matches[i] = item
+		}
+	}
+	return matches
+}
+
+func ChoicesToMatch(options []string) []Item {
+	matches := make([]Item, len(options))
+	for i, option := range options {
+		matches[i] = NewItem(option, i)
+	}
+	return matches
+}
+
+func ExactMatches(search string, choices []Item) []Item {
+	matches := []Item{}
+	for _, choice := range choices {
+		search = strings.ToLower(search)
+		matchedString := strings.ToLower(choice.Str)
+
+		index := strings.Index(matchedString, search)
+		if index >= 0 {
+			for s := range search {
+				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
+			}
+			matches = append(matches, choice)
+		}
+	}
+
+	return matches
+}
+
+func MapChoices[E any](c []E) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": fmt.Sprint(val)}
+	}
+	return choices
 }
