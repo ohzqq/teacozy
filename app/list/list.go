@@ -20,13 +20,9 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	focus    bool
-	quitting bool
-	Cursor   int
-	height   int
-	width    int
-	Style    style.List
-	KeyMap   keys.KeyMap
+	Cursor int
+	Style  style.List
+	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
 	start    int
@@ -55,16 +51,12 @@ type Props struct {
 	SetContent  func(string)
 }
 
-func NewList(opts ...Option) *Component {
+func NewList() *Component {
 	m := Component{
 		Cursor: 0,
 		Style:  style.ListDefaults(),
 	}
 	m.KeyMap = keys.DefaultListKeyMap()
-
-	for _, opt := range opts {
-		opt(&m)
-	}
 
 	return &m
 }
@@ -95,13 +87,13 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		m.MoveDown(1)
 
 	case keys.PageUpMsg:
-		m.MoveUp(m.Viewport.Height)
+		m.MoveUp(m.Height())
 	case keys.PageDownMsg:
-		m.MoveDown(m.Viewport.Height)
+		m.MoveDown(m.Height())
 	case keys.HalfPageUpMsg:
-		m.MoveUp(m.Viewport.Height / 2)
+		m.MoveUp(m.Height() / 2)
 	case keys.HalfPageDownMsg:
-		m.MoveDown(m.Viewport.Height / 2)
+		m.MoveDown(m.Height() / 2)
 	case keys.LineDownMsg:
 		m.MoveDown(1)
 	case keys.LineUpMsg:
@@ -137,15 +129,15 @@ func (m *Component) UpdateItems() {
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
 	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Viewport.Height, 0, m.Cursor)
+		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
 	} else {
 		m.start = 0
 		m.SetCursor(0)
 	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches))
+	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
 
 	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches)-1))
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
 	}
 
 	for i := m.start; i < m.end; i++ {
@@ -169,7 +161,7 @@ func (m *Component) renderRow(rowID int) string {
 		row.Selected = true
 	}
 
-	s.WriteString(row.Render(m.Viewport.Width, m.Viewport.Height))
+	s.WriteString(row.Render(m.Width(), m.Height()))
 
 	return s.String()
 }
@@ -193,10 +185,10 @@ func (m *Component) MoveUp(n int) {
 	switch {
 	case m.start == 0:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
-	case m.start < m.Viewport.Height:
+	case m.start < m.Height():
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
 	case m.Viewport.YOffset >= 1:
-		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
+		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Height())
 	}
 }
 
@@ -207,11 +199,11 @@ func (m *Component) MoveDown(n int) {
 	m.UpdateItems()
 	switch {
 	case m.end == len(m.Props().Matches):
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Height()))
 	case m.Cursor > (m.end-m.start)/2:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
 	case m.Viewport.YOffset > 1:
-	case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
+	case m.Cursor > m.Viewport.YOffset+m.Height()-1:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
 	}
 }
@@ -238,19 +230,7 @@ func (m *Component) GotoBottom() {
 //}
 
 func (m *Component) quit() tea.Cmd {
-	m.quitting = true
 	return message.Quit()
-}
-
-// VisibleItems returns the current rows.
-func (m Component) VisibleItems() []item.Item {
-	return m.Props().Matches
-}
-
-// SetItems sets a new rows state.
-func (m *Component) SetItems(r []item.Item) {
-	//m.Props().Matches = r
-	m.UpdateItems()
 }
 
 // SetWidth sets the width of the viewport of the table.

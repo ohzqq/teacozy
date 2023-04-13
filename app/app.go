@@ -77,7 +77,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
 	c.input = input.NewSearch()
-	c.input.Init(input.InputProps{
+	c.input.Init(input.Props{
 		Filter: c.Filter,
 	})
 
