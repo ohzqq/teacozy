@@ -125,3 +125,19 @@ type BottomMsg struct{}
 
 func Top() tea.Msg    { return TopMsg{} }
 func Bottom() tea.Msg { return BottomMsg{} }
+
+type StartFilteringMsg struct{}
+
+func StartFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StartFilteringMsg{}
+	}
+}
+
+type StopFilteringMsg struct{}
+
+func StopFiltering() tea.Cmd {
+	return func() tea.Msg {
+		return StopFilteringMsg{}
+	}
+}

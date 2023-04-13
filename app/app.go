@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -29,6 +28,8 @@ type App struct {
 	NumSelected int
 	Limit       int
 	search      string
+	list        *List
+	input       *Input
 
 	Viewport viewport.Model
 }
@@ -36,7 +37,7 @@ type App struct {
 func New(choices []string) *App {
 	a := &App{
 		mainRouter: router.New(),
-		width:      util.TermHeight(),
+		width:      util.TermHeight() - 4,
 		height:     util.TermWidth(),
 		Choices:    MapChoices(choices),
 		Style:      style.DefaultAppStyle(),
@@ -44,39 +45,55 @@ func New(choices []string) *App {
 		Limit:      10,
 	}
 
-	a.Viewport = viewport.New(a.width, a.height)
-
 	return a
 }
 
+func (c *App) listProps() Props {
+	p := Props{
+		Matches:     Filter(c.search, c.Choices),
+		Selected:    c.Selected,
+		Width:       c.Width(),
+		Height:      c.Height() - 4,
+		ToggleItems: c.ToggleItems,
+	}
+	return p
+}
+
+func (c App) Height() int {
+	return c.height
+}
+
+func (c App) Width() int {
+	return c.width
+}
+
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewList()
-
-			return component, component.Init(Props{
-				Matches:     Filter(c.search, c.Choices),
-				Selected:    c.Selected,
-				Width:       c.Viewport.Width,
-				Height:      c.Viewport.Height,
-				ToggleItems: c.ToggleItems,
-				SetContent:  c.SetContent,
-			})
-		},
-		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewSearch()
-
-			return component, component.Init(InputProps{
-				Filter: c.Filter,
-			})
-		},
+	c.list = NewList()
+	c.list.Init(c.listProps())
+	c.input = NewSearch()
+	c.input.Init(InputProps{
+		Filter: c.Filter,
 	})
+	return nil
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
+	if reactea.CurrentRoute() == "" {
+		reactea.SetCurrentRoute("list")
+	}
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case keys.ToggleMsg:
+	case message.StopFilteringMsg:
+		c.Filter("")
+		c.list.Init(c.listProps())
+		cmds = append(cmds, message.ChangeRoute("list"))
+
+	case message.StartFilteringMsg:
+		//c.list.UpdateProps(c.listProps())
+		c.input.Init(InputProps{
+			Filter: c.Filter,
+		})
+		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:
 		//c.ConfirmAction = ""
@@ -110,7 +127,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "/":
-			reactea.SetCurrentRoute("filter")
+			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
 			return reactea.Destroy
 		case "y":
@@ -119,8 +136,20 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, message.Confirm(false))
 		}
 	}
+	switch reactea.CurrentRoute() {
+	case "filter":
+		cmds = append(cmds, c.input.Update(msg))
+		c.list.Init(c.listProps())
+		//case "", "default":
+		//NewList().Init(c.listProps())
+		//list := c.Viewport.View()
+		//default:
+		//c.list.Init(c.listProps())
+		//cmds = append(cmds, c.mainRouter.Update(msg))
+	}
 
-	cmds = append(cmds, c.mainRouter.Update(msg))
+	cmds = append(cmds, c.list.Update(msg))
+
 	return tea.Batch(cmds...)
 }
 
@@ -145,17 +174,17 @@ func (c *App) SetContent(lines string) {
 }
 
 func (c *App) Render(width, height int) string {
-	widget := c.mainRouter.Render(width, height)
+	//view := c.mainRouter.Render(width, height)
 
-	c.Viewport.Width = width
-	c.Viewport.Height = height - 2
+	c.width = width
+	c.height = height - 2
 
-	view := c.Viewport.View()
+	view := c.list.Render(c.Width(), c.Height()-4)
 
 	switch reactea.CurrentRoute() {
 	case "filter":
-		view = lipgloss.JoinVertical(lipgloss.Left, widget, view)
-		//view = widget
+		input := c.input.Render(c.Width(), c.Height())
+		view = lipgloss.JoinVertical(lipgloss.Left, input, view)
 	}
 
 	//if c.header != "" {
@@ -170,15 +199,25 @@ func (c *App) Render(width, height int) string {
 	//view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	//}
 
-	return view
+	return lipgloss.JoinVertical(lipgloss.Left, view, reactea.CurrentRoute())
+}
+
+type FilterMsg struct {
+	Search string
+}
+
+func UpdateFilter(search string) tea.Cmd {
+	return func() tea.Msg {
+		return FilterMsg{Search: search}
+	}
 }
 
 func (c *App) ChangeRoute(r string) {
-	//if p := reactea.CurrentRoute(); p == "" {
-	//c.PrevRoute = "default"
-	//} else {
-	//c.PrevRoute = p
-	//}
+	if p := reactea.CurrentRoute(); p == "" {
+		c.PrevRoute = "default"
+	} else {
+		c.PrevRoute = p
+	}
 	reactea.SetCurrentRoute(r)
 }
 

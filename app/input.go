@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -40,19 +41,18 @@ func (c *Input) Init(props InputProps) tea.Cmd {
 }
 
 func (c *Input) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(c)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyEnter {
-			// Lifted state power! Woohooo
-			c.Props().Filter(c.textinput.Value())
-
-			reactea.SetCurrentRoute("default")
-			return nil
+			c.textinput.Reset()
+			return message.StopFiltering()
 		}
 	}
 
 	var cmd tea.Cmd
 	c.textinput, cmd = c.textinput.Update(msg)
+	c.Props().Filter(c.textinput.Value())
 	return cmd
 }
 

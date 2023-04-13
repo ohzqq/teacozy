@@ -110,12 +110,20 @@ func DefaultKeyMap() keys.KeyMap {
 	return km
 }
 
+func (m *List) AfterUpdate() tea.Cmd {
+	m.UpdateItems()
+	return nil
+}
+
 func (m *List) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(m)
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
+
+	case FilterMsg:
 
 	case message.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
@@ -160,7 +168,7 @@ func (m *List) Render(w, h int) string {
 	m.SetHeight(h)
 	m.UpdateItems()
 	//m.Props().SetContent(m.View())
-	return m.View()
+	return m.Viewport.View()
 }
 
 // UpdateItems updates the list content based on the previously defined
@@ -191,9 +199,9 @@ func (m *List) UpdateItems() {
 		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
 	)
 
-	m.Props().SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
-	)
+	//m.Props().SetContent(
+	//  lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+	//)
 
 }
 
