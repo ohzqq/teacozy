@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/header"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -30,6 +31,7 @@ type App struct {
 	list        *list.Component
 	input       *input.Component
 	footer      string
+	header      *header.Component
 
 	PrevRoute string
 	routes    map[string]reactea.SomeComponent
@@ -76,9 +78,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.input.Init(input.Props{
 		Filter: c.Input,
 	})
+	c.header = &header.Component{}
 
 	c.routes["list"] = c.list
 	c.routes["filter"] = c.input
+	c.routes["header"] = c.header
 	return nil
 }
 
@@ -105,6 +109,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
+		case "header":
+			p := header.Props("poot")
+			c.header.Init(p)
 		case "list":
 			c.list.SetCursor(0)
 		case "filter":
@@ -128,6 +135,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "ctrl+o":
+			cmds = append(cmds, message.ChangeRoute("header"))
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
@@ -177,10 +186,19 @@ func (c *App) SetContent(lines string) {
 
 func (c *App) Render(width, height int) string {
 	view := c.list.Render(c.Width(), c.Height())
+
+	var header string
+	if h := c.header.Render(width, height); h != "" {
+		header = c.Style.Header.Render(h)
+	}
+
 	switch reactea.CurrentRoute() {
 	case "filter":
-		input := c.input.Render(c.Width(), c.Height())
-		view = lipgloss.JoinVertical(lipgloss.Left, input, view)
+		header = c.input.Render(c.Width(), c.Height())
+	}
+
+	if header != "" {
+		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
 	}
 
 	//if c.header != "" {
