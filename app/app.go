@@ -52,8 +52,6 @@ func (c *App) listProps() Props {
 	p := Props{
 		Matches:     Filter(c.search, c.Choices),
 		Selected:    c.Selected,
-		Width:       c.Width(),
-		Height:      c.Height() - 4,
 		ToggleItems: c.ToggleItems,
 	}
 	return p
@@ -89,7 +87,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
-		//c.list.UpdateProps(c.listProps())
 		c.input.Init(InputProps{
 			Filter: c.Filter,
 		})
@@ -174,8 +171,6 @@ func (c *App) SetContent(lines string) {
 }
 
 func (c *App) Render(width, height int) string {
-	//view := c.mainRouter.Render(width, height)
-
 	c.width = width
 	c.height = height - 2
 

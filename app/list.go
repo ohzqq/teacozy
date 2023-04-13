@@ -19,15 +19,13 @@ type List struct {
 	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
 	reactea.BasicPropfulComponent[Props]
 
-	focus       bool
-	quitting    bool
-	Cursor      int
-	height      int
-	width       int
-	NumSelected int
-	Limit       int
-	Style       style.List
-	KeyMap      keys.KeyMap
+	focus    bool
+	quitting bool
+	Cursor   int
+	height   int
+	width    int
+	Style    style.List
+	KeyMap   keys.KeyMap
 
 	Viewport viewport.Model
 	start    int
@@ -52,8 +50,6 @@ func (i Choices) Len() int {
 type Props struct {
 	Matches     []Item
 	Selected    map[int]struct{}
-	Width       int
-	Height      int
 	ToggleItems func(...int)
 	SetContent  func(string)
 }
@@ -63,6 +59,7 @@ func NewList(opts ...Option) *List {
 		focus: true,
 		Style: style.ListDefaults(),
 	}
+	m.KeyMap = DefaultKeyMap()
 
 	for _, opt := range opts {
 		opt(&m)
@@ -73,12 +70,8 @@ func NewList(opts ...Option) *List {
 
 func (m *List) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
-
-	m.Viewport = viewport.New(props.Width, props.Height)
-
-	m.KeyMap = DefaultKeyMap()
+	m.Viewport = viewport.New(0, 0)
 	m.UpdateItems()
-
 	return nil
 }
 
@@ -147,11 +140,9 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	case keys.BottomMsg:
 		m.GotoBottom()
 	case tea.KeyMsg:
-		if m.Focused() {
-			for _, k := range m.KeyMap {
-				if key.Matches(msg, k.Binding) {
-					cmds = append(cmds, k.TeaCmd)
-				}
+		for _, k := range m.KeyMap {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
 			}
 		}
 	}
@@ -159,15 +150,10 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m List) View() string {
-	return m.Viewport.View()
-}
-
 func (m *List) Render(w, h int) string {
 	m.SetWidth(w)
 	m.SetHeight(h)
 	m.UpdateItems()
-	//m.Props().SetContent(m.View())
 	return m.Viewport.View()
 }
 
@@ -198,11 +184,6 @@ func (m *List) UpdateItems() {
 	m.Viewport.SetContent(
 		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
 	)
-
-	//m.Props().SetContent(
-	//  lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
-	//)
-
 }
 
 func (m *List) renderRow(rowID int) string {
@@ -290,25 +271,6 @@ func (m *List) quit() tea.Cmd {
 	return message.Quit()
 }
 
-// Focused returns the focus state of the table.
-func (m List) Focused() bool {
-	return m.focus
-}
-
-// Focus focuses the table, allowing the user to move around the rows and
-// interact.
-func (m *List) Focus() {
-	m.focus = true
-	//m.Props().Matches = m.Props().Items
-	m.UpdateItems()
-}
-
-// Blur blurs the table, preventing selection or movement.
-func (m *List) Blur() {
-	m.focus = false
-	m.UpdateItems()
-}
-
 // VisibleItems returns the current rows.
 func (m List) VisibleItems() []Item {
 	return m.Props().Matches
@@ -349,9 +311,7 @@ func (m List) GetCursor() int {
 
 // SetCursor sets the cursor position in the table.
 func (m *List) SetCursor(n int) {
-	//m.Props().SetCursor(clamp(n, 0, len(m.Props().Matches)-1))
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
-	//m.UpdateItems()
 }
 
 func max(a, b int) int {
