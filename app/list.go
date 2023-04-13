@@ -52,7 +52,10 @@ func (i Choices) Len() int {
 type Props struct {
 	Matches     []Item
 	Selected    map[int]struct{}
+	Width       int
+	Height      int
 	ToggleItems func(...int)
+	SetContent  func(string)
 }
 
 func NewList(opts ...Option) *List {
@@ -71,7 +74,7 @@ func NewList(opts ...Option) *List {
 func (m *List) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 
-	m.Viewport = viewport.New(0, 0)
+	m.Viewport = viewport.New(props.Width, props.Height)
 
 	m.KeyMap = DefaultKeyMap()
 	m.UpdateItems()
@@ -117,6 +120,7 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	case message.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
 		m.Props().ToggleItems(cur)
+		m.MoveDown(1)
 
 	case keys.PageUpMsg:
 		m.MoveUp(m.Viewport.Height)
@@ -155,6 +159,7 @@ func (m *List) Render(w, h int) string {
 	m.SetWidth(w)
 	m.SetHeight(h)
 	m.UpdateItems()
+	//m.Props().SetContent(m.View())
 	return m.View()
 }
 
@@ -183,6 +188,10 @@ func (m *List) UpdateItems() {
 	}
 
 	m.Viewport.SetContent(
+		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+	)
+
+	m.Props().SetContent(
 		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
 	)
 

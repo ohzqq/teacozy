@@ -1,11 +1,10 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/style"
 )
 
 type Input struct {
@@ -13,6 +12,10 @@ type Input struct {
 	reactea.BasicPropfulComponent[InputProps]
 
 	textinput textinput.Model
+
+	Placeholder string
+	Prompt      string
+	Style       style.List
 }
 
 type InputProps struct {
@@ -20,11 +23,19 @@ type InputProps struct {
 }
 
 func NewSearch() *Input {
-	return &Input{textinput: textinput.New()}
+	tm := &Input{
+		Style:     style.ListDefaults(),
+		Prompt:    style.PromptPrefix,
+		textinput: textinput.New(),
+	}
+	return tm
 }
 
 func (c *Input) Init(props InputProps) tea.Cmd {
 	c.UpdateProps(props)
+	c.textinput.Prompt = c.Prompt
+	c.textinput.PromptStyle = c.Style.Prompt
+	c.textinput.Placeholder = c.Placeholder
 	return c.textinput.Focus()
 }
 
@@ -47,5 +58,5 @@ func (c *Input) Update(msg tea.Msg) tea.Cmd {
 
 // Here we are not using width and height, but you can!
 func (c *Input) Render(int, int) string {
-	return fmt.Sprintf("Enter your name: %s\nAnd press [ Enter ]", c.textinput.View())
+	return c.textinput.View()
 }

@@ -3,7 +3,9 @@ package app
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/keys"
@@ -27,10 +29,12 @@ type App struct {
 	NumSelected int
 	Limit       int
 	search      string
+
+	Viewport viewport.Model
 }
 
 func New(choices []string) *App {
-	return &App{
+	a := &App{
 		mainRouter: router.New(),
 		width:      util.TermHeight(),
 		height:     util.TermWidth(),
@@ -39,6 +43,10 @@ func New(choices []string) *App {
 		Selected:   make(map[int]struct{}),
 		Limit:      10,
 	}
+
+	a.Viewport = viewport.New(a.width, a.height)
+
+	return a
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
@@ -49,12 +57,13 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			return component, component.Init(Props{
 				Matches:     Filter(c.search, c.Choices),
 				Selected:    c.Selected,
+				Width:       c.Viewport.Width,
+				Height:      c.Viewport.Height,
 				ToggleItems: c.ToggleItems,
+				SetContent:  c.SetContent,
 			})
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			// RouteInitializer wants SomeComponent so we have to convert
-			// Stateless component (renderer) to Component
 			component := NewSearch()
 
 			return component, component.Init(InputProps{
@@ -131,8 +140,23 @@ func (c *App) Filter(search string) {
 	c.search = search
 }
 
+func (c *App) SetContent(lines string) {
+	c.Viewport.SetContent(lines)
+}
+
 func (c *App) Render(width, height int) string {
-	view := c.mainRouter.Render(width, height)
+	widget := c.mainRouter.Render(width, height)
+
+	c.Viewport.Width = width
+	c.Viewport.Height = height - 2
+
+	view := c.Viewport.View()
+
+	switch reactea.CurrentRoute() {
+	case "filter":
+		view = lipgloss.JoinVertical(lipgloss.Left, widget, view)
+		//view = widget
+	}
 
 	//if c.header != "" {
 	//view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
