@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/app/list"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
@@ -28,7 +29,7 @@ type App struct {
 	NumSelected int
 	Limit       int
 	search      string
-	list        *List
+	list        *list.Component
 	input       *Input
 	footer      string
 
@@ -40,14 +41,13 @@ type App struct {
 
 func New(choices []string) *App {
 	a := &App{
-		mainRouter: router.New(),
-		width:      util.TermWidth(),
-		height:     10,
-		Choices:    MapChoices(choices),
-		Style:      style.DefaultAppStyle(),
-		Selected:   make(map[int]struct{}),
-		Limit:      1,
-		routes:     make(map[string]reactea.SomeComponent),
+		width:    util.TermWidth(),
+		height:   10,
+		Choices:  MapChoices(choices),
+		Style:    style.DefaultAppStyle(),
+		Selected: make(map[int]struct{}),
+		Limit:    1,
+		routes:   make(map[string]reactea.SomeComponent),
 	}
 
 	return a
@@ -71,7 +71,7 @@ func (c App) Width() int {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.list = NewList()
+	c.list = list.NewList()
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
 	c.input = NewSearch()

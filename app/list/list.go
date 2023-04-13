@@ -13,9 +13,9 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type Option func(*List)
+type Option func(*Component)
 
-type List struct {
+type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
@@ -54,8 +54,8 @@ type Props struct {
 	SetContent  func(string)
 }
 
-func NewList(opts ...Option) *List {
-	m := List{
+func NewList(opts ...Option) *Component {
+	m := Component{
 		Cursor: 0,
 		Style:  style.ListDefaults(),
 	}
@@ -68,19 +68,19 @@ func NewList(opts ...Option) *List {
 	return &m
 }
 
-func (m *List) Init(props Props) tea.Cmd {
+func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 	m.Viewport = viewport.New(0, 0)
 	m.UpdateItems()
 	return nil
 }
 
-func (m *List) AfterUpdate() tea.Cmd {
+func (m *Component) AfterUpdate() tea.Cmd {
 	m.UpdateItems()
 	return nil
 }
 
-func (m *List) Update(msg tea.Msg) tea.Cmd {
+func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(m)
 	var cmds []tea.Cmd
 
@@ -120,7 +120,7 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *List) Render(w, h int) string {
+func (m *Component) Render(w, h int) string {
 	m.SetWidth(w)
 	m.SetHeight(h)
 	m.UpdateItems()
@@ -129,7 +129,7 @@ func (m *List) Render(w, h int) string {
 
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
-func (m *List) UpdateItems() {
+func (m *Component) UpdateItems() {
 	renderedRows := make([]string, 0, len(m.Props().Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
@@ -156,7 +156,7 @@ func (m *List) UpdateItems() {
 	)
 }
 
-func (m *List) renderRow(rowID int) string {
+func (m *Component) renderRow(rowID int) string {
 	row := m.Props().Matches[rowID]
 
 	var s strings.Builder
@@ -173,20 +173,20 @@ func (m *List) renderRow(rowID int) string {
 	return s.String()
 }
 
-func (m List) isSelected(idx int) bool {
+func (m Component) isSelected(idx int) bool {
 	_, ok := m.Props().Selected[m.Props().Matches[idx].Index]
 	return ok
 }
 
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
-func (m List) CurrentItem() int {
+func (m Component) CurrentItem() int {
 	return m.Props().Matches[m.Cursor].Index
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
-func (m *List) MoveUp(n int) {
+func (m *Component) MoveUp(n int) {
 	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
 	m.UpdateItems()
 	switch {
@@ -201,7 +201,7 @@ func (m *List) MoveUp(n int) {
 
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
-func (m *List) MoveDown(n int) {
+func (m *Component) MoveDown(n int) {
 	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
 	m.UpdateItems()
 	switch {
@@ -216,12 +216,12 @@ func (m *List) MoveDown(n int) {
 }
 
 // GotoTop moves the selection to the first row.
-func (m *List) GotoTop() {
+func (m *Component) GotoTop() {
 	m.MoveUp(m.Cursor)
 }
 
 // GotoBottom moves the selection to the last row.
-func (m *List) GotoBottom() {
+func (m *Component) GotoBottom() {
 	m.MoveDown(len(m.Props().Matches))
 }
 
@@ -236,55 +236,55 @@ func (m *List) GotoBottom() {
 //  }
 //}
 
-func (m *List) quit() tea.Cmd {
+func (m *Component) quit() tea.Cmd {
 	m.quitting = true
 	return message.Quit()
 }
 
 // VisibleItems returns the current rows.
-func (m List) VisibleItems() []Item {
+func (m Component) VisibleItems() []Item {
 	return m.Props().Matches
 }
 
 // SetItems sets a new rows state.
-func (m *List) SetItems(r []Item) {
+func (m *Component) SetItems(r []Item) {
 	//m.Props().Matches = r
 	m.UpdateItems()
 }
 
 // SetWidth sets the width of the viewport of the table.
-func (m *List) SetWidth(w int) {
+func (m *Component) SetWidth(w int) {
 	m.Viewport.Width = w
 	m.UpdateItems()
 }
 
 // SetHeight sets the height of the viewport of the table.
-func (m *List) SetHeight(h int) {
+func (m *Component) SetHeight(h int) {
 	m.Viewport.Height = h
 	m.UpdateItems()
 }
 
-func (m *List) SetKeyMap(km keys.KeyMap) {
+func (m *Component) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
 }
 
 // Height returns the viewport height of the table.
-func (m List) Height() int {
+func (m Component) Height() int {
 	return m.Viewport.Height
 }
 
 // Width returns the viewport width of the table.
-func (m List) Width() int {
+func (m Component) Width() int {
 	return m.Viewport.Width
 }
 
 // Cursor returns the index of the selected row.
-func (m List) GetCursor() int {
+func (m Component) GetCursor() int {
 	return m.Cursor
 }
 
 // SetCursor sets the cursor position in the table.
-func (m *List) SetCursor(n int) {
+func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 
