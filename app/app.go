@@ -45,7 +45,7 @@ func New(choices []string) *App {
 		Choices:    MapChoices(choices),
 		Style:      style.DefaultAppStyle(),
 		Selected:   make(map[int]struct{}),
-		Limit:      10,
+		Limit:      1,
 		routes:     make(map[string]reactea.SomeComponent),
 	}
 
@@ -96,9 +96,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
-		c.input.Init(InputProps{
-			Filter: c.Filter,
-		})
+		//c.input.Init(InputProps{
+		//  Filter: c.Filter,
+		//})
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:

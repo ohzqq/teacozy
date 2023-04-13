@@ -16,7 +16,7 @@ import (
 type Option func(*List)
 
 type List struct {
-	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
+	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
 	focus    bool
