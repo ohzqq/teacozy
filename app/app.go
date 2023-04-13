@@ -31,6 +31,7 @@ type App struct {
 	NumSelected int
 	Limit       int
 	search      string
+	inText      string
 	list        *list.Component
 	input       *input.Component
 	footer      string
@@ -45,7 +46,7 @@ func New(choices []string) *App {
 	a := &App{
 		width:    util.TermWidth(),
 		height:   10,
-		Choices:  MapChoices(choices),
+		Choices:  item.MapChoices(choices),
 		Style:    style.DefaultAppStyle(),
 		Selected: make(map[int]struct{}),
 		Limit:    1,
@@ -73,12 +74,12 @@ func (c App) Width() int {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.list = list.NewList()
+	c.list = list.New()
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
-	c.input = input.NewSearch()
+	c.input = input.New()
 	c.input.Init(input.Props{
-		Filter: c.Filter,
+		Filter: c.Input,
 	})
 
 	c.routes["list"] = c.list
@@ -94,7 +95,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.StopFilteringMsg:
-		c.Filter("")
+		c.Input("")
 		c.list.SetKeyMap(keys.VimListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("list"))
 
@@ -145,6 +146,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch reactea.CurrentRoute() {
 	case "filter":
 		cmds = append(cmds, c.input.Update(msg))
+		c.search = c.inText
 	case "help":
 	}
 
@@ -170,8 +172,8 @@ func (m *App) ToggleItems(items ...int) {
 	}
 }
 
-func (c *App) Filter(search string) {
-	c.search = search
+func (c *App) Input(search string) {
+	c.inText = search
 }
 
 func (c *App) SetContent(lines string) {

@@ -12,7 +12,7 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	textinput textinput.Model
+	input textinput.Model
 
 	Placeholder string
 	Prompt      string
@@ -23,21 +23,21 @@ type Props struct {
 	Filter func(string)
 }
 
-func NewSearch() *Component {
+func New() *Component {
 	tm := &Component{
-		Style:     style.ListDefaults(),
-		Prompt:    style.PromptPrefix,
-		textinput: textinput.New(),
+		Style:  style.ListDefaults(),
+		Prompt: style.PromptPrefix,
+		input:  textinput.New(),
 	}
 	return tm
 }
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.textinput.Prompt = c.Prompt
-	c.textinput.PromptStyle = c.Style.Prompt
-	c.textinput.Placeholder = c.Placeholder
-	return c.textinput.Focus()
+	c.input.Prompt = c.Prompt
+	c.input.PromptStyle = c.Style.Prompt
+	c.input.Placeholder = c.Placeholder
+	return c.input.Focus()
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -45,18 +45,18 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyEnter {
-			c.textinput.Reset()
+			c.input.Reset()
 			return message.StopFiltering()
 		}
 	}
 
 	var cmd tea.Cmd
-	c.textinput, cmd = c.textinput.Update(msg)
-	c.Props().Filter(c.textinput.Value())
+	c.input, cmd = c.input.Update(msg)
+	c.Props().Filter(c.input.Value())
 	return cmd
 }
 
 // Here we are not using width and height, but you can!
 func (c *Component) Render(int, int) string {
-	return c.textinput.View()
+	return c.input.View()
 }

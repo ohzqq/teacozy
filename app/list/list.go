@@ -51,7 +51,7 @@ type Props struct {
 	SetContent  func(string)
 }
 
-func NewList() *Component {
+func New() *Component {
 	m := Component{
 		Cursor: 0,
 		Style:  style.ListDefaults(),
