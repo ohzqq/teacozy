@@ -73,7 +73,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case message.UpMsg:
+	case message.LineUpMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 			m.SetCurrent(m.Cursor)
@@ -83,7 +83,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 
-	case message.DownMsg:
+	case message.LineDownMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 			m.SetCurrent(m.Cursor)
@@ -107,7 +107,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			if m.Props().Limit == 1 {
 				return m.ReturnSelections()
 			}
-			cmds = append(cmds, message.Down())
+			cmds = append(cmds, message.LineDown())
 		}
 
 	case StopFilteringMsg:

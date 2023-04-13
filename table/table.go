@@ -124,7 +124,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			case m.Props().Limit == 1:
 				cmds = append(cmds, m.ReturnSelections())
 			case m.Props().NumSelected > 0 || m.Props().Limit > 1:
-				cmds = append(cmds, message.Down(1))
+				cmds = append(cmds, message.LineDown)
 			}
 
 		}

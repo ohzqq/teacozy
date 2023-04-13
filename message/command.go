@@ -98,12 +98,33 @@ func HideHelp() tea.Cmd {
 	}
 }
 
-type UpMsg struct {
+type LineUpMsg struct {
 	Lines int
 }
 
-type DownMsg struct {
+type LineDownMsg struct {
 	Lines int
+}
+
+type PageDownMsg struct{}
+type HalfPageDownMsg struct{}
+type PageUpMsg struct{}
+type HalfPageUpMsg struct{}
+
+func PageDown() tea.Msg {
+	return PageDownMsg{}
+}
+
+func PageUp() tea.Msg {
+	return PageUpMsg{}
+}
+
+func HalfPageDown() tea.Msg {
+	return HalfPageDownMsg{}
+}
+
+func HalfPageUp() tea.Msg {
+	return HalfPageUpMsg{}
 }
 
 type NextMsg struct{}
@@ -111,37 +132,21 @@ type PrevMsg struct{}
 type TopMsg struct{}
 type BottomMsg struct{}
 
-func Up(l ...int) tea.Cmd {
-	return func() tea.Msg {
-		lines := 1
-		if len(l) > 0 {
-			lines = l[0]
-		}
-		return UpMsg{
-			Lines: lines,
-		}
-	}
+func LineUp() tea.Msg {
+	return LineUpMsg{}
 }
 
-func Down(l ...int) tea.Cmd {
-	return func() tea.Msg {
-		lines := 1
-		if len(l) > 0 {
-			lines = l[0]
-		}
-		return DownMsg{
-			Lines: lines,
-		}
-	}
+func LineDown() tea.Msg {
+	return LineDownMsg{}
 }
 
-func Next() tea.Cmd {
+func NextPage() tea.Cmd {
 	return func() tea.Msg {
 		return NextMsg{}
 	}
 }
 
-func Prev() tea.Cmd {
+func PrevPage() tea.Cmd {
 	return func() tea.Msg {
 		return PrevMsg{}
 	}

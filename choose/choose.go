@@ -69,7 +69,7 @@ func (m *Choose) Update(msg tea.Msg) tea.Cmd {
 		if m.Props().Limit == 1 {
 			return m.ReturnSelections()
 		}
-		cmds = append(cmds, message.Down())
+		cmds = append(cmds, message.LineDown())
 
 	case filter.StartFilteringMsg:
 		return message.ChangeRoute("filter")

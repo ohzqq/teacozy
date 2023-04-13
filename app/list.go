@@ -96,16 +96,16 @@ func (m List) DefaultKeyMap() keys.KeyMap {
 		keys.Down().WithKeys("down"),
 		keys.NewBinding("ctrl+u").
 			WithHelp("½ page up").
-			Cmd(message.Up(m.Viewport.Height / 2)),
+			Cmd(message.HalfPageUp),
 		keys.NewBinding("ctrl+d").
 			WithHelp("½ page down").
-			Cmd(message.Down(m.Viewport.Height / 2)),
+			Cmd(message.HalfPageDown),
 		keys.NewBinding("pgup").
 			WithHelp("page up").
-			Cmd(message.Up(m.Viewport.Height)),
+			Cmd(message.PageUp),
 		keys.NewBinding("pgdown").
 			WithHelp("page down").
-			Cmd(message.Down(m.Viewport.Height)),
+			Cmd(message.PageDown),
 		keys.NewBinding("end").
 			WithHelp("list bottom").
 			Cmd(message.Bottom()),
@@ -123,10 +123,18 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
 
-	case message.DownMsg:
-		m.MoveDown(msg.Lines)
-	case message.UpMsg:
-		m.MoveUp(msg.Lines)
+	case message.PageUpMsg:
+		m.MoveUp(m.Viewport.Height)
+	case message.PageDownMsg:
+		m.MoveDown(m.Viewport.Height)
+	case message.HalfPageUpMsg:
+		m.MoveUp(m.Viewport.Height / 2)
+	case message.HalfPageDownMsg:
+		m.MoveDown(m.Viewport.Height / 2)
+	case message.LineDownMsg:
+		m.MoveDown(1)
+	case message.LineUpMsg:
+		m.MoveUp(1)
 	case message.TopMsg:
 		m.GotoTop()
 	case message.BottomMsg:

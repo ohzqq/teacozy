@@ -86,25 +86,25 @@ var Global = KeyMap{
 func Up() *Binding {
 	return NewBinding("up").
 		WithHelp("move up").
-		Cmd(message.Up())
+		Cmd(message.LineUp)
 }
 
 func Down() *Binding {
 	return NewBinding("down").
 		WithHelp("move down").
-		Cmd(message.Down())
+		Cmd(message.LineDown)
 }
 
 func Next() *Binding {
 	return NewBinding("right").
 		WithHelp("next page").
-		Cmd(message.Next())
+		Cmd(message.NextPage())
 }
 
 func Prev() *Binding {
 	return NewBinding("left").
 		WithHelp("prev page").
-		Cmd(message.Prev())
+		Cmd(message.PrevPage())
 }
 
 func ToggleItem() *Binding {

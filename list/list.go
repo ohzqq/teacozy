@@ -93,14 +93,14 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 		m.Paginator.Page = m.Paginator.TotalPages - 1
 		m.Viewport.GotoBottom()
 
-	case message.UpMsg:
+	case message.LineUpMsg:
 		m.Cursor--
 		if m.Cursor < start {
 			if m.Paginator.Page > 0 {
 				m.Cursor = len(m.Props().Visible()) - 1
 				m.Paginator.PrevPage()
 				m.Viewport.GotoBottom()
-				cmds = append(cmds, message.Prev())
+				cmds = append(cmds, message.PrevPage())
 			} else {
 				m.Cursor = 0
 			}
@@ -111,14 +111,14 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 			m.Viewport.LineUp(h)
 		}
 
-	case message.DownMsg:
+	case message.LineDownMsg:
 		m.Cursor++
 		if m.Cursor >= end {
 			if m.Paginator.OnLastPage() {
 				m.Cursor = len(m.Props().Visible()) - 1
 			} else {
 				m.Cursor = 0
-				cmds = append(cmds, message.Next())
+				cmds = append(cmds, message.NextPage())
 			}
 		}
 		m.SetCurrent()

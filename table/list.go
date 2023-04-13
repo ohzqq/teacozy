@@ -72,16 +72,16 @@ func (m List) DefaultKeyMap() keys.KeyMap {
 		keys.Down().WithKeys("down"),
 		keys.NewBinding("ctrl+u").
 			WithHelp("½ page up").
-			Cmd(message.Up(m.Viewport.Height / 2)),
+			Cmd(message.HalfPageUp),
 		keys.NewBinding("ctrl+d").
 			WithHelp("½ page down").
-			Cmd(message.Down(m.Viewport.Height / 2)),
+			Cmd(message.HalfPageDown),
 		keys.NewBinding("pgup").
 			WithHelp("page up").
-			Cmd(message.Up(m.Viewport.Height)),
+			Cmd(message.PageUp),
 		keys.NewBinding("pgdown").
 			WithHelp("page down").
-			Cmd(message.Down(m.Viewport.Height)),
+			Cmd(message.PageDown),
 		keys.NewBinding("end").
 			WithHelp("list bottom").
 			Cmd(message.Bottom()),
@@ -99,9 +99,9 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case message.QuitMsg:
 		return m, tea.Quit
 
-	case message.DownMsg:
+	case message.LineDownMsg:
 		m.MoveDown(msg.Lines)
-	case message.UpMsg:
+	case message.LineUpMsg:
 		m.MoveUp(msg.Lines)
 	case message.TopMsg:
 		m.GotoTop()
