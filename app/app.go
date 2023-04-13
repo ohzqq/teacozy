@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
 	"github.com/ohzqq/teacozy/keys"
@@ -31,7 +32,7 @@ type App struct {
 	Limit       int
 	search      string
 	list        *list.Component
-	input       *Input
+	input       *input.Component
 	footer      string
 
 	PrevRoute string
@@ -75,8 +76,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = list.NewList()
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
-	c.input = NewSearch()
-	c.input.Init(InputProps{
+	c.input = input.NewSearch()
+	c.input.Init(input.InputProps{
 		Filter: c.Filter,
 	})
 

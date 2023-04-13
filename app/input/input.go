@@ -8,9 +8,9 @@ import (
 	"github.com/ohzqq/teacozy/style"
 )
 
-type Input struct {
+type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[InputProps]
+	reactea.BasicPropfulComponent[Props]
 
 	textinput textinput.Model
 
@@ -19,12 +19,12 @@ type Input struct {
 	Style       style.List
 }
 
-type InputProps struct {
+type Props struct {
 	Filter func(string)
 }
 
-func NewSearch() *Input {
-	tm := &Input{
+func NewSearch() *Component {
+	tm := &Component{
 		Style:     style.ListDefaults(),
 		Prompt:    style.PromptPrefix,
 		textinput: textinput.New(),
@@ -32,7 +32,7 @@ func NewSearch() *Input {
 	return tm
 }
 
-func (c *Input) Init(props InputProps) tea.Cmd {
+func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.textinput.Prompt = c.Prompt
 	c.textinput.PromptStyle = c.Style.Prompt
@@ -40,7 +40,7 @@ func (c *Input) Init(props InputProps) tea.Cmd {
 	return c.textinput.Focus()
 }
 
-func (c *Input) Update(msg tea.Msg) tea.Cmd {
+func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -57,6 +57,6 @@ func (c *Input) Update(msg tea.Msg) tea.Cmd {
 }
 
 // Here we are not using width and height, but you can!
-func (c *Input) Render(int, int) string {
+func (c *Component) Render(int, int) string {
 	return c.textinput.View()
 }
