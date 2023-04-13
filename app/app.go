@@ -93,9 +93,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.StopFilteringMsg:
 		c.Filter("")
+		c.list.SetKeyMap(keys.VimListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
+		c.list.SetKeyMap(keys.DefaultListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:
@@ -121,9 +123,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ReturnSelectionsMsg:
 		switch reactea.CurrentRoute() {
 		case "filter":
-			//if c.HasRoute("choose") {
-			//c.ChangeRoute("choose")
-			//}
 		default:
 			return reactea.Destroy
 		}
@@ -144,14 +143,17 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch reactea.CurrentRoute() {
 	case "filter":
 		cmds = append(cmds, c.input.Update(msg))
-		c.list.UpdateProps(c.listProps())
-		c.list.SetKeyMap(keys.DefaultListKeyMap())
 	case "help":
 	}
 
 	cmds = append(cmds, c.list.Update(msg))
 
 	return tea.Batch(cmds...)
+}
+
+func (m *App) AfterUpdate() tea.Cmd {
+	m.list.UpdateProps(m.listProps())
+	return nil
 }
 
 func (m *App) ToggleItems(items ...int) {
