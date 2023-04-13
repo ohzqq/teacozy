@@ -1,8 +1,6 @@
 package app
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -182,8 +180,6 @@ func (c *App) SetContent(lines string) {
 
 func (c *App) Render(width, height int) string {
 	view := c.list.Render(c.Width(), c.Height())
-	//view := c.Viewport.View()
-
 	switch reactea.CurrentRoute() {
 	case "filter":
 		input := c.input.Render(c.Width(), c.Height())
@@ -227,25 +223,6 @@ func (m App) Chosen() []map[string]string {
 }
 
 func Filter(search string, choices []map[string]string) []item.Item {
-	matches := []item.Item{}
-	for i, choice := range choices {
-		for label, str := range choice {
-			match := item.NewItem(str, i)
-			match.Label = label
-
-			search = strings.ToLower(search)
-			matchedString := strings.ToLower(str)
-
-			index := strings.Index(matchedString, search)
-			if index >= 0 {
-				matchedIndexes := []int{}
-				for s := range search {
-					matchedIndexes = append(matchedIndexes, index+s)
-				}
-				match.MatchedIndexes = matchedIndexes
-				matches = append(matches, match)
-			}
-		}
-	}
-	return matches
+	c := item.Choices(choices)
+	return c.Filter(search)
 }

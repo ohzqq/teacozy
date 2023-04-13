@@ -9,6 +9,7 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -17,6 +18,45 @@ const (
 	SelectedPrefix   = "◉ "
 	UnselectedPrefix = " "
 )
+
+type Choices []map[string]string
+
+func (c Choices) String(i int) string {
+	choices := c[i]
+	return maps.Values(choices)[0]
+}
+
+func (c Choices) Len() int {
+	return len(c)
+}
+
+func (c Choices) Filter(s string) []Item {
+	matches := []Item{}
+	m := fuzzy.FindFrom(s, c)
+	if len(m) == 0 {
+		return AllItems(c)
+	}
+	for _, match := range m {
+		item := New()
+		item.Match = match
+		item.Label = maps.Keys(c[match.Index])[0]
+		matches = append(matches, item)
+	}
+	return matches
+}
+
+func AllItems(choices Choices) []Item {
+	matches := make([]Item, len(choices))
+	for i, choice := range choices {
+		for label, str := range choice {
+			match := NewItem(str, i)
+			match.Label = label
+			match.MatchedIndexes = []int{}
+			matches[i] = match
+		}
+	}
+	return matches
+}
 
 type Item struct {
 	fuzzy.Match
@@ -33,6 +73,14 @@ type Prefix struct {
 	Cursor     string
 	Selected   string
 	Unselected string
+}
+
+func New() Item {
+	item := Item{
+		Style:  DefaultItemStyle(),
+		Prefix: DefaultPrefix(),
+	}
+	return item
 }
 
 func NewItem(t string, idx int) Item {
