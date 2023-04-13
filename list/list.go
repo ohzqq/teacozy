@@ -52,10 +52,10 @@ func (m List) KeyMap() keys.KeyMap {
 		keys.Prev().WithKeys("left", "h"),
 		keys.NewBinding("G").
 			WithHelp("list bottom").
-			Cmd(message.Bottom()),
+			Cmd(message.Bottom),
 		keys.NewBinding("g").
 			WithHelp("list top").
-			Cmd(message.Top()),
+			Cmd(message.Top),
 	}
 	return km
 }
@@ -100,7 +100,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				m.Cursor = len(m.Props().Visible()) - 1
 				m.Paginator.PrevPage()
 				m.Viewport.GotoBottom()
-				cmds = append(cmds, message.PrevPage())
+				cmds = append(cmds, message.PrevPage)
 			} else {
 				m.Cursor = 0
 			}
@@ -118,7 +118,7 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 				m.Cursor = len(m.Props().Visible()) - 1
 			} else {
 				m.Cursor = 0
-				cmds = append(cmds, message.NextPage())
+				cmds = append(cmds, message.NextPage)
 			}
 		}
 		m.SetCurrent()

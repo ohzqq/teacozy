@@ -86,25 +86,25 @@ var Global = KeyMap{
 func Up() *Binding {
 	return NewBinding("up").
 		WithHelp("move up").
-		Cmd(message.LineUp)
+		Cmd(LineUp)
 }
 
 func Down() *Binding {
 	return NewBinding("down").
 		WithHelp("move down").
-		Cmd(message.LineDown)
+		Cmd(LineDown)
 }
 
 func Next() *Binding {
 	return NewBinding("right").
 		WithHelp("next page").
-		Cmd(message.NextPage())
+		Cmd(NextPage)
 }
 
 func Prev() *Binding {
 	return NewBinding("left").
 		WithHelp("prev page").
-		Cmd(message.PrevPage())
+		Cmd(PrevPage)
 }
 
 func ToggleItem() *Binding {
@@ -124,3 +124,31 @@ func ShowHelp() *Binding {
 		WithHelp("help").
 		Cmd(message.ShowHelp())
 }
+
+type LineUpMsg struct{}
+type HalfPageUpMsg struct{}
+type PageUpMsg struct{}
+
+func LineUp() tea.Msg     { return LineUpMsg{} }
+func HalfPageUp() tea.Msg { return HalfPageUpMsg{} }
+func PageUp() tea.Msg     { return PageUpMsg{} }
+
+type LineDownMsg struct{}
+type HalfPageDownMsg struct{}
+type PageDownMsg struct{}
+
+func LineDown() tea.Msg     { return LineDownMsg{} }
+func HalfPageDown() tea.Msg { return HalfPageDownMsg{} }
+func PageDown() tea.Msg     { return PageDownMsg{} }
+
+type NextMsg struct{}
+type PrevMsg struct{}
+
+func NextPage() tea.Msg { return NextMsg{} }
+func PrevPage() tea.Msg { return PrevMsg{} }
+
+type TopMsg struct{}
+type BottomMsg struct{}
+
+func Top() tea.Msg    { return TopMsg{} }
+func Bottom() tea.Msg { return BottomMsg{} }

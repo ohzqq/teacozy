@@ -198,10 +198,10 @@ func (m Filter) UnfilteredKeyMap() keys.KeyMap {
 			Cmd(StartFiltering()),
 		keys.NewBinding("G").
 			WithHelp("list bottom").
-			Cmd(message.Bottom()),
+			Cmd(message.Bottom),
 		keys.NewBinding("g").
 			WithHelp("list top").
-			Cmd(message.Top()),
+			Cmd(message.Top),
 		keys.NewBinding("v").
 			WithHelp("toggle all items").
 			Cmd(m.ToggleAllItems()),

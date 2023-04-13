@@ -72,22 +72,22 @@ func (m List) DefaultKeyMap() keys.KeyMap {
 		keys.Down().WithKeys("down"),
 		keys.NewBinding("ctrl+u").
 			WithHelp("½ page up").
-			Cmd(message.HalfPageUp),
+			Cmd(keys.HalfPageUp),
 		keys.NewBinding("ctrl+d").
 			WithHelp("½ page down").
-			Cmd(message.HalfPageDown),
+			Cmd(keys.HalfPageDown),
 		keys.NewBinding("pgup").
 			WithHelp("page up").
-			Cmd(message.PageUp),
+			Cmd(keys.PageUp),
 		keys.NewBinding("pgdown").
 			WithHelp("page down").
-			Cmd(message.PageDown),
+			Cmd(keys.PageDown),
 		keys.NewBinding("end").
 			WithHelp("list bottom").
-			Cmd(message.Bottom()),
+			Cmd(keys.Bottom),
 		keys.NewBinding("home").
 			WithHelp("list top").
-			Cmd(message.Top()),
+			Cmd(keys.Top),
 	}
 	return km
 }
@@ -99,13 +99,13 @@ func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
 	case message.QuitMsg:
 		return m, tea.Quit
 
-	case message.LineDownMsg:
-		m.MoveDown(msg.Lines)
-	case message.LineUpMsg:
-		m.MoveUp(msg.Lines)
-	case message.TopMsg:
+	case keys.LineDownMsg:
+		m.MoveDown(1)
+	case keys.LineUpMsg:
+		m.MoveUp(1)
+	case keys.TopMsg:
 		m.GotoTop()
-	case message.BottomMsg:
+	case keys.BottomMsg:
 		m.GotoBottom()
 	case tea.KeyMsg:
 		if m.Focused() {
