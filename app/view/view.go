@@ -1,4 +1,4 @@
-package list
+package view
 
 import (
 	"strings"
@@ -13,8 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 )
-
-type Option func(*Component)
 
 type Component struct {
 	reactea.BasicComponent

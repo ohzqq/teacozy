@@ -29,21 +29,6 @@ type Component struct {
 	end      int
 }
 
-type Choices []map[string]string
-
-func (i Choices) String(idx int) string {
-	var str string
-	item := i[idx]
-	for _, v := range item {
-		str = v
-	}
-	return str
-}
-
-func (i Choices) Len() int {
-	return len(i)
-}
-
 type Props struct {
 	Matches     []item.Item
 	Selected    map[int]struct{}
