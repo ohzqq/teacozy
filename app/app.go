@@ -38,7 +38,6 @@ func New(choices []string) *App {
 		Style:      style.DefaultAppStyle(),
 		Selected:   make(map[int]struct{}),
 		Limit:      10,
-		search:     "a",
 	}
 }
 
@@ -51,6 +50,15 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 				Matches:     Filter(c.search, c.Choices),
 				Selected:    c.Selected,
 				ToggleItems: c.ToggleItems,
+			})
+		},
+		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			// RouteInitializer wants SomeComponent so we have to convert
+			// Stateless component (renderer) to Component
+			component := NewSearch()
+
+			return component, component.Init(InputProps{
+				Filter: c.Filter,
 			})
 		},
 	})
@@ -92,6 +100,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "/":
+			reactea.SetCurrentRoute("filter")
 		case "ctrl+c":
 			return reactea.Destroy
 		case "y":
@@ -115,6 +125,10 @@ func (m *App) ToggleItems(items ...int) {
 			m.NumSelected++
 		}
 	}
+}
+
+func (c *App) Filter(search string) {
+	c.search = search
 }
 
 func (c *App) Render(width, height int) string {
