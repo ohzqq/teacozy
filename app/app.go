@@ -1,6 +1,8 @@
 package app
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
@@ -24,6 +26,7 @@ type App struct {
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
+	search      string
 }
 
 func New(choices []string) *App {
@@ -35,6 +38,7 @@ func New(choices []string) *App {
 		Style:      style.DefaultAppStyle(),
 		Selected:   make(map[int]struct{}),
 		Limit:      10,
+		search:     "a",
 	}
 }
 
@@ -44,7 +48,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := NewList()
 
 			return component, component.Init(Props{
-				Choices:     c.Choices,
+				Matches:     Filter(c.search, c.Choices),
 				Selected:    c.Selected,
 				ToggleItems: c.ToggleItems,
 			})
@@ -148,4 +152,28 @@ func (m App) Chosen() []map[string]string {
 		}
 	}
 	return chosen
+}
+
+func Filter(search string, choices []map[string]string) []Item {
+	matches := []Item{}
+	for i, choice := range choices {
+		for label, str := range choice {
+			match := NewItem(str, i)
+			match.Label = label
+
+			search = strings.ToLower(search)
+			matchedString := strings.ToLower(str)
+
+			index := strings.Index(matchedString, search)
+			if index >= 0 {
+				matchedIndexes := []int{}
+				for s := range search {
+					matchedIndexes = append(matchedIndexes, index+s)
+				}
+				match.MatchedIndexes = matchedIndexes
+				matches = append(matches, match)
+			}
+		}
+	}
+	return matches
 }

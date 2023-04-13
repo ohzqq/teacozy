@@ -5,9 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
@@ -21,19 +19,11 @@ const (
 )
 
 type Item struct {
-	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
-	reactea.BasicPropfulComponent[ItemProps]
-
 	fuzzy.Match
 	*Prefix
 
-	Label string
-	exec  *exec.Cmd
-	Style style.ListItem
-	ItemProps
-}
-
-type ItemProps struct {
+	Label    string
+	Style    style.ListItem
 	Current  bool
 	Selected bool
 	exec     *exec.Cmd
@@ -55,11 +45,6 @@ func NewItem(t string, idx int) Item {
 		Prefix: DefaultPrefix(),
 	}
 	return item
-}
-
-func (i *Item) Init(props ItemProps) tea.Cmd {
-	i.UpdateProps(props)
-	return nil
 }
 
 func DefaultPrefix() *Prefix {
@@ -98,7 +83,7 @@ func (i Item) Render(w, h int) string {
 	case i.Current:
 		pre = i.Style.Cursor.Render(pre)
 	default:
-		if i.ItemProps.Selected {
+		if i.Selected {
 			pre = i.Style.Selected.Render(pre)
 		} else if i.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))
