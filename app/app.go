@@ -5,7 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -18,8 +17,6 @@ import (
 type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
-
-	mainRouter reactea.Component[router.Props]
 
 	Style       style.App
 	width       int

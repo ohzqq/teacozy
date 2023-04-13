@@ -34,26 +34,13 @@ func (c Choices) Filter(s string) []Item {
 	matches := []Item{}
 	m := fuzzy.FindFrom(s, c)
 	if len(m) == 0 {
-		return AllItems(c)
+		return ChoiceMapToMatch(c)
 	}
 	for _, match := range m {
 		item := New()
 		item.Match = match
 		item.Label = maps.Keys(c[match.Index])[0]
 		matches = append(matches, item)
-	}
-	return matches
-}
-
-func AllItems(choices Choices) []Item {
-	matches := make([]Item, len(choices))
-	for i, choice := range choices {
-		for label, str := range choice {
-			match := NewItem(str, i)
-			match.Label = label
-			match.MatchedIndexes = []int{}
-			matches[i] = match
-		}
 	}
 	return matches
 }
@@ -105,10 +92,6 @@ func DefaultPrefix() *Prefix {
 
 func (i *Item) Exec(cmd *exec.Cmd) {
 	i.exec = cmd
-}
-
-func (i *Item) SetValue(val string) {
-	i.Str = val
 }
 
 func (i Item) Map() map[string]string {
@@ -184,24 +167,6 @@ func ChoicesToMatch(options []string) []Item {
 	for i, option := range options {
 		matches[i] = NewItem(option, i)
 	}
-	return matches
-}
-
-func ExactMatches(search string, choices []Item) []Item {
-	matches := []Item{}
-	for _, choice := range choices {
-		search = strings.ToLower(search)
-		matchedString := strings.ToLower(choice.Str)
-
-		index := strings.Index(matchedString, search)
-		if index >= 0 {
-			for s := range search {
-				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
-			}
-			matches = append(matches, choice)
-		}
-	}
-
 	return matches
 }
 
