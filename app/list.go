@@ -82,13 +82,13 @@ func (m *List) Init(props Props) tea.Cmd {
 
 	m.Viewport = viewport.New(0, 0)
 
-	m.KeyMap = m.DefaultKeyMap()
+	m.KeyMap = DefaultKeyMap()
 	m.UpdateItems()
 
 	return nil
 }
 
-func (m List) DefaultKeyMap() keys.KeyMap {
+func DefaultKeyMap() keys.KeyMap {
 	var km = keys.KeyMap{
 		keys.Quit(),
 		keys.ToggleItem(),

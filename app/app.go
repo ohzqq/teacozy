@@ -33,13 +33,12 @@ func New(choices []string) *App {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	// Does it remind you of something? react-router!
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewList()
 
 			return component, component.Init(Props{
-				Choices: c.Choices, // Can also use "lambdas" (function can be created here)
+				Choices: c.Choices,
 			})
 		},
 	})
