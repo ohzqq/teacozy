@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
@@ -48,7 +49,7 @@ func (i Choices) Len() int {
 }
 
 type Props struct {
-	Matches     []Item
+	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
 	SetContent  func(string)
@@ -242,12 +243,12 @@ func (m *Component) quit() tea.Cmd {
 }
 
 // VisibleItems returns the current rows.
-func (m Component) VisibleItems() []Item {
+func (m Component) VisibleItems() []item.Item {
 	return m.Props().Matches
 }
 
 // SetItems sets a new rows state.
-func (m *Component) SetItems(r []Item) {
+func (m *Component) SetItems(r []item.Item) {
 	//m.Props().Matches = r
 	m.UpdateItems()
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
@@ -53,8 +54,8 @@ func New(choices []string) *App {
 	return a
 }
 
-func (c *App) listProps() Props {
-	p := Props{
+func (c *App) listProps() list.Props {
+	p := list.Props{
 		Matches:     Filter(c.search, c.Choices),
 		Selected:    c.Selected,
 		ToggleItems: c.ToggleItems,
@@ -222,11 +223,11 @@ func (m App) Chosen() []map[string]string {
 	return chosen
 }
 
-func Filter(search string, choices []map[string]string) []Item {
-	matches := []Item{}
+func Filter(search string, choices []map[string]string) []item.Item {
+	matches := []item.Item{}
 	for i, choice := range choices {
 		for label, str := range choice {
-			match := NewItem(str, i)
+			match := item.NewItem(str, i)
 			match.Label = label
 
 			search = strings.ToLower(search)
