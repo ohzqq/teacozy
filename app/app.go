@@ -22,7 +22,6 @@ type App struct {
 	Style       style.App
 	width       int
 	height      int
-	PrevRoute   string
 	Choices     []map[string]string
 	Selected    map[int]struct{}
 	NumSelected int
@@ -30,6 +29,10 @@ type App struct {
 	search      string
 	list        *List
 	input       *Input
+	footer      string
+
+	PrevRoute string
+	routes    map[string]reactea.SomeComponent
 
 	Viewport viewport.Model
 }
@@ -37,12 +40,13 @@ type App struct {
 func New(choices []string) *App {
 	a := &App{
 		mainRouter: router.New(),
-		width:      util.TermHeight() - 4,
-		height:     util.TermWidth(),
+		width:      util.TermWidth(),
+		height:     10,
 		Choices:    MapChoices(choices),
 		Style:      style.DefaultAppStyle(),
 		Selected:   make(map[int]struct{}),
 		Limit:      10,
+		routes:     make(map[string]reactea.SomeComponent),
 	}
 
 	return a
@@ -67,11 +71,15 @@ func (c App) Width() int {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = NewList()
+	//c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
 	c.input = NewSearch()
 	c.input.Init(InputProps{
 		Filter: c.Filter,
 	})
+
+	c.routes["list"] = c.list
+	c.routes["filter"] = c.input
 	return nil
 }
 
@@ -79,6 +87,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	if reactea.CurrentRoute() == "" {
 		reactea.SetCurrentRoute("list")
 	}
+	reactea.AfterUpdate(c)
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case message.StopFilteringMsg:
@@ -99,6 +108,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
+		case "list":
+			c.list.SetCursor(0)
 		case "filter":
 			//c.Footer("")
 		case "prev":
@@ -137,12 +148,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case "filter":
 		cmds = append(cmds, c.input.Update(msg))
 		c.list.Init(c.listProps())
-		//case "", "default":
-		//NewList().Init(c.listProps())
-		//list := c.Viewport.View()
-		//default:
-		//c.list.Init(c.listProps())
-		//cmds = append(cmds, c.mainRouter.Update(msg))
+	case "help":
 	}
 
 	cmds = append(cmds, c.list.Update(msg))
@@ -171,10 +177,8 @@ func (c *App) SetContent(lines string) {
 }
 
 func (c *App) Render(width, height int) string {
-	c.width = width
-	c.height = height - 2
-
-	view := c.list.Render(c.Width(), c.Height()-4)
+	view := c.list.Render(c.Width(), c.Height())
+	//view := c.Viewport.View()
 
 	switch reactea.CurrentRoute() {
 	case "filter":
@@ -194,17 +198,8 @@ func (c *App) Render(width, height int) string {
 	//view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	//}
 
-	return lipgloss.JoinVertical(lipgloss.Left, view, reactea.CurrentRoute())
-}
-
-type FilterMsg struct {
-	Search string
-}
-
-func UpdateFilter(search string) tea.Cmd {
-	return func() tea.Msg {
-		return FilterMsg{Search: search}
-	}
+	return view
+	//return lipgloss.JoinVertical(lipgloss.Left, view, reactea.CurrentRoute())
 }
 
 func (c *App) ChangeRoute(r string) {
@@ -214,6 +209,7 @@ func (c *App) ChangeRoute(r string) {
 		c.PrevRoute = p
 	}
 	reactea.SetCurrentRoute(r)
+	c.routes[c.PrevRoute].Destroy()
 }
 
 func (m App) Chosen() []map[string]string {

@@ -83,6 +83,74 @@ var Global = KeyMap{
 	ShowHelp(),
 }
 
+func DefaultListKeyMap() KeyMap {
+	var km = KeyMap{
+		Quit(),
+		ToggleItem(),
+		Up(),
+		Down(),
+		HalfPgUp(),
+		HalfPgDown(),
+		PgUp(),
+		PgDown(),
+		Home(),
+		End(),
+	}
+	return km
+}
+
+func VimListKeyMap() KeyMap {
+	var km = KeyMap{
+		Quit(),
+		ToggleItem(),
+		Up().AddKeys("k"),
+		Down().AddKeys("j"),
+		HalfPgUp().AddKeys("K"),
+		HalfPgDown().AddKeys("J"),
+		PgUp(),
+		PgDown(),
+		Home().AddKeys("g"),
+		End().AddKeys("G"),
+	}
+	return km
+}
+
+func HalfPgUp() *Binding {
+	return NewBinding("ctrl+u").
+		WithHelp("½ page up").
+		Cmd(HalfPageUp)
+}
+
+func HalfPgDown() *Binding {
+	return NewBinding("ctrl+d").
+		WithHelp("½ page down").
+		Cmd(HalfPageDown)
+}
+
+func PgUp() *Binding {
+	return NewBinding("pgup").
+		WithHelp("page up").
+		Cmd(PageUp)
+}
+
+func PgDown() *Binding {
+	return NewBinding("pgdown").
+		WithHelp("page down").
+		Cmd(PageDown)
+}
+
+func End() *Binding {
+	return NewBinding("end").
+		WithHelp("list bottom").
+		Cmd(Bottom)
+}
+
+func Home() *Binding {
+	return NewBinding("home").
+		WithHelp("list top").
+		Cmd(Top)
+}
+
 func Up() *Binding {
 	return NewBinding("up").
 		WithHelp("move up").

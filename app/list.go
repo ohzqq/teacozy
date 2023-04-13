@@ -56,10 +56,10 @@ type Props struct {
 
 func NewList(opts ...Option) *List {
 	m := List{
-		focus: true,
-		Style: style.ListDefaults(),
+		Cursor: 0,
+		Style:  style.ListDefaults(),
 	}
-	m.KeyMap = DefaultKeyMap()
+	m.KeyMap = keys.DefaultListKeyMap()
 
 	for _, opt := range opts {
 		opt(&m)
@@ -75,34 +75,6 @@ func (m *List) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func DefaultKeyMap() keys.KeyMap {
-	var km = keys.KeyMap{
-		keys.Quit(),
-		keys.ToggleItem(),
-		keys.Up().WithKeys("up"),
-		keys.Down().WithKeys("down"),
-		keys.NewBinding("ctrl+u").
-			WithHelp("½ page up").
-			Cmd(keys.HalfPageUp),
-		keys.NewBinding("ctrl+d").
-			WithHelp("½ page down").
-			Cmd(keys.HalfPageDown),
-		keys.NewBinding("pgup").
-			WithHelp("page up").
-			Cmd(keys.PageUp),
-		keys.NewBinding("pgdown").
-			WithHelp("page down").
-			Cmd(keys.PageDown),
-		keys.NewBinding("end").
-			WithHelp("list bottom").
-			Cmd(keys.Bottom),
-		keys.NewBinding("home").
-			WithHelp("list top").
-			Cmd(keys.Top),
-	}
-	return km
-}
-
 func (m *List) AfterUpdate() tea.Cmd {
 	m.UpdateItems()
 	return nil
@@ -115,8 +87,6 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
-
-	case FilterMsg:
 
 	case message.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
@@ -210,8 +180,8 @@ func (m List) isSelected(idx int) bool {
 
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
-func (m List) CurrentItem() Item {
-	return m.Props().Matches[m.Cursor]
+func (m List) CurrentItem() int {
+	return m.Props().Matches[m.Cursor].Index
 }
 
 // MoveUp moves the selection up by any number of rows.
@@ -292,6 +262,10 @@ func (m *List) SetWidth(w int) {
 func (m *List) SetHeight(h int) {
 	m.Viewport.Height = h
 	m.UpdateItems()
+}
+
+func (m *List) SetKeyMap(km keys.KeyMap) {
+	m.KeyMap = km
 }
 
 // Height returns the viewport height of the table.
