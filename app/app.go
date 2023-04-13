@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -15,11 +16,14 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	Style     style.App
-	width     int
-	PrevRoute string
-	height    int
-	Choices   []map[string]string
+	Style       style.App
+	width       int
+	height      int
+	PrevRoute   string
+	Choices     []map[string]string
+	Selected    map[int]struct{}
+	NumSelected int
+	Limit       int
 }
 
 func New(choices []string) *App {
@@ -29,6 +33,8 @@ func New(choices []string) *App {
 		height:     util.TermWidth(),
 		Choices:    MapChoices(choices),
 		Style:      style.DefaultAppStyle(),
+		Selected:   make(map[int]struct{}),
+		Limit:      10,
 	}
 }
 
@@ -38,7 +44,9 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := NewList()
 
 			return component, component.Init(Props{
-				Choices: c.Choices,
+				Choices:     c.Choices,
+				Selected:    c.Selected,
+				ToggleItems: c.ToggleItems,
 			})
 		},
 	})
@@ -47,6 +55,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
+	case keys.ToggleMsg:
+
 	case message.ConfirmMsg:
 		//c.ConfirmAction = ""
 	case message.GetConfirmationMsg:
@@ -91,6 +101,18 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+func (m *App) ToggleItems(items ...int) {
+	for _, idx := range items {
+		if _, ok := m.Selected[idx]; ok {
+			delete(m.Selected, idx)
+			m.NumSelected--
+		} else if m.NumSelected < m.Limit {
+			m.Selected[idx] = struct{}{}
+			m.NumSelected++
+		}
+	}
+}
+
 func (c *App) Render(width, height int) string {
 	view := c.mainRouter.Render(width, height)
 
@@ -116,4 +138,14 @@ func (c *App) ChangeRoute(r string) {
 	//c.PrevRoute = p
 	//}
 	reactea.SetCurrentRoute(r)
+}
+
+func (m App) Chosen() []map[string]string {
+	var chosen []map[string]string
+	if len(m.Selected) > 0 {
+		for k := range m.Selected {
+			chosen = append(chosen, m.Choices[k])
+		}
+	}
+	return chosen
 }

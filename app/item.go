@@ -30,6 +30,7 @@ type Item struct {
 	Label string
 	exec  *exec.Cmd
 	Style style.ListItem
+	ItemProps
 }
 
 type ItemProps struct {
@@ -85,7 +86,7 @@ func (i Item) String() string {
 	return i.Str
 }
 
-func (i Item) Render(cur bool, w, h int) string {
+func (i Item) Render(w, h int) string {
 	var s strings.Builder
 	pre := "x"
 
@@ -94,10 +95,10 @@ func (i Item) Render(cur bool, w, h int) string {
 	}
 
 	switch {
-	case cur:
+	case i.Current:
 		pre = i.Style.Cursor.Render(pre)
 	default:
-		if i.Props().Selected {
+		if i.ItemProps.Selected {
 			pre = i.Style.Selected.Render(pre)
 		} else if i.Label == "" {
 			pre = strings.Repeat(" ", lipgloss.Width(pre))

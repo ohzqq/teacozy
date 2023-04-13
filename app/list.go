@@ -19,10 +19,9 @@ type List struct {
 	reactea.BasicComponent // It implements AfterUpdate() for us, so we don't have to care!
 	reactea.BasicPropfulComponent[Props]
 
-	choices     []map[string]string
+	Matches     []Item
 	focus       bool
 	quitting    bool
-	Selected    map[int]struct{}
 	Cursor      int
 	height      int
 	width       int
@@ -53,9 +52,9 @@ func (i Choices) Len() int {
 }
 
 type Props struct {
-	Choices []map[string]string
-	Items   []Item
-	Matches []Item
+	Choices     []map[string]string
+	Selected    map[int]struct{}
+	ToggleItems func(...int)
 }
 
 func NewList(opts ...Option) *List {
@@ -71,13 +70,8 @@ func NewList(opts ...Option) *List {
 	return &m
 }
 
-//func (m *List) UpdateProps(props *props.Items) {
-//  m.props = props
-//}
-
 func (m *List) Init(props Props) tea.Cmd {
-	props.Items = ChoiceMapToMatch(props.Choices)
-	props.Matches = props.Items
+	m.Matches = ChoiceMapToMatch(props.Choices)
 	m.UpdateProps(props)
 
 	m.Viewport = viewport.New(0, 0)
@@ -123,6 +117,10 @@ func (m *List) Update(msg tea.Msg) tea.Cmd {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
 
+	case message.ToggleItemMsg:
+		cur := m.Matches[m.Cursor].Index
+		m.Props().ToggleItems(cur)
+
 	case keys.PageUpMsg:
 		m.MoveUp(m.Viewport.Height)
 	case keys.PageDownMsg:
@@ -166,7 +164,7 @@ func (m *List) Render(w, h int) string {
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
 func (m *List) UpdateItems() {
-	renderedRows := make([]string, 0, len(m.Props().Matches))
+	renderedRows := make([]string, 0, len(m.Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
@@ -177,10 +175,10 @@ func (m *List) UpdateItems() {
 		m.start = 0
 		m.SetCursor(0)
 	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches))
+	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Matches))
 
 	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Matches)-1))
+		m.SetCursor(clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Matches)-1))
 	}
 
 	for i := m.start; i < m.end; i++ {
@@ -194,31 +192,37 @@ func (m *List) UpdateItems() {
 }
 
 func (m *List) renderRow(rowID int) string {
-	row := m.Props().Matches[rowID]
+	row := m.Matches[rowID]
 
 	var s strings.Builder
 
-	var cur bool
 	switch {
 	case rowID == m.Cursor:
-		cur = true
+		row.Current = true
+	case m.isSelected(rowID):
+		row.ItemProps.Selected = true
 	}
 
-	s.WriteString(row.Render(cur, m.Viewport.Width, m.Viewport.Height))
+	s.WriteString(row.Render(m.Viewport.Width, m.Viewport.Height))
 
 	return s.String()
+}
+
+func (m List) isSelected(idx int) bool {
+	_, ok := m.Props().Selected[m.Matches[idx].Index]
+	return ok
 }
 
 // SelectedRow returns the selected row.
 // You can cast it to your own implementation.
 func (m List) CurrentItem() Item {
-	return m.Props().Matches[m.Cursor]
+	return m.Matches[m.Cursor]
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *List) MoveUp(n int) {
-	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Matches)-1))
 	m.UpdateItems()
 	switch {
 	case m.start == 0:
@@ -233,10 +237,10 @@ func (m *List) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *List) MoveDown(n int) {
-	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Matches)-1))
 	m.UpdateItems()
 	switch {
-	case m.end == len(m.Props().Matches):
+	case m.end == len(m.Matches):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
 	case m.Cursor > (m.end-m.start)/2:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
@@ -253,7 +257,7 @@ func (m *List) GotoTop() {
 
 // GotoBottom moves the selection to the last row.
 func (m *List) GotoBottom() {
-	m.MoveDown(len(m.Props().Matches))
+	m.MoveDown(len(m.Matches))
 }
 
 //func (m *List) ToggleAllItems() tea.Cmd {
@@ -281,7 +285,7 @@ func (m List) Focused() bool {
 // interact.
 func (m *List) Focus() {
 	m.focus = true
-	//m.Props().Matches = m.Props().Items
+	//m.Matches = m.Props().Items
 	m.UpdateItems()
 }
 
@@ -293,12 +297,12 @@ func (m *List) Blur() {
 
 // VisibleItems returns the current rows.
 func (m List) VisibleItems() []Item {
-	return m.Props().Matches
+	return m.Matches
 }
 
 // SetItems sets a new rows state.
 func (m *List) SetItems(r []Item) {
-	//m.Props().Matches = r
+	//m.Matches = r
 	m.UpdateItems()
 }
 
@@ -331,8 +335,8 @@ func (m List) GetCursor() int {
 
 // SetCursor sets the cursor position in the table.
 func (m *List) SetCursor(n int) {
-	//m.Props().SetCursor(clamp(n, 0, len(m.Props().Matches)-1))
-	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
+	//m.Props().SetCursor(clamp(n, 0, len(m.Matches)-1))
+	m.Cursor = clamp(n, 0, len(m.Matches)-1)
 	//m.UpdateItems()
 }
 
