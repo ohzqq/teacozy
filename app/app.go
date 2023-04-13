@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
@@ -71,7 +72,7 @@ func (c App) Width() int {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = NewList()
-	//c.list.SetKeyMap(keys.VimListKeyMap())
+	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
 	c.input = NewSearch()
 	c.input.Init(InputProps{
@@ -92,13 +93,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case message.StopFilteringMsg:
 		c.Filter("")
-		c.list.Init(c.listProps())
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
-		//c.input.Init(InputProps{
-		//  Filter: c.Filter,
-		//})
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:
@@ -147,7 +144,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch reactea.CurrentRoute() {
 	case "filter":
 		cmds = append(cmds, c.input.Update(msg))
-		c.list.Init(c.listProps())
+		c.list.UpdateProps(c.listProps())
+		c.list.SetKeyMap(keys.DefaultListKeyMap())
 	case "help":
 	}
 
