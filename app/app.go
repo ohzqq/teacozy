@@ -7,6 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/app/header"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -19,6 +21,8 @@ import (
 type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
+
+	mainRouter reactea.Component[router.Props]
 
 	Style       style.App
 	width       int
@@ -42,13 +46,15 @@ type App struct {
 
 func New(choices []string) *App {
 	a := &App{
-		width:    util.TermWidth(),
-		height:   10,
-		Choices:  item.MapChoices(choices),
-		Style:    style.DefaultAppStyle(),
-		Selected: make(map[int]struct{}),
-		Limit:    1,
-		routes:   make(map[string]reactea.SomeComponent),
+		mainRouter: router.New(),
+		width:      util.TermWidth(),
+		height:     10,
+		Choices:    item.MapChoices(choices),
+		Style:      style.DefaultAppStyle(),
+		Selected:   make(map[int]struct{}),
+		Limit:      1,
+		routes:     make(map[string]reactea.SomeComponent),
+		header:     "poot",
 	}
 
 	return a
@@ -75,17 +81,37 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = list.New()
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
-	c.input = input.New()
-	c.input.Init(input.Props{
-		Filter: c.Input,
-	})
+	//c.input = input.New()
+	//c.input.Init(input.Props{
+	//Filter: c.Input,
+	//})
 
-	h := reactea.Componentify[string](RenderHeader)
-	h.Init(c.header)
-	c.routes["list"] = c.list
-	c.routes["filter"] = c.input
-	c.routes["header"] = h
-	return nil
+	//c.routes["list"] = c.list
+	//c.routes["filter"] = c.input
+	return c.mainRouter.Init(map[string]router.RouteInitializer{
+		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := new(struct {
+				reactea.BasicComponent
+				reactea.InvisibleComponent
+			})
+			return component, nil
+		},
+		"header": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			//component := reactea.Componentify[string](RenderHeader)
+			component := header.New()
+			//return component, nil
+			return component, component.Init(header.Props{Msg: c.header})
+		},
+		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := input.New()
+			c.list.SetKeyMap(keys.DefaultListKeyMap())
+			return component, component.Init(input.Props{Filter: c.Input})
+		},
+	})
+}
+
+func (c *App) SetHeader(h string) {
+	c.header = h
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -95,13 +121,16 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
+	case header.UpdateHeaderMsg:
+		c.SetHeader(msg.Header)
+		cmds = append(cmds, message.ChangeRoute("header"))
 	case message.StopFilteringMsg:
 		c.Input("")
 		c.list.SetKeyMap(keys.VimListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
-		c.list.SetKeyMap(keys.DefaultListKeyMap())
+		//c.list.SetKeyMap(keys.DefaultListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:
@@ -111,8 +140,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "header":
-			c.header.Init("poot")
 		case "list":
 			c.list.SetCursor(0)
 		case "filter":
@@ -137,7 +164,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			cmds = append(cmds, message.ChangeRoute("header"))
+			return header.UpdateHeader("toot")
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
@@ -150,12 +177,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 	switch reactea.CurrentRoute() {
 	case "filter":
-		cmds = append(cmds, c.input.Update(msg))
 		c.search = c.inText
 	case "help":
 	}
 
 	cmds = append(cmds, c.list.Update(msg))
+	cmds = append(cmds, c.mainRouter.Update(msg))
 
 	return tea.Batch(cmds...)
 }
@@ -166,7 +193,7 @@ func (m *App) AfterUpdate() tea.Cmd {
 }
 
 func (m App) CurrentRoute() reactea.SomeComponent {
-	if r, ok := m.routes[reactea.CurrentRoute]; ok {
+	if r, ok := m.routes[reactea.CurrentRoute()]; ok {
 		return r
 	}
 	return nil
@@ -199,16 +226,19 @@ func (c *App) Render(width, height int) string {
 	var view []string
 
 	var header string
-	if head := c.header.Render(width, height); head != "" {
-		header = c.Style.Header.Render(head)
+	if c.header != "" {
+		header = c.Style.Header.Render(c.header)
 		h -= lipgloss.Height(header)
 		view = append(view, header)
 	}
 
+	comp := c.mainRouter.Render(w, h)
+
 	var filter string
 	switch reactea.CurrentRoute() {
 	case "filter":
-		filter = c.input.Render(w, h)
+		//filter = c.input.Render(w, h)
+		filter = comp
 		h -= lipgloss.Height(filter)
 		view = append(view, filter)
 	}
@@ -237,7 +267,7 @@ func (c *App) ChangeRoute(r string) {
 		c.PrevRoute = p
 	}
 	reactea.SetCurrentRoute(r)
-	c.routes[c.PrevRoute].Destroy()
+	//c.routes[c.PrevRoute].Destroy()
 }
 
 func (m App) Chosen() []map[string]string {
