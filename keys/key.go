@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/message"
 )
 
@@ -102,7 +103,7 @@ func DefaultListKeyMap() KeyMap {
 func VimListKeyMap() KeyMap {
 	var km = KeyMap{
 		Quit(),
-		ToggleItem(),
+		ToggleItem().AddKeys(" "),
 		Up().AddKeys("k"),
 		Down().AddKeys("j"),
 		HalfPgUp().AddKeys("K"),
@@ -203,7 +204,7 @@ func ToggleMatch() *Binding {
 func Quit() *Binding {
 	return NewBinding("ctrl+c").
 		WithHelp("quit program").
-		Cmd(message.Quit())
+		Cmd(reactea.Destroy)
 }
 
 func ShowHelp() *Binding {
@@ -225,6 +226,11 @@ func No() *Binding {
 func Esc() *Binding {
 	return NewBinding("esc").
 		WithHelp("exit screen")
+}
+
+func Edit() *Binding {
+	return NewBinding("e").
+		WithHelp("edit field")
 }
 
 type LineUpMsg struct{}

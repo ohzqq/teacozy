@@ -93,6 +93,13 @@ func Save() tea.Msg {
 	return SaveEditMsg{}
 }
 
+func SaveEdit(save bool) tea.Cmd {
+	if save {
+		return Save
+	}
+	return StopEditing
+}
+
 func StartEditing() tea.Msg {
 	return StartEditingMsg{}
 }

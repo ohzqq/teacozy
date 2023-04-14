@@ -22,6 +22,7 @@ type Component struct {
 type Props struct {
 	Question string
 	Action   tea.Cmd
+	Confirm  Confirm
 }
 
 type GetConfirmationMsg struct {
@@ -32,16 +33,18 @@ type ConfirmedMsg struct {
 	Action tea.Cmd
 }
 
+type Confirm func(bool) tea.Cmd
+
 func New() *Component {
 	return &Component{}
 }
 
-func Action(q string, a tea.Cmd) tea.Cmd {
+func Action(q string, a Confirm) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{
 			Props: Props{
 				Question: q,
-				Action:   a,
+				Confirm:  a,
 			},
 		}
 	}

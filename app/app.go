@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -28,13 +29,16 @@ type App struct {
 	mainRouter reactea.Component[router.Props]
 	PrevRoute  string
 
-	Style  style.App
-	width  int
-	height int
-	footer string
-	status string
-	title  string
-	keyMap keys.KeyMap
+	Style          style.App
+	width          int
+	height         int
+	footer         string
+	status         string
+	title          string
+	keyMap         keys.KeyMap
+	editable       bool
+	filterable     bool
+	confirmChoices bool
 
 	inputValue string
 	search     string
@@ -66,6 +70,7 @@ func New(opts ...Option) (*App, error) {
 		selected:              make(map[int]struct{}),
 		limit:                 1,
 		StatusMessageLifetime: time.Second,
+		keyMap:                DefaultKeyMap(),
 	}
 
 	for _, opt := range opts {
@@ -128,7 +133,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := confirm.New()
 			p := c.confirm
 			if p.Action == nil {
-				fmt.Println("nil")
 				p.Action = component.Confirmed
 			}
 			return component, component.Init(p)
@@ -172,7 +176,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.Choices.Set(idx, c.inputValue)
 	case edit.StopEditingMsg:
 		if c.inputValue != c.CurrentItem().Value() {
-			cmd := confirm.Action("save edit?", edit.Save)
+			cmd := confirm.Action("save edit?", edit.SaveEdit)
 			cmds = append(cmds, cmd)
 		}
 		cmds = append(cmds, message.ChangeRoute("list"))
@@ -194,30 +198,23 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		c.ChangeRoute(route)
 
-	case message.ReturnSelectionsMsg:
-		switch reactea.CurrentRoute() {
-		case "filter":
-		default:
-			return reactea.Destroy
+	case AcceptChoicesMsg:
+		if c.confirmChoices {
+			cmd := confirm.Action("accept choices?", edit.Save)
+			cmds = append(cmds, cmd)
 		}
 
 	case message.QuitMsg:
 		return reactea.Destroy
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+o":
-			cmds = append(cmds, message.ChangeRoute("edit"))
-			//cur := c.Choices[c.list.CurrentItem()]
-			//cmds = append(cmds, status.StatusUpdate(cur))
-			//cmds = append(cmds, c.NewStatusMessage(cur))
-			//cmds = append(cmds, edit.StartEditing)
-		case "/":
-			cmds = append(cmds, input.StartFiltering)
-		case "ctrl+c":
-			return reactea.Destroy
+		for _, k := range c.keyMap {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
+			}
 		}
 	}
+
 	switch reactea.CurrentRoute() {
 	case "filter":
 		c.search = c.inputValue
@@ -358,14 +355,35 @@ func WithTitle(t string) Option {
 	}
 }
 
+func Editable() Option {
+	return func(a *App) {
+		a.editable = true
+		k := keys.Edit().Cmd(edit.StartEditing)
+		a.keyMap = append(a.keyMap, k)
+	}
+}
+
+func WithFilter() Option {
+	return func(a *App) {
+		a.filterable = true
+		k := keys.Filter().Cmd(input.StartFiltering)
+		a.keyMap = append(a.keyMap, k)
+	}
+}
+
+func ConfirmChoices() Option {
+	return func(a *App) {
+		a.confirmChoices = true
+	}
+}
+
 func Filter(search string, choices item.Choices) []item.Item {
 	return choices.Filter(search)
 }
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.Global
-	km = append(km, keys.Esc().Cmd(tea.Quit))
-	km = append(km, keys.Filter().Cmd(input.StartFiltering))
+	km = append(km, keys.Enter().WithHelp("accept choices").Cmd(AcceptChoices))
 	return km
 }
 
@@ -400,6 +418,11 @@ func (c *App) SetTitle(h string) *App {
 	return c
 }
 
+func (c *App) ClearSelections() tea.Cmd {
+	c.selected = make(map[int]struct{})
+	return nil
+}
+
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
 
 type statusMessageTimeoutMsg struct{}
@@ -426,4 +449,10 @@ func (m *App) hideStatusMessage() {
 	if m.statusMessageTimer != nil {
 		m.statusMessageTimer.Stop()
 	}
+}
+
+type AcceptChoicesMsg struct{}
+
+func AcceptChoices() tea.Msg {
+	return AcceptChoicesMsg{}
 }
