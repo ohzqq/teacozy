@@ -118,9 +118,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
-	case confirm.ConfirmationMsg:
+	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
 		cmds = append(cmds, message.ChangeRoute("confirm"))
+	case confirm.NotConfirmedMsg:
+		c.SetFooter("")
+		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.ChangeRouteMsg:
 		route := msg.Name
@@ -150,7 +153,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			cmds = append(cmds, confirm.Confirm("poot?", nil))
+			cmds = append(cmds, confirm.Confirm("poot?", status.StatusUpdate("mew")))
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
@@ -276,6 +279,10 @@ func (c App) Width() int {
 
 func (c *App) SetHeader(h string) {
 	c.header = h
+}
+
+func (c *App) SetFooter(h string) {
+	c.footer = h
 }
 
 func (c *App) SetStatus(h string) {
