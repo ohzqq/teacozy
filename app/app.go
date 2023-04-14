@@ -6,10 +6,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/app/header"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
+	"github.com/ohzqq/teacozy/app/status"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
@@ -96,8 +96,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			return component, nil
 		},
 		"status": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := header.New()
-			return component, component.Init(header.Props{Msg: c.status})
+			component := status.New()
+			return component, component.Init(status.Props{Msg: c.status})
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := input.New()
@@ -125,7 +125,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case header.StatusMsg:
+	case status.StatusMsg:
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, message.ChangeRoute("status"))
 
@@ -168,7 +168,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			return header.StatusUpdate("toot")
+			return status.StatusUpdate("toot")
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
