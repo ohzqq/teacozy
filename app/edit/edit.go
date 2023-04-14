@@ -75,12 +75,8 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	//l := lipgloss.NewStyle().Width(w).Render(c.Props().Value)
-	//c.input.SetHeight(lipgloss.Height(l))
 	c.input.SetWidth(w)
 	c.input.SetHeight(c.input.LineInfo().Height)
-	//fmt.Println(strconv.Itoa(len(c.Props().Value)))
-	//fmt.Println(strconv.Itoa(c.input.Length()))
 	return c.input.View()
 }
 

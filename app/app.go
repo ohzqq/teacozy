@@ -18,6 +18,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -25,14 +26,15 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
+	PrevRoute  string
 
-	Style     style.App
-	width     int
-	height    int
-	footer    string
-	header    string
-	status    string
-	PrevRoute string
+	Style  style.App
+	width  int
+	height int
+	footer string
+	status string
+	title  string
+	keyMap keys.KeyMap
 
 	inputValue string
 	search     string
@@ -43,16 +45,14 @@ type App struct {
 	// How long status messages should stay visible. By default this is
 	// 1 second.
 	StatusMessageLifetime time.Duration
-
-	statusMessage      string
-	statusMessageTimer *time.Timer
+	statusMessage         string
+	statusMessageTimer    *time.Timer
 
 	list        *list.Component
 	Choices     item.Choices
-	Items       item.Choices
-	Selected    map[int]struct{}
-	NumSelected int
-	Limit       int
+	selected    map[int]struct{}
+	numSelected int
+	limit       int
 }
 
 type Option func(*App)
@@ -63,8 +63,8 @@ func New(opts ...Option) (*App, error) {
 		width:                 util.TermWidth(),
 		height:                10,
 		Style:                 style.DefaultAppStyle(),
-		Selected:              make(map[int]struct{}),
-		Limit:                 1,
+		selected:              make(map[int]struct{}),
+		limit:                 1,
 		StatusMessageLifetime: time.Second,
 	}
 
@@ -76,8 +76,8 @@ func New(opts ...Option) (*App, error) {
 		return a, fmt.Errorf("at least one choice is needed")
 	}
 
-	if a.Limit == -1 {
-		a.Limit = a.Choices.Len()
+	if a.limit == -1 {
+		a.limit = a.Choices.Len()
 	}
 
 	return a, nil
@@ -86,7 +86,7 @@ func New(opts ...Option) (*App, error) {
 func (c *App) listProps() list.Props {
 	p := list.Props{
 		Matches:     Filter(c.search, c.Choices),
-		Selected:    c.Selected,
+		Selected:    c.selected,
 		ToggleItems: c.ToggleItems,
 	}
 	return p
@@ -117,7 +117,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := edit.New()
 			c.list.SetKeyMap(keys.Global)
-			c.inputValue = c.CurrentItem().Value()
+			c.Input(c.CurrentItem().Value())
 			p := edit.Props{
 				Save:  c.Input,
 				Value: c.inputValue,
@@ -154,10 +154,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.hideStatusMessage()
 		cmds = append(cmds, message.ChangeRoute("list"))
 
-	case message.StopFilteringMsg:
+	case input.StopFilteringMsg:
 		c.Input("")
 		cmds = append(cmds, message.ChangeRoute("list"))
-	case message.StartFilteringMsg:
+	case input.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case confirm.ConfirmedMsg:
@@ -213,7 +213,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			//cmds = append(cmds, c.NewStatusMessage(cur))
 			//cmds = append(cmds, edit.StartEditing)
 		case "/":
-			cmds = append(cmds, message.StartFiltering())
+			cmds = append(cmds, input.StartFiltering)
 		case "ctrl+c":
 			return reactea.Destroy
 		}
@@ -234,10 +234,6 @@ func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]
 }
 
-func (m App) CurrentItemValue() string {
-	return m.Choices.String(m.list.CurrentItem())
-}
-
 func (m *App) AfterUpdate() tea.Cmd {
 	m.list.UpdateProps(m.listProps())
 	return nil
@@ -245,18 +241,14 @@ func (m *App) AfterUpdate() tea.Cmd {
 
 func (m *App) ToggleItems(items ...int) {
 	for _, idx := range items {
-		if _, ok := m.Selected[idx]; ok {
-			delete(m.Selected, idx)
-			m.NumSelected--
-		} else if m.NumSelected < m.Limit {
-			m.Selected[idx] = struct{}{}
-			m.NumSelected++
+		if _, ok := m.selected[idx]; ok {
+			delete(m.selected, idx)
+			m.numSelected--
+		} else if m.numSelected < m.limit {
+			m.selected[idx] = struct{}{}
+			m.numSelected++
 		}
 	}
-}
-
-func (c *App) Input(value string) {
-	c.inputValue = value
 }
 
 func (c *App) Render(width, height int) string {
@@ -287,8 +279,8 @@ func (c *App) Render(width, height int) string {
 
 func (c App) renderHeader(w, h int) string {
 	var header string
-	if c.header != "" {
-		header = c.Style.Header.Render(c.header)
+	if c.title != "" {
+		header = c.Style.Header.Render(c.title)
 	}
 	switch reactea.CurrentRoute() {
 	case "status":
@@ -324,12 +316,16 @@ func (c *App) ChangeRoute(r string) {
 
 func (m App) Chosen() []map[string]string {
 	var chosen []map[string]string
-	if len(m.Selected) > 0 {
-		for k := range m.Selected {
+	if len(m.selected) > 0 {
+		for k := range m.selected {
 			chosen = append(chosen, m.Choices[k])
 		}
 	}
 	return chosen
+}
+
+func (m App) Selections() []int {
+	return maps.Keys(m.selected)
 }
 
 func WithSlice[E any](c []E) Option {
@@ -346,18 +342,35 @@ func WithMap(c []map[string]string) Option {
 
 func NoLimit() Option {
 	return func(a *App) {
-		a.Limit = -1
+		a.limit = -1
 	}
 }
 
 func WithLimit(l int) Option {
 	return func(a *App) {
-		a.Limit = l
+		a.limit = l
+	}
+}
+
+func WithTitle(t string) Option {
+	return func(a *App) {
+		a.title = t
 	}
 }
 
 func Filter(search string, choices item.Choices) []item.Item {
 	return choices.Filter(search)
+}
+
+func DefaultKeyMap() keys.KeyMap {
+	km := keys.Global
+	km = append(km, keys.Esc().Cmd(tea.Quit))
+	km = append(km, keys.Filter().Cmd(input.StartFiltering))
+	return km
+}
+
+func (c *App) Input(value string) {
+	c.inputValue = value
 }
 
 func (c App) Height() int {
@@ -368,21 +381,29 @@ func (c App) Width() int {
 	return c.width
 }
 
-func (c *App) SetHeader(h string) {
-	c.header = h
+func (c App) Limit() int {
+	return c.limit
 }
 
-func (c *App) SetFooter(h string) {
+func (c *App) SetFooter(h string) *App {
 	c.footer = h
+	return c
 }
 
-func (c *App) SetStatus(h string) {
+func (c *App) SetStatus(h string) *App {
 	c.status = h
+	return c
 }
+
+func (c *App) SetTitle(h string) *App {
+	c.title = h
+	return c
+}
+
+// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
 
 type statusMessageTimeoutMsg struct{}
 
-// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
 // NewStatusMessage sets a new status message, which will show for a limited
 // amount of time. Note that this also returns a command.
 func (m *App) NewStatusMessage(s string) tea.Cmd {

@@ -115,6 +115,15 @@ func VimListKeyMap() KeyMap {
 	return km
 }
 
+func Enter() *Binding {
+	return NewBinding("enter")
+}
+
+func Filter() *Binding {
+	return NewBinding("/").
+		WithHelp("filter items")
+}
+
 func Save() *Binding {
 	return NewBinding("ctrl+s").
 		WithHelp("save edit")
