@@ -26,11 +26,15 @@ type GetConfirmationMsg struct {
 	Props
 }
 
+type ConfirmedMsg struct {
+	Action tea.Cmd
+}
+
 func New() *Component {
 	return &Component{}
 }
 
-func Confirm(q string, a tea.Cmd) tea.Cmd {
+func Action(q string, a tea.Cmd) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{
 			Props: Props{
@@ -47,9 +51,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "y":
 			c.confirmed = true
-			return c.Props().Action
+			return Confirmed(c.Props().Action)
 		case "n":
-			return c.Confirmed
+			return Confirmed(nil)
 		}
 	}
 	return nil
@@ -62,4 +66,12 @@ func (c *Component) Render(w, h int) string {
 
 func (c *Component) Confirmed() tea.Msg {
 	return status.StatusMsg{Status: fmt.Sprintf("%s %v", c.Props().Question, c.confirmed)}
+}
+
+func Confirmed(a tea.Cmd) tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmedMsg{
+			Action: a,
+		}
+	}
 }

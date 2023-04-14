@@ -45,6 +45,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.input.Prompt = c.Prompt
 	c.input.Placeholder = c.Placeholder
 	c.input.SetValue(props.Value)
+	//c.input.ShowLineNumbers = false
 	return c.input.Focus()
 }
 
@@ -72,7 +73,13 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *Component) Render(int, int) string {
+func (c *Component) Render(w, h int) string {
+	//l := lipgloss.NewStyle().Width(w).Render(c.Props().Value)
+	//c.input.SetHeight(lipgloss.Height(l))
+	c.input.SetWidth(w)
+	c.input.SetHeight(c.input.LineInfo().Height)
+	//fmt.Println(strconv.Itoa(len(c.Props().Value)))
+	//fmt.Println(strconv.Itoa(c.input.Length()))
 	return c.input.View()
 }
 
@@ -80,12 +87,12 @@ func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Esc().Cmd(StopEditing),
 		keys.Quit(),
-		keys.Save().Cmd(SaveEdit),
+		keys.Save().Cmd(Save),
 	}
 	return km
 }
 
-func SaveEdit() tea.Msg {
+func Save() tea.Msg {
 	return SaveEditMsg{}
 }
 

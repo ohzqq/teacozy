@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -102,7 +103,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := edit.New()
 			c.list.SetKeyMap(keys.DefaultListKeyMap())
-			cur := c.Choices[c.list.CurrentItem()]
+			cur := c.CurrentItem()
 			p := edit.Props{
 				Save:  c.Input,
 				Value: maps.Values(cur)[0],
@@ -113,6 +114,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := confirm.New()
 			p := c.confirm
 			if p.Action == nil {
+				fmt.Println("nil")
 				p.Action = component.Confirmed
 			}
 			return component, component.Init(p)
@@ -144,11 +146,23 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
+	case confirm.ConfirmedMsg:
+		cmds = append(cmds, message.ChangeRoute("list"))
+		cmds = append(cmds, msg.Action)
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
 		cmds = append(cmds, message.ChangeRoute("confirm"))
 
+	case edit.SaveEditMsg:
+		cmds = append(cmds, status.StatusUpdate("saved"))
 	case edit.StopEditingMsg:
+		val := c.inputValue
+		cur := maps.Values(c.CurrentItem())[0]
+		//idx := c.list.CurrentItem()
+		if val != cur {
+			cmd := confirm.Action("save edit?", edit.Save)
+			cmds = append(cmds, cmd)
+		}
 		cmds = append(cmds, message.ChangeRoute("list"))
 	case edit.StartEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("edit"))
