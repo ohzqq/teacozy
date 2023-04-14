@@ -1,11 +1,12 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/app/header"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -31,7 +32,7 @@ type App struct {
 	list        *list.Component
 	input       *input.Component
 	footer      string
-	header      *header.Component
+	header      string
 
 	PrevRoute string
 	routes    map[string]reactea.SomeComponent
@@ -78,11 +79,12 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.input.Init(input.Props{
 		Filter: c.Input,
 	})
-	c.header = &header.Component{}
 
+	h := reactea.Componentify[string](RenderHeader)
+	h.Init(c.header)
 	c.routes["list"] = c.list
 	c.routes["filter"] = c.input
-	c.routes["header"] = c.header
+	c.routes["header"] = h
 	return nil
 }
 
@@ -110,8 +112,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		route := msg.Name
 		switch route {
 		case "header":
-			p := header.Props("poot")
-			c.header.Init(p)
+			c.header.Init("poot")
 		case "list":
 			c.list.SetCursor(0)
 		case "filter":
@@ -164,6 +165,13 @@ func (m *App) AfterUpdate() tea.Cmd {
 	return nil
 }
 
+func (m App) CurrentRoute() reactea.SomeComponent {
+	if r, ok := m.routes[reactea.CurrentRoute]; ok {
+		return r
+	}
+	return nil
+}
+
 func (m *App) ToggleItems(items ...int) {
 	for _, idx := range items {
 		if _, ok := m.Selected[idx]; ok {
@@ -185,25 +193,28 @@ func (c *App) SetContent(lines string) {
 }
 
 func (c *App) Render(width, height int) string {
-	view := c.list.Render(c.Width(), c.Height())
+	w := c.Width()
+	h := c.Height()
+
+	var view []string
 
 	var header string
-	if h := c.header.Render(width, height); h != "" {
-		header = c.Style.Header.Render(h)
+	if head := c.header.Render(width, height); head != "" {
+		header = c.Style.Header.Render(head)
+		h -= lipgloss.Height(header)
+		view = append(view, header)
 	}
 
+	var filter string
 	switch reactea.CurrentRoute() {
 	case "filter":
-		header = c.input.Render(c.Width(), c.Height())
+		filter = c.input.Render(w, h)
+		h -= lipgloss.Height(filter)
+		view = append(view, filter)
 	}
 
-	if header != "" {
-		view = lipgloss.JoinVertical(lipgloss.Left, header, view)
-	}
-
-	//if c.header != "" {
-	//view = lipgloss.JoinVertical(lipgloss.Left, c.header, view)
-	//}
+	list := c.list.Render(w, h)
+	view = append(view, list)
 
 	//if c.ConfirmAction != "" {
 	//c.Footer(fmt.Sprintf("%s\n", c.Style.Confirm.Render(c.ConfirmAction+"(y/n)")))
@@ -213,8 +224,10 @@ func (c *App) Render(width, height int) string {
 	//view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
 	//}
 
-	return view
-	//return lipgloss.JoinVertical(lipgloss.Left, view, reactea.CurrentRoute())
+	//if header != "" {
+	//view = lipgloss.JoinVertical(lipgloss.Left, header, view)
+	//}
+	return lipgloss.JoinVertical(lipgloss.Left, view...)
 }
 
 func (c *App) ChangeRoute(r string) {
@@ -240,4 +253,10 @@ func (m App) Chosen() []map[string]string {
 func Filter(search string, choices []map[string]string) []item.Item {
 	c := item.Choices(choices)
 	return c.Filter(search)
+}
+
+type Header = string
+
+func RenderHeader(text Header, w, h int) string {
+	return fmt.Sprintf("%s", text)
 }

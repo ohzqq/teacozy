@@ -2,17 +2,10 @@ package header
 
 import (
 	"fmt"
-
-	"github.com/londek/reactea"
 )
 
-type Component struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-}
+type Header string
 
-type Props string
-
-func (c Component) Render(int, int) string {
-	return fmt.Sprintf("%s", c.Props())
+func RenderHeader(text Header, w, h int) string {
+	return fmt.Sprintf("%s", text)
 }
