@@ -108,7 +108,7 @@ func (m *Component) Render(w, h int) string {
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
 func (m *Component) UpdateItems() {
-	renderedRows := make([]string, 0, len(m.Props().Matches))
+	items := make([]string, 0, len(m.Props().Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
@@ -126,27 +126,27 @@ func (m *Component) UpdateItems() {
 	}
 
 	for i := m.start; i < m.end; i++ {
-		renderedRows = append(renderedRows, m.renderRow(i))
+		items = append(items, m.renderItem(i))
 	}
 
 	m.Viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+		lipgloss.JoinVertical(lipgloss.Left, items...),
 	)
 }
 
-func (m *Component) renderRow(rowID int) string {
-	row := m.Props().Matches[rowID]
+func (m *Component) renderItem(rowID int) string {
+	item := m.Props().Matches[rowID]
 
 	var s strings.Builder
 
 	switch {
 	case rowID == m.Cursor:
-		row.Current = true
+		item.Current = true
 	case m.isSelected(rowID):
-		row.Selected = true
+		item.Selected = true
 	}
 
-	s.WriteString(row.Render(m.Width(), m.Height()))
+	s.WriteString(item.Render(m.Width(), m.Height()))
 
 	return s.String()
 }

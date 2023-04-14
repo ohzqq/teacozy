@@ -24,13 +24,13 @@ type App struct {
 	Style     style.App
 	width     int
 	height    int
-	search    string
 	footer    string
 	header    string
 	status    string
 	PrevRoute string
 
 	inputValue string
+	search     string
 
 	list        *list.Component
 	Choices     []map[string]string
@@ -84,14 +84,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			return component, component.Init(input.Props{Filter: c.Input})
 		},
 	})
-}
-
-func (c *App) SetHeader(h string) {
-	c.header = h
-}
-
-func (c *App) SetStatus(h string) {
-	c.status = h
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -274,4 +266,12 @@ func (c App) Height() int {
 
 func (c App) Width() int {
 	return c.width
+}
+
+func (c *App) SetHeader(h string) {
+	c.header = h
+}
+
+func (c *App) SetStatus(h string) {
+	c.status = h
 }

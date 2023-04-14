@@ -56,7 +56,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-// Here we are not using width and height, but you can!
 func (c *Component) Render(int, int) string {
 	return c.input.View()
 }
