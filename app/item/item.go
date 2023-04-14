@@ -23,8 +23,7 @@ type Choices []Choice
 type Choice map[string]string
 
 func (c Choices) String(i int) string {
-	choices := c[i]
-	return maps.Values(choices)[0]
+	return c[i].Value()
 }
 
 func (c Choices) Len() int {
@@ -51,12 +50,7 @@ func (c Choices) Set(idx int, val string) {
 }
 
 func (c Choice) Key() string {
-	var key string
-	for k, _ := range c {
-		key = k
-		break
-	}
-	return key
+	return maps.Keys(c)[0]
 }
 
 func (c Choice) Value() string {
@@ -118,14 +112,6 @@ func DefaultPrefix() *Prefix {
 
 func (i *Item) Exec(cmd *exec.Cmd) {
 	i.exec = cmd
-}
-
-func (i Item) Map() map[string]string {
-	return map[string]string{i.Label: i.Str}
-}
-
-func (i Item) String() string {
-	return i.Str
 }
 
 func (i Item) Render(w, h int) string {

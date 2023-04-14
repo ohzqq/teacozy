@@ -18,7 +18,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -56,18 +55,7 @@ type App struct {
 	Limit       int
 }
 
-type Items []map[string]string
-
 type Option func(*App)
-
-func (c Items) String(i int) string {
-	choices := c[i]
-	return maps.Values(choices)[0]
-}
-
-func (c Items) Len() int {
-	return len(c)
-}
 
 func New(opts ...Option) *App {
 	a := &App{
@@ -175,11 +163,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
 	case edit.StopEditingMsg:
-		idx := c.list.CurrentItem()
-		cmds = append(cmds, status.StatusUpdate(c.Choices.String(idx)))
-		val := c.inputValue
-		cur := c.CurrentItem().Value()
-		if val != cur {
+		if c.inputValue != c.CurrentItem().Value() {
 			cmd := confirm.Action("save edit?", edit.Save)
 			cmds = append(cmds, cmd)
 		}
@@ -240,6 +224,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]
+}
+
+func (m App) CurrentItemValue() string {
+	return m.Choices.String(m.list.CurrentItem())
 }
 
 func (m *App) AfterUpdate() tea.Cmd {
