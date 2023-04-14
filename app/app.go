@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -37,6 +35,7 @@ type App struct {
 	input       *input.Component
 	footer      string
 	header      string
+	status      string
 
 	PrevRoute string
 	routes    map[string]reactea.SomeComponent
@@ -54,7 +53,7 @@ func New(choices []string) *App {
 		Selected:   make(map[int]struct{}),
 		Limit:      1,
 		routes:     make(map[string]reactea.SomeComponent),
-		header:     "poot",
+		//header:     "poot",
 	}
 
 	return a
@@ -96,11 +95,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			})
 			return component, nil
 		},
-		"header": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		"status": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			//component := reactea.Componentify[string](RenderHeader)
 			component := header.New()
 			//return component, nil
-			return component, component.Init(header.Props{Msg: c.header})
+			return component, component.Init(header.Props{Msg: c.status})
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := input.New()
@@ -114,6 +113,10 @@ func (c *App) SetHeader(h string) {
 	c.header = h
 }
 
+func (c *App) SetStatus(h string) {
+	c.status = h
+}
+
 func (c *App) Update(msg tea.Msg) tea.Cmd {
 	if reactea.CurrentRoute() == "" {
 		reactea.SetCurrentRoute("list")
@@ -121,9 +124,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case header.UpdateHeaderMsg:
-		c.SetHeader(msg.Header)
-		cmds = append(cmds, message.ChangeRoute("header"))
+	case header.StatusMsg:
+		c.SetStatus(msg.Status)
+		cmds = append(cmds, message.ChangeRoute("status"))
+
 	case message.StopFilteringMsg:
 		c.Input("")
 		c.list.SetKeyMap(keys.VimListKeyMap())
@@ -164,7 +168,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			return header.UpdateHeader("toot")
+			return header.StatusUpdate("toot")
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
@@ -215,49 +219,54 @@ func (c *App) Input(search string) {
 	c.inText = search
 }
 
-func (c *App) SetContent(lines string) {
-	c.Viewport.SetContent(lines)
-}
-
 func (c *App) Render(width, height int) string {
 	w := c.Width()
 	h := c.Height()
 
 	var view []string
 
-	var header string
-	if c.header != "" {
-		header = c.Style.Header.Render(c.header)
-		h -= lipgloss.Height(header)
-		view = append(view, header)
+	if head := c.renderHeader(w, h); head != "" {
+		h -= lipgloss.Height(head)
+		view = append(view, head)
 	}
 
-	comp := c.mainRouter.Render(w, h)
-
-	var filter string
-	switch reactea.CurrentRoute() {
-	case "filter":
-		//filter = c.input.Render(w, h)
-		filter = comp
-		h -= lipgloss.Height(filter)
-		view = append(view, filter)
+	footer := c.renderFooter(w, h)
+	if footer != "" {
+		h -= lipgloss.Height(footer)
 	}
 
 	list := c.list.Render(w, h)
 	view = append(view, list)
 
-	//if c.ConfirmAction != "" {
-	//c.Footer(fmt.Sprintf("%s\n", c.Style.Confirm.Render(c.ConfirmAction+"(y/n)")))
-	//}
+	if footer != "" {
+		view = append(view, footer)
+	}
 
-	//if c.footer != "" {
-	//view = lipgloss.JoinVertical(lipgloss.Left, view, c.footer)
-	//}
-
-	//if header != "" {
-	//view = lipgloss.JoinVertical(lipgloss.Left, header, view)
-	//}
 	return lipgloss.JoinVertical(lipgloss.Left, view...)
+}
+
+func (c App) renderHeader(w, h int) string {
+	var header string
+	if c.header != "" {
+		header = c.Style.Header.Render(c.header)
+	}
+	switch reactea.CurrentRoute() {
+	case "filter":
+		header = c.mainRouter.Render(w, h)
+	}
+	return header
+}
+
+func (c App) renderFooter(w, h int) string {
+	var footer string
+	if c.footer != "" {
+		footer = c.Style.Header.Render(c.footer)
+	}
+	switch reactea.CurrentRoute() {
+	case "status":
+		footer = c.mainRouter.Render(w, h)
+	}
+	return footer
 }
 
 func (c *App) ChangeRoute(r string) {
@@ -283,10 +292,4 @@ func (m App) Chosen() []map[string]string {
 func Filter(search string, choices []map[string]string) []item.Item {
 	c := item.Choices(choices)
 	return c.Filter(search)
-}
-
-type Header = string
-
-func RenderHeader(text Header, w, h int) string {
-	return fmt.Sprintf("%s", text)
 }

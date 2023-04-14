@@ -19,7 +19,7 @@ type Props struct {
 
 func New() *Component {
 	return &Component{
-		Style: lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Style: lipgloss.NewStyle().Foreground(color.Green()),
 	}
 }
 
@@ -27,12 +27,12 @@ func (c Component) Render(w, h int) string {
 	return c.Style.Render(c.Props().Msg)
 }
 
-type UpdateHeaderMsg struct {
-	Header string
+type StatusMsg struct {
+	Status string
 }
 
-func UpdateHeader(h string) tea.Cmd {
+func StatusUpdate(h string) tea.Cmd {
 	return func() tea.Msg {
-		return UpdateHeaderMsg{Header: h}
+		return StatusMsg{Status: h}
 	}
 }
