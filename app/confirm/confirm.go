@@ -39,12 +39,13 @@ func New() *Component {
 	return &Component{}
 }
 
-func Action(q string, a Confirm) tea.Cmd {
+func Action(q string, a tea.Cmd) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{
 			Props: Props{
 				Question: q,
-				Confirm:  a,
+				//Confirm:  a,
+				Action: a,
 			},
 		}
 	}

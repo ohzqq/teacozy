@@ -176,7 +176,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.Choices.Set(idx, c.inputValue)
 	case edit.StopEditingMsg:
 		if c.inputValue != c.CurrentItem().Value() {
-			cmd := confirm.Action("save edit?", edit.SaveEdit)
+			cmd := confirm.Action("save edit?", edit.Save)
 			cmds = append(cmds, cmd)
 		}
 		cmds = append(cmds, message.ChangeRoute("list"))
