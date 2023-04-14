@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/app/confirm"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -31,6 +32,8 @@ type App struct {
 
 	inputValue string
 	search     string
+
+	confirm confirm.Props
 
 	list        *list.Component
 	Choices     []map[string]string
@@ -83,6 +86,14 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.list.SetKeyMap(keys.DefaultListKeyMap())
 			return component, component.Init(input.Props{Filter: c.Input})
 		},
+		"confirm": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := confirm.New()
+			p := c.confirm
+			if p.Action == nil {
+				p.Action = component.Confirmed
+			}
+			return component, component.Init(p)
+		},
 	})
 }
 
@@ -107,18 +118,15 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
-	case message.ConfirmMsg:
-		//c.ConfirmAction = ""
-	case message.GetConfirmationMsg:
-		//c.ConfirmAction = msg.Question
+	case confirm.ConfirmationMsg:
+		c.confirm = msg.Props
+		cmds = append(cmds, message.ChangeRoute("confirm"))
 
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
 		case "list":
 			c.list.SetCursor(0)
-		case "filter":
-			//c.Footer("")
 		case "prev":
 			route = c.PrevRoute
 		case "help":
@@ -142,15 +150,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			return status.StatusUpdate("toot")
+			cmds = append(cmds, confirm.Confirm("poot?", nil))
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
 			return reactea.Destroy
-		case "y":
-			cmds = append(cmds, message.Confirm(true))
-		case "n":
-			cmds = append(cmds, message.Confirm(false))
 		}
 	}
 	switch reactea.CurrentRoute() {
@@ -230,6 +234,8 @@ func (c App) renderFooter(w, h int) string {
 		footer = c.Style.Header.Render(c.footer)
 	}
 	switch reactea.CurrentRoute() {
+	case "confirm":
+		fallthrough
 	case "status":
 		footer = c.mainRouter.Render(w, h)
 	}
