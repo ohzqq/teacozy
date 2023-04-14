@@ -32,6 +32,7 @@ type App struct {
 
 	inputValue string
 	search     string
+	edit       string
 
 	confirm confirm.Props
 

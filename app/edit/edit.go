@@ -1,7 +1,7 @@
 package edit
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/message"
@@ -12,7 +12,7 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	input textinput.Model
+	input textarea.Model
 
 	Placeholder string
 	Prompt      string
@@ -20,14 +20,15 @@ type Component struct {
 }
 
 type Props struct {
-	Filter func(string)
+	Value string
+	Edit  func(string)
 }
 
 func New() *Component {
 	tm := &Component{
 		Style:  style.ListDefaults(),
 		Prompt: style.PromptPrefix,
-		input:  textinput.New(),
+		input:  textarea.New(),
 	}
 	return tm
 }
@@ -37,6 +38,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.input.Prompt = c.Prompt
 	c.input.PromptStyle = c.Style.Prompt
 	c.input.Placeholder = c.Placeholder
+	m.input.SetValue(props.Value)
 	return c.input.Focus()
 }
 
@@ -52,7 +54,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	var cmd tea.Cmd
 	c.input, cmd = c.input.Update(msg)
-	c.Props().Filter(c.input.Value())
+	c.Props().Edit(c.input.Value())
 	return cmd
 }
 
