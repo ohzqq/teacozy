@@ -57,9 +57,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case SaveEditMsg:
-		//if v := c.input.Value(); v != c.Props().Value {
-		//  c.Props().Save(v)
-		//}
 		c.Props().Save(c.input.Value())
 		c.input.Reset()
 		cmds = append(cmds, StopEditing)

@@ -57,7 +57,7 @@ type App struct {
 
 type Option func(*App)
 
-func New(opts ...Option) *App {
+func New(opts ...Option) (*App, error) {
 	a := &App{
 		mainRouter:            router.New(),
 		width:                 util.TermWidth(),
@@ -72,7 +72,15 @@ func New(opts ...Option) *App {
 		opt(a)
 	}
 
-	return a
+	if a.Choices.Len() == 0 {
+		return a, fmt.Errorf("at least one choice is needed")
+	}
+
+	if a.Limit == -1 {
+		a.Limit = a.Choices.Len()
+	}
+
+	return a, nil
 }
 
 func (c *App) listProps() list.Props {
@@ -108,7 +116,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := edit.New()
-			c.list.SetKeyMap(keys.DefaultListKeyMap())
+			c.list.SetKeyMap(keys.Global)
 			c.inputValue = c.CurrentItem().Value()
 			p := edit.Props{
 				Save:  c.Input,
@@ -333,6 +341,18 @@ func WithSlice[E any](c []E) Option {
 func WithMap(c []map[string]string) Option {
 	return func(a *App) {
 		a.Choices = item.ChoiceMap(c)
+	}
+}
+
+func NoLimit() Option {
+	return func(a *App) {
+		a.Limit = -1
+	}
+}
+
+func WithLimit(l int) Option {
+	return func(a *App) {
+		a.Limit = l
 	}
 }
 
