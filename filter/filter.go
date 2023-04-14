@@ -22,6 +22,8 @@ type Filter struct {
 	Matches     []props.Item
 	Input       textinput.Model
 	Viewport    *viewport.Model
+	end         int
+	start       int
 	quitting    bool
 	Placeholder string
 	Prompt      string
@@ -71,7 +73,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case message.UpMsg:
+	case message.LineUpMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor-1)
 			m.SetCurrent(m.Cursor)
@@ -81,7 +83,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 
-	case message.DownMsg:
+	case message.LineDownMsg:
 		if len(m.Matches) > 0 {
 			m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor+1)
 			m.SetCurrent(m.Cursor)
@@ -105,7 +107,7 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 			if m.Props().Limit == 1 {
 				return m.ReturnSelections()
 			}
-			cmds = append(cmds, message.Down())
+			cmds = append(cmds, message.LineDown())
 		}
 
 	case StopFilteringMsg:
@@ -129,15 +131,17 @@ func (m *Filter) Update(msg tea.Msg) tea.Cmd {
 		}
 		m.Input, cmd = m.Input.Update(msg)
 		if v := m.Input.Value(); v != "" {
+			//m.Matches = m.Props().Visible(m.Input.Value())
 			m.Matches = m.Props().Visible(v)
 		} else {
-			m.Matches = []props.Item{}
+			//m.Matches = []props.Item{}
+			m.Matches = m.Props().Visible()
 		}
 		cmds = append(cmds, message.Top())
 		cmds = append(cmds, cmd)
 	}
 
-	m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
+	//m.Cursor = util.Clamp(0, len(m.Matches)-1, m.Cursor)
 	return tea.Batch(cmds...)
 }
 
@@ -165,6 +169,8 @@ func (tm *Filter) Init(props Props) tea.Cmd {
 
 	v := viewport.New(0, 0)
 	tm.Viewport = &v
+	tm.Matches = props.Visible()
+
 	tm.Input.Focus()
 
 	return nil
@@ -188,4 +194,24 @@ func StopFiltering() tea.Cmd {
 	return func() tea.Msg {
 		return StopFilteringMsg{}
 	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+func clamp(v, low, high int) int {
+	return min(max(v, low), high)
 }

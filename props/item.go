@@ -66,6 +66,10 @@ func (i Item) Map() map[string]string {
 	return map[string]string{i.Label: i.Str}
 }
 
+func (i Item) String() string {
+	return i.Str
+}
+
 func (i Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
 		i.Str,
@@ -73,9 +77,8 @@ func (i Item) Render(w, h int) string {
 		i.Style.Match,
 		i.Style.Text,
 	)
-	s := lipgloss.NewStyle().Padding(i.Depth).Width(w).Render(text)
+	s := lipgloss.NewStyle().Render(text)
 	return s
-	// return text
 }
 
 func (i Item) LineHeight() int {

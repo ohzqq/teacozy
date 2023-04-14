@@ -8,6 +8,12 @@ type ReturnSelectionsMsg struct {
 	Quitting bool
 }
 
+func ReturnSelections() tea.Cmd {
+	return func() tea.Msg {
+		return ReturnSelectionsMsg{}
+	}
+}
+
 func ReturnSels(limit, numSel int) tea.Cmd {
 	msg := ReturnSelectionsMsg{}
 	if limit == 1 {
@@ -68,6 +74,14 @@ func ToggleItem() tea.Cmd {
 	}
 }
 
+type ToggleAllItemsMsg struct{}
+
+func ToggleAllItems() tea.Cmd {
+	return func() tea.Msg {
+		return ToggleAllItemsMsg{}
+	}
+}
+
 type ShowHelpMsg struct{}
 
 func ShowHelp() tea.Cmd {
@@ -84,47 +98,46 @@ func HideHelp() tea.Cmd {
 	}
 }
 
-type UpMsg struct{}
+type LineUpMsg struct{}
+type HalfPageUpMsg struct{}
+type PageUpMsg struct{}
 
-type DownMsg struct{}
+func LineUp() tea.Msg     { return LineUpMsg{} }
+func HalfPageUp() tea.Msg { return HalfPageUpMsg{} }
+func PageUp() tea.Msg     { return PageUpMsg{} }
+
+type LineDownMsg struct{}
+type HalfPageDownMsg struct{}
+type PageDownMsg struct{}
+
+func LineDown() tea.Msg     { return LineDownMsg{} }
+func HalfPageDown() tea.Msg { return HalfPageDownMsg{} }
+func PageDown() tea.Msg     { return PageDownMsg{} }
 
 type NextMsg struct{}
 type PrevMsg struct{}
+
+func NextPage() tea.Msg { return NextMsg{} }
+func PrevPage() tea.Msg { return PrevMsg{} }
+
 type TopMsg struct{}
 type BottomMsg struct{}
 
-func Up() tea.Cmd {
+func Top() tea.Msg    { return TopMsg{} }
+func Bottom() tea.Msg { return BottomMsg{} }
+
+type StartFilteringMsg struct{}
+
+func StartFiltering() tea.Cmd {
 	return func() tea.Msg {
-		return UpMsg{}
+		return StartFilteringMsg{}
 	}
 }
 
-func Down() tea.Cmd {
-	return func() tea.Msg {
-		return DownMsg{}
-	}
-}
+type StopFilteringMsg struct{}
 
-func Next() tea.Cmd {
+func StopFiltering() tea.Cmd {
 	return func() tea.Msg {
-		return NextMsg{}
-	}
-}
-
-func Prev() tea.Cmd {
-	return func() tea.Msg {
-		return PrevMsg{}
-	}
-}
-
-func Top() tea.Cmd {
-	return func() tea.Msg {
-		return TopMsg{}
-	}
-}
-
-func Bottom() tea.Cmd {
-	return func() tea.Msg {
-		return BottomMsg{}
+		return StopFilteringMsg{}
 	}
 }

@@ -14,6 +14,7 @@ import (
 
 type Items struct {
 	Items       []Item
+	Matches     []Item
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
@@ -21,7 +22,9 @@ type Items struct {
 	Width       int
 	Snapshot    string
 	Title       string
+	Quitting    bool
 	Cur         int
+	Cursor      int
 	footer      string
 	Lines       int
 	TotalLines  func(int)
@@ -37,6 +40,7 @@ type Opt func(*Items)
 func New(opts ...Opt) (*Items, error) {
 	items := Items{
 		Selected: make(map[int]struct{}),
+		Cursor:   0,
 	}
 	items.Opts(opts...)
 
@@ -57,10 +61,6 @@ func New(opts ...Opt) (*Items, error) {
 	return &items, nil
 }
 
-func (i *Items) ChoiceSlice(c []string) {
-	i.Items = ChoiceMapToMatch(MapChoices(c))
-}
-
 func (i *Items) Opts(opts ...Opt) {
 	for _, opt := range opts {
 		opt(i)
@@ -70,6 +70,10 @@ func (i *Items) Opts(opts ...Opt) {
 func (i *Items) NoLimit() *Items {
 	i.Limit = len(i.Items)
 	return i
+}
+
+func (i Items) AllItems() []Item {
+	return i.Items
 }
 
 func (i Items) Update() *Items {
@@ -121,18 +125,36 @@ func (m Items) Map() []map[string]string {
 	return items
 }
 
+func (m Items) Slice() []string {
+	var items []string
+	for _, item := range m.Items {
+		items = append(items, item.String())
+	}
+	return items
+}
+
 func (i *Items) SetCurrent(idx int) {
-	i.Cur = idx
+	i.Cursor = idx
+}
+
+func (i *Items) SetCursor(idx int) {
+	i.Cursor = idx
 }
 
 func (i Items) CurrentItem() *Item {
-	return &i.Items[i.Cur]
+	return &i.Items[i.Cursor]
+}
+
+func (i Items) GetItem(idx int) Item {
+	return i.Items[idx]
+}
+
+func (i *Items) Filter(search string) []Item {
+	i.Matches = ExactMatches(search, i.Items)
+	return i.Matches
 }
 
 func (cp Items) Visible(matches ...string) []Item {
-	if len(matches) != 0 {
-		return ExactMatches(matches[0], cp.Items)
-	}
 	return cp.Items
 }
 
@@ -149,47 +171,6 @@ func (m *Items) ToggleSelection(items ...int) {
 			m.NumSelected++
 		}
 	}
-}
-
-func (m *Items) ChoiceMap(choices []map[string]string) {
-	m.Items = ChoiceMapToMatch(choices)
-}
-
-func (m *Items) RenderItems(items []Item) string {
-	var s strings.Builder
-	for i, match := range items {
-		pre := "x"
-
-		if match.Label != "" {
-			pre = match.Label
-		}
-
-		switch {
-		case i == m.CurrentItem().Index:
-			pre = match.Style.Cursor.Render(pre)
-		default:
-			if _, ok := m.Selected[match.Index]; ok {
-				pre = match.Style.Selected.Render(pre)
-			} else if match.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
-			} else {
-				pre = match.Style.Label.Render(pre)
-			}
-		}
-
-		s.WriteString("[")
-		s.WriteString(pre)
-		s.WriteString("]")
-
-		s.WriteString(match.Render(m.Width, m.Height))
-		s.WriteRune('\n')
-	}
-	view := s.String()
-
-	m.Lines = lipgloss.Height(view)
-	m.TotalLines(m.Lines)
-
-	return view
 }
 
 func (m Items) Exec() error {
@@ -223,6 +204,14 @@ func (m Items) Exec() error {
 		}
 	}
 	return nil
+}
+
+func (i *Items) ChoiceSlice(c []string) {
+	i.Items = ChoiceMapToMatch(MapChoices(c))
+}
+
+func (m *Items) ChoiceMap(choices []map[string]string) {
+	m.Items = ChoiceMapToMatch(choices)
 }
 
 func ChoiceMapToMatch(options []map[string]string) []Item {
@@ -263,6 +252,72 @@ func ExactMatches(search string, choices []Item) []Item {
 	return matches
 }
 
+func MapChoices[E any](c []E) []map[string]string {
+	choices := make([]map[string]string, len(c))
+	for i, val := range c {
+		choices[i] = map[string]string{"": fmt.Sprint(val)}
+	}
+	return choices
+}
+
+func ChoiceSlice[E any](choices []E) Opt {
+	return func(i *Items) {
+		i.ChoiceMap(MapChoices(choices))
+	}
+}
+
+func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
+	return func(i *Items) {
+		i.Items = make([]Item, len(choices))
+		for idx, option := range choices {
+			for label, val := range option {
+				text := lipgloss.NewStyle().Width(i.Width).Render(fmt.Sprint(val))
+				item := NewItem(text, idx)
+				item.Label = fmt.Sprint(label)
+				i.Items[idx] = item
+			}
+		}
+		i.Matches = i.Items
+	}
+}
+
+func (m *Items) RenderItems(items []Item) string {
+	var s strings.Builder
+	for i, match := range items {
+		pre := "x"
+
+		if match.Label != "" {
+			pre = match.Label
+		}
+
+		switch {
+		case i == m.CurrentItem().Index:
+			pre = match.Style.Cursor.Render(pre)
+		default:
+			if _, ok := m.Selected[match.Index]; ok {
+				pre = match.Style.Selected.Render(pre)
+			} else if match.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = match.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		s.WriteString(match.Render(m.Width, m.Height))
+		s.WriteRune('\n')
+	}
+	view := s.String()
+
+	//m.Lines = lipgloss.Height(view)
+	//m.TotalLines(m.Lines)
+
+	return view
+}
+
 func Limit(l int) Opt {
 	return func(i *Items) {
 		i.Limit = l
@@ -298,33 +353,5 @@ func Exec(cmd string, args ...string) Opt {
 func Header(t string) Opt {
 	return func(i *Items) {
 		i.Title = t
-	}
-}
-
-func MapChoices[E any](c []E) []map[string]string {
-	choices := make([]map[string]string, len(c))
-	for i, val := range c {
-		choices[i] = map[string]string{"": fmt.Sprint(val)}
-	}
-	return choices
-}
-
-func ChoiceSlice[E any](choices []E) Opt {
-	return func(i *Items) {
-		i.ChoiceMap(MapChoices(choices))
-	}
-}
-
-func ChoiceMap[M ~map[K]V, K comparable, V any](choices []M) Opt {
-	return func(i *Items) {
-		i.Items = make([]Item, len(choices))
-		for idx, option := range choices {
-			for label, val := range option {
-				text := lipgloss.NewStyle().Width(i.Width).Render(fmt.Sprint(val))
-				item := NewItem(text, idx)
-				item.Label = fmt.Sprint(label)
-				i.Items[idx] = item
-			}
-		}
 	}
 }

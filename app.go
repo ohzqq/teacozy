@@ -8,13 +8,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/choose"
+	
 	"github.com/ohzqq/teacozy/field"
-	"github.com/ohzqq/teacozy/filter"
+	
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/table"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/slices"
@@ -191,13 +192,13 @@ func (c App) HasRoute(r string) bool {
 
 func WithChoice() Route {
 	return func() RouteInitializer {
-		return choose.New()
+		return table.NewChoice()
 	}
 }
 
 func WithFilter() Route {
 	return func() RouteInitializer {
-		return filter.New()
+		return table.NewTable()
 	}
 }
 
@@ -212,6 +213,12 @@ func WithForm() Route {
 		return field.New()
 	}
 }
+
+//func WithTable() Route {
+//  return func() RouteInitializer {
+//    return table.New()
+//  }
+//}
 
 func Choose(opts ...props.Opt) *App {
 	p, err := props.New(opts...)

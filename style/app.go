@@ -14,7 +14,7 @@ type App struct {
 func DefaultAppStyle() App {
 	return App{
 		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
-		Footer:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
 		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 	}
 }
