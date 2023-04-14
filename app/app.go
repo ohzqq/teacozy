@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -22,25 +21,22 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	Style       style.App
-	width       int
-	height      int
+	Style     style.App
+	width     int
+	height    int
+	search    string
+	footer    string
+	header    string
+	status    string
+	PrevRoute string
+
+	inputValue string
+
+	list        *list.Component
 	Choices     []map[string]string
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
-	search      string
-	inText      string
-	list        *list.Component
-	input       *input.Component
-	footer      string
-	header      string
-	status      string
-
-	PrevRoute string
-	routes    map[string]reactea.SomeComponent
-
-	Viewport viewport.Model
 }
 
 func New(choices []string) *App {
@@ -52,10 +48,7 @@ func New(choices []string) *App {
 		Style:      style.DefaultAppStyle(),
 		Selected:   make(map[int]struct{}),
 		Limit:      1,
-		routes:     make(map[string]reactea.SomeComponent),
-		//header:     "poot",
 	}
-
 	return a
 }
 
@@ -68,25 +61,11 @@ func (c *App) listProps() list.Props {
 	return p
 }
 
-func (c App) Height() int {
-	return c.height
-}
-
-func (c App) Width() int {
-	return c.width
-}
-
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = list.New()
 	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
-	//c.input = input.New()
-	//c.input.Init(input.Props{
-	//Filter: c.Input,
-	//})
 
-	//c.routes["list"] = c.list
-	//c.routes["filter"] = c.input
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := new(struct {
@@ -133,7 +112,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.Input("")
 		c.list.SetKeyMap(keys.VimListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("list"))
-
 	case message.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
@@ -141,6 +119,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		//c.ConfirmAction = ""
 	case message.GetConfirmationMsg:
 		//c.ConfirmAction = msg.Question
+
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
@@ -157,14 +136,17 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			//c.Routes["help"] = view.New().Initializer(p)
 		}
 		c.ChangeRoute(route)
+
 	case message.ReturnSelectionsMsg:
 		switch reactea.CurrentRoute() {
 		case "filter":
 		default:
 			return reactea.Destroy
 		}
+
 	case message.QuitMsg:
 		return reactea.Destroy
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
@@ -181,7 +163,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 	switch reactea.CurrentRoute() {
 	case "filter":
-		c.search = c.inText
+		c.search = c.inputValue
 	case "help":
 	}
 
@@ -193,13 +175,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 func (m *App) AfterUpdate() tea.Cmd {
 	m.list.UpdateProps(m.listProps())
-	return nil
-}
-
-func (m App) CurrentRoute() reactea.SomeComponent {
-	if r, ok := m.routes[reactea.CurrentRoute()]; ok {
-		return r
-	}
 	return nil
 }
 
@@ -216,7 +191,7 @@ func (m *App) ToggleItems(items ...int) {
 }
 
 func (c *App) Input(search string) {
-	c.inText = search
+	c.inputValue = search
 }
 
 func (c *App) Render(width, height int) string {
@@ -276,7 +251,6 @@ func (c *App) ChangeRoute(r string) {
 		c.PrevRoute = p
 	}
 	reactea.SetCurrentRoute(r)
-	//c.routes[c.PrevRoute].Destroy()
 }
 
 func (m App) Chosen() []map[string]string {
@@ -292,4 +266,12 @@ func (m App) Chosen() []map[string]string {
 func Filter(search string, choices []map[string]string) []item.Item {
 	c := item.Choices(choices)
 	return c.Filter(search)
+}
+
+func (c App) Height() int {
+	return c.height
+}
+
+func (c App) Width() int {
+	return c.width
 }
