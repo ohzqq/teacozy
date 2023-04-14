@@ -213,6 +213,11 @@ func No() *Binding {
 		WithHelp("reject action")
 }
 
+func Esc() *Binding {
+	return NewBinding("esc").
+		WithHelp("exit screen")
+}
+
 type LineUpMsg struct{}
 type HalfPageUpMsg struct{}
 type PageUpMsg struct{}
