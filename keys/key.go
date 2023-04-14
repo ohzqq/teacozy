@@ -115,6 +115,11 @@ func VimListKeyMap() KeyMap {
 	return km
 }
 
+func Save() *Binding {
+	return NewBinding("ctrl+s").
+		WithHelp("save edit")
+}
+
 func HalfPgUp() *Binding {
 	return NewBinding("ctrl+u").
 		WithHelp("½ page up").
@@ -196,6 +201,21 @@ func ShowHelp() *Binding {
 	return NewBinding("f1").
 		WithHelp("help").
 		Cmd(message.ShowHelp())
+}
+
+func Yes() *Binding {
+	return NewBinding("y").
+		WithHelp("confirm action")
+}
+
+func No() *Binding {
+	return NewBinding("n").
+		WithHelp("reject action")
+}
+
+func Esc() *Binding {
+	return NewBinding("esc").
+		WithHelp("exit screen")
 }
 
 type LineUpMsg struct{}

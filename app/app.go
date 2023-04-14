@@ -1,11 +1,15 @@
 package app
 
 import (
+	"fmt"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/app/confirm"
+	"github.com/ohzqq/teacozy/app/edit"
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
@@ -14,6 +18,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -32,8 +37,16 @@ type App struct {
 
 	inputValue string
 	search     string
+	edit       string
 
 	confirm confirm.Props
+
+	// How long status messages should stay visible. By default this is
+	// 1 second.
+	StatusMessageLifetime time.Duration
+
+	statusMessage      string
+	statusMessageTimer *time.Timer
 
 	list        *list.Component
 	Choices     []map[string]string
@@ -44,13 +57,14 @@ type App struct {
 
 func New(choices []string) *App {
 	a := &App{
-		mainRouter: router.New(),
-		width:      util.TermWidth(),
-		height:     10,
-		Choices:    item.MapChoices(choices),
-		Style:      style.DefaultAppStyle(),
-		Selected:   make(map[int]struct{}),
-		Limit:      1,
+		mainRouter:            router.New(),
+		width:                 util.TermWidth(),
+		height:                10,
+		Choices:               item.MapChoices(choices),
+		Style:                 style.DefaultAppStyle(),
+		Selected:              make(map[int]struct{}),
+		Limit:                 1,
+		StatusMessageLifetime: time.Second,
 	}
 	return a
 }
@@ -86,10 +100,21 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.list.SetKeyMap(keys.DefaultListKeyMap())
 			return component, component.Init(input.Props{Filter: c.Input})
 		},
+		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := edit.New()
+			c.list.SetKeyMap(keys.DefaultListKeyMap())
+			cur := c.CurrentItem()
+			p := edit.Props{
+				Save:  c.Input,
+				Value: maps.Values(cur)[0],
+			}
+			return component, component.Init(p)
+		},
 		"confirm": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := confirm.New()
 			p := c.confirm
 			if p.Action == nil {
+				fmt.Println("nil")
 				p.Action = component.Confirmed
 			}
 			return component, component.Init(p)
@@ -110,22 +135,50 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case status.StatusMsg:
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, message.ChangeRoute("status"))
+	case statusMessageTimeoutMsg:
+		c.SetStatus("")
+		c.hideStatusMessage()
+		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StopFilteringMsg:
 		c.Input("")
-		c.list.SetKeyMap(keys.VimListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("list"))
 	case message.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
+	case confirm.ConfirmedMsg:
+		cmds = append(cmds, message.ChangeRoute("list"))
+		cmds = append(cmds, msg.Action)
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
 		cmds = append(cmds, message.ChangeRoute("confirm"))
+
+	case edit.SaveEditMsg:
+		idx := c.list.CurrentItem()
+		cur := c.CurrentItem()
+		for k, _ := range cur {
+			cur[k] = c.inputValue
+			break
+		}
+		c.Choices[idx] = cur
+		//cmds = append(cmds, status.StatusUpdate("saved"))
+	case edit.StopEditingMsg:
+		val := c.inputValue
+		cur := maps.Values(c.CurrentItem())[0]
+		//idx := c.list.CurrentItem()
+		if val != cur {
+			cmd := confirm.Action("save edit?", edit.Save)
+			cmds = append(cmds, cmd)
+		}
+		cmds = append(cmds, message.ChangeRoute("list"))
+	case edit.StartEditingMsg:
+		cmds = append(cmds, message.ChangeRoute("edit"))
 
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
 		case "list":
+			c.list.SetKeyMap(keys.VimListKeyMap())
 			c.list.SetCursor(0)
 		case "prev":
 			route = c.PrevRoute
@@ -150,7 +203,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+o":
-			cmds = append(cmds, confirm.Confirm("poot?", status.StatusUpdate("mew")))
+			cmds = append(cmds, message.ChangeRoute("edit"))
+			//cur := c.Choices[c.list.CurrentItem()]
+			//cmds = append(cmds, status.StatusUpdate(cur))
+			//cmds = append(cmds, c.NewStatusMessage(cur))
+			//cmds = append(cmds, edit.StartEditing)
 		case "/":
 			cmds = append(cmds, message.StartFiltering())
 		case "ctrl+c":
@@ -167,6 +224,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, c.mainRouter.Update(msg))
 
 	return tea.Batch(cmds...)
+}
+
+func (m App) CurrentItem() map[string]string {
+	return m.Choices[m.list.CurrentItem()]
 }
 
 func (m *App) AfterUpdate() tea.Cmd {
@@ -186,8 +247,8 @@ func (m *App) ToggleItems(items ...int) {
 	}
 }
 
-func (c *App) Input(search string) {
-	c.inputValue = search
+func (c *App) Input(value string) {
+	c.inputValue = value
 }
 
 func (c *App) Render(width, height int) string {
@@ -222,6 +283,8 @@ func (c App) renderHeader(w, h int) string {
 		header = c.Style.Header.Render(c.header)
 	}
 	switch reactea.CurrentRoute() {
+	case "status":
+		fallthrough
 	case "filter":
 		header = c.mainRouter.Render(w, h)
 	}
@@ -234,9 +297,9 @@ func (c App) renderFooter(w, h int) string {
 		footer = c.Style.Header.Render(c.footer)
 	}
 	switch reactea.CurrentRoute() {
-	case "confirm":
+	case "edit":
 		fallthrough
-	case "status":
+	case "confirm":
 		footer = c.mainRouter.Render(w, h)
 	}
 	return footer
@@ -284,4 +347,31 @@ func (c *App) SetFooter(h string) {
 
 func (c *App) SetStatus(h string) {
 	c.status = h
+}
+
+type statusMessageTimeoutMsg struct{}
+
+// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
+// NewStatusMessage sets a new status message, which will show for a limited
+// amount of time. Note that this also returns a command.
+func (m *App) NewStatusMessage(s string) tea.Cmd {
+	m.status = s
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
+	}
+
+	m.statusMessageTimer = time.NewTimer(m.StatusMessageLifetime)
+
+	// Wait for timeout
+	return func() tea.Msg {
+		<-m.statusMessageTimer.C
+		return statusMessageTimeoutMsg{}
+	}
+}
+
+func (m *App) hideStatusMessage() {
+	m.status = ""
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
+	}
 }
