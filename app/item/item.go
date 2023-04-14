@@ -19,7 +19,8 @@ const (
 	UnselectedPrefix = " "
 )
 
-type Choices []map[string]string
+type Choices []Choice
+type Choice map[string]string
 
 func (c Choices) String(i int) string {
 	choices := c[i]
@@ -150,7 +151,7 @@ func DefaultItemStyle() style.ListItem {
 	return s
 }
 
-func ChoiceMapToMatch(options []map[string]string) []Item {
+func ChoiceMapToMatch(options Choices) []Item {
 	matches := make([]Item, len(options))
 	for i, option := range options {
 		for label, val := range option {
@@ -170,10 +171,18 @@ func ChoicesToMatch(options []string) []Item {
 	return matches
 }
 
-func MapChoices[E any](c []E) []map[string]string {
-	choices := make([]map[string]string, len(c))
+func ChoiceMap(c []map[string]string) Choices {
+	choices := make(Choices, len(c))
+	for i, ch := range c {
+		choices[i] = ch
+	}
+	return choices
+}
+
+func ChoiceSliceToMap[E any](c []E) Choices {
+	choices := make([]Choice, len(c))
 	for i, val := range c {
-		choices[i] = map[string]string{"": fmt.Sprint(val)}
+		choices[i] = Choice{"": fmt.Sprint(val)}
 	}
 	return choices
 }

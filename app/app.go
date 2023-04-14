@@ -49,23 +49,41 @@ type App struct {
 	statusMessageTimer *time.Timer
 
 	list        *list.Component
-	Choices     []map[string]string
+	Choices     item.Choices
+	Items       item.Choices
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
 }
 
-func New(choices []string) *App {
+type Items []map[string]string
+
+type Option func(*App)
+
+func (c Items) String(i int) string {
+	choices := c[i]
+	return maps.Values(choices)[0]
+}
+
+func (c Items) Len() int {
+	return len(c)
+}
+
+func New(opts ...Option) *App {
 	a := &App{
 		mainRouter:            router.New(),
 		width:                 util.TermWidth(),
 		height:                10,
-		Choices:               item.MapChoices(choices),
 		Style:                 style.DefaultAppStyle(),
 		Selected:              make(map[int]struct{}),
 		Limit:                 1,
 		StatusMessageLifetime: time.Second,
 	}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
 	return a
 }
 
@@ -324,9 +342,20 @@ func (m App) Chosen() []map[string]string {
 	return chosen
 }
 
-func Filter(search string, choices []map[string]string) []item.Item {
-	c := item.Choices(choices)
-	return c.Filter(search)
+func WithSlice[E any](c []E) Option {
+	return func(a *App) {
+		a.Choices = item.ChoiceSliceToMap(c)
+	}
+}
+
+func WithMap(c []map[string]string) Option {
+	return func(a *App) {
+		a.Choices = item.ChoiceMap(c)
+	}
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
 }
 
 func (c App) Height() int {
