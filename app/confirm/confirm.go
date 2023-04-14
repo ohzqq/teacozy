@@ -49,7 +49,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 			c.confirmed = true
 			return c.Props().Action
 		case "n":
-			return NotConfirmed
+			return c.Confirmed
 		}
 	}
 	return nil
@@ -61,11 +61,5 @@ func (c *Component) Render(w, h int) string {
 }
 
 func (c *Component) Confirmed() tea.Msg {
-	return status.StatusMsg{Status: fmt.Sprintf("%v", c.confirmed)}
-}
-
-type NotConfirmedMsg struct{}
-
-func NotConfirmed() tea.Msg {
-	return NotConfirmedMsg{}
+	return status.StatusMsg{Status: fmt.Sprintf("%s %v", c.Props().Question, c.confirmed)}
 }

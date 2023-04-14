@@ -121,9 +121,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
 		cmds = append(cmds, message.ChangeRoute("confirm"))
-	case confirm.NotConfirmedMsg:
-		c.SetFooter("")
-		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.ChangeRouteMsg:
 		route := msg.Name
