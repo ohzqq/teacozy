@@ -154,7 +154,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("confirm"))
 
 	case edit.SaveEditMsg:
-		cmds = append(cmds, status.StatusUpdate("saved"))
+		idx := c.list.CurrentItem()
+		cur := c.CurrentItem()
+		for k, _ := range cur {
+			cur[k] = c.inputValue
+			break
+		}
+		c.Choices[idx] = cur
+		//cmds = append(cmds, status.StatusUpdate("saved"))
 	case edit.StopEditingMsg:
 		val := c.inputValue
 		cur := maps.Values(c.CurrentItem())[0]
