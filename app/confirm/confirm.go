@@ -3,11 +3,13 @@ package confirm
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/app/status"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
@@ -46,17 +48,16 @@ func Action(q string, a tea.Cmd) tea.Cmd {
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "y":
-			c.confirmed = true
-			return Confirmed(c.Props().Action)
-		case "n":
-			return Confirmed(nil)
+		for _, k := range c.KeyMap() {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
+			}
 		}
 	}
-	return nil
+	return tea.Batch(cmds...)
 }
 
 func (c *Component) Render(w, h int) string {
@@ -74,4 +75,13 @@ func Confirmed(a tea.Cmd) tea.Cmd {
 			Action: a,
 		}
 	}
+}
+
+func (c *Component) KeyMap() keys.KeyMap {
+	km := keys.KeyMap{
+		keys.Quit(),
+		keys.Yes().Cmd(Confirmed(c.Props().Action)),
+		keys.No().Cmd(Confirmed(nil)),
+	}
+	return km
 }
