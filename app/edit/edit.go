@@ -45,7 +45,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.input.Prompt = c.Prompt
 	c.input.Placeholder = c.Placeholder
 	c.input.SetValue(props.Value)
-	//c.input.ShowLineNumbers = false
+	c.input.ShowLineNumbers = false
 	return c.input.Focus()
 }
 
@@ -58,6 +58,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case SaveEditMsg:
 		c.Props().Save(c.input.Value())
+		c.input.Reset()
 		cmds = append(cmds, StopEditing)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {

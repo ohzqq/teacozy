@@ -18,7 +18,6 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -49,24 +48,39 @@ type App struct {
 	statusMessageTimer *time.Timer
 
 	list        *list.Component
-	Choices     []map[string]string
+	Choices     item.Choices
+	Items       item.Choices
 	Selected    map[int]struct{}
 	NumSelected int
 	Limit       int
 }
 
-func New(choices []string) *App {
+type Option func(*App)
+
+func New(opts ...Option) (*App, error) {
 	a := &App{
 		mainRouter:            router.New(),
 		width:                 util.TermWidth(),
 		height:                10,
-		Choices:               item.MapChoices(choices),
 		Style:                 style.DefaultAppStyle(),
 		Selected:              make(map[int]struct{}),
 		Limit:                 1,
 		StatusMessageLifetime: time.Second,
 	}
-	return a
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
+	if a.Choices.Len() == 0 {
+		return a, fmt.Errorf("at least one choice is needed")
+	}
+
+	if a.Limit == -1 {
+		a.Limit = a.Choices.Len()
+	}
+
+	return a, nil
 }
 
 func (c *App) listProps() list.Props {
@@ -102,11 +116,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := edit.New()
-			c.list.SetKeyMap(keys.DefaultListKeyMap())
-			cur := c.CurrentItem()
+			c.list.SetKeyMap(keys.Global)
+			c.inputValue = c.CurrentItem().Value()
 			p := edit.Props{
 				Save:  c.Input,
-				Value: maps.Values(cur)[0],
+				Value: c.inputValue,
 			}
 			return component, component.Init(p)
 		},
@@ -155,18 +169,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	case edit.SaveEditMsg:
 		idx := c.list.CurrentItem()
-		cur := c.CurrentItem()
-		for k, _ := range cur {
-			cur[k] = c.inputValue
-			break
-		}
-		c.Choices[idx] = cur
-		//cmds = append(cmds, status.StatusUpdate("saved"))
+		c.Choices.Set(idx, c.inputValue)
 	case edit.StopEditingMsg:
-		val := c.inputValue
-		cur := maps.Values(c.CurrentItem())[0]
-		//idx := c.list.CurrentItem()
-		if val != cur {
+		if c.inputValue != c.CurrentItem().Value() {
 			cmd := confirm.Action("save edit?", edit.Save)
 			cmds = append(cmds, cmd)
 		}
@@ -179,7 +184,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch route {
 		case "list":
 			c.list.SetKeyMap(keys.VimListKeyMap())
-			c.list.SetCursor(0)
 		case "prev":
 			route = c.PrevRoute
 		case "help":
@@ -226,8 +230,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m App) CurrentItem() map[string]string {
+func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]
+}
+
+func (m App) CurrentItemValue() string {
+	return m.Choices.String(m.list.CurrentItem())
 }
 
 func (m *App) AfterUpdate() tea.Cmd {
@@ -324,9 +332,32 @@ func (m App) Chosen() []map[string]string {
 	return chosen
 }
 
-func Filter(search string, choices []map[string]string) []item.Item {
-	c := item.Choices(choices)
-	return c.Filter(search)
+func WithSlice[E any](c []E) Option {
+	return func(a *App) {
+		a.Choices = item.ChoiceSliceToMap(c)
+	}
+}
+
+func WithMap(c []map[string]string) Option {
+	return func(a *App) {
+		a.Choices = item.ChoiceMap(c)
+	}
+}
+
+func NoLimit() Option {
+	return func(a *App) {
+		a.Limit = -1
+	}
+}
+
+func WithLimit(l int) Option {
+	return func(a *App) {
+		a.Limit = l
+	}
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
 }
 
 func (c App) Height() int {

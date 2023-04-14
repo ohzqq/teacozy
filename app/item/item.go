@@ -19,11 +19,11 @@ const (
 	UnselectedPrefix = " "
 )
 
-type Choices []map[string]string
+type Choices []Choice
+type Choice map[string]string
 
 func (c Choices) String(i int) string {
-	choices := c[i]
-	return maps.Values(choices)[0]
+	return c[i].Value()
 }
 
 func (c Choices) Len() int {
@@ -43,6 +43,26 @@ func (c Choices) Filter(s string) []Item {
 		matches = append(matches, item)
 	}
 	return matches
+}
+
+func (c Choices) Set(idx int, val string) {
+	c[idx] = c[idx].Set(val)
+}
+
+func (c Choice) Key() string {
+	return maps.Keys(c)[0]
+}
+
+func (c Choice) Value() string {
+	return maps.Values(c)[0]
+}
+
+func (c Choice) Set(v string) Choice {
+	for k, _ := range c {
+		c[k] = v
+		break
+	}
+	return c
 }
 
 type Item struct {
@@ -94,14 +114,6 @@ func (i *Item) Exec(cmd *exec.Cmd) {
 	i.exec = cmd
 }
 
-func (i Item) Map() map[string]string {
-	return map[string]string{i.Label: i.Str}
-}
-
-func (i Item) String() string {
-	return i.Str
-}
-
 func (i Item) Render(w, h int) string {
 	var s strings.Builder
 	pre := "x"
@@ -150,7 +162,7 @@ func DefaultItemStyle() style.ListItem {
 	return s
 }
 
-func ChoiceMapToMatch(options []map[string]string) []Item {
+func ChoiceMapToMatch(options Choices) []Item {
 	matches := make([]Item, len(options))
 	for i, option := range options {
 		for label, val := range option {
@@ -170,10 +182,18 @@ func ChoicesToMatch(options []string) []Item {
 	return matches
 }
 
-func MapChoices[E any](c []E) []map[string]string {
-	choices := make([]map[string]string, len(c))
+func ChoiceMap(c []map[string]string) Choices {
+	choices := make(Choices, len(c))
+	for i, ch := range c {
+		choices[i] = ch
+	}
+	return choices
+}
+
+func ChoiceSliceToMap[E any](c []E) Choices {
+	choices := make([]Choice, len(c))
 	for i, val := range c {
-		choices[i] = map[string]string{"": fmt.Sprint(val)}
+		choices[i] = Choice{"": fmt.Sprint(val)}
 	}
 	return choices
 }
