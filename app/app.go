@@ -96,9 +96,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			return component, nil
 		},
 		"status": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			//component := reactea.Componentify[string](RenderHeader)
 			component := header.New()
-			//return component, nil
 			return component, component.Init(header.Props{Msg: c.status})
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
@@ -121,8 +119,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	if reactea.CurrentRoute() == "" {
 		reactea.SetCurrentRoute("list")
 	}
+
 	reactea.AfterUpdate(c)
+
 	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case header.StatusMsg:
 		c.SetStatus(msg.Status)
@@ -134,7 +135,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("list"))
 
 	case message.StartFilteringMsg:
-		//c.list.SetKeyMap(keys.DefaultListKeyMap())
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case message.ConfirmMsg:
