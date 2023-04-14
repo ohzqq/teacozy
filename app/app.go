@@ -121,10 +121,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := edit.New()
 			c.list.SetKeyMap(keys.DefaultListKeyMap())
-			cur := c.CurrentItem()
+			c.inputValue = c.CurrentItem().Value()
 			p := edit.Props{
 				Save:  c.Input,
-				Value: cur.Value(),
+				Value: c.inputValue,
 			}
 			return component, component.Init(p)
 		},
@@ -173,17 +173,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	case edit.SaveEditMsg:
 		idx := c.list.CurrentItem()
-		cur := c.CurrentItem()
-		for k, _ := range cur {
-			cur[k] = c.inputValue
-			break
-		}
-		c.Choices[idx] = cur
-		//cmds = append(cmds, status.StatusUpdate("saved"))
+		c.Choices.Set(idx, c.inputValue)
 	case edit.StopEditingMsg:
+		idx := c.list.CurrentItem()
+		cmds = append(cmds, status.StatusUpdate(c.Choices.String(idx)))
 		val := c.inputValue
-		cur := maps.Values(c.CurrentItem())[0]
-		//idx := c.list.CurrentItem()
+		cur := c.CurrentItem().Value()
 		if val != cur {
 			cmd := confirm.Action("save edit?", edit.Save)
 			cmds = append(cmds, cmd)
@@ -197,7 +192,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		switch route {
 		case "list":
 			c.list.SetKeyMap(keys.VimListKeyMap())
-			c.list.SetCursor(0)
 		case "prev":
 			route = c.PrevRoute
 		case "help":

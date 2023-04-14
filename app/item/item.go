@@ -46,6 +46,10 @@ func (c Choices) Filter(s string) []Item {
 	return matches
 }
 
+func (c Choices) Set(idx int, val string) {
+	c[idx] = c[idx].Set(val)
+}
+
 func (c Choice) Key() string {
 	var key string
 	for k, _ := range c {
@@ -56,12 +60,15 @@ func (c Choice) Key() string {
 }
 
 func (c Choice) Value() string {
-	var val string
-	for _, v := range c {
-		val = v
+	return maps.Values(c)[0]
+}
+
+func (c Choice) Set(v string) Choice {
+	for k, _ := range c {
+		c[k] = v
 		break
 	}
-	return val
+	return c
 }
 
 type Item struct {
