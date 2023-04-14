@@ -46,6 +46,24 @@ func (c Choices) Filter(s string) []Item {
 	return matches
 }
 
+func (c Choice) Key() string {
+	var key string
+	for k, _ := range c {
+		key = k
+		break
+	}
+	return key
+}
+
+func (c Choice) Value() string {
+	var val string
+	for _, v := range c {
+		val = v
+		break
+	}
+	return val
+}
+
 type Item struct {
 	fuzzy.Match
 	*Prefix

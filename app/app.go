@@ -124,7 +124,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			cur := c.CurrentItem()
 			p := edit.Props{
 				Save:  c.Input,
-				Value: maps.Values(cur)[0],
+				Value: cur.Value(),
 			}
 			return component, component.Init(p)
 		},
@@ -244,7 +244,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m App) CurrentItem() map[string]string {
+func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]
 }
 

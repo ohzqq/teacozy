@@ -45,7 +45,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.input.Prompt = c.Prompt
 	c.input.Placeholder = c.Placeholder
 	c.input.SetValue(props.Value)
-	//c.input.ShowLineNumbers = false
+	c.input.ShowLineNumbers = false
 	return c.input.Focus()
 }
 
