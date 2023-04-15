@@ -62,8 +62,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		if c.Props().Value != c.input.Value() {
 			c.Props().Save(c.input.Value())
 			c.input.Reset()
-			//p
-			//cmds = append(cmds, ConfirmEdit)
 			cmds = append(cmds, confirm.GetConfirmation("Save edit?", SaveEdit))
 		}
 		cmds = append(cmds, StopEditing)
@@ -102,6 +100,7 @@ func Save() tea.Msg {
 
 func SaveEdit(save bool) tea.Cmd {
 	if save {
+		reactea.SetCurrentRoute("list")
 		return Save
 	}
 	return StopEditing

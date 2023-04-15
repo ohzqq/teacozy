@@ -161,9 +161,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case input.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
-	case confirm.ConfirmedMsg:
-		cmds = append(cmds, message.ChangeRoute("list"))
-		//cmds = append(cmds, msg.Action)
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
 		//reactea.SetCurrentRoute("confirm")
