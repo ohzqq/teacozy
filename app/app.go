@@ -170,8 +170,16 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
 	case confirm.GetConfirmationMsg:
-		c.confirm = msg.Props
-		cmds = append(cmds, message.ChangeRoute("confirm"))
+		switch reactea.CurrentRoute() {
+		case "list":
+			if !c.confirmChoices {
+				return reactea.Destroy
+			}
+			fallthrough
+		default:
+			c.confirm = msg.Props
+			cmds = append(cmds, message.ChangeRoute("confirm"))
+		}
 
 	case edit.ConfirmEditMsg:
 		if c.inputValue != c.CurrentItem().Value() {
