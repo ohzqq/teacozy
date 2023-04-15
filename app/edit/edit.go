@@ -27,7 +27,6 @@ type Props struct {
 	Save  func(string)
 }
 
-type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type SaveEditMsg struct{}
 type ConfirmEditMsg struct{}
@@ -62,9 +61,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		if c.Props().Value != c.input.Value() {
 			c.Props().Save(c.input.Value())
 			c.input.Reset()
-			cmds = append(cmds, confirm.GetConfirmation("Save edit?", SaveEdit))
+			return confirm.GetConfirmation("Save edit?", SaveEdit)
 		}
-		cmds = append(cmds, StopEditing)
+		return keys.ReturnToList
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
@@ -87,7 +86,7 @@ func (c *Component) Render(w, h int) string {
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
-		keys.Esc().Cmd(StopEditing),
+		keys.Esc(),
 		keys.Quit(),
 		keys.Save().Cmd(Save),
 	}
@@ -100,10 +99,9 @@ func Save() tea.Msg {
 
 func SaveEdit(save bool) tea.Cmd {
 	if save {
-		reactea.SetCurrentRoute("list")
 		return Save
 	}
-	return StopEditing
+	return keys.ReturnToList
 }
 
 func ConfirmEdit() tea.Msg {
@@ -112,8 +110,4 @@ func ConfirmEdit() tea.Msg {
 
 func StartEditing() tea.Msg {
 	return StartEditingMsg{}
-}
-
-func StopEditing() tea.Msg {
-	return StopEditingMsg{}
 }

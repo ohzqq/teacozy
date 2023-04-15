@@ -147,6 +147,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case keys.ReturnToListMsg:
+		return message.ChangeRoute("list")
 	case status.StatusMsg:
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, message.ChangeRoute("status"))
@@ -175,8 +177,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
 		cmds = append(cmds, message.ChangeRoute("list"))
-	case edit.StopEditingMsg:
-		cmds = append(cmds, message.ChangeRoute("list"))
+	//case edit.StopEditingMsg:
+	//  cmds = append(cmds, message.ChangeRoute("list"))
 	case edit.StartEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("edit"))
 

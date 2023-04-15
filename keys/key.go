@@ -84,6 +84,12 @@ var Global = KeyMap{
 	ShowHelp(),
 }
 
+type ReturnToListMsg struct{}
+
+func ReturnToList() tea.Msg {
+	return ReturnToListMsg{}
+}
+
 func DefaultListKeyMap() KeyMap {
 	var km = KeyMap{
 		Quit(),
@@ -225,7 +231,8 @@ func No() *Binding {
 
 func Esc() *Binding {
 	return NewBinding("esc").
-		WithHelp("exit screen")
+		WithHelp("exit screen").
+		Cmd(ReturnToList)
 }
 
 func Edit() *Binding {
