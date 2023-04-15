@@ -254,6 +254,44 @@ func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 
+func AcceptChoices(accept bool) tea.Cmd {
+	if accept {
+	}
+	return keys.ReturnToList
+}
+
+func DefaultKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.Quit(),
+		keys.ToggleItem(),
+		keys.Up(),
+		keys.Down(),
+		keys.HalfPgUp(),
+		keys.HalfPgDown(),
+		keys.PgUp(),
+		keys.PgDown(),
+		keys.Home(),
+		keys.End(),
+	}
+	return km
+}
+
+func VimKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.Quit(),
+		keys.ToggleItem().AddKeys(" "),
+		keys.Up().AddKeys("k"),
+		keys.Down().AddKeys("j"),
+		keys.HalfPgUp().AddKeys("K"),
+		keys.HalfPgDown().AddKeys("J"),
+		keys.PgUp(),
+		keys.PgDown(),
+		keys.Home().AddKeys("g"),
+		keys.End().AddKeys("G"),
+	}
+	return km
+}
+
 func max(a, b int) int {
 	if a > b {
 		return a

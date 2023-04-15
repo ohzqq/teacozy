@@ -138,8 +138,12 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
-	if reactea.CurrentRoute() == "" {
+	switch reactea.CurrentRoute() {
+	case "":
 		reactea.SetCurrentRoute("list")
+		fallthrough
+	case "list":
+		c.list.SetKeyMap(keys.VimListKeyMap())
 	}
 
 	reactea.AfterUpdate(c)
@@ -148,18 +152,19 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ReturnToListMsg:
-		return message.ChangeRoute("list")
+		reactea.SetCurrentRoute("list")
+		return nil
 	case status.StatusMsg:
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, message.ChangeRoute("status"))
 	case statusMessageTimeoutMsg:
 		c.SetStatus("")
 		c.hideStatusMessage()
-		cmds = append(cmds, message.ChangeRoute("list"))
+		cmds = append(cmds, keys.ReturnToList)
 
 	case input.StopFilteringMsg:
 		c.Input("")
-		cmds = append(cmds, message.ChangeRoute("list"))
+		cmds = append(cmds, keys.ReturnToList)
 	case input.StartFilteringMsg:
 		cmds = append(cmds, message.ChangeRoute("filter"))
 
@@ -176,7 +181,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case edit.SaveEditMsg:
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
-		cmds = append(cmds, message.ChangeRoute("list"))
+		cmds = append(cmds, keys.ReturnToList)
 	//case edit.StopEditingMsg:
 	//  cmds = append(cmds, message.ChangeRoute("list"))
 	case edit.StartEditingMsg:
@@ -185,8 +190,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case message.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "list":
-			c.list.SetKeyMap(keys.VimListKeyMap())
 		case "prev":
 			route = c.PrevRoute
 		case "help":
