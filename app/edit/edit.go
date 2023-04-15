@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/confirm"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -26,9 +27,9 @@ type Props struct {
 	Save  func(string)
 }
 
-type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type SaveEditMsg struct{}
+type ConfirmEditMsg struct{}
 
 func New() *Component {
 	tm := &Component{
@@ -57,9 +58,12 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case SaveEditMsg:
-		c.Props().Save(c.input.Value())
-		c.input.Reset()
-		cmds = append(cmds, StopEditing)
+		if c.Props().Value != c.input.Value() {
+			c.Props().Save(c.input.Value())
+			c.input.Reset()
+			return confirm.GetConfirmation("Save edit?", SaveEdit)
+		}
+		return keys.ReturnToList
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
@@ -75,18 +79,14 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	//l := lipgloss.NewStyle().Width(w).Render(c.Props().Value)
-	//c.input.SetHeight(lipgloss.Height(l))
 	c.input.SetWidth(w)
 	c.input.SetHeight(c.input.LineInfo().Height)
-	//fmt.Println(strconv.Itoa(len(c.Props().Value)))
-	//fmt.Println(strconv.Itoa(c.input.Length()))
 	return c.input.View()
 }
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
-		keys.Esc().Cmd(StopEditing),
+		keys.Esc(),
 		keys.Quit(),
 		keys.Save().Cmd(Save),
 	}
@@ -97,10 +97,17 @@ func Save() tea.Msg {
 	return SaveEditMsg{}
 }
 
-func StartEditing() tea.Msg {
-	return StartEditingMsg{}
+func SaveEdit(save bool) tea.Cmd {
+	if save {
+		return Save
+	}
+	return keys.ReturnToList
 }
 
-func StopEditing() tea.Msg {
-	return StopEditingMsg{}
+func ConfirmEdit() tea.Msg {
+	return ConfirmEditMsg{}
+}
+
+func StartEditing() tea.Msg {
+	return StartEditingMsg{}
 }

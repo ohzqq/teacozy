@@ -5,7 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/message"
+	"github.com/londek/reactea"
 )
 
 type KeyMap []*Binding
@@ -83,36 +83,14 @@ var Global = KeyMap{
 	ShowHelp(),
 }
 
-func DefaultListKeyMap() KeyMap {
-	var km = KeyMap{
-		Quit(),
-		ToggleItem(),
-		Up(),
-		Down(),
-		HalfPgUp(),
-		HalfPgDown(),
-		PgUp(),
-		PgDown(),
-		Home(),
-		End(),
-	}
-	return km
+func Enter() *Binding {
+	return NewBinding("enter")
 }
 
-func VimListKeyMap() KeyMap {
-	var km = KeyMap{
-		Quit(),
-		ToggleItem(),
-		Up().AddKeys("k"),
-		Down().AddKeys("j"),
-		HalfPgUp().AddKeys("K"),
-		HalfPgDown().AddKeys("J"),
-		PgUp(),
-		PgDown(),
-		Home().AddKeys("g"),
-		End().AddKeys("G"),
-	}
-	return km
+func Filter() *Binding {
+	return NewBinding("/").
+		WithHelp("filter items").
+		Cmd(ChangeRoute("filter"))
 }
 
 func Save() *Binding {
@@ -183,7 +161,7 @@ func Prev() *Binding {
 func ToggleItem() *Binding {
 	return NewBinding("tab").
 		WithHelp("select item").
-		Cmd(message.ToggleItem())
+		Cmd(func() tea.Msg { return ToggleItemMsg{} })
 }
 
 func ToggleMatch() *Binding {
@@ -194,13 +172,13 @@ func ToggleMatch() *Binding {
 func Quit() *Binding {
 	return NewBinding("ctrl+c").
 		WithHelp("quit program").
-		Cmd(message.Quit())
+		Cmd(reactea.Destroy)
 }
 
 func ShowHelp() *Binding {
 	return NewBinding("f1").
 		WithHelp("help").
-		Cmd(message.ShowHelp())
+		Cmd(ChangeRoute("help"))
 }
 
 func Yes() *Binding {
@@ -215,43 +193,12 @@ func No() *Binding {
 
 func Esc() *Binding {
 	return NewBinding("esc").
-		WithHelp("exit screen")
+		WithHelp("exit screen").
+		Cmd(ReturnToList)
 }
 
-type LineUpMsg struct{}
-type HalfPageUpMsg struct{}
-type PageUpMsg struct{}
-
-func LineUp() tea.Msg     { return LineUpMsg{} }
-func HalfPageUp() tea.Msg { return HalfPageUpMsg{} }
-func PageUp() tea.Msg     { return PageUpMsg{} }
-
-type LineDownMsg struct{}
-type HalfPageDownMsg struct{}
-type PageDownMsg struct{}
-
-func LineDown() tea.Msg     { return LineDownMsg{} }
-func HalfPageDown() tea.Msg { return HalfPageDownMsg{} }
-func PageDown() tea.Msg     { return PageDownMsg{} }
-
-type NextMsg struct{}
-type PrevMsg struct{}
-
-func NextPage() tea.Msg { return NextMsg{} }
-func PrevPage() tea.Msg { return PrevMsg{} }
-
-type TopMsg struct{}
-type BottomMsg struct{}
-
-func Top() tea.Msg    { return TopMsg{} }
-func Bottom() tea.Msg { return BottomMsg{} }
-
-type ToggleMsg struct {
-	Index int
-}
-
-func Toggle(idx int) tea.Msg {
-	return func() tea.Msg {
-		return ToggleMsg{Index: idx}
-	}
+func Edit() *Binding {
+	return NewBinding("e").
+		WithHelp("edit field").
+		Cmd(ChangeRoute("edit"))
 }

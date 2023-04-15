@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/confirm"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
@@ -34,6 +35,8 @@ type Props struct {
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
 	SetContent  func(string)
+	Editable    bool
+	Filterable  bool
 }
 
 func New() *Component {
@@ -41,7 +44,7 @@ func New() *Component {
 		Cursor: 0,
 		Style:  style.ListDefaults(),
 	}
-	m.KeyMap = keys.DefaultListKeyMap()
+	m.DefaultKeyMap()
 
 	return &m
 }
@@ -66,7 +69,12 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
 
-	case message.ToggleItemMsg:
+	case keys.ReturnSelectionsMsg:
+		if reactea.CurrentRoute() == "list" {
+			return confirm.GetConfirmation("Accept selected?", AcceptChoices)
+		}
+
+	case keys.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
 		m.Props().ToggleItems(cur)
 		m.MoveDown(1)
@@ -88,6 +96,18 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	case keys.BottomMsg:
 		m.GotoBottom()
 	case tea.KeyMsg:
+		if reactea.CurrentRoute() == "list" {
+			if m.Props().Editable {
+				if k := keys.Edit(); key.Matches(msg, k.Binding) {
+					return k.TeaCmd
+				}
+			}
+			if m.Props().Filterable {
+				if k := keys.Filter(); key.Matches(msg, k.Binding) {
+					return k.TeaCmd
+				}
+			}
+		}
 		for _, k := range m.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -214,10 +234,6 @@ func (m *Component) GotoBottom() {
 //  }
 //}
 
-func (m *Component) quit() tea.Cmd {
-	return message.Quit()
-}
-
 // SetWidth sets the width of the viewport of the table.
 func (m *Component) SetWidth(w int) {
 	m.Viewport.Width = w
@@ -230,28 +246,84 @@ func (m *Component) SetHeight(h int) {
 	m.UpdateItems()
 }
 
-func (m *Component) SetKeyMap(km keys.KeyMap) {
-	m.KeyMap = km
+func (m *Component) commonKeys() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.Quit(),
+		keys.PgUp(),
+		keys.PgDown(),
+		keys.Enter().
+			WithHelp("return selections").
+			Cmd(keys.ReturnSelections()),
+	}
+	return km
 }
 
-// Height returns the viewport height of the table.
+func (m *Component) SetKeyMap(km keys.KeyMap) {
+	m.KeyMap = m.commonKeys()
+	m.KeyMap = append(m.KeyMap, km...)
+}
+
+func (m *Component) VimKeyMap() *Component {
+	m.SetKeyMap(VimKeyMap())
+	return m
+}
+
+func (m *Component) DefaultKeyMap() *Component {
+	m.SetKeyMap(DefaultKeyMap())
+	return m
+}
+
+// Height returns the viewport height of the list.
 func (m Component) Height() int {
 	return m.Viewport.Height
 }
 
-// Width returns the viewport width of the table.
+// Width returns the viewport width of the list.
 func (m Component) Width() int {
 	return m.Viewport.Width
 }
 
-// Cursor returns the index of the selected row.
+// Cursor returns the index of the selected item.
 func (m Component) GetCursor() int {
 	return m.Cursor
 }
 
-// SetCursor sets the cursor position in the table.
+// SetCursor sets the cursor position in the list.
 func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
+}
+
+func AcceptChoices(accept bool) tea.Cmd {
+	if accept {
+		return reactea.Destroy
+	}
+	return keys.ReturnToList
+}
+
+func DefaultKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.ToggleItem(),
+		keys.Up(),
+		keys.Down(),
+		keys.HalfPgUp(),
+		keys.HalfPgDown(),
+		keys.Home(),
+		keys.End(),
+	}
+	return km
+}
+
+func VimKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.ToggleItem().AddKeys(" "),
+		keys.Up().AddKeys("k"),
+		keys.Down().AddKeys("j"),
+		keys.HalfPgUp().AddKeys("K"),
+		keys.HalfPgDown().AddKeys("J"),
+		keys.Home().AddKeys("g"),
+		keys.End().AddKeys("G"),
+	}
+	return km
 }
 
 func max(a, b int) int {
