@@ -132,9 +132,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"confirm": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := confirm.New()
 			p := c.confirm
-			if p.Action == nil {
-				p.Action = component.Confirmed
-			}
 			return component, component.Init(p)
 		},
 	})
@@ -166,19 +163,22 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	case confirm.ConfirmedMsg:
 		cmds = append(cmds, message.ChangeRoute("list"))
-		cmds = append(cmds, msg.Action)
+		//cmds = append(cmds, msg.Action)
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
+		//reactea.SetCurrentRoute("confirm")
 		cmds = append(cmds, message.ChangeRoute("confirm"))
 
-	case edit.SaveEditMsg:
-		idx := c.list.CurrentItem()
-		c.Choices.Set(idx, c.inputValue)
-	case edit.StopEditingMsg:
+	case edit.ConfirmEditMsg:
 		if c.inputValue != c.CurrentItem().Value() {
 			cmd := confirm.Action("save edit?", edit.Save)
 			cmds = append(cmds, cmd)
 		}
+	case edit.SaveEditMsg:
+		idx := c.list.CurrentItem()
+		c.Choices.Set(idx, c.inputValue)
+		cmds = append(cmds, message.ChangeRoute("list"))
+	case edit.StopEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("list"))
 	case edit.StartEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("edit"))

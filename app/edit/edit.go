@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/confirm"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 )
@@ -29,6 +30,7 @@ type Props struct {
 type StopEditingMsg struct{}
 type StartEditingMsg struct{}
 type SaveEditMsg struct{}
+type ConfirmEditMsg struct{}
 
 func New() *Component {
 	tm := &Component{
@@ -57,8 +59,13 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case SaveEditMsg:
-		c.Props().Save(c.input.Value())
-		c.input.Reset()
+		if c.Props().Value != c.input.Value() {
+			c.Props().Save(c.input.Value())
+			c.input.Reset()
+			//p
+			//cmds = append(cmds, ConfirmEdit)
+			cmds = append(cmds, confirm.GetConfirmation("Save edit?", SaveEdit))
+		}
 		cmds = append(cmds, StopEditing)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
@@ -98,6 +105,10 @@ func SaveEdit(save bool) tea.Cmd {
 		return Save
 	}
 	return StopEditing
+}
+
+func ConfirmEdit() tea.Msg {
+	return ConfirmEditMsg{}
 }
 
 func StartEditing() tea.Msg {
