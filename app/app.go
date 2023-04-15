@@ -14,7 +14,6 @@ import (
 	"github.com/ohzqq/teacozy/app/input"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
-	"github.com/ohzqq/teacozy/app/status"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
@@ -111,13 +110,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			})
 			return component, nil
 		},
-		"status": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := status.New()
-			p := status.Props{
-				Msg: c.status,
-			}
-			return component, component.Init(p)
-		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := input.New()
 			c.list.SetKeyMap(keys.DefaultListKeyMap())
@@ -159,14 +151,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		reactea.SetCurrentRoute("list")
 		return nil
 
-	case status.StatusMsg:
-		c.SetStatus(msg.Status)
-		cmds = append(cmds, keys.ChangeRoute("status"))
 	case statusMessageTimeoutMsg:
-		c.SetStatus("")
-		c.hideStatusMessage()
-		cmds = append(cmds, keys.ReturnToList)
-	case status.TimeoutMsg:
 		c.SetStatus("")
 		c.hideStatusMessage()
 		cmds = append(cmds, keys.ReturnToList)
