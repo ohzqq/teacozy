@@ -19,6 +19,7 @@ import (
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
+	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/maps"
 )
 
@@ -134,6 +135,13 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			p := c.confirm
 			return component, component.Init(p)
 		},
+		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := view.New()
+			p := view.Props{
+				Fields: c.Choices,
+			}
+			return component, component.Init(p)
+		},
 	})
 }
 
@@ -203,6 +211,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 
 	case tea.KeyMsg:
+		switch msg.String() {
+		case "v":
+		}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
