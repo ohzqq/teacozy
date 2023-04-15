@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/message"
 )
 
 type KeyMap []*Binding
@@ -128,7 +127,8 @@ func Enter() *Binding {
 
 func Filter() *Binding {
 	return NewBinding("/").
-		WithHelp("filter items")
+		WithHelp("filter items").
+		Cmd(ChangeRoute("filter"))
 }
 
 func Save() *Binding {
@@ -216,7 +216,7 @@ func Quit() *Binding {
 func ShowHelp() *Binding {
 	return NewBinding("f1").
 		WithHelp("help").
-		Cmd(message.ShowHelp())
+		Cmd(ChangeRoute("help"))
 }
 
 func Yes() *Binding {
@@ -237,5 +237,6 @@ func Esc() *Binding {
 
 func Edit() *Binding {
 	return NewBinding("e").
-		WithHelp("edit field")
+		WithHelp("edit field").
+		Cmd(ChangeRoute("edit"))
 }

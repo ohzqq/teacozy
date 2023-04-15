@@ -50,13 +50,13 @@ func SelectAllItems() tea.Msg {
 	return SelectAllItemsMsg{}
 }
 
-//type ShowHelpMsg struct{}
+type ShowHelpMsg struct{}
 
-//func ShowHelp() tea.Cmd {
-//return func() tea.Msg {
-//return ShowHelpMsg{}
-//}
-//}
+func ShowHelpInfo() tea.Cmd {
+	return func() tea.Msg {
+		return ShowHelpMsg{}
+	}
+}
 
 type HideHelpMsg struct{}
 

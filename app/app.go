@@ -15,6 +15,7 @@ import (
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/app/list"
 	"github.com/ohzqq/teacozy/app/status"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
@@ -33,7 +34,6 @@ type App struct {
 	width          int
 	height         int
 	footer         string
-	status         string
 	title          string
 	keyMap         keys.KeyMap
 	editable       bool
@@ -51,6 +51,7 @@ type App struct {
 	StatusMessageLifetime time.Duration
 	statusMessage         string
 	statusMessageTimer    *time.Timer
+	status                string
 
 	list        *list.Component
 	Choices     item.Choices
@@ -112,7 +113,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"status": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := status.New()
-			return component, component.Init(status.Props{Msg: c.status})
+			p := status.Props{
+				Msg: c.status,
+			}
+			return component, component.Init(p)
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := input.New()
@@ -159,6 +163,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, keys.ChangeRoute("status"))
 	case statusMessageTimeoutMsg:
+		c.SetStatus("")
+		c.hideStatusMessage()
+		cmds = append(cmds, keys.ReturnToList)
+	case status.TimeoutMsg:
 		c.SetStatus("")
 		c.hideStatusMessage()
 		cmds = append(cmds, keys.ReturnToList)
@@ -210,6 +218,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 
 	case tea.KeyMsg:
+		switch msg.String() {
+		case "o":
+			//return status.Update("poot")
+			return c.NewStatusMessage("poot")
+		}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -281,9 +294,15 @@ func (c App) renderHeader(w, h int) string {
 	if c.title != "" {
 		header = c.Style.Header.Render(c.title)
 	}
+
+	if c.status != "" {
+		header = lipgloss.NewStyle().Foreground(color.Green()).Render(c.status)
+	}
+
 	switch reactea.CurrentRoute() {
 	case "status":
 		fallthrough
+		//header = lipgloss.NewStyle().Foreground(color.Green()).Render(c.status)
 	case "filter":
 		header = c.mainRouter.Render(w, h)
 	}
@@ -356,11 +375,16 @@ func WithTitle(t string) Option {
 		a.title = t
 	}
 }
+func ConfirmChoices() Option {
+	return func(a *App) {
+		a.confirmChoices = true
+	}
+}
 
 func Editable() Option {
 	return func(a *App) {
 		a.editable = true
-		k := keys.Edit().Cmd(edit.StartEditing)
+		k := keys.Edit()
 		a.keyMap = append(a.keyMap, k)
 	}
 }
@@ -368,14 +392,8 @@ func Editable() Option {
 func WithFilter() Option {
 	return func(a *App) {
 		a.filterable = true
-		k := keys.Filter().Cmd(input.StartFiltering)
+		k := keys.Filter()
 		a.keyMap = append(a.keyMap, k)
-	}
-}
-
-func ConfirmChoices() Option {
-	return func(a *App) {
-		a.confirmChoices = true
 	}
 }
 
@@ -385,7 +403,6 @@ func Filter(search string, choices item.Choices) []item.Item {
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.Global
-	km = append(km, keys.Enter().WithHelp("accept choices").Cmd(AcceptChoices))
 	return km
 }
 
@@ -425,6 +442,12 @@ func (c *App) ClearSelections() tea.Cmd {
 	return nil
 }
 
+type AcceptChoicesMsg struct{}
+
+func AcceptChoices() tea.Msg {
+	return AcceptChoicesMsg{}
+}
+
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
 
 type statusMessageTimeoutMsg struct{}
@@ -451,10 +474,4 @@ func (m *App) hideStatusMessage() {
 	if m.statusMessageTimer != nil {
 		m.statusMessageTimer.Stop()
 	}
-}
-
-type AcceptChoicesMsg struct{}
-
-func AcceptChoices() tea.Msg {
-	return AcceptChoicesMsg{}
 }
