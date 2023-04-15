@@ -99,12 +99,12 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		if reactea.CurrentRoute() == "list" {
 			if m.Props().Editable {
 				if k := keys.Edit(); key.Matches(msg, k.Binding) {
-					cmds = append(cmds, k.TeaCmd)
+					return k.TeaCmd
 				}
 			}
 			if m.Props().Filterable {
 				if k := keys.Filter(); key.Matches(msg, k.Binding) {
-					cmds = append(cmds, k.TeaCmd)
+					return k.TeaCmd
 				}
 			}
 		}

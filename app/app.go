@@ -115,16 +115,16 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.ResetInput()
 			component := input.New()
 			c.list.DefaultKeyMap()
-			p := input.Props{Filter: c.Input}
+			p := input.Props{Filter: c.SetInput}
 			return component, component.Init(p)
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := edit.New()
 			c.list.SetKeyMap(keys.Global)
-			c.Input(c.CurrentItem().Value())
+			c.SetInput(c.CurrentItem().Value())
 			p := edit.Props{
-				Save:  c.Input,
+				Save:  c.SetInput,
 				Value: c.inputValue,
 			}
 			return component, component.Init(p)
@@ -161,10 +161,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.SetStatus("")
 		c.hideStatusMessage()
 		cmds = append(cmds, keys.ReturnToList)
-
-	//case input.StopFilteringMsg:
-	//c.ResetInput()
-	//cmds = append(cmds, keys.ReturnToList)
 
 	case confirm.GetConfirmationMsg:
 		switch reactea.CurrentRoute() {
@@ -286,9 +282,6 @@ func (c App) renderHeader(w, h int) string {
 	}
 
 	switch reactea.CurrentRoute() {
-	case "status":
-		fallthrough
-		//header = lipgloss.NewStyle().Foreground(color.Green()).Render(c.status)
 	case "filter":
 		header = c.mainRouter.Render(w, h)
 	}
@@ -370,16 +363,12 @@ func ConfirmChoices() Option {
 func Editable() Option {
 	return func(a *App) {
 		a.editable = true
-		//k := keys.Edit()
-		//a.keyMap = append(a.keyMap, k)
 	}
 }
 
 func WithFilter() Option {
 	return func(a *App) {
 		a.filterable = true
-		k := keys.Filter()
-		a.list.KeyMap = append(a.list.KeyMap, k)
 	}
 }
 
@@ -392,8 +381,28 @@ func DefaultKeyMap() keys.KeyMap {
 	return km
 }
 
-func (c *App) Input(value string) {
+func (c *App) SetInput(value string) {
 	c.inputValue = value
+}
+
+func (c *App) ResetInput() {
+	c.inputValue = ""
+}
+
+func (c App) InputValue() string {
+	return c.inputValue
+}
+
+func (c *App) SetFilter(s string) {
+	c.search = s
+}
+
+func (c *App) ResetFilter() {
+	c.search = ""
+}
+
+func (c App) FilterValue() string {
+	return c.search
 }
 
 func (c App) Height() int {
@@ -406,14 +415,6 @@ func (c App) Width() int {
 
 func (c App) Limit() int {
 	return c.limit
-}
-
-func (c *App) ResetInput() {
-	c.inputValue = ""
-}
-
-func (c *App) ResetFilter() {
-	c.search = ""
 }
 
 func (c *App) SetFooter(h string) *App {
@@ -434,12 +435,6 @@ func (c *App) SetTitle(h string) *App {
 func (c *App) ClearSelections() tea.Cmd {
 	c.selected = make(map[int]struct{})
 	return nil
-}
-
-type AcceptChoicesMsg struct{}
-
-func AcceptChoices() tea.Msg {
-	return AcceptChoicesMsg{}
 }
 
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
