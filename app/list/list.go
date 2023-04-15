@@ -214,10 +214,6 @@ func (m *Component) GotoBottom() {
 //  }
 //}
 
-func (m *Component) quit() tea.Cmd {
-	return message.Quit()
-}
-
 // SetWidth sets the width of the viewport of the table.
 func (m *Component) SetWidth(w int) {
 	m.Viewport.Width = w
@@ -234,22 +230,32 @@ func (m *Component) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
 }
 
-// Height returns the viewport height of the table.
+func (m *Component) VimKeyMap() *Component {
+	m.KeyMap = VimKeyMap()
+	return m
+}
+
+func (m *Component) DefaultKeyMap() *Component {
+	m.KeyMap = DefaultKeyMap()
+	return m
+}
+
+// Height returns the viewport height of the list.
 func (m Component) Height() int {
 	return m.Viewport.Height
 }
 
-// Width returns the viewport width of the table.
+// Width returns the viewport width of the list.
 func (m Component) Width() int {
 	return m.Viewport.Width
 }
 
-// Cursor returns the index of the selected row.
+// Cursor returns the index of the selected item.
 func (m Component) GetCursor() int {
 	return m.Cursor
 }
 
-// SetCursor sets the cursor position in the table.
+// SetCursor sets the cursor position in the list.
 func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
