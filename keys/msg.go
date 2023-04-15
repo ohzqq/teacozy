@@ -30,13 +30,7 @@ func ChangeRoute(name string) tea.Cmd {
 	}
 }
 
-//type ToggleItemMsg struct{}
-
-//func ToggleItem() tea.Cmd {
-//return func() tea.Msg {
-//return ToggleItemMsg{}
-//}
-//}
+type ToggleItemMsg struct{}
 
 type ToggleAllItemsMsg struct{}
 

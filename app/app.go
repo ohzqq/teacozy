@@ -143,7 +143,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		reactea.SetCurrentRoute("list")
 		fallthrough
 	case "list":
-		c.list.SetKeyMap(keys.VimListKeyMap())
+		c.list.VimKeyMap()
 	}
 
 	reactea.AfterUpdate(c)
@@ -154,6 +154,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ReturnToListMsg:
 		reactea.SetCurrentRoute("list")
 		return nil
+
 	case status.StatusMsg:
 		c.SetStatus(msg.Status)
 		cmds = append(cmds, message.ChangeRoute("status"))
@@ -170,7 +171,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	case confirm.GetConfirmationMsg:
 		c.confirm = msg.Props
-		//reactea.SetCurrentRoute("confirm")
 		cmds = append(cmds, message.ChangeRoute("confirm"))
 
 	case edit.ConfirmEditMsg:
@@ -182,8 +182,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
 		cmds = append(cmds, keys.ReturnToList)
-	//case edit.StopEditingMsg:
-	//  cmds = append(cmds, message.ChangeRoute("list"))
 	case edit.StartEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("edit"))
 

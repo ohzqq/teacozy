@@ -199,7 +199,7 @@ func Prev() *Binding {
 func ToggleItem() *Binding {
 	return NewBinding("tab").
 		WithHelp("select item").
-		Cmd(message.ToggleItem())
+		Cmd(func() tea.Msg { return ToggleItemMsg{} })
 }
 
 func ToggleMatch() *Binding {

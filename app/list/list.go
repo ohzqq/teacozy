@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/app/confirm"
 	"github.com/ohzqq/teacozy/app/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
@@ -66,7 +67,10 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	case message.QuitMsg:
 		cmds = append(cmds, tea.Quit)
 
-	case message.ToggleItemMsg:
+	case keys.ReturnSelectionsMsg:
+		return confirm.GetConfirmation("Accept selected?", AcceptChoices)
+
+	case keys.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
 		m.Props().ToggleItems(cur)
 		m.MoveDown(1)
@@ -262,6 +266,7 @@ func (m *Component) SetCursor(n int) {
 
 func AcceptChoices(accept bool) tea.Cmd {
 	if accept {
+		return reactea.Destroy
 	}
 	return keys.ReturnToList
 }
@@ -278,6 +283,9 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.PgDown(),
 		keys.Home(),
 		keys.End(),
+		keys.Enter().
+			WithHelp("return selections").
+			Cmd(keys.ReturnSelections()),
 	}
 	return km
 }
@@ -294,6 +302,9 @@ func VimKeyMap() keys.KeyMap {
 		keys.PgDown(),
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
+		keys.Enter().
+			WithHelp("return selections").
+			Cmd(keys.ReturnSelections()),
 	}
 	return km
 }
