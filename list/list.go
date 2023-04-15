@@ -34,7 +34,6 @@ type Props struct {
 	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
-	SetContent  func(string)
 	Editable    bool
 	Filterable  bool
 }
