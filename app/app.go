@@ -157,7 +157,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	case status.StatusMsg:
 		c.SetStatus(msg.Status)
-		cmds = append(cmds, message.ChangeRoute("status"))
+		cmds = append(cmds, keys.ChangeRoute("status"))
 	case statusMessageTimeoutMsg:
 		c.SetStatus("")
 		c.hideStatusMessage()
@@ -167,7 +167,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.Input("")
 		cmds = append(cmds, keys.ReturnToList)
 	case input.StartFilteringMsg:
-		cmds = append(cmds, message.ChangeRoute("filter"))
+		cmds = append(cmds, keys.ChangeRoute("filter"))
 
 	case confirm.GetConfirmationMsg:
 		switch reactea.CurrentRoute() {
@@ -178,7 +178,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			fallthrough
 		default:
 			c.confirm = msg.Props
-			cmds = append(cmds, message.ChangeRoute("confirm"))
+			cmds = append(cmds, keys.ChangeRoute("confirm"))
 		}
 
 	case edit.ConfirmEditMsg:
@@ -193,7 +193,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case edit.StartEditingMsg:
 		cmds = append(cmds, message.ChangeRoute("edit"))
 
-	case message.ChangeRouteMsg:
+	case keys.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
 		case "prev":
@@ -205,12 +205,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			//c.Routes["help"] = view.New().Initializer(p)
 		}
 		c.ChangeRoute(route)
-
-	case AcceptChoicesMsg:
-		if c.confirmChoices {
-			cmd := confirm.Action("accept choices?", edit.Save)
-			cmds = append(cmds, cmd)
-		}
 
 	case message.QuitMsg:
 		return reactea.Destroy
