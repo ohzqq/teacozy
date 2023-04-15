@@ -5,7 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/app/confirm"
+	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/style"
 )

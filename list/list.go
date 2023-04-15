@@ -1,222 +1,330 @@
 package list
 
 import (
-	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/confirm"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/message"
-	"github.com/ohzqq/teacozy/props"
 	"github.com/ohzqq/teacozy/style"
-	"github.com/ohzqq/teacozy/util"
 )
 
-type List struct {
-	Cursor    int
-	Paginator paginator.Model
-	Viewport  *viewport.Model
-	quitting  bool
-	Style     style.List
-	items     *props.Items
-	end       int
-	start     int
-	Footer    string
+type Option func(*Component)
+
+type Component struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[Props]
+
+	Cursor int
+	Style  style.List
+	KeyMap keys.KeyMap
+
+	Viewport viewport.Model
+	start    int
+	end      int
 }
 
-func New(props *props.Items) *List {
-	tm := &List{
-		Style: style.ListDefaults(),
-		items: props,
+type Props struct {
+	Matches     []item.Item
+	Selected    map[int]struct{}
+	ToggleItems func(...int)
+	SetContent  func(string)
+	Editable    bool
+	Filterable  bool
+}
+
+func New() *Component {
+	m := Component{
+		Cursor: 0,
+		Style:  style.ListDefaults(),
 	}
+	m.DefaultKeyMap()
 
-	tm.Paginator = paginator.New()
-	tm.Paginator.Type = paginator.Arabic
-	tm.Paginator.SetTotalPages((len(props.Visible()) + props.Height - 1) / props.Height)
-	tm.Paginator.PerPage = props.Height
-
-	v := viewport.New(props.Width, props.Height)
-	tm.Viewport = &v
-
-	return tm
+	return &m
 }
 
-func (m List) KeyMap() keys.KeyMap {
-	km := keys.KeyMap{
-		keys.Up().WithKeys("k", "up"),
-		keys.Down().WithKeys("j", "down"),
-		keys.Next().WithKeys("right", "l"),
-		keys.Prev().WithKeys("left", "h"),
-		keys.NewBinding("G").
-			WithHelp("list bottom").
-			Cmd(message.Bottom),
-		keys.NewBinding("g").
-			WithHelp("list top").
-			Cmd(message.Top),
-	}
-	return km
+func (m *Component) Init(props Props) tea.Cmd {
+	m.UpdateProps(props)
+	m.Viewport = viewport.New(0, 0)
+	m.UpdateItems()
+	return nil
 }
 
-func (m *List) Props() *props.Items {
-	return m.items
+func (m *Component) AfterUpdate() tea.Cmd {
+	m.UpdateItems()
+	return nil
 }
 
-func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
-	var cmd tea.Cmd
+func (m *Component) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(m)
 	var cmds []tea.Cmd
-	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+
 	switch msg := msg.(type) {
-	case message.NextMsg:
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor+m.Props().Height)
-		m.SetCurrent()
-		m.Paginator.NextPage()
-		m.Viewport.GotoTop()
+	case message.QuitMsg:
+		cmds = append(cmds, tea.Quit)
 
-	case message.PrevMsg:
-		m.Cursor = util.Clamp(0, len(m.Props().Visible())-1, m.Cursor-m.Props().Height)
-		m.SetCurrent()
-		m.Paginator.PrevPage()
-		m.Viewport.GotoBottom()
-
-	case message.TopMsg:
-		m.Cursor = 0
-		m.SetCurrent()
-		m.Paginator.Page = 0
-		m.Viewport.GotoTop()
-
-	case message.BottomMsg:
-		m.Cursor = len(m.Props().Visible()) - 1
-		m.SetCurrent()
-		m.Paginator.Page = m.Paginator.TotalPages - 1
-		m.Viewport.GotoBottom()
-
-	case message.LineUpMsg:
-		m.Cursor--
-		if m.Cursor < start {
-			if m.Paginator.Page > 0 {
-				m.Cursor = len(m.Props().Visible()) - 1
-				m.Paginator.PrevPage()
-				m.Viewport.GotoBottom()
-				cmds = append(cmds, message.PrevPage)
-			} else {
-				m.Cursor = 0
-			}
-		}
-		m.SetCurrent()
-		h := m.Props().CurrentItem().LineHeight()
-		if m.Props().Lines > m.Props().Height {
-			m.Viewport.LineUp(h)
+	case keys.ReturnSelectionsMsg:
+		if reactea.CurrentRoute() == "list" {
+			return confirm.GetConfirmation("Accept selected?", AcceptChoices)
 		}
 
-	case message.LineDownMsg:
-		m.Cursor++
-		if m.Cursor >= end {
-			if m.Paginator.OnLastPage() {
-				m.Cursor = len(m.Props().Visible()) - 1
-			} else {
-				m.Cursor = 0
-				cmds = append(cmds, message.NextPage)
-			}
-		}
-		m.SetCurrent()
-		h := m.Props().CurrentItem().LineHeight()
-		if m.Props().Lines > m.Props().Height {
-			m.Viewport.LineDown(h)
-		}
+	case keys.ToggleItemMsg:
+		cur := m.Props().Matches[m.Cursor].Index
+		m.Props().ToggleItems(cur)
+		m.MoveDown(1)
 
+	case keys.PageUpMsg:
+		m.MoveUp(m.Height())
+	case keys.PageDownMsg:
+		m.MoveDown(m.Height())
+	case keys.HalfPageUpMsg:
+		m.MoveUp(m.Height() / 2)
+	case keys.HalfPageDownMsg:
+		m.MoveDown(m.Height() / 2)
+	case keys.LineDownMsg:
+		m.MoveDown(1)
+	case keys.LineUpMsg:
+		m.MoveUp(1)
+	case keys.TopMsg:
+		m.GotoTop()
+	case keys.BottomMsg:
+		m.GotoBottom()
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap() {
+		if reactea.CurrentRoute() == "list" {
+			if m.Props().Editable {
+				if k := keys.Edit(); key.Matches(msg, k.Binding) {
+					return k.TeaCmd
+				}
+			}
+			if m.Props().Filterable {
+				if k := keys.Filter(); key.Matches(msg, k.Binding) {
+					return k.TeaCmd
+				}
+			}
+		}
+		for _, k := range m.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
 		}
-		cmds = append(cmds, cmd)
 	}
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
-func (m *List) SetCurrent() {
-	m.Props().SetCurrent(m.Cursor % m.Props().Height)
+func (m *Component) Render(w, h int) string {
+	m.SetWidth(w)
+	m.SetHeight(h)
+	m.UpdateItems()
+	return m.Viewport.View()
 }
 
-// MoveUp moves the selection up by any number of rows.
-// It can not go above the first row.
-func (m *List) MoveUp(n int) {
-	m.Cursor = clamp(m.Cursor-n, 0, len(m.Props().Visible())-1)
-	switch {
-	case m.start == 0:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
-	case m.start < m.Viewport.Height:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
-	case m.Viewport.YOffset >= 1:
-		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Viewport.Height)
-	}
-	m.UpdateViewport()
-}
-
-// MoveDown moves the selection down by any number of rows.
-// It can not go below the last row.
-func (m *List) MoveDown(n int) {
-	m.Cursor = clamp(m.Cursor+n, 0, len(m.Props().Visible())-1)
-	m.UpdateViewport()
-
-	switch {
-	case m.end == len(m.Props().Visible()):
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Viewport.Height))
-	case m.Cursor > (m.end-m.start)/2:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
-	case m.Viewport.YOffset > 1:
-	case m.Cursor > m.Viewport.YOffset+m.Viewport.Height-1:
-		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
-	}
-}
-
-// UpdateViewport updates the list content based on the previously defined
+// UpdateItems updates the list content based on the previously defined
 // columns and rows.
-func (m *List) UpdateViewport() {
-	renderedRows := make([]string, 0, len(m.Props().Visible()))
+func (m *Component) UpdateItems() {
+	items := make([]string, 0, len(m.Props().Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
 	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Viewport.Height, 0, m.Cursor)
+		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
 	} else {
 		m.start = 0
+		m.SetCursor(0)
 	}
-	m.end = clamp(m.Cursor+m.Viewport.Height, m.Cursor, len(m.Props().Visible()))
+	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
+
+	if m.Cursor > m.end {
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+	}
+
 	for i := m.start; i < m.end; i++ {
-		renderedRows = append(renderedRows, strconv.Itoa(i))
+		items = append(items, m.renderItem(i))
 	}
 
 	m.Viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+		lipgloss.JoinVertical(lipgloss.Left, items...),
 	)
 }
 
-func (m *List) View() string {
-	start, end := m.Paginator.GetSliceBounds(len(m.Props().Visible()))
+func (m *Component) renderItem(rowID int) string {
+	item := m.Props().Matches[rowID]
 
-	items := m.Props().RenderItems(
-		m.Props().Visible()[start:end],
-	)
-	m.Viewport.SetContent(items)
+	var s strings.Builder
 
-	view := m.Viewport.View()
-
-	if m.Paginator.TotalPages > 1 {
-		p := style.Footer.Render(m.Paginator.View())
-		m.Footer = p
+	switch {
+	case rowID == m.Cursor:
+		item.Current = true
+	case m.isSelected(rowID):
+		item.Selected = true
 	}
 
-	return view
+	s.WriteString(item.Render(m.Width(), m.Height()))
+
+	return s.String()
 }
 
-func (m List) Init() tea.Cmd { return nil }
+func (m Component) isSelected(idx int) bool {
+	_, ok := m.Props().Selected[m.Props().Matches[idx].Index]
+	return ok
+}
+
+// SelectedRow returns the selected row.
+// You can cast it to your own implementation.
+func (m Component) CurrentItem() int {
+	return m.Props().Matches[m.Cursor].Index
+}
+
+// MoveUp moves the selection up by any number of rows.
+// It can not go above the first row.
+func (m *Component) MoveUp(n int) {
+	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
+	switch {
+	case m.start == 0:
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
+	case m.start < m.Height():
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
+	case m.Viewport.YOffset >= 1:
+		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Height())
+	}
+}
+
+// MoveDown moves the selection down by any number of rows.
+// It can not go below the last row.
+func (m *Component) MoveDown(n int) {
+	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
+	switch {
+	case m.end == len(m.Props().Matches):
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Height()))
+	case m.Cursor > (m.end-m.start)/2:
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
+	case m.Viewport.YOffset > 1:
+	case m.Cursor > m.Viewport.YOffset+m.Height()-1:
+		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
+	}
+}
+
+// GotoTop moves the selection to the first row.
+func (m *Component) GotoTop() {
+	m.MoveUp(m.Cursor)
+}
+
+// GotoBottom moves the selection to the last row.
+func (m *Component) GotoBottom() {
+	m.MoveDown(len(m.Props().Matches))
+}
+
+//func (m *List) ToggleAllItems() tea.Cmd {
+//  return func() tea.Msg {
+//    var items []int
+//    for _, item := range m.Props().AllItems() {
+//      items = append(items, item.Index)
+//    }
+//    m.Props().ToggleSelection(items...)
+//    return nil
+//  }
+//}
+
+// SetWidth sets the width of the viewport of the table.
+func (m *Component) SetWidth(w int) {
+	m.Viewport.Width = w
+	m.UpdateItems()
+}
+
+// SetHeight sets the height of the viewport of the table.
+func (m *Component) SetHeight(h int) {
+	m.Viewport.Height = h
+	m.UpdateItems()
+}
+
+func (m *Component) commonKeys() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.Quit(),
+		keys.PgUp(),
+		keys.PgDown(),
+		keys.Enter().
+			WithHelp("return selections").
+			Cmd(keys.ReturnSelections()),
+	}
+	return km
+}
+
+func (m *Component) SetKeyMap(km keys.KeyMap) {
+	m.KeyMap = m.commonKeys()
+	m.KeyMap = append(m.KeyMap, km...)
+}
+
+func (m *Component) VimKeyMap() *Component {
+	m.SetKeyMap(VimKeyMap())
+	return m
+}
+
+func (m *Component) DefaultKeyMap() *Component {
+	m.SetKeyMap(DefaultKeyMap())
+	return m
+}
+
+// Height returns the viewport height of the list.
+func (m Component) Height() int {
+	return m.Viewport.Height
+}
+
+// Width returns the viewport width of the list.
+func (m Component) Width() int {
+	return m.Viewport.Width
+}
+
+// Cursor returns the index of the selected item.
+func (m Component) GetCursor() int {
+	return m.Cursor
+}
+
+// SetCursor sets the cursor position in the list.
+func (m *Component) SetCursor(n int) {
+	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
+}
+
+func AcceptChoices(accept bool) tea.Cmd {
+	if accept {
+		return reactea.Destroy
+	}
+	return keys.ReturnToList
+}
+
+func DefaultKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.ToggleItem(),
+		keys.Up(),
+		keys.Down(),
+		keys.HalfPgUp(),
+		keys.HalfPgDown(),
+		keys.Home(),
+		keys.End(),
+	}
+	return km
+}
+
+func VimKeyMap() keys.KeyMap {
+	var km = keys.KeyMap{
+		keys.ToggleItem().AddKeys(" "),
+		keys.Up().AddKeys("k"),
+		keys.Down().AddKeys("j"),
+		keys.HalfPgUp().AddKeys("K"),
+		keys.HalfPgDown().AddKeys("J"),
+		keys.Home().AddKeys("g"),
+		keys.End().AddKeys("G"),
+	}
+	return km
+}
 
 func max(a, b int) int {
 	if a > b {
