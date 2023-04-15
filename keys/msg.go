@@ -2,6 +2,12 @@ package keys
 
 import tea "github.com/charmbracelet/bubbletea"
 
+type ReturnToListMsg struct{}
+
+func ReturnToList() tea.Msg {
+	return ReturnToListMsg{}
+}
+
 type ReturnSelectionsMsg struct {
 	Quitting bool
 }

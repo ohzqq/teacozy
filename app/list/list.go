@@ -42,7 +42,7 @@ func New() *Component {
 		Cursor: 0,
 		Style:  style.ListDefaults(),
 	}
-	m.KeyMap = keys.DefaultListKeyMap()
+	m.DefaultKeyMap()
 
 	return &m
 }

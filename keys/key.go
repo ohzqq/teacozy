@@ -83,44 +83,6 @@ var Global = KeyMap{
 	ShowHelp(),
 }
 
-type ReturnToListMsg struct{}
-
-func ReturnToList() tea.Msg {
-	return ReturnToListMsg{}
-}
-
-func DefaultListKeyMap() KeyMap {
-	var km = KeyMap{
-		Quit(),
-		ToggleItem(),
-		Up(),
-		Down(),
-		HalfPgUp(),
-		HalfPgDown(),
-		PgUp(),
-		PgDown(),
-		Home(),
-		End(),
-	}
-	return km
-}
-
-func VimListKeyMap() KeyMap {
-	var km = KeyMap{
-		Quit(),
-		ToggleItem().AddKeys(" "),
-		Up().AddKeys("k"),
-		Down().AddKeys("j"),
-		HalfPgUp().AddKeys("K"),
-		HalfPgDown().AddKeys("J"),
-		PgUp(),
-		PgDown(),
-		Home().AddKeys("g"),
-		End().AddKeys("G"),
-	}
-	return km
-}
-
 func Enter() *Binding {
 	return NewBinding("enter")
 }

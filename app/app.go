@@ -99,7 +99,6 @@ func (c *App) listProps() list.Props {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list = list.New()
-	c.list.SetKeyMap(keys.VimListKeyMap())
 	c.list.Init(c.listProps())
 
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
@@ -112,7 +111,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := input.New()
-			c.list.SetKeyMap(keys.DefaultListKeyMap())
+			c.list.DefaultKeyMap()
 			return component, component.Init(input.Props{Filter: c.Input})
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
