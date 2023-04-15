@@ -74,19 +74,11 @@ func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Quit(),
 		keys.Enter().WithHelp("stop filtering").Cmd(StopFiltering),
-		keys.Esc(),
+		keys.Esc().Cmd(StopFiltering),
 	}
 	return km
 }
 
-type StartFilteringMsg struct{}
-
-func StartFiltering() tea.Msg {
-	return StartFilteringMsg{}
-}
-
-type StopFilteringMsg struct{}
-
 func StopFiltering() tea.Msg {
-	return StopFilteringMsg{}
+	return keys.ReturnToListMsg{}
 }

@@ -71,6 +71,7 @@ func New(opts ...Option) (*App, error) {
 		limit:                 1,
 		StatusMessageLifetime: time.Second,
 		keyMap:                DefaultKeyMap(),
+		list:                  list.New(),
 	}
 
 	for _, opt := range opts {
@@ -90,15 +91,16 @@ func New(opts ...Option) (*App, error) {
 
 func (c *App) listProps() list.Props {
 	p := list.Props{
-		Matches:     Filter(c.search, c.Choices),
+		Matches:     c.Choices.Filter(c.search),
 		Selected:    c.selected,
 		ToggleItems: c.ToggleItems,
+		Filterable:  c.filterable,
+		Editable:    c.editable,
 	}
 	return p
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.list = list.New()
 	c.list.Init(c.listProps())
 
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
@@ -110,11 +112,14 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			return component, nil
 		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			c.ResetInput()
 			component := input.New()
 			c.list.DefaultKeyMap()
-			return component, component.Init(input.Props{Filter: c.Input})
+			p := input.Props{Filter: c.Input}
+			return component, component.Init(p)
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			c.ResetInput()
 			component := edit.New()
 			c.list.SetKeyMap(keys.Global)
 			c.Input(c.CurrentItem().Value())
@@ -147,6 +152,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ReturnToListMsg:
+		c.ResetInput()
+		c.ResetFilter()
 		reactea.SetCurrentRoute("list")
 		return nil
 
@@ -155,11 +162,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.hideStatusMessage()
 		cmds = append(cmds, keys.ReturnToList)
 
-	case input.StopFilteringMsg:
-		c.Input("")
-		cmds = append(cmds, keys.ReturnToList)
-	case input.StartFilteringMsg:
-		cmds = append(cmds, keys.ChangeRoute("filter"))
+	//case input.StopFilteringMsg:
+	//c.ResetInput()
+	//cmds = append(cmds, keys.ReturnToList)
 
 	case confirm.GetConfirmationMsg:
 		switch reactea.CurrentRoute() {
@@ -202,11 +207,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "o":
-			//return status.Update("poot")
-			return c.NewStatusMessage("poot")
-		}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -215,12 +215,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	switch reactea.CurrentRoute() {
+	case "help":
 	case "filter":
 		c.search = c.inputValue
-	case "help":
+		fallthrough
+	case "list":
+		cmds = append(cmds, c.list.Update(msg))
 	}
 
-	cmds = append(cmds, c.list.Update(msg))
 	cmds = append(cmds, c.mainRouter.Update(msg))
 
 	return tea.Batch(cmds...)
@@ -368,8 +370,8 @@ func ConfirmChoices() Option {
 func Editable() Option {
 	return func(a *App) {
 		a.editable = true
-		k := keys.Edit()
-		a.keyMap = append(a.keyMap, k)
+		//k := keys.Edit()
+		//a.keyMap = append(a.keyMap, k)
 	}
 }
 
@@ -377,7 +379,7 @@ func WithFilter() Option {
 	return func(a *App) {
 		a.filterable = true
 		k := keys.Filter()
-		a.keyMap = append(a.keyMap, k)
+		a.list.KeyMap = append(a.list.KeyMap, k)
 	}
 }
 
@@ -404,6 +406,14 @@ func (c App) Width() int {
 
 func (c App) Limit() int {
 	return c.limit
+}
+
+func (c *App) ResetInput() {
+	c.inputValue = ""
+}
+
+func (c *App) ResetFilter() {
+	c.search = ""
 }
 
 func (c *App) SetFooter(h string) *App {
