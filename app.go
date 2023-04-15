@@ -1,4 +1,4 @@
-package app
+package teacozy
 
 import (
 	"fmt"
@@ -9,13 +9,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/app/confirm"
-	"github.com/ohzqq/teacozy/app/edit"
-	"github.com/ohzqq/teacozy/app/input"
-	"github.com/ohzqq/teacozy/app/item"
-	"github.com/ohzqq/teacozy/app/list"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/confirm"
+	"github.com/ohzqq/teacozy/edit"
+	"github.com/ohzqq/teacozy/input"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
