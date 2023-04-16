@@ -16,7 +16,6 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
@@ -199,9 +198,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			//c.Routes["help"] = view.New().Initializer(p)
 		}
 		c.ChangeRoute(route)
-
-	case message.QuitMsg:
-		return reactea.Destroy
 
 	case tea.KeyMsg:
 		//switch msg.String() {
