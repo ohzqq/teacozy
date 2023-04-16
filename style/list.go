@@ -30,6 +30,20 @@ var (
 	Footer      = lipgloss.NewStyle().Foreground(color.Blue())
 )
 
+type prefix struct {
+	Cursor     string
+	Selected   string
+	Unselected string
+	Prompt     string
+}
+
+var prefixes = prefix{
+	Cursor:     CursorPrefix,
+	Selected:   SelectedPrefix,
+	Unselected: UnselectedPrefix,
+	Prompt:     PromptPrefix,
+}
+
 type List struct {
 	SelectedPrefix   lipgloss.Style
 	Text             lipgloss.Style
