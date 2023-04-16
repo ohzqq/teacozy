@@ -182,11 +182,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, keys.ChangeRoute("confirm"))
 		}
 
-	case edit.ConfirmEditMsg:
-		if c.inputValue != c.CurrentItem().Value() {
-			cmd := confirm.Action("save edit?", edit.Save)
-			cmds = append(cmds, cmd)
-		}
 	case edit.SaveEditMsg:
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
@@ -209,10 +204,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return reactea.Destroy
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "v":
-			cmds = append(cmds, keys.ChangeRoute("view"))
-		}
+		//switch msg.String() {
+		//case "v":
+		//  cmds = append(cmds, keys.ChangeRoute("view"))
+		//}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -331,7 +326,7 @@ func (c *App) ChangeRoute(r string) {
 		c.PrevRoute = p
 	}
 	reactea.SetCurrentRoute(r)
-	c.SetFooter(reactea.CurrentRoute())
+	//c.SetFooter(reactea.CurrentRoute())
 }
 
 func (m App) Chosen() []map[string]string {
