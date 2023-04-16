@@ -191,8 +191,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		idx := c.list.CurrentItem()
 		c.Choices.Set(idx, c.inputValue)
 		cmds = append(cmds, keys.ReturnToList)
-	case edit.StartEditingMsg:
-		cmds = append(cmds, message.ChangeRoute("edit"))
 
 	case keys.ChangeRouteMsg:
 		route := msg.Name
@@ -213,6 +211,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "v":
+			cmds = append(cmds, keys.ChangeRoute("view"))
 		}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
@@ -272,14 +271,26 @@ func (c *App) Render(width, height int) string {
 		h -= lipgloss.Height(footer)
 	}
 
-	list := c.list.Render(w, h)
-	view = append(view, list)
+	view = append(view, c.renderBody(w, h))
 
 	if footer != "" {
 		view = append(view, footer)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, view...)
+}
+
+func (c App) renderBody(w, h int) string {
+	var body string
+
+	switch reactea.CurrentRoute() {
+	case "view":
+		body = c.mainRouter.Render(w, h)
+	default:
+		body = c.list.Render(w, h)
+	}
+
+	return body
 }
 
 func (c App) renderHeader(w, h int) string {
@@ -320,6 +331,7 @@ func (c *App) ChangeRoute(r string) {
 		c.PrevRoute = p
 	}
 	reactea.SetCurrentRoute(r)
+	c.SetFooter(reactea.CurrentRoute())
 }
 
 func (m App) Chosen() []map[string]string {

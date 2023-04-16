@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/style"
@@ -14,6 +15,7 @@ type Component struct {
 
 	Style    style.List
 	Viewport viewport.Model
+	fields   []item.Item
 }
 
 type Props struct {
@@ -29,6 +31,7 @@ func New() *Component {
 
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
+	m.fields = item.ChoiceMapToMatch(m.Props().Fields)
 	m.Viewport = viewport.New(0, 0)
 	return nil
 }
@@ -47,6 +50,15 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 func (m *Component) Render(w, h int) string {
 	m.SetWidth(w)
 	m.SetHeight(h)
+
+	var s []string
+	for _, i := range m.fields {
+		s = append(s, i.Render(m.Viewport.Width, m.Viewport.Height))
+	}
+
+	m.Viewport.SetContent(
+		lipgloss.JoinVertical(lipgloss.Left, s...),
+	)
 	return m.Viewport.View()
 }
 
