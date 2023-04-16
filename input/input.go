@@ -15,10 +15,7 @@ type Component struct {
 
 	input textinput.Model
 
-	Placeholder string
-	Prompt      string
-	Style       style.List
-	KeyMap      keys.KeyMap
+	KeyMap keys.KeyMap
 }
 
 type Props struct {
@@ -27,8 +24,6 @@ type Props struct {
 
 func New() *Component {
 	tm := &Component{
-		Style:  style.ListDefaults(),
-		Prompt: style.PromptPrefix,
 		input:  textinput.New(),
 		KeyMap: DefaultKeyMap(),
 	}
@@ -37,9 +32,8 @@ func New() *Component {
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.input.Prompt = c.Prompt
-	c.input.PromptStyle = c.Style.Prompt
-	c.input.Placeholder = c.Placeholder
+	c.input.Prompt = style.PromptPrefix
+	c.input.PromptStyle = style.Prompt
 	return c.input.Focus()
 }
 
