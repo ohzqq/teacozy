@@ -84,8 +84,7 @@ type Prefix struct {
 
 func New() Item {
 	item := Item{
-		Style:  DefaultItemStyle(),
-		Prefix: DefaultPrefix(),
+		Style: DefaultItemStyle(),
 	}
 	return item
 }
@@ -96,8 +95,7 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Style:  DefaultItemStyle(),
-		Prefix: DefaultPrefix(),
+		Style: DefaultItemStyle(),
 	}
 	return item
 }
@@ -119,19 +117,20 @@ func (i Item) Render(w, h int) string {
 	pre := "x"
 
 	if i.Label != "" {
-		pre = i.Label
+		style.Prefix().Cursor().Set(i.Label)
+		style.Prefix().Selected().Set(i.Label)
 	}
 
 	switch {
 	case i.Current:
-		pre = i.Style.Cursor.Render(pre)
+		pre = style.Prefix().Cursor().Render()
 	default:
 		if i.Selected {
-			pre = i.Style.Selected.Render(pre)
+			pre = style.Prefix().Selected().Render()
 		} else if i.Label == "" {
-			pre = strings.Repeat(" ", lipgloss.Width(pre))
+			pre = strings.Repeat(" ", lipgloss.Width(style.Prefix().Cursor().Text))
 		} else {
-			pre = i.Style.Label.Render(pre)
+			pre = style.Label.Render(i.Label)
 		}
 	}
 

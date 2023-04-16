@@ -10,13 +10,6 @@ const (
 	Ellipsis = "…"
 )
 
-const (
-	CursorPrefix     = "x"
-	PromptPrefix     = "> "
-	SelectedPrefix   = "x"
-	UnselectedPrefix = " "
-)
-
 var (
 	Prompt      = lipgloss.NewStyle().Foreground(color.Cyan())
 	Cursor      = lipgloss.NewStyle().Foreground(color.Green())
@@ -29,20 +22,6 @@ var (
 	Label       = lipgloss.NewStyle().Foreground(color.Purple())
 	Footer      = lipgloss.NewStyle().Foreground(color.Blue())
 )
-
-type prefix struct {
-	Cursor     string
-	Selected   string
-	Unselected string
-	Prompt     string
-}
-
-var prefixes = prefix{
-	Cursor:     CursorPrefix,
-	Selected:   SelectedPrefix,
-	Unselected: UnselectedPrefix,
-	Prompt:     PromptPrefix,
-}
 
 type List struct {
 	SelectedPrefix   lipgloss.Style
