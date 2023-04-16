@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/maps"
@@ -121,18 +120,6 @@ func (i Item) Render(w, h int) string {
 	s.WriteString(lipgloss.NewStyle().Render(text))
 
 	return s.String()
-}
-
-func DefaultItemStyle() style.ListItem {
-	var s style.ListItem
-	s.Cursor = style.Cursor
-	s.Selected = style.Selected
-	s.Unselected = style.Unselected
-	s.Text = style.Foreground
-	s.Label = style.Label
-	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
-
-	return s
 }
 
 func ChoiceMapToMatch(options Choices) []Item {
