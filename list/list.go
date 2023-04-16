@@ -11,7 +11,6 @@ import (
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type Option func(*Component)
@@ -21,7 +20,6 @@ type Component struct {
 	reactea.BasicPropfulComponent[Props]
 
 	Cursor int
-	Style  style.List
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
@@ -40,7 +38,6 @@ type Props struct {
 func New() *Component {
 	m := Component{
 		Cursor: 0,
-		Style:  style.ListDefaults(),
 	}
 	m.DefaultKeyMap()
 
