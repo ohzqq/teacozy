@@ -27,7 +27,6 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
-	PrevRoute  string
 
 	Style          style.App
 	width          int
@@ -189,8 +188,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "prev":
-			route = c.PrevRoute
 		case "help":
 			//p := c.NewProps(KeymapToProps(c.help))
 			//p.Height = c.Items.Height
@@ -200,10 +197,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		c.ChangeRoute(route)
 
 	case tea.KeyMsg:
-		//switch msg.String() {
-		//case "v":
-		//  cmds = append(cmds, keys.ChangeRoute("view"))
-		//}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -316,11 +309,6 @@ func (c App) renderFooter(w, h int) string {
 }
 
 func (c *App) ChangeRoute(r string) {
-	if p := reactea.CurrentRoute(); p == "" {
-		c.PrevRoute = "default"
-	} else {
-		c.PrevRoute = p
-	}
 	reactea.SetCurrentRoute(r)
 	//c.SetFooter(reactea.CurrentRoute())
 }
