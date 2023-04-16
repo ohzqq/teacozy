@@ -6,14 +6,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	Style    style.List
 	Viewport viewport.Model
 	fields   []item.Item
 }
@@ -23,9 +21,7 @@ type Props struct {
 }
 
 func New() *Component {
-	m := Component{
-		Style: style.ListDefaults(),
-	}
+	m := Component{}
 	return &m
 }
 
