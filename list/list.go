@@ -11,7 +11,6 @@ import (
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/message"
 	"github.com/ohzqq/teacozy/style"
 )
 
@@ -34,7 +33,6 @@ type Props struct {
 	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
-	SetContent  func(string)
 	Editable    bool
 	Filterable  bool
 }
@@ -66,9 +64,6 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case message.QuitMsg:
-		cmds = append(cmds, tea.Quit)
-
 	case keys.ReturnSelectionsMsg:
 		if reactea.CurrentRoute() == "list" {
 			return confirm.GetConfirmation("Accept selected?", AcceptChoices)

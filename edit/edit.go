@@ -57,7 +57,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case SaveEditMsg:
+	case ConfirmEditMsg:
 		if c.Props().Value != c.input.Value() {
 			c.Props().Save(c.input.Value())
 			c.input.Reset()
@@ -88,7 +88,7 @@ func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Esc(),
 		keys.Quit(),
-		keys.Save().Cmd(Save),
+		keys.Save().Cmd(ConfirmEdit),
 	}
 	return km
 }
