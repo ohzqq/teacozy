@@ -11,6 +11,7 @@ const (
 )
 
 var (
+	Match       = lipgloss.NewStyle().Foreground(color.Cyan())
 	Prompt      = lipgloss.NewStyle().Foreground(color.Cyan())
 	Cursor      = lipgloss.NewStyle().Foreground(color.Green())
 	Unselected  = lipgloss.NewStyle().Foreground(color.Fg())

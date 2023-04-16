@@ -12,13 +12,6 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-const (
-	PromptPrefix     = "> "
-	CursorPrefix     = "x"
-	SelectedPrefix   = "◉ "
-	UnselectedPrefix = " "
-)
-
 type Choices []Choice
 type Choice map[string]string
 
@@ -67,25 +60,15 @@ func (c Choice) Set(v string) Choice {
 
 type Item struct {
 	fuzzy.Match
-	*Prefix
 
 	Label    string
-	Style    style.ListItem
 	Current  bool
 	Selected bool
 	exec     *exec.Cmd
 }
 
-type Prefix struct {
-	Cursor     string
-	Selected   string
-	Unselected string
-}
-
 func New() Item {
-	item := Item{
-		Style: DefaultItemStyle(),
-	}
+	item := Item{}
 	return item
 }
 
@@ -95,17 +78,8 @@ func NewItem(t string, idx int) Item {
 			Str:   t,
 			Index: idx,
 		},
-		Style: DefaultItemStyle(),
 	}
 	return item
-}
-
-func DefaultPrefix() *Prefix {
-	return &Prefix{
-		Cursor:     CursorPrefix,
-		Selected:   SelectedPrefix,
-		Unselected: UnselectedPrefix,
-	}
 }
 
 func (i *Item) Exec(cmd *exec.Cmd) {
@@ -141,8 +115,8 @@ func (i Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
 		i.Str,
 		i.MatchedIndexes,
-		i.Style.Match,
-		i.Style.Text,
+		style.Match,
+		style.Foreground,
 	)
 	s.WriteString(lipgloss.NewStyle().Render(text))
 
