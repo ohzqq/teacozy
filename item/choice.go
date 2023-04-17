@@ -33,7 +33,7 @@ func (c Choices) Filter(s string) []Item {
 	for _, match := range m {
 		item := New()
 		item.Match = match
-		item.Label = maps.Keys(c[match.Index])[0]
+		item.Label = c[match.Index].Key()
 		matches = append(matches, item)
 	}
 	return matches
@@ -68,12 +68,12 @@ func (c Choice) Set(v string) Choice {
 func MapToChoices[K comparable, V any, M ~map[K]V](c []M) Choices {
 	choices := make(Choices, len(c))
 	for i, ch := range c {
-		choices[i] = StringifyMap(ch)
+		choices[i] = stringifyMap(ch)
 	}
 	return choices
 }
 
-func StringifyMap[K comparable, V any, M ~map[K]V](c M) Choice {
+func stringifyMap[K comparable, V any, M ~map[K]V](c M) Choice {
 	k := fmt.Sprint(maps.Keys(c)[0])
 	v := fmt.Sprint(maps.Values(c)[0])
 	return Choice{k: v}
