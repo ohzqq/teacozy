@@ -80,7 +80,7 @@ func (km KeyMap) AddBind(b *Binding) {
 
 var Global = KeyMap{
 	Quit(),
-	ShowHelp(),
+	Help(),
 }
 
 func Enter() *Binding {
@@ -175,10 +175,9 @@ func Quit() *Binding {
 		Cmd(reactea.Destroy)
 }
 
-func ShowHelp() *Binding {
+func Help() *Binding {
 	return NewBinding("f1").
-		WithHelp("help").
-		Cmd(ChangeRoute("help"))
+		WithHelp("show help")
 }
 
 func Yes() *Binding {

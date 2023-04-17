@@ -28,11 +28,12 @@ type Component struct {
 }
 
 type Props struct {
+	Editable    bool
+	Filterable  bool
 	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
-	Editable    bool
-	Filterable  bool
+	ShowHelp    func(keys.KeyMap)
 }
 
 func New() *Component {
@@ -65,6 +66,10 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		if reactea.CurrentRoute() == "list" {
 			return confirm.GetConfirmation("Accept selected?", AcceptChoices)
 		}
+
+	case keys.ShowHelpMsg:
+		m.Props().ShowHelp(m.KeyMap)
+		cmds = append(cmds, keys.ChangeRoute("help"))
 
 	case keys.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
@@ -229,7 +234,6 @@ func (m *Component) SetHeight(h int) {
 
 func (m *Component) commonKeys() keys.KeyMap {
 	var km = keys.KeyMap{
-		keys.Quit(),
 		keys.PgUp(),
 		keys.PgDown(),
 		keys.Enter().
@@ -247,11 +251,21 @@ func (m *Component) SetKeyMap(km keys.KeyMap) {
 
 func (m *Component) VimKeyMap() *Component {
 	m.SetKeyMap(VimKeyMap())
+
+	h := keys.Help().
+		AddKeys("h").
+		Cmd(keys.ShowHelp(m.KeyMap))
+	m.KeyMap = append(m.KeyMap, h)
+
 	return m
 }
 
 func (m *Component) DefaultKeyMap() *Component {
 	m.SetKeyMap(DefaultKeyMap())
+
+	h := keys.Help().Cmd(keys.ShowHelp(m.KeyMap))
+	m.KeyMap = append(m.KeyMap, h)
+
 	return m
 }
 
@@ -283,7 +297,7 @@ func AcceptChoices(accept bool) tea.Cmd {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	var km = keys.KeyMap{
+	return keys.KeyMap{
 		keys.ToggleItem(),
 		keys.Up(),
 		keys.Down(),
@@ -291,12 +305,12 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.HalfPgDown(),
 		keys.Home(),
 		keys.End(),
+		keys.Quit(),
 	}
-	return km
 }
 
 func VimKeyMap() keys.KeyMap {
-	var km = keys.KeyMap{
+	return keys.KeyMap{
 		keys.ToggleItem().AddKeys(" "),
 		keys.Up().AddKeys("k"),
 		keys.Down().AddKeys("j"),
@@ -304,8 +318,8 @@ func VimKeyMap() keys.KeyMap {
 		keys.HalfPgDown().AddKeys("J"),
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
+		keys.Quit().AddKeys("q"),
 	}
-	return km
 }
 
 func max(a, b int) int {

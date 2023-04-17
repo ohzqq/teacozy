@@ -12,6 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/edit"
+	"github.com/ohzqq/teacozy/help"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
@@ -55,6 +56,8 @@ type App struct {
 	selected    map[int]struct{}
 	numSelected int
 	limit       int
+
+	helpKeyMap item.Choices
 }
 
 type Option func(*App)
@@ -101,6 +104,7 @@ func (c *App) listProps() list.Props {
 		ToggleItems: c.ToggleItems,
 		Filterable:  c.filterable,
 		Editable:    c.editable,
+		ShowHelp:    c.SetHelp,
 	}
 	return p
 }
@@ -147,6 +151,13 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := view.New()
 			p := view.Props{
 				Fields: c.Choices,
+			}
+			return component, component.Init(p)
+		},
+		"help": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := help.New()
+			p := view.Props{
+				Fields: c.helpKeyMap,
 			}
 			return component, component.Init(p)
 		},
@@ -278,7 +289,7 @@ func (c App) renderBody(w, h int) string {
 	var body string
 
 	switch reactea.CurrentRoute() {
-	case "view":
+	case "view", "help":
 		body = c.mainRouter.Render(w, h)
 	default:
 		body = c.list.Render(w, h)
@@ -438,6 +449,10 @@ func (c *App) SetStatus(h string) *App {
 func (c *App) SetTitle(h string) *App {
 	c.title = h
 	return c
+}
+
+func (c *App) SetHelp(km keys.KeyMap) {
+	c.helpKeyMap = item.MapToChoices(km.Map())
 }
 
 func (c *App) ClearSelections() tea.Cmd {
