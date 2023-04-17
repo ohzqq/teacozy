@@ -4,10 +4,11 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type Component struct {
@@ -17,6 +18,7 @@ type Component struct {
 	input textarea.Model
 
 	KeyMap keys.KeyMap
+	Prefix string
 }
 
 type Props struct {
@@ -32,13 +34,15 @@ func New() *Component {
 	tm := &Component{
 		input:  textarea.New(),
 		KeyMap: DefaultKeyMap(),
+		Prefix: "> ",
 	}
+	tm.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
 	return tm
 }
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.input.Prompt = style.PromptPrefix
+	c.input.Prompt = c.Prefix
 	c.input.SetValue(props.Value)
 	c.input.ShowLineNumbers = false
 	return c.input.Focus()
@@ -74,7 +78,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	c.input.SetWidth(w)
-	c.input.SetHeight(c.input.LineInfo().Height)
+	lh := c.input.LineInfo().Height
+	if lh == 1 {
+		lh++
+	}
+	c.input.SetHeight(lh)
 	return c.input.View()
 }
 
@@ -85,6 +93,13 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Save().Cmd(ConfirmEdit),
 	}
 	return km
+}
+
+func DefaultStyle() textarea.Style {
+	return textarea.Style{
+		Base:       lipgloss.NewStyle(),
+		CursorLine: lipgloss.NewStyle().Background(color.Grey()),
+	}
 }
 
 func Save() tea.Msg {
