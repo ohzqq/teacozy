@@ -61,8 +61,6 @@ type App struct {
 	helpKeyMap item.Choices
 }
 
-type Option func(*App)
-
 type Style struct {
 	Confirm lipgloss.Style
 	Footer  lipgloss.Style
@@ -115,7 +113,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.list.DefaultKeyMap()
 			p := input.Props{
 				Filter:   c.SetInput,
-				ShowHelp: c.SetHelp,
+				ShowHelp: c.setHelp,
 			}
 			return component, component.Init(p)
 		},
@@ -127,7 +125,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			p := edit.Props{
 				Save:     c.SetInput,
 				Value:    c.inputValue,
-				ShowHelp: c.SetHelp,
+				ShowHelp: c.setHelp,
 			}
 			return component, component.Init(p)
 		},
@@ -300,16 +298,6 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
-func (m App) Chosen() []map[string]string {
-	var chosen []map[string]string
-	if len(m.selected) > 0 {
-		for k := range m.selected {
-			chosen = append(chosen, m.Choices[k])
-		}
-	}
-	return chosen
-}
-
 func (c *App) listProps() list.Props {
 	p := list.Props{
 		Matches:     c.Choices.Filter(c.search),
@@ -317,7 +305,7 @@ func (c *App) listProps() list.Props {
 		ToggleItems: c.ToggleItems,
 		Filterable:  c.filterable,
 		Editable:    c.editable,
-		ShowHelp:    c.SetHelp,
+		ShowHelp:    c.setHelp,
 	}
 	return p
 }
@@ -342,55 +330,18 @@ func (m *App) ToggleItems(items ...int) {
 	}
 }
 
+func (m App) Chosen() []map[string]string {
+	var chosen []map[string]string
+	if len(m.selected) > 0 {
+		for k := range m.selected {
+			chosen = append(chosen, m.Choices[k])
+		}
+	}
+	return chosen
+}
+
 func (m App) Selections() []int {
 	return maps.Keys(m.selected)
-}
-
-func WithSlice[E any](c []E) Option {
-	return func(a *App) {
-		a.Choices = item.SliceToChoices(c)
-	}
-}
-
-func WithMap(c []map[string]string) Option {
-	return func(a *App) {
-		a.Choices = item.MapToChoices(c)
-	}
-}
-
-func NoLimit() Option {
-	return func(a *App) {
-		a.limit = -1
-	}
-}
-
-func WithLimit(l int) Option {
-	return func(a *App) {
-		a.limit = l
-	}
-}
-
-func WithTitle(t string) Option {
-	return func(a *App) {
-		a.title = t
-	}
-}
-func ConfirmChoices() Option {
-	return func(a *App) {
-		a.confirmChoices = true
-	}
-}
-
-func Editable() Option {
-	return func(a *App) {
-		a.editable = true
-	}
-}
-
-func WithFilter() Option {
-	return func(a *App) {
-		a.filterable = true
-	}
 }
 
 func DefaultKeyMap() keys.KeyMap {
@@ -449,7 +400,12 @@ func (c *App) SetTitle(h string) *App {
 	return c
 }
 
-func (c *App) SetHelp(km []map[string]string) {
+func (c *App) SetLimit(l int) *App {
+	c.limit = l
+	return c
+}
+
+func (c *App) setHelp(km []map[string]string) {
 	c.helpKeyMap = item.MapToChoices(km)
 }
 
