@@ -78,11 +78,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	c.input.SetWidth(w)
-	lh := c.input.LineInfo().Height
-	if lh == 1 {
-		lh++
-	}
-	c.input.SetHeight(lh)
+	c.input.SetHeight(c.input.LineInfo().Height + 1)
 	return c.input.View()
 }
 
