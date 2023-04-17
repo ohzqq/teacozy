@@ -49,7 +49,8 @@ func (m *Component) Render(w, h int) string {
 
 	var s []string
 	for _, i := range m.fields {
-		s = append(s, i.Render(m.Viewport.Width, m.Viewport.Height))
+		f := i.Render(m.Viewport.Width, m.Viewport.Height)
+		s = append(s, lipgloss.NewStyle().Width(m.Width()).Render(f))
 	}
 
 	m.Viewport.SetContent(
@@ -64,4 +65,14 @@ func (m *Component) SetWidth(w int) {
 
 func (m *Component) SetHeight(h int) {
 	m.Viewport.Height = h
+}
+
+// Height returns the viewport height of the list.
+func (m Component) Height() int {
+	return m.Viewport.Height
+}
+
+// Width returns the viewport width of the list.
+func (m Component) Width() int {
+	return m.Viewport.Width
 }
