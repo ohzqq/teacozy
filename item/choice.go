@@ -32,8 +32,7 @@ func (c Choices) Filter(s string) []Item {
 	}
 	for _, match := range m {
 		item := New()
-		item.Match = match
-		item.Label = c[match.Index].Key()
+		item.SetMatch(match).SetLabel(c[match.Index].Key())
 		matches = append(matches, item)
 	}
 	return matches
