@@ -28,6 +28,11 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.Props().Editable {
+			if k := keys.Edit(); key.Matches(msg, k.Binding) {
+				return nil
+			}
+		}
 		for _, k := range m.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
