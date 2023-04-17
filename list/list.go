@@ -11,7 +11,6 @@ import (
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type Option func(*Component)
@@ -21,7 +20,6 @@ type Component struct {
 	reactea.BasicPropfulComponent[Props]
 
 	Cursor int
-	Style  style.List
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
@@ -40,7 +38,6 @@ type Props struct {
 func New() *Component {
 	m := Component{
 		Cursor: 0,
-		Style:  style.ListDefaults(),
 	}
 	m.DefaultKeyMap()
 
@@ -171,7 +168,7 @@ func (m Component) isSelected(idx int) bool {
 	return ok
 }
 
-// SelectedRow returns the selected row.
+// CurrentItem returns the selected row.
 // You can cast it to your own implementation.
 func (m Component) CurrentItem() int {
 	return m.Props().Matches[m.Cursor].Index
@@ -218,24 +215,13 @@ func (m *Component) GotoBottom() {
 	m.MoveDown(len(m.Props().Matches))
 }
 
-//func (m *List) ToggleAllItems() tea.Cmd {
-//  return func() tea.Msg {
-//    var items []int
-//    for _, item := range m.Props().AllItems() {
-//      items = append(items, item.Index)
-//    }
-//    m.Props().ToggleSelection(items...)
-//    return nil
-//  }
-//}
-
-// SetWidth sets the width of the viewport of the table.
+// SetWidth sets the width of the viewport of the list.
 func (m *Component) SetWidth(w int) {
 	m.Viewport.Width = w
 	m.UpdateItems()
 }
 
-// SetHeight sets the height of the viewport of the table.
+// SetHeight sets the height of the viewport of the list.
 func (m *Component) SetHeight(h int) {
 	m.Viewport.Height = h
 	m.UpdateItems()
@@ -253,6 +239,7 @@ func (m *Component) commonKeys() keys.KeyMap {
 	return km
 }
 
+// SetKeyMap sets the keymap for the list.
 func (m *Component) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = m.commonKeys()
 	m.KeyMap = append(m.KeyMap, km...)

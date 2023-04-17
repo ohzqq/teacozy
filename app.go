@@ -16,8 +16,6 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/message"
-	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/maps"
@@ -28,9 +26,8 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
-	PrevRoute  string
 
-	Style          style.App
+	Style
 	width          int
 	height         int
 	footer         string
@@ -62,12 +59,19 @@ type App struct {
 
 type Option func(*App)
 
+type Style struct {
+	Confirm lipgloss.Style
+	Footer  lipgloss.Style
+	Header  lipgloss.Style
+	Status  lipgloss.Style
+}
+
 func New(opts ...Option) (*App, error) {
 	a := &App{
 		mainRouter:            router.New(),
 		width:                 util.TermWidth(),
 		height:                10,
-		Style:                 style.DefaultAppStyle(),
+		Style:                 DefaultStyle(),
 		selected:              make(map[int]struct{}),
 		limit:                 1,
 		StatusMessageLifetime: time.Second,
@@ -99,6 +103,10 @@ func (c *App) listProps() list.Props {
 		Editable:    c.editable,
 	}
 	return p
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
@@ -190,8 +198,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "prev":
-			route = c.PrevRoute
 		case "help":
 			//p := c.NewProps(KeymapToProps(c.help))
 			//p.Height = c.Items.Height
@@ -200,14 +206,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		c.ChangeRoute(route)
 
-	case message.QuitMsg:
-		return reactea.Destroy
-
 	case tea.KeyMsg:
-		//switch msg.String() {
-		//case "v":
-		//  cmds = append(cmds, keys.ChangeRoute("view"))
-		//}
 		for _, k := range c.keyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -295,7 +294,7 @@ func (c App) renderHeader(w, h int) string {
 	}
 
 	if c.status != "" {
-		header = lipgloss.NewStyle().Foreground(color.Green()).Render(c.status)
+		header = c.Style.Status.Render(c.status)
 	}
 
 	switch reactea.CurrentRoute() {
@@ -320,11 +319,6 @@ func (c App) renderFooter(w, h int) string {
 }
 
 func (c *App) ChangeRoute(r string) {
-	if p := reactea.CurrentRoute(); p == "" {
-		c.PrevRoute = "default"
-	} else {
-		c.PrevRoute = p
-	}
 	reactea.SetCurrentRoute(r)
 	//c.SetFooter(reactea.CurrentRoute())
 }
@@ -345,13 +339,13 @@ func (m App) Selections() []int {
 
 func WithSlice[E any](c []E) Option {
 	return func(a *App) {
-		a.Choices = item.ChoiceSliceToMap(c)
+		a.Choices = item.SliceToChoices(c)
 	}
 }
 
 func WithMap(c []map[string]string) Option {
 	return func(a *App) {
-		a.Choices = item.ChoiceMap(c)
+		a.Choices = item.MapToChoices(c)
 	}
 }
 
@@ -388,10 +382,6 @@ func WithFilter() Option {
 	return func(a *App) {
 		a.filterable = true
 	}
-}
-
-func Filter(search string, choices item.Choices) []item.Item {
-	return choices.Filter(search)
 }
 
 func DefaultKeyMap() keys.KeyMap {
@@ -453,6 +443,15 @@ func (c *App) SetTitle(h string) *App {
 func (c *App) ClearSelections() tea.Cmd {
 	c.selected = make(map[int]struct{})
 	return nil
+}
+
+func DefaultStyle() Style {
+	return Style{
+		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
+		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
+		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Status:  lipgloss.NewStyle().Foreground(color.Green()),
+	}
 }
 
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290

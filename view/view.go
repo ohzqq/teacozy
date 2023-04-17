@@ -6,14 +6,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
-	"github.com/ohzqq/teacozy/style"
 )
 
 type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	Style    style.List
 	Viewport viewport.Model
 	fields   []item.Item
 }
@@ -23,15 +21,13 @@ type Props struct {
 }
 
 func New() *Component {
-	m := Component{
-		Style: style.ListDefaults(),
-	}
+	m := Component{}
 	return &m
 }
 
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
-	m.fields = item.ChoiceMapToMatch(m.Props().Fields)
+	m.fields = item.ChoicesToItems(m.Props().Fields)
 	m.Viewport = viewport.New(0, 0)
 	return nil
 }
