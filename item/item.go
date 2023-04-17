@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/style"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -15,20 +14,21 @@ type Item struct {
 	Label    string
 	Current  bool
 	Selected bool
+	Style    Style
 	exec     *exec.Cmd
 }
 
 func New() Item {
-	item := Item{}
-	return item
+	return Item{
+		Style: DefaultStyle(),
+	}
 }
 
 func NewItem(idx int, t string) Item {
-	item := Item{
-		Match: fuzzy.Match{
-			Str:   t,
-			Index: idx,
-		},
+	item := New()
+	item.Match = fuzzy.Match{
+		Str:   t,
+		Index: idx,
 	}
 	return item
 }
@@ -39,23 +39,22 @@ func (i *Item) Exec(cmd *exec.Cmd) {
 
 func (i Item) Render(w, h int) string {
 	var s strings.Builder
-	pre := "x"
+	pre := Cursor
 
 	if i.Label != "" {
-		style.Prefix().Cursor().Set(i.Label)
-		style.Prefix().Selected().Set(i.Label)
+		pre = i.Label
 	}
 
 	switch {
 	case i.Current:
-		pre = style.Prefix().Cursor().Render()
+		pre = i.Style.Cursor.Render(pre)
 	default:
 		if i.Selected {
-			pre = style.Prefix().Selected().Render()
+			pre = i.Style.Selected.Render(pre)
 		} else if i.Label == "" {
-			pre = strings.Repeat(" ", lipgloss.Width(style.Prefix().Cursor().Text))
+			pre = strings.Repeat(" ", lipgloss.Width(pre))
 		} else {
-			pre = style.Label.Render(i.Label)
+			pre = i.Style.Label.Render(pre)
 		}
 	}
 
@@ -66,8 +65,8 @@ func (i Item) Render(w, h int) string {
 	text := lipgloss.StyleRunes(
 		i.Str,
 		i.MatchedIndexes,
-		style.Match,
-		style.Foreground,
+		i.Style.Match,
+		i.Style.Unselected,
 	)
 	s.WriteString(lipgloss.NewStyle().Render(text))
 

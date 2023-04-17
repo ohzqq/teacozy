@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	Bullet   = "•"
-	Ellipsis = "…"
+	CursorPrefix     = "x"
+	PromptPrefix     = "> "
+	SelectedPrefix   = "x"
+	UnselectedPrefix = " "
 )
 
 var (
