@@ -28,7 +28,7 @@ func (c Choices) Filter(s string) []Item {
 	matches := []Item{}
 	m := fuzzy.FindFrom(s, c)
 	if len(m) == 0 {
-		return ChoiceMapToItems(c)
+		return ChoicesToItems(c)
 	}
 	for _, match := range m {
 		item := New()
@@ -63,19 +63,25 @@ func (c Choice) Set(v string) Choice {
 	return c
 }
 
-// ChoiceMap converts a slice of maps to Choices. Only the first item in the map
+// MapToChoices converts a slice of maps to Choices. Only the first item in the map
 // is collected.
-func ChoiceMap(c []map[string]string) Choices {
+func MapToChoices[K comparable, V any, M ~map[K]V](c []M) Choices {
 	choices := make(Choices, len(c))
 	for i, ch := range c {
-		choices[i] = ch
+		choices[i] = StringifyMap(ch)
 	}
 	return choices
 }
 
-// ChoiceSliceToMap converts a generic slice to Choices. Values are converted to
+func StringifyMap[K comparable, V any, M ~map[K]V](c M) Choice {
+	k := fmt.Sprint(maps.Keys(c)[0])
+	v := fmt.Sprint(maps.Values(c)[0])
+	return Choice{k: v}
+}
+
+// SliceToChoices converts a generic slice to Choices. Values are converted to
 // a string using fmt.Sprint and the key is the zero value.
-func ChoiceSliceToMap[E any](c []E) Choices {
+func SliceToChoices[E any](c []E) Choices {
 	choices := make([]Choice, len(c))
 	for i, val := range c {
 		choices[i] = Choice{"": fmt.Sprint(val)}

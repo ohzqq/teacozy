@@ -339,13 +339,13 @@ func (m App) Selections() []int {
 
 func WithSlice[E any](c []E) Option {
 	return func(a *App) {
-		a.Choices = item.ChoiceSliceToMap(c)
+		a.Choices = item.SliceToChoices(c)
 	}
 }
 
 func WithMap(c []map[string]string) Option {
 	return func(a *App) {
-		a.Choices = item.ChoiceMap(c)
+		a.Choices = item.MapToChoices(c)
 	}
 }
 

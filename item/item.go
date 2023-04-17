@@ -74,7 +74,7 @@ func (i Item) Render(w, h int) string {
 	return s.String()
 }
 
-func ChoiceMapToItems(options Choices) []Item {
+func ChoicesToItems(options Choices) []Item {
 	matches := make([]Item, len(options))
 	for i, option := range options {
 		for label, val := range option {

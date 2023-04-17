@@ -27,7 +27,7 @@ func New() *Component {
 
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
-	m.fields = item.ChoiceMapToItems(m.Props().Fields)
+	m.fields = item.ChoicesToItems(m.Props().Fields)
 	m.Viewport = viewport.New(0, 0)
 	return nil
 }
