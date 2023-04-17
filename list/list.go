@@ -63,6 +63,9 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ReturnSelectionsMsg:
+		if len(m.Props().Selected) == 0 {
+			return nil
+		}
 		if reactea.CurrentRoute() == "list" {
 			return confirm.GetConfirmation("Accept selected?", AcceptChoices)
 		}
@@ -290,6 +293,7 @@ func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 
+// AcceptChoices returns a confirmation dialogue.
 func AcceptChoices(accept bool) tea.Cmd {
 	if accept {
 		return reactea.Destroy

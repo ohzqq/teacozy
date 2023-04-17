@@ -40,8 +40,7 @@ type App struct {
 	confirmChoices bool
 
 	inputValue string
-	search     string
-	edit       string
+	filter     string
 
 	confirm confirm.Props
 
@@ -211,7 +210,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	switch reactea.CurrentRoute() {
 	case "filter":
-		c.search = c.inputValue
+		c.filter = c.inputValue
 		fallthrough
 	case "list":
 		cmds = append(cmds, c.list.Update(msg))
@@ -300,7 +299,7 @@ func (c App) renderFooter(w, h int) string {
 
 func (c *App) listProps() list.Props {
 	p := list.Props{
-		Matches:     c.Choices.Filter(c.search),
+		Matches:     c.Choices.Filter(c.filter),
 		Selected:    c.selected,
 		ToggleItems: c.ToggleItems,
 		Filterable:  c.filterable,
@@ -344,6 +343,15 @@ func (m App) Selections() []int {
 	return maps.Keys(m.selected)
 }
 
+func (c *App) setHelp(km []map[string]string) {
+	c.helpKeyMap = item.MapToChoices(km)
+}
+
+func (c *App) ClearSelections() tea.Cmd {
+	c.selected = make(map[int]struct{})
+	return nil
+}
+
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.Global
 	return km
@@ -362,15 +370,15 @@ func (c App) InputValue() string {
 }
 
 func (c *App) SetFilter(s string) {
-	c.search = s
+	c.filter = s
 }
 
 func (c *App) ResetFilter() {
-	c.search = ""
+	c.filter = ""
 }
 
 func (c App) FilterValue() string {
-	return c.search
+	return c.filter
 }
 
 func (c App) Height() int {
@@ -403,15 +411,6 @@ func (c *App) SetTitle(h string) *App {
 func (c *App) SetLimit(l int) *App {
 	c.limit = l
 	return c
-}
-
-func (c *App) setHelp(km []map[string]string) {
-	c.helpKeyMap = item.MapToChoices(km)
-}
-
-func (c *App) ClearSelections() tea.Cmd {
-	c.selected = make(map[int]struct{})
-	return nil
 }
 
 func DefaultStyle() Style {
