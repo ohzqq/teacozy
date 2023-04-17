@@ -56,16 +56,10 @@ func SelectAllItems() tea.Msg {
 	return SelectAllItemsMsg{}
 }
 
-type ShowHelpMsg struct {
-	KeyMap KeyMap
-}
+type ShowHelpMsg struct{}
 
-func ShowHelp(km KeyMap) tea.Cmd {
-	return func() tea.Msg {
-		return ShowHelpMsg{
-			KeyMap: km,
-		}
-	}
+func ShowHelp() tea.Msg {
+	return ShowHelpMsg{}
 }
 
 type HideHelpMsg struct{}

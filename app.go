@@ -137,8 +137,9 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.list.SetKeyMap(keys.Global)
 			c.SetInput(c.CurrentItem().Value())
 			p := edit.Props{
-				Save:  c.SetInput,
-				Value: c.inputValue,
+				Save:     c.SetInput,
+				Value:    c.inputValue,
+				ShowHelp: c.SetHelp,
 			}
 			return component, component.Init(p)
 		},
@@ -451,8 +452,8 @@ func (c *App) SetTitle(h string) *App {
 	return c
 }
 
-func (c *App) SetHelp(km keys.KeyMap) {
-	c.helpKeyMap = item.MapToChoices(km.Map())
+func (c *App) SetHelp(km []map[string]string) {
+	c.helpKeyMap = item.MapToChoices(km)
 }
 
 func (c *App) ClearSelections() tea.Cmd {

@@ -33,7 +33,7 @@ type Props struct {
 	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
-	ShowHelp    func(keys.KeyMap)
+	ShowHelp    func([]map[string]string)
 }
 
 func New() *Component {
@@ -68,7 +68,7 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case keys.ShowHelpMsg:
-		m.Props().ShowHelp(m.KeyMap)
+		m.Props().ShowHelp(m.KeyMap.Map())
 		cmds = append(cmds, keys.ChangeRoute("help"))
 
 	case keys.ToggleItemMsg:
@@ -252,9 +252,7 @@ func (m *Component) SetKeyMap(km keys.KeyMap) {
 func (m *Component) VimKeyMap() *Component {
 	m.SetKeyMap(VimKeyMap())
 
-	h := keys.Help().
-		AddKeys("h").
-		Cmd(keys.ShowHelp(m.KeyMap))
+	h := keys.Help().AddKeys("h")
 	m.KeyMap = append(m.KeyMap, h)
 
 	return m
@@ -262,10 +260,6 @@ func (m *Component) VimKeyMap() *Component {
 
 func (m *Component) DefaultKeyMap() *Component {
 	m.SetKeyMap(DefaultKeyMap())
-
-	h := keys.Help().Cmd(keys.ShowHelp(m.KeyMap))
-	m.KeyMap = append(m.KeyMap, h)
-
 	return m
 }
 

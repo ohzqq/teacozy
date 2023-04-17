@@ -19,11 +19,13 @@ type Component struct {
 
 	KeyMap keys.KeyMap
 	Prefix string
+	help   keys.KeyMap
 }
 
 type Props struct {
-	Value string
-	Save  func(string)
+	Value    string
+	Save     func(string)
+	ShowHelp func([]map[string]string)
 }
 
 type StartEditingMsg struct{}
@@ -31,13 +33,17 @@ type SaveEditMsg struct{}
 type ConfirmEditMsg struct{}
 
 func New() *Component {
-	tm := &Component{
+	c := &Component{
 		input:  textarea.New(),
 		KeyMap: DefaultKeyMap(),
 		Prefix: "> ",
 	}
-	tm.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
-	return tm
+	c.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
+
+	c.help = append(c.help, c.KeyMap...)
+	c.help = append(c.help, keys.TextArea()...)
+
+	return c
 }
 
 func (c *Component) Init(props Props) tea.Cmd {
@@ -62,6 +68,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 			return confirm.GetConfirmation("Save edit?", SaveEdit)
 		}
 		return keys.ReturnToList
+	case keys.ShowHelpMsg:
+		c.Props().ShowHelp(c.help.Map())
+		cmds = append(cmds, keys.ChangeRoute("help"))
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
@@ -87,6 +96,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Esc(),
 		keys.Quit(),
 		keys.Save().Cmd(ConfirmEdit),
+		keys.Help(),
 	}
 	return km
 }
