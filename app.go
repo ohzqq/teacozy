@@ -218,6 +218,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		c.prevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
+		//c.SetFooter(c.prevRoute)
+		c.SetFooter(reactea.CurrentRoute())
 
 	case tea.KeyMsg:
 		for _, k := range c.keyMap {
@@ -230,7 +232,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch reactea.CurrentRoute() {
 	case "filter":
 		c.search = c.inputValue
-		fallthrough
 	case "list":
 		cmds = append(cmds, c.list.Update(msg))
 	}
@@ -239,9 +240,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	return tea.Batch(cmds...)
 }
-
-//func (c *App) ChangeRoute(r string) {
-//}
 
 func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]

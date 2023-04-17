@@ -67,9 +67,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.input, cmd = c.input.Update(msg)
-	c.Props().Filter(c.input.Value())
-	cmds = append(cmds, cmd)
+	if c.input.Focused() {
+		c.input, cmd = c.input.Update(msg)
+		c.Props().Filter(c.input.Value())
+		cmds = append(cmds, cmd)
+	}
 
 	return tea.Batch(cmds...)
 }
@@ -81,6 +83,7 @@ func (c *Component) Render(int, int) string {
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Quit(),
+		keys.Help(),
 		keys.Enter().WithHelp("stop filtering").Cmd(StopFiltering),
 		keys.Esc().Cmd(StopFiltering),
 	}
