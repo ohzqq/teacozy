@@ -1,11 +1,13 @@
 package view
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
+	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
@@ -17,7 +19,8 @@ type Component struct {
 }
 
 type Props struct {
-	Fields item.Choices
+	Fields   item.Choices
+	Editable bool
 }
 
 func New() *Component {
@@ -36,6 +39,15 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(m)
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if m.Props().Editable {
+			if k := keys.Edit(); key.Matches(msg, k.Binding) {
+				return nil
+			}
+		}
+	}
 
 	m.Viewport, cmd = m.Viewport.Update(msg)
 	cmds = append(cmds, cmd)

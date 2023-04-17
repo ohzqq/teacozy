@@ -106,6 +106,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			})
 			return component, nil
 		},
+		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := list.New()
+			return component, component.Init(c.listProps())
+		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := input.New()
@@ -136,7 +140,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := view.New()
 			p := view.Props{
-				Fields: c.Choices,
+				Fields:   c.Choices,
+				Editable: c.editable,
 			}
 			return component, component.Init(p)
 		},
