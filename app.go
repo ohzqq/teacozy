@@ -218,8 +218,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		c.prevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
-		//c.SetFooter(c.prevRoute)
-		c.SetFooter(reactea.CurrentRoute())
 
 	case tea.KeyMsg:
 		for _, k := range c.keyMap {

@@ -19,7 +19,6 @@ type Component struct {
 
 	KeyMap keys.KeyMap
 	Prefix string
-	help   keys.KeyMap
 }
 
 type Props struct {
@@ -39,9 +38,6 @@ func New() *Component {
 		Prefix: "> ",
 	}
 	c.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
-
-	c.help = append(c.help, c.KeyMap...)
-	c.help = append(c.help, keys.TextArea()...)
 
 	return c
 }
@@ -69,7 +65,10 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 		return keys.ReturnToList
 	case keys.ShowHelpMsg:
-		c.Props().ShowHelp(c.help.Map())
+		var help keys.KeyMap
+		help = append(help, c.KeyMap...)
+		help = append(help, keys.TextArea()...)
+		c.Props().ShowHelp(help.Map())
 		cmds = append(cmds, keys.ChangeRoute("help"))
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
