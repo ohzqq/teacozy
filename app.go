@@ -128,7 +128,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.ResetInput()
 			component := input.New()
 			c.list.DefaultKeyMap()
-			p := input.Props{Filter: c.SetInput}
+			p := input.Props{
+				Filter:   c.SetInput,
+				ShowHelp: c.SetHelp,
+			}
 			return component, component.Init(p)
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {

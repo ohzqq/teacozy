@@ -19,20 +19,26 @@ type Component struct {
 	KeyMap keys.KeyMap
 	Prefix string
 	Style  lipgloss.Style
+	help   keys.KeyMap
 }
 
 type Props struct {
-	Filter func(string)
+	Filter   func(string)
+	ShowHelp func([]map[string]string)
 }
 
 func New() *Component {
-	tm := &Component{
+	c := &Component{
 		input:  textinput.New(),
 		KeyMap: DefaultKeyMap(),
 		Prefix: "> ",
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 	}
-	return tm
+
+	c.help = append(c.help, c.KeyMap...)
+	c.help = append(c.help, keys.TextInput()...)
+
+	return c
 }
 
 func (c *Component) Init(props Props) tea.Cmd {
@@ -49,6 +55,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case keys.ShowHelpMsg:
+		c.Props().ShowHelp(c.help.Map())
+		cmds = append(cmds, keys.ChangeRoute("help"))
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
