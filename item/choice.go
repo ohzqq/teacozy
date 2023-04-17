@@ -28,7 +28,7 @@ func (c Choices) Filter(s string) []Item {
 	matches := []Item{}
 	m := fuzzy.FindFrom(s, c)
 	if len(m) == 0 {
-		return ChoiceMapToMatch(c)
+		return ChoiceMapToItems(c)
 	}
 	for _, match := range m {
 		item := New()

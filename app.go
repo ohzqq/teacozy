@@ -59,6 +59,13 @@ type App struct {
 
 type Option func(*App)
 
+type Style struct {
+	Confirm lipgloss.Style
+	Footer  lipgloss.Style
+	Header  lipgloss.Style
+	Status  lipgloss.Style
+}
+
 func New(opts ...Option) (*App, error) {
 	a := &App{
 		mainRouter:            router.New(),
@@ -96,6 +103,10 @@ func (c *App) listProps() list.Props {
 		Editable:    c.editable,
 	}
 	return p
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
@@ -373,10 +384,6 @@ func WithFilter() Option {
 	}
 }
 
-func Filter(search string, choices item.Choices) []item.Item {
-	return choices.Filter(search)
-}
-
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.Global
 	return km
@@ -436,13 +443,6 @@ func (c *App) SetTitle(h string) *App {
 func (c *App) ClearSelections() tea.Cmd {
 	c.selected = make(map[int]struct{})
 	return nil
-}
-
-type Style struct {
-	Confirm lipgloss.Style
-	Footer  lipgloss.Style
-	Header  lipgloss.Style
-	Status  lipgloss.Style
 }
 
 func DefaultStyle() Style {
