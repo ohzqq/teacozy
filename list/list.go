@@ -68,7 +68,10 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case keys.ShowHelpMsg:
-		m.Props().ShowHelp(m.KeyMap.Map())
+		h := m.KeyMap.Map()
+		h = append(h, map[string]string{"Filtering Keys": "\n"})
+		h = append(h, keys.TextInput().Map()...)
+		m.Props().ShowHelp(h)
 		cmds = append(cmds, keys.ChangeRoute("help"))
 
 	case keys.ToggleItemMsg:

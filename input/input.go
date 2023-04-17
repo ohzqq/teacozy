@@ -35,9 +35,6 @@ func New() *Component {
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 	}
 
-	c.help = append(c.help, c.KeyMap...)
-	c.help = append(c.help, keys.TextInput()...)
-
 	return c
 }
 
@@ -55,9 +52,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case keys.ShowHelpMsg:
-		c.Props().ShowHelp(c.help.Map())
-		cmds = append(cmds, keys.ChangeRoute("help"))
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {

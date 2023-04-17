@@ -232,6 +232,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch reactea.CurrentRoute() {
 	case "filter":
 		c.search = c.inputValue
+		fallthrough
 	case "list":
 		cmds = append(cmds, c.list.Update(msg))
 	}
