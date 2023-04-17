@@ -172,15 +172,10 @@ func Prev() *Binding {
 		Cmd(PrevPage)
 }
 
-func ToggleItem() *Binding {
+func Toggle() *Binding {
 	return New("tab").
 		WithHelp("select item").
-		Cmd(func() tea.Msg { return ToggleItemMsg{} })
-}
-
-func ToggleMatch() *Binding {
-	return New("tab").
-		WithHelp("select item")
+		Cmd(ToggleItem)
 }
 
 func Quit() *Binding {

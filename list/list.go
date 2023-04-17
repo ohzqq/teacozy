@@ -74,6 +74,10 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		m.Props().ShowHelp(h)
 		cmds = append(cmds, keys.ChangeRoute("help"))
 
+	case keys.ToggleAllItemsMsg:
+		for _, i := range m.Props().Matches {
+			m.Props().ToggleItems(i.Index)
+		}
 	case keys.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
 		m.Props().ToggleItems(cur)
@@ -241,7 +245,7 @@ func (m *Component) commonKeys() keys.KeyMap {
 		keys.PgDown(),
 		keys.Enter().
 			WithHelp("return selections").
-			Cmd(keys.ReturnSelections()),
+			Cmd(keys.ReturnSelections),
 	}
 	return km
 }
@@ -295,7 +299,7 @@ func AcceptChoices(accept bool) tea.Cmd {
 
 func DefaultKeyMap() keys.KeyMap {
 	return keys.KeyMap{
-		keys.ToggleItem(),
+		keys.Toggle(),
 		keys.Up(),
 		keys.Down(),
 		keys.HalfPgUp(),
@@ -303,12 +307,15 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home(),
 		keys.End(),
 		keys.Quit(),
+		keys.New("ctrl+a").
+			WithHelp("toggle all").
+			Cmd(keys.ToggleAllItems),
 	}
 }
 
 func VimKeyMap() keys.KeyMap {
 	return keys.KeyMap{
-		keys.ToggleItem().AddKeys(" "),
+		keys.Toggle().AddKeys(" "),
 		keys.Up().AddKeys("k"),
 		keys.Down().AddKeys("j"),
 		keys.HalfPgUp().AddKeys("K"),
@@ -316,6 +323,9 @@ func VimKeyMap() keys.KeyMap {
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
 		keys.Quit().AddKeys("q"),
+		keys.New("ctrl+a", "v").
+			WithHelp("toggle all").
+			Cmd(keys.ToggleAllItems),
 	}
 }
 
