@@ -98,22 +98,6 @@ func New(opts ...Option) (*App, error) {
 	return a, nil
 }
 
-func (c *App) listProps() list.Props {
-	p := list.Props{
-		Matches:     c.Choices.Filter(c.search),
-		Selected:    c.selected,
-		ToggleItems: c.ToggleItems,
-		Filterable:  c.filterable,
-		Editable:    c.editable,
-		ShowHelp:    c.SetHelp,
-	}
-	return p
-}
-
-func Filter(search string, choices item.Choices) []item.Item {
-	return choices.Filter(search)
-}
-
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list.Init(c.listProps())
 
@@ -240,25 +224,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m App) CurrentItem() item.Choice {
-	return m.Choices[m.list.CurrentItem()]
-}
-
 func (m *App) AfterUpdate() tea.Cmd {
 	m.list.UpdateProps(m.listProps())
 	return nil
-}
-
-func (m *App) ToggleItems(items ...int) {
-	for _, idx := range items {
-		if _, ok := m.selected[idx]; ok {
-			delete(m.selected, idx)
-			m.numSelected--
-		} else if m.numSelected < m.limit {
-			m.selected[idx] = struct{}{}
-			m.numSelected++
-		}
-	}
 }
 
 func (c *App) Render(width, height int) string {
@@ -340,6 +308,38 @@ func (m App) Chosen() []map[string]string {
 		}
 	}
 	return chosen
+}
+
+func (c *App) listProps() list.Props {
+	p := list.Props{
+		Matches:     c.Choices.Filter(c.search),
+		Selected:    c.selected,
+		ToggleItems: c.ToggleItems,
+		Filterable:  c.filterable,
+		Editable:    c.editable,
+		ShowHelp:    c.SetHelp,
+	}
+	return p
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
+}
+
+func (m App) CurrentItem() item.Choice {
+	return m.Choices[m.list.CurrentItem()]
+}
+
+func (m *App) ToggleItems(items ...int) {
+	for _, idx := range items {
+		if _, ok := m.selected[idx]; ok {
+			delete(m.selected, idx)
+			m.numSelected--
+		} else if m.numSelected < m.limit {
+			m.selected[idx] = struct{}{}
+			m.numSelected++
+		}
+	}
 }
 
 func (m App) Selections() []int {
