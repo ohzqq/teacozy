@@ -27,6 +27,7 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
+	prevRoute  string
 
 	Style
 	width          int
@@ -185,8 +186,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ReturnToListMsg:
 		c.ResetInput()
 		c.ResetFilter()
-		reactea.SetCurrentRoute("list")
-		return nil
+		cmds = append(cmds, keys.ChangeRoute("list"))
 
 	case statusMessageTimeoutMsg:
 		c.SetStatus("")
@@ -213,13 +213,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "help":
-			//p := c.NewProps(KeymapToProps(c.help))
-			//p.Height = c.Items.Height
-			//p.Width = c.Items.Width
-			//c.Routes["help"] = view.New().Initializer(p)
+		case "prev":
+			return keys.ChangeRoute(c.prevRoute)
 		}
-		c.ChangeRoute(route)
+		c.prevRoute = reactea.CurrentRoute()
+		reactea.SetCurrentRoute(route)
 
 	case tea.KeyMsg:
 		for _, k := range c.keyMap {
@@ -230,7 +228,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	switch reactea.CurrentRoute() {
-	case "help":
 	case "filter":
 		c.search = c.inputValue
 		fallthrough
@@ -242,6 +239,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 	return tea.Batch(cmds...)
 }
+
+//func (c *App) ChangeRoute(r string) {
+//}
 
 func (m App) CurrentItem() item.Choice {
 	return m.Choices[m.list.CurrentItem()]
@@ -293,7 +293,9 @@ func (c App) renderBody(w, h int) string {
 	var body string
 
 	switch reactea.CurrentRoute() {
-	case "view", "help":
+	case "help":
+		fallthrough
+	case "view":
 		body = c.mainRouter.Render(w, h)
 	default:
 		body = c.list.Render(w, h)
@@ -331,11 +333,6 @@ func (c App) renderFooter(w, h int) string {
 		footer = c.mainRouter.Render(w, h)
 	}
 	return footer
-}
-
-func (c *App) ChangeRoute(r string) {
-	reactea.SetCurrentRoute(r)
-	//c.SetFooter(reactea.CurrentRoute())
 }
 
 func (m App) Chosen() []map[string]string {

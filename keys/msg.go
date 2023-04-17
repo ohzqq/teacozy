@@ -97,13 +97,3 @@ type BottomMsg struct{}
 
 func Top() tea.Msg    { return TopMsg{} }
 func Bottom() tea.Msg { return BottomMsg{} }
-
-type ToggleMsg struct {
-	Index int
-}
-
-func Toggle(idx int) tea.Msg {
-	return func() tea.Msg {
-		return ToggleMsg{Index: idx}
-	}
-}

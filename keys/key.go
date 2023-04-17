@@ -95,7 +95,6 @@ func MapKeys(keys ...key.Binding) []map[string]string {
 
 var Global = KeyMap{
 	Quit(),
-	Help(),
 }
 
 func Enter() *Binding {

@@ -43,6 +43,6 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 
 func DefaultKeyMap() keys.KeyMap {
 	return keys.KeyMap{
-		keys.Esc().AddKeys("q"),
+		keys.Esc().AddKeys("q").Cmd(keys.ChangeRoute("prev")),
 	}
 }
