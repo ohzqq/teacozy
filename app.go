@@ -16,7 +16,6 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 	"golang.org/x/exp/maps"
@@ -28,7 +27,7 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	Style          style.App
+	Style
 	width          int
 	height         int
 	footer         string
@@ -65,7 +64,7 @@ func New(opts ...Option) (*App, error) {
 		mainRouter:            router.New(),
 		width:                 util.TermWidth(),
 		height:                10,
-		Style:                 style.DefaultAppStyle(),
+		Style:                 DefaultStyle(),
 		selected:              make(map[int]struct{}),
 		limit:                 1,
 		StatusMessageLifetime: time.Second,
@@ -284,7 +283,7 @@ func (c App) renderHeader(w, h int) string {
 	}
 
 	if c.status != "" {
-		header = lipgloss.NewStyle().Foreground(color.Green()).Render(c.status)
+		header = c.Style.Status.Render(c.status)
 	}
 
 	switch reactea.CurrentRoute() {
@@ -437,6 +436,22 @@ func (c *App) SetTitle(h string) *App {
 func (c *App) ClearSelections() tea.Cmd {
 	c.selected = make(map[int]struct{})
 	return nil
+}
+
+type Style struct {
+	Confirm lipgloss.Style
+	Footer  lipgloss.Style
+	Header  lipgloss.Style
+	Status  lipgloss.Style
+}
+
+func DefaultStyle() Style {
+	return Style{
+		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
+		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
+		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Status:  lipgloss.NewStyle().Foreground(color.Green()),
+	}
 }
 
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
