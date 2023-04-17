@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 )
@@ -13,16 +15,21 @@ type KeyMap []*Binding
 type Binding struct {
 	key.Binding
 	help   string
-	keys   []key.Binding
 	TeaCmd tea.Cmd
 }
 
-func NewBinding(keys ...string) *Binding {
+func New(keys ...string) *Binding {
 	k := Binding{
 		Binding: key.NewBinding(),
 	}
 	k.WithKeys(keys...)
 	return &k
+}
+
+func NewBind(k key.Binding) *Binding {
+	return &Binding{
+		Binding: k,
+	}
 }
 
 func (k *Binding) Cmd(cmd tea.Cmd) *Binding {
@@ -69,7 +76,7 @@ func (km KeyMap) Get(name string) *Binding {
 }
 
 func (km KeyMap) New(keys ...string) *Binding {
-	b := NewBinding(keys...)
+	b := New(keys...)
 	km.AddBind(b)
 	return b
 }
@@ -78,127 +85,167 @@ func (km KeyMap) AddBind(b *Binding) {
 	km = append(km, b)
 }
 
+func MapKeys(keys ...key.Binding) []map[string]string {
+	c := make([]map[string]string, len(keys))
+	for i, k := range keys {
+		c[i] = map[string]string{k.Help().Key: k.Help().Desc}
+	}
+	return c
+}
+
 var Global = KeyMap{
 	Quit(),
-	ShowHelp(),
 }
 
 func Enter() *Binding {
-	return NewBinding("enter")
+	return New("enter")
 }
 
 func Filter() *Binding {
-	return NewBinding("/").
+	return New("/").
 		WithHelp("filter items").
 		Cmd(ChangeRoute("filter"))
 }
 
 func Save() *Binding {
-	return NewBinding("ctrl+s").
+	return New("ctrl+s").
 		WithHelp("save edit")
 }
 
 func HalfPgUp() *Binding {
-	return NewBinding("ctrl+u").
+	return New("ctrl+u").
 		WithHelp("½ page up").
 		Cmd(HalfPageUp)
 }
 
 func HalfPgDown() *Binding {
-	return NewBinding("ctrl+d").
+	return New("ctrl+d").
 		WithHelp("½ page down").
 		Cmd(HalfPageDown)
 }
 
 func PgUp() *Binding {
-	return NewBinding("pgup").
+	return New("pgup").
 		WithHelp("page up").
 		Cmd(PageUp)
 }
 
 func PgDown() *Binding {
-	return NewBinding("pgdown").
+	return New("pgdown").
 		WithHelp("page down").
 		Cmd(PageDown)
 }
 
 func End() *Binding {
-	return NewBinding("end").
+	return New("end").
 		WithHelp("list bottom").
 		Cmd(Bottom)
 }
 
 func Home() *Binding {
-	return NewBinding("home").
+	return New("home").
 		WithHelp("list top").
 		Cmd(Top)
 }
 
 func Up() *Binding {
-	return NewBinding("up").
+	return New("up").
 		WithHelp("move up").
 		Cmd(LineUp)
 }
 
 func Down() *Binding {
-	return NewBinding("down").
+	return New("down").
 		WithHelp("move down").
 		Cmd(LineDown)
 }
 
 func Next() *Binding {
-	return NewBinding("right").
+	return New("right").
 		WithHelp("next page").
 		Cmd(NextPage)
 }
 
 func Prev() *Binding {
-	return NewBinding("left").
+	return New("left").
 		WithHelp("prev page").
 		Cmd(PrevPage)
 }
 
-func ToggleItem() *Binding {
-	return NewBinding("tab").
+func Toggle() *Binding {
+	return New("tab").
 		WithHelp("select item").
-		Cmd(func() tea.Msg { return ToggleItemMsg{} })
-}
-
-func ToggleMatch() *Binding {
-	return NewBinding("tab").
-		WithHelp("select item")
+		Cmd(ToggleItem)
 }
 
 func Quit() *Binding {
-	return NewBinding("ctrl+c").
+	return New("ctrl+c").
 		WithHelp("quit program").
 		Cmd(reactea.Destroy)
 }
 
-func ShowHelp() *Binding {
-	return NewBinding("f1").
-		WithHelp("help").
-		Cmd(ChangeRoute("help"))
+func Help() *Binding {
+	return New("f1").
+		WithHelp("show help").
+		Cmd(ShowHelp)
 }
 
 func Yes() *Binding {
-	return NewBinding("y").
+	return New("y").
 		WithHelp("confirm action")
 }
 
 func No() *Binding {
-	return NewBinding("n").
+	return New("n").
 		WithHelp("reject action")
 }
 
 func Esc() *Binding {
-	return NewBinding("esc").
+	return New("esc").
 		WithHelp("exit screen").
 		Cmd(ReturnToList)
 }
 
 func Edit() *Binding {
-	return NewBinding("e").
+	return New("e").
 		WithHelp("edit field").
 		Cmd(ChangeRoute("edit"))
+}
+
+func TextInput() KeyMap {
+	return textInput
+}
+
+func TextArea() KeyMap {
+	km := textInput
+	km = append(km, textArea...)
+	return km
+}
+
+var textInput = KeyMap{
+	NewBind(textinput.DefaultKeyMap.CharacterBackward).WithHelp("character backward"),
+	NewBind(textinput.DefaultKeyMap.CharacterForward).WithHelp("char forward"),
+	NewBind(textinput.DefaultKeyMap.DeleteAfterCursor).WithHelp("delete after cursor"),
+	NewBind(textinput.DefaultKeyMap.DeleteBeforeCursor).WithHelp("delete before cursor"),
+	NewBind(textinput.DefaultKeyMap.DeleteCharacterBackward).WithHelp("delete char backward"),
+	NewBind(textinput.DefaultKeyMap.DeleteCharacterForward).WithHelp("delete char forward"),
+	NewBind(textinput.DefaultKeyMap.DeleteWordBackward).WithHelp("delete word backward"),
+	NewBind(textinput.DefaultKeyMap.DeleteWordForward).WithHelp("delete word forward"),
+	NewBind(textinput.DefaultKeyMap.LineEnd).WithHelp("line end"),
+	NewBind(textinput.DefaultKeyMap.LineStart).WithHelp("line start"),
+	NewBind(textinput.DefaultKeyMap.Paste).WithHelp("paste"),
+	NewBind(textinput.DefaultKeyMap.WordBackward).WithHelp("word backward"),
+	NewBind(textinput.DefaultKeyMap.WordForward).WithHelp("word forward"),
+}
+
+var textArea = KeyMap{
+	NewBind(textarea.DefaultKeyMap.InsertNewline).WithHelp("insert new line"),
+	NewBind(textarea.DefaultKeyMap.LineNext).WithHelp("line next"),
+	NewBind(textarea.DefaultKeyMap.LinePrevious).WithHelp("line prev"),
+	NewBind(textarea.DefaultKeyMap.InputBegin).WithHelp("input begin"),
+	NewBind(textarea.DefaultKeyMap.InputEnd).WithHelp("input end"),
+	NewBind(textarea.DefaultKeyMap.UppercaseWordForward).WithHelp("uppercase word forward"),
+	NewBind(textarea.DefaultKeyMap.LowercaseWordForward).WithHelp("lowercase word forward"),
+	NewBind(textarea.DefaultKeyMap.CapitalizeWordForward).WithHelp("captilize character forward"),
+	NewBind(textarea.DefaultKeyMap.TransposeCharacterBackward).WithHelp("transpose charactre backward"),
 }

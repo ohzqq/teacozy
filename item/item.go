@@ -21,16 +21,28 @@ type Item struct {
 func New() Item {
 	return Item{
 		Style: DefaultStyle(),
+		Match: fuzzy.Match{},
 	}
 }
 
-func NewItem(idx int, t string) Item {
-	item := New()
-	item.Match = fuzzy.Match{
-		Str:   t,
-		Index: idx,
-	}
-	return item
+func (i *Item) SetIndex(idx int) *Item {
+	i.Index = idx
+	return i
+}
+
+func (i *Item) SetValue(val string) *Item {
+	i.Str = val
+	return i
+}
+
+func (i *Item) SetLabel(l string) *Item {
+	i.Label = l
+	return i
+}
+
+func (i *Item) SetMatch(m fuzzy.Match) *Item {
+	i.Match = m
+	return i
 }
 
 func (i *Item) Exec(cmd *exec.Cmd) {
@@ -77,8 +89,8 @@ func ChoicesToItems(options Choices) []Item {
 	matches := make([]Item, len(options))
 	for i, option := range options {
 		for label, val := range option {
-			item := NewItem(i, val)
-			item.Label = label
+			item := New()
+			item.SetIndex(i).SetValue(val).SetLabel(label)
 			matches[i] = item
 		}
 	}

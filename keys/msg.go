@@ -2,29 +2,10 @@ package keys
 
 import tea "github.com/charmbracelet/bubbletea"
 
+// Route keys
 type ReturnToListMsg struct{}
 
-func ReturnToList() tea.Msg {
-	return ReturnToListMsg{}
-}
-
-type ReturnSelectionsMsg struct {
-	Quitting bool
-}
-
-func ReturnSelections() tea.Cmd {
-	return func() tea.Msg {
-		return ReturnSelectionsMsg{}
-	}
-}
-
-type QuitMsg struct{}
-
-func QuitTea() tea.Cmd {
-	return func() tea.Msg {
-		return QuitMsg{}
-	}
-}
+func ReturnToList() tea.Msg { return ReturnToListMsg{} }
 
 type ChangeRouteMsg struct {
 	Name string
@@ -36,42 +17,23 @@ func ChangeRoute(name string) tea.Cmd {
 	}
 }
 
-type ToggleItemMsg struct{}
+// List Msg
+type ReturnSelectionsMsg struct{}
 
+func ReturnSelections() tea.Msg { return ReturnSelectionsMsg{} }
+
+type ToggleItemMsg struct{}
 type ToggleAllItemsMsg struct{}
 
-func ToggleAllItems() tea.Msg {
-	return ToggleAllItemsMsg{}
-}
+func ToggleAllItems() tea.Msg { return ToggleAllItemsMsg{} }
+func ToggleItem() tea.Msg     { return ToggleItemMsg{} }
 
-type DeselectAllItemsMsg struct{}
-
-func DeselectAllItems() tea.Msg {
-	return DeselectAllItemsMsg{}
-}
-
-type SelectAllItemsMsg struct{}
-
-func SelectAllItems() tea.Msg {
-	return SelectAllItemsMsg{}
-}
-
+// Help msg
 type ShowHelpMsg struct{}
 
-func ShowHelpInfo() tea.Cmd {
-	return func() tea.Msg {
-		return ShowHelpMsg{}
-	}
-}
+func ShowHelp() tea.Msg { return ShowHelpMsg{} }
 
-type HideHelpMsg struct{}
-
-func HideHelp() tea.Cmd {
-	return func() tea.Msg {
-		return HideHelpMsg{}
-	}
-}
-
+// Nav msg
 type LineUpMsg struct{}
 type HalfPageUpMsg struct{}
 type PageUpMsg struct{}
@@ -99,13 +61,3 @@ type BottomMsg struct{}
 
 func Top() tea.Msg    { return TopMsg{} }
 func Bottom() tea.Msg { return BottomMsg{} }
-
-type ToggleMsg struct {
-	Index int
-}
-
-func Toggle(idx int) tea.Msg {
-	return func() tea.Msg {
-		return ToggleMsg{Index: idx}
-	}
-}

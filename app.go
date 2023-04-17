@@ -12,6 +12,7 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/edit"
+	"github.com/ohzqq/teacozy/help"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
@@ -26,6 +27,7 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
+	prevRoute  string
 
 	Style
 	width          int
@@ -38,8 +40,7 @@ type App struct {
 	confirmChoices bool
 
 	inputValue string
-	search     string
-	edit       string
+	filter     string
 
 	confirm confirm.Props
 
@@ -55,9 +56,9 @@ type App struct {
 	selected    map[int]struct{}
 	numSelected int
 	limit       int
-}
 
-type Option func(*App)
+	helpKeyMap item.Choices
+}
 
 type Style struct {
 	Confirm lipgloss.Style
@@ -94,21 +95,6 @@ func New(opts ...Option) (*App, error) {
 	return a, nil
 }
 
-func (c *App) listProps() list.Props {
-	p := list.Props{
-		Matches:     c.Choices.Filter(c.search),
-		Selected:    c.selected,
-		ToggleItems: c.ToggleItems,
-		Filterable:  c.filterable,
-		Editable:    c.editable,
-	}
-	return p
-}
-
-func Filter(search string, choices item.Choices) []item.Item {
-	return choices.Filter(search)
-}
-
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.list.Init(c.listProps())
 
@@ -120,11 +106,18 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			})
 			return component, nil
 		},
+		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := list.New()
+			return component, component.Init(c.listProps())
+		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := input.New()
 			c.list.DefaultKeyMap()
-			p := input.Props{Filter: c.SetInput}
+			p := input.Props{
+				Filter:   c.SetInput,
+				ShowHelp: c.setHelp,
+			}
 			return component, component.Init(p)
 		},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
@@ -133,8 +126,9 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.list.SetKeyMap(keys.Global)
 			c.SetInput(c.CurrentItem().Value())
 			p := edit.Props{
-				Save:  c.SetInput,
-				Value: c.inputValue,
+				Save:     c.SetInput,
+				Value:    c.inputValue,
+				ShowHelp: c.setHelp,
 			}
 			return component, component.Init(p)
 		},
@@ -146,7 +140,15 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := view.New()
 			p := view.Props{
-				Fields: c.Choices,
+				Fields:   c.Choices,
+				Editable: c.editable,
+			}
+			return component, component.Init(p)
+		},
+		"help": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			component := help.New()
+			p := view.Props{
+				Fields: c.helpKeyMap,
 			}
 			return component, component.Init(p)
 		},
@@ -170,8 +172,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ReturnToListMsg:
 		c.ResetInput()
 		c.ResetFilter()
-		reactea.SetCurrentRoute("list")
-		return nil
+		cmds = append(cmds, keys.ChangeRoute("list"))
 
 	case statusMessageTimeoutMsg:
 		c.SetStatus("")
@@ -198,13 +199,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ChangeRouteMsg:
 		route := msg.Name
 		switch route {
-		case "help":
-			//p := c.NewProps(KeymapToProps(c.help))
-			//p.Height = c.Items.Height
-			//p.Width = c.Items.Width
-			//c.Routes["help"] = view.New().Initializer(p)
+		case "prev":
+			return keys.ChangeRoute(c.prevRoute)
 		}
-		c.ChangeRoute(route)
+		c.prevRoute = reactea.CurrentRoute()
+		reactea.SetCurrentRoute(route)
 
 	case tea.KeyMsg:
 		for _, k := range c.keyMap {
@@ -215,9 +214,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	switch reactea.CurrentRoute() {
-	case "help":
 	case "filter":
-		c.search = c.inputValue
+		c.filter = c.inputValue
 		fallthrough
 	case "list":
 		cmds = append(cmds, c.list.Update(msg))
@@ -228,25 +226,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m App) CurrentItem() item.Choice {
-	return m.Choices[m.list.CurrentItem()]
-}
-
 func (m *App) AfterUpdate() tea.Cmd {
 	m.list.UpdateProps(m.listProps())
 	return nil
-}
-
-func (m *App) ToggleItems(items ...int) {
-	for _, idx := range items {
-		if _, ok := m.selected[idx]; ok {
-			delete(m.selected, idx)
-			m.numSelected--
-		} else if m.numSelected < m.limit {
-			m.selected[idx] = struct{}{}
-			m.numSelected++
-		}
-	}
 }
 
 func (c *App) Render(width, height int) string {
@@ -278,6 +260,8 @@ func (c App) renderBody(w, h int) string {
 	var body string
 
 	switch reactea.CurrentRoute() {
+	case "help":
+		fallthrough
 	case "view":
 		body = c.mainRouter.Render(w, h)
 	default:
@@ -318,9 +302,36 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
-func (c *App) ChangeRoute(r string) {
-	reactea.SetCurrentRoute(r)
-	//c.SetFooter(reactea.CurrentRoute())
+func (c *App) listProps() list.Props {
+	p := list.Props{
+		Matches:     c.Choices.Filter(c.filter),
+		Selected:    c.selected,
+		ToggleItems: c.ToggleItems,
+		Filterable:  c.filterable,
+		Editable:    c.editable,
+		ShowHelp:    c.setHelp,
+	}
+	return p
+}
+
+func Filter(search string, choices item.Choices) []item.Item {
+	return choices.Filter(search)
+}
+
+func (m App) CurrentItem() item.Choice {
+	return m.Choices[m.list.CurrentItem()]
+}
+
+func (m *App) ToggleItems(items ...int) {
+	for _, idx := range items {
+		if _, ok := m.selected[idx]; ok {
+			delete(m.selected, idx)
+			m.numSelected--
+		} else if m.numSelected < m.limit {
+			m.selected[idx] = struct{}{}
+			m.numSelected++
+		}
+	}
 }
 
 func (m App) Chosen() []map[string]string {
@@ -337,51 +348,13 @@ func (m App) Selections() []int {
 	return maps.Keys(m.selected)
 }
 
-func WithSlice[E any](c []E) Option {
-	return func(a *App) {
-		a.Choices = item.SliceToChoices(c)
-	}
+func (c *App) setHelp(km []map[string]string) {
+	c.helpKeyMap = item.MapToChoices(km)
 }
 
-func WithMap(c []map[string]string) Option {
-	return func(a *App) {
-		a.Choices = item.MapToChoices(c)
-	}
-}
-
-func NoLimit() Option {
-	return func(a *App) {
-		a.limit = -1
-	}
-}
-
-func WithLimit(l int) Option {
-	return func(a *App) {
-		a.limit = l
-	}
-}
-
-func WithTitle(t string) Option {
-	return func(a *App) {
-		a.title = t
-	}
-}
-func ConfirmChoices() Option {
-	return func(a *App) {
-		a.confirmChoices = true
-	}
-}
-
-func Editable() Option {
-	return func(a *App) {
-		a.editable = true
-	}
-}
-
-func WithFilter() Option {
-	return func(a *App) {
-		a.filterable = true
-	}
+func (c *App) ClearSelections() tea.Cmd {
+	c.selected = make(map[int]struct{})
+	return nil
 }
 
 func DefaultKeyMap() keys.KeyMap {
@@ -402,15 +375,15 @@ func (c App) InputValue() string {
 }
 
 func (c *App) SetFilter(s string) {
-	c.search = s
+	c.filter = s
 }
 
 func (c *App) ResetFilter() {
-	c.search = ""
+	c.filter = ""
 }
 
 func (c App) FilterValue() string {
-	return c.search
+	return c.filter
 }
 
 func (c App) Height() int {
@@ -440,9 +413,9 @@ func (c *App) SetTitle(h string) *App {
 	return c
 }
 
-func (c *App) ClearSelections() tea.Cmd {
-	c.selected = make(map[int]struct{})
-	return nil
+func (c *App) SetLimit(l int) *App {
+	c.limit = l
+	return c
 }
 
 func DefaultStyle() Style {

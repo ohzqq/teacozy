@@ -28,11 +28,12 @@ type Component struct {
 }
 
 type Props struct {
+	Editable    bool
+	Filterable  bool
 	Matches     []item.Item
 	Selected    map[int]struct{}
 	ToggleItems func(...int)
-	Editable    bool
-	Filterable  bool
+	ShowHelp    func([]map[string]string)
 }
 
 func New() *Component {
@@ -62,10 +63,24 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ReturnSelectionsMsg:
+		if len(m.Props().Selected) == 0 {
+			return nil
+		}
 		if reactea.CurrentRoute() == "list" {
 			return confirm.GetConfirmation("Accept selected?", AcceptChoices)
 		}
 
+	case keys.ShowHelpMsg:
+		h := m.KeyMap.Map()
+		h = append(h, map[string]string{"Filtering Keys": "\n"})
+		h = append(h, keys.TextInput().Map()...)
+		m.Props().ShowHelp(h)
+		cmds = append(cmds, keys.ChangeRoute("help"))
+
+	case keys.ToggleAllItemsMsg:
+		for _, i := range m.Props().Matches {
+			m.Props().ToggleItems(i.Index)
+		}
 	case keys.ToggleItemMsg:
 		cur := m.Props().Matches[m.Cursor].Index
 		m.Props().ToggleItems(cur)
@@ -229,12 +244,11 @@ func (m *Component) SetHeight(h int) {
 
 func (m *Component) commonKeys() keys.KeyMap {
 	var km = keys.KeyMap{
-		keys.Quit(),
 		keys.PgUp(),
 		keys.PgDown(),
 		keys.Enter().
 			WithHelp("return selections").
-			Cmd(keys.ReturnSelections()),
+			Cmd(keys.ReturnSelections),
 	}
 	return km
 }
@@ -247,6 +261,10 @@ func (m *Component) SetKeyMap(km keys.KeyMap) {
 
 func (m *Component) VimKeyMap() *Component {
 	m.SetKeyMap(VimKeyMap())
+
+	h := keys.Help().AddKeys("h")
+	m.KeyMap = append(m.KeyMap, h)
+
 	return m
 }
 
@@ -275,6 +293,7 @@ func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 
+// AcceptChoices returns a confirmation dialogue.
 func AcceptChoices(accept bool) tea.Cmd {
 	if accept {
 		return reactea.Destroy
@@ -283,29 +302,35 @@ func AcceptChoices(accept bool) tea.Cmd {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	var km = keys.KeyMap{
-		keys.ToggleItem(),
+	return keys.KeyMap{
+		keys.Toggle(),
 		keys.Up(),
 		keys.Down(),
 		keys.HalfPgUp(),
 		keys.HalfPgDown(),
 		keys.Home(),
 		keys.End(),
+		keys.Quit(),
+		keys.New("ctrl+a").
+			WithHelp("toggle all").
+			Cmd(keys.ToggleAllItems),
 	}
-	return km
 }
 
 func VimKeyMap() keys.KeyMap {
-	var km = keys.KeyMap{
-		keys.ToggleItem().AddKeys(" "),
+	return keys.KeyMap{
+		keys.Toggle().AddKeys(" "),
 		keys.Up().AddKeys("k"),
 		keys.Down().AddKeys("j"),
 		keys.HalfPgUp().AddKeys("K"),
 		keys.HalfPgDown().AddKeys("J"),
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
+		keys.Quit().AddKeys("q"),
+		keys.New("ctrl+a", "v").
+			WithHelp("toggle all").
+			Cmd(keys.ToggleAllItems),
 	}
-	return km
 }
 
 func max(a, b int) int {
