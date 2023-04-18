@@ -11,7 +11,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Component struct {
+type Model struct {
 	Cursor int
 	KeyMap keys.KeyMap
 
@@ -29,8 +29,8 @@ type Props struct {
 	Matches    []item.Item
 }
 
-func New(props Props) *Component {
-	m := Component{
+func New(props Props) *Model {
+	m := Model{
 		Cursor: 0,
 		props:  props,
 	}
@@ -41,15 +41,15 @@ func New(props Props) *Component {
 	return &m
 }
 
-func (m *Component) Props() Props {
+func (m *Model) Props() Props {
 	return m.props
 }
 
-func (m *Component) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -80,13 +80,13 @@ func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Component) View() string {
+func (m Model) View() string {
 	return m.Viewport.View()
 }
 
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
-func (m *Component) UpdateItems() {
+func (m *Model) UpdateItems() {
 	items := make([]string, 0, len(m.Props().Matches))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
@@ -113,7 +113,7 @@ func (m *Component) UpdateItems() {
 	)
 }
 
-func (m *Component) renderItem(rowID int) string {
+func (m *Model) renderItem(rowID int) string {
 	item := m.Props().Matches[rowID]
 
 	var s strings.Builder
@@ -132,20 +132,20 @@ func (m *Component) renderItem(rowID int) string {
 	return s.String()
 }
 
-func (m Component) IsSelected(idx int) bool {
+func (m Model) IsSelected(idx int) bool {
 	_, ok := m.Props().Selected[m.Props().Matches[idx].Index]
 	return ok
 }
 
 // CurrentItem returns the selected row.
 // You can cast it to your own implementation.
-func (m Component) CurrentItem() int {
+func (m Model) CurrentItem() int {
 	return m.Props().Matches[m.Cursor].Index
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
-func (m *Component) MoveUp(n int) {
+func (m *Model) MoveUp(n int) {
 	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
 	m.UpdateItems()
 	switch {
@@ -160,7 +160,7 @@ func (m *Component) MoveUp(n int) {
 
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
-func (m *Component) MoveDown(n int) {
+func (m *Model) MoveDown(n int) {
 	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
 	m.UpdateItems()
 	switch {
@@ -175,49 +175,49 @@ func (m *Component) MoveDown(n int) {
 }
 
 // GotoTop moves the selection to the first row.
-func (m *Component) GotoTop() {
+func (m *Model) GotoTop() {
 	m.MoveUp(m.Cursor)
 }
 
 // GotoBottom moves the selection to the last row.
-func (m *Component) GotoBottom() {
+func (m *Model) GotoBottom() {
 	m.MoveDown(len(m.Props().Matches))
 }
 
 // SetWidth sets the width of the viewport of the list.
-func (m *Component) SetWidth(w int) {
+func (m *Model) SetWidth(w int) {
 	m.Viewport.Width = w
 	m.UpdateItems()
 }
 
 // SetHeight sets the height of the viewport of the list.
-func (m *Component) SetHeight(h int) {
+func (m *Model) SetHeight(h int) {
 	m.Viewport.Height = h
 	m.UpdateItems()
 }
 
 // SetKeyMap sets the keymap for the list.
-func (m *Component) SetKeyMap(km keys.KeyMap) {
+func (m *Model) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
 }
 
 // Height returns the viewport height of the list.
-func (m Component) Height() int {
+func (m Model) Height() int {
 	return m.Viewport.Height
 }
 
 // Width returns the viewport width of the list.
-func (m Component) Width() int {
+func (m Model) Width() int {
 	return m.Viewport.Width
 }
 
 // Cursor returns the index of the selected item.
-func (m Component) GetCursor() int {
+func (m Model) GetCursor() int {
 	return m.Cursor
 }
 
 // SetCursor sets the cursor position in the list.
-func (m *Component) SetCursor(n int) {
+func (m *Model) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 

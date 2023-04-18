@@ -296,11 +296,13 @@ func (c App) renderFooter(w, h int) string {
 
 func (c *App) listProps() list.Props {
 	p := list.Props{
-		Matches:     c.Choices.Filter(c.filter),
-		Selected:    c.selected,
+		Props: view.Props{
+			Matches:    c.Choices.Filter(c.filter),
+			Selected:   c.selected,
+			Filterable: c.filterable,
+			Editable:   c.editable,
+		},
 		ToggleItems: c.ToggleItems,
-		Filterable:  c.filterable,
-		Editable:    c.editable,
 		ShowHelp:    c.setHelp,
 	}
 	return p

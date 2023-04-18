@@ -12,7 +12,7 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	view *view.Component
+	view *view.Model
 
 	KeyMap keys.KeyMap
 }

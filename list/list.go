@@ -9,8 +9,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/confirm"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/view"
 )
 
 type Option func(*Component)
@@ -23,15 +23,13 @@ type Component struct {
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
+	view     *view.Model
 	start    int
 	end      int
 }
 
 type Props struct {
-	Editable    bool
-	Filterable  bool
-	Matches     []item.Item
-	Selected    map[int]struct{}
+	view.Props
 	ToggleItems func(...int)
 	ShowHelp    func([]map[string]string)
 }
