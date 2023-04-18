@@ -137,18 +137,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			p := c.confirm
 			return component, component.Init(p)
 		},
-		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := view.New()
-			p := view.Props{
-				Fields: item.ChoicesToItems(c.Choices),
-				//Editable: c.editable,
-			}
-			return component, component.Init(p)
-		},
 		"help": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := help.New()
 			p := view.Props{
-				Fields: item.ChoicesToItems(c.helpKeyMap),
+				Matches: item.ChoicesToItems(c.helpKeyMap),
 			}
 			return component, component.Init(p)
 		},
