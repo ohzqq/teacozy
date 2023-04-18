@@ -140,8 +140,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := view.New()
 			p := view.Props{
-				Fields:   c.Choices,
-				Editable: c.editable,
+				Fields: c.Choices,
+				//Editable: c.editable,
 			}
 			return component, component.Init(p)
 		},
