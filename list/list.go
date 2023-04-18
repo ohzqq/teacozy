@@ -46,18 +46,21 @@ func New() *Component {
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 	m.Viewport = viewport.New(0, 0)
-	m.UpdateItems()
+	props.Props.Selectable = true
+	m.view = view.New(props.Props)
+	m.view.UpdateItems()
 	return nil
 }
 
 func (m *Component) AfterUpdate() tea.Cmd {
-	m.UpdateItems()
+	m.view.UpdateItems()
 	return nil
 }
 
 func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(m)
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case keys.ReturnSelectionsMsg:
@@ -80,26 +83,26 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 			m.Props().ToggleItems(i.Index)
 		}
 	case keys.ToggleItemMsg:
-		cur := m.Props().Matches[m.Cursor].Index
-		m.Props().ToggleItems(cur)
-		m.MoveDown(1)
+		m.Props().ToggleItems(m.view.CurrentItem())
+		//m.MoveDown(1)
+		cmds = append(cmds, keys.LineDown)
 
-	case keys.PageUpMsg:
-		m.MoveUp(m.Height())
-	case keys.PageDownMsg:
-		m.MoveDown(m.Height())
-	case keys.HalfPageUpMsg:
-		m.MoveUp(m.Height() / 2)
-	case keys.HalfPageDownMsg:
-		m.MoveDown(m.Height() / 2)
-	case keys.LineDownMsg:
-		m.MoveDown(1)
-	case keys.LineUpMsg:
-		m.MoveUp(1)
-	case keys.TopMsg:
-		m.GotoTop()
-	case keys.BottomMsg:
-		m.GotoBottom()
+	//case keys.PageUpMsg:
+	//m.MoveUp(m.Height())
+	//case keys.PageDownMsg:
+	//m.MoveDown(m.Height())
+	//case keys.HalfPageUpMsg:
+	//m.MoveUp(m.Height() / 2)
+	//case keys.HalfPageDownMsg:
+	//m.MoveDown(m.Height() / 2)
+	//case keys.LineDownMsg:
+	//m.MoveDown(1)
+	//case keys.LineUpMsg:
+	//m.MoveUp(1)
+	//case keys.TopMsg:
+	//m.GotoTop()
+	//case keys.BottomMsg:
+	//m.GotoBottom()
 	case tea.KeyMsg:
 		if reactea.CurrentRoute() == "list" {
 			if m.Props().Editable {
@@ -120,14 +123,17 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
+	m.view, cmd = m.view.Update(msg)
+	cmds = append(cmds, cmd)
+
 	return tea.Batch(cmds...)
 }
 
 func (m *Component) Render(w, h int) string {
-	m.SetWidth(w)
-	m.SetHeight(h)
-	m.UpdateItems()
-	return m.Viewport.View()
+	m.view.SetWidth(w)
+	m.view.SetHeight(h)
+	//m.UpdateItems()
+	return m.view.View()
 }
 
 // UpdateItems updates the list content based on the previously defined
@@ -167,7 +173,7 @@ func (m *Component) renderItem(rowID int) string {
 	switch {
 	case rowID == m.Cursor:
 		item.Current = true
-	case m.isSelected(rowID):
+	case m.view.IsSelected(rowID):
 		item.Selected = true
 	}
 
@@ -318,12 +324,12 @@ func DefaultKeyMap() keys.KeyMap {
 func VimKeyMap() keys.KeyMap {
 	return keys.KeyMap{
 		keys.Toggle().AddKeys(" "),
-		keys.Up().AddKeys("k"),
-		keys.Down().AddKeys("j"),
-		keys.HalfPgUp().AddKeys("K"),
-		keys.HalfPgDown().AddKeys("J"),
-		keys.Home().AddKeys("g"),
-		keys.End().AddKeys("G"),
+		keys.Up().WithKeys("k"),
+		keys.Down().WithKeys("j"),
+		keys.HalfPgUp().WithKeys("K"),
+		keys.HalfPgDown().WithKeys("J"),
+		keys.Home().WithKeys("g"),
+		keys.End().WithKeys("G"),
 		keys.Quit().AddKeys("q"),
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").

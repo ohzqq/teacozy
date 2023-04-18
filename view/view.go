@@ -36,6 +36,7 @@ func New(props Props) *Model {
 	}
 	m.SetKeyMap(DefaultKeyMap())
 	m.Viewport = viewport.New(0, 0)
+	//fmt.Println(len(m.props.Matches))
 	m.UpdateItems()
 
 	return &m

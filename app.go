@@ -120,6 +120,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			}
 			return component, component.Init(p)
 		},
+		//"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		//component := list.New()
+		//return component, component.Init(c.listProps())
+		//},
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := edit.New()
