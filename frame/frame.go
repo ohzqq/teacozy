@@ -1,4 +1,4 @@
-package teacozy
+package frame
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ import (
 
 type App struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[reactea.NoProps]
+	reactea.BasicPropfulComponent[Props]
 
 	mainRouter reactea.Component[router.Props]
 	prevRoute  string
@@ -44,13 +44,6 @@ type App struct {
 
 	confirm confirm.Props
 
-	// How long status messages should stay visible. By default this is
-	// 1 second.
-	StatusMessageLifetime time.Duration
-	statusMessage         string
-	statusMessageTimer    *time.Timer
-	status                string
-
 	list        *list.Component
 	Choices     item.Choices
 	selected    map[int]struct{}
@@ -58,6 +51,10 @@ type App struct {
 	limit       int
 
 	helpKeyMap item.Choices
+}
+
+type Props struct {
+	Options []Option
 }
 
 type Style struct {
@@ -106,10 +103,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			})
 			return component, nil
 		},
-		"form": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := list.New()
-			return component, component.Init(c.listProps())
-		},
 		"filter": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := input.New()
@@ -140,15 +133,14 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"view": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := view.New()
 			p := view.Props{
-				Fields: c.Choices,
-				//Editable: c.editable,
+				Fields: item.ChoicesToItems(c.Choices),
 			}
 			return component, component.Init(p)
 		},
 		"help": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := help.New()
 			p := view.Props{
-				Fields: c.helpKeyMap,
+				Fields: item.ChoicesToItems(c.helpKeyMap),
 			}
 			return component, component.Init(p)
 		},
@@ -424,33 +416,5 @@ func DefaultStyle() Style {
 		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
 		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 		Status:  lipgloss.NewStyle().Foreground(color.Green()),
-	}
-}
-
-// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
-
-type statusMessageTimeoutMsg struct{}
-
-// NewStatusMessage sets a new status message, which will show for a limited
-// amount of time. Note that this also returns a command.
-func (m *App) NewStatusMessage(s string) tea.Cmd {
-	m.status = s
-	if m.statusMessageTimer != nil {
-		m.statusMessageTimer.Stop()
-	}
-
-	m.statusMessageTimer = time.NewTimer(m.StatusMessageLifetime)
-
-	// Wait for timeout
-	return func() tea.Msg {
-		<-m.statusMessageTimer.C
-		return statusMessageTimeoutMsg{}
-	}
-}
-
-func (m *App) hideStatusMessage() {
-	m.status = ""
-	if m.statusMessageTimer != nil {
-		m.statusMessageTimer.Stop()
 	}
 }

@@ -13,11 +13,10 @@ type Component struct {
 	reactea.BasicPropfulComponent[Props]
 
 	Viewport viewport.Model
-	fields   []item.Item
 }
 
 type Props struct {
-	Fields item.Choices
+	Fields []item.Item
 }
 
 func New() *Component {
@@ -27,7 +26,6 @@ func New() *Component {
 
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
-	m.fields = item.ChoicesToItems(m.Props().Fields)
 	m.Viewport = viewport.New(0, 0)
 	return nil
 }
@@ -48,7 +46,7 @@ func (m *Component) Render(w, h int) string {
 	m.SetHeight(h)
 
 	var s []string
-	for _, i := range m.fields {
+	for _, i := range m.Props().Fields {
 		f := i.Render(m.Viewport.Width, m.Viewport.Height)
 		s = append(s, lipgloss.NewStyle().Width(m.Width()).Render(f))
 	}
