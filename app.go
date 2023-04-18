@@ -142,7 +142,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			p := view.Props{
 				Matches: item.ChoicesToItems(c.helpKeyMap),
 			}
-			return component, component.Init(p)
+			return component, component.Init(help.Props{Props: p})
 		},
 	})
 }

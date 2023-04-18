@@ -7,66 +7,52 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-
 	Cursor int
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
 	start    int
 	end      int
+	props    Props
 }
 
 type Props struct {
-	Editable    bool
-	Filterable  bool
-	Selectable  bool
-	Matches     []item.Item
-	Selected    map[int]struct{}
-	ToggleItems func(...int)
-	ShowHelp    func([]map[string]string)
+	Editable   bool
+	Filterable bool
+	Selectable bool
+	Selected   map[int]struct{}
+	Matches    []item.Item
 }
 
-func New() *Component {
+func New(props Props) *Component {
 	m := Component{
 		Cursor: 0,
+		props:  props,
 	}
-	m.DefaultKeyMap()
+	m.SetKeyMap(DefaultKeyMap())
+	m.Viewport = viewport.New(0, 0)
+	m.UpdateItems()
 
 	return &m
 }
 
-func (m *Component) Init(props Props) tea.Cmd {
-	m.UpdateProps(props)
-	m.Viewport = viewport.New(0, 0)
-	m.UpdateItems()
+func (m *Component) Props() Props {
+	return m.props
+}
+
+func (m *Component) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Component) AfterUpdate() tea.Cmd {
-	m.UpdateItems()
-	return nil
-}
-
-func (m *Component) Update(msg tea.Msg) tea.Cmd {
-	reactea.AfterUpdate(m)
+func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case keys.ShowHelpMsg:
-		h := m.KeyMap.Map()
-		h = append(h, map[string]string{"Filtering Keys": "\n"})
-		h = append(h, keys.TextInput().Map()...)
-		m.Props().ShowHelp(h)
-		cmds = append(cmds, keys.ChangeRoute("help"))
-
 	case keys.PageUpMsg:
 		m.MoveUp(m.Height())
 	case keys.PageDownMsg:
@@ -91,13 +77,10 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	return tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
-func (m *Component) Render(w, h int) string {
-	m.SetWidth(w)
-	m.SetHeight(h)
-	m.UpdateItems()
+func (m Component) View() string {
 	return m.Viewport.View()
 }
 
@@ -213,35 +196,9 @@ func (m *Component) SetHeight(h int) {
 	m.UpdateItems()
 }
 
-func (m *Component) commonKeys() keys.KeyMap {
-	var km = keys.KeyMap{
-		keys.PgUp(),
-		keys.PgDown(),
-		keys.Enter().
-			WithHelp("return selections").
-			Cmd(keys.ReturnSelections),
-	}
-	return km
-}
-
 // SetKeyMap sets the keymap for the list.
 func (m *Component) SetKeyMap(km keys.KeyMap) {
-	m.KeyMap = m.commonKeys()
-	m.KeyMap = append(m.KeyMap, km...)
-}
-
-func (m *Component) VimKeyMap() *Component {
-	m.SetKeyMap(VimKeyMap())
-
-	h := keys.Help().AddKeys("h")
-	m.KeyMap = append(m.KeyMap, h)
-
-	return m
-}
-
-func (m *Component) DefaultKeyMap() *Component {
-	m.SetKeyMap(DefaultKeyMap())
-	return m
+	m.KeyMap = km
 }
 
 // Height returns the viewport height of the list.
@@ -264,17 +221,10 @@ func (m *Component) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
 }
 
-// AcceptChoices returns a confirmation dialogue.
-func AcceptChoices(accept bool) tea.Cmd {
-	if accept {
-		return reactea.Destroy
-	}
-	return keys.ReturnToList
-}
-
 func DefaultKeyMap() keys.KeyMap {
 	return keys.KeyMap{
-		keys.Toggle(),
+		keys.PgUp(),
+		keys.PgDown(),
 		keys.Up(),
 		keys.Down(),
 		keys.HalfPgUp(),
@@ -282,25 +232,6 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home(),
 		keys.End(),
 		keys.Quit(),
-		keys.New("ctrl+a").
-			WithHelp("toggle all").
-			Cmd(keys.ToggleAllItems),
-	}
-}
-
-func VimKeyMap() keys.KeyMap {
-	return keys.KeyMap{
-		keys.Toggle().AddKeys(" "),
-		keys.Up().AddKeys("k"),
-		keys.Down().AddKeys("j"),
-		keys.HalfPgUp().AddKeys("K"),
-		keys.HalfPgDown().AddKeys("J"),
-		keys.Home().AddKeys("g"),
-		keys.End().AddKeys("G"),
-		keys.Quit().AddKeys("q"),
-		keys.New("ctrl+a", "v").
-			WithHelp("toggle all").
-			Cmd(keys.ToggleAllItems),
 	}
 }
 

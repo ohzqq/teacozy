@@ -9,16 +9,28 @@ import (
 )
 
 type Component struct {
-	*view.Component
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[Props]
+
+	view *view.Component
 
 	KeyMap keys.KeyMap
 }
 
+type Props struct {
+	view.Props
+}
+
 func New() *Component {
 	return &Component{
-		Component: view.New(),
-		KeyMap:    DefaultKeyMap(),
+		KeyMap: DefaultKeyMap(),
 	}
+}
+
+func (c *Component) Init(props Props) tea.Cmd {
+	c.UpdateProps(props)
+	c.view = view.New(props.Props)
+	return nil
 }
 
 func (m *Component) Update(msg tea.Msg) tea.Cmd {
@@ -35,10 +47,16 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	cmd = m.Component.Update(msg)
+	m.view, cmd = m.view.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Component) Render(w, h int) string {
+	m.view.SetWidth(w)
+	m.view.SetHeight(h)
+	return m.view.View()
 }
 
 func DefaultKeyMap() keys.KeyMap {
