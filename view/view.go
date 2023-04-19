@@ -34,9 +34,6 @@ func New(props Props) *Model {
 	}
 	m.SetKeyMap(DefaultKeyMap())
 	m.Viewport = viewport.New(0, 0)
-	//fmt.Println(len(m.props.Matches))
-	m.UpdateItems()
-
 	return &m
 }
 
@@ -223,7 +220,6 @@ func (m Model) GetCursor() int {
 // SetCursor sets the cursor position in the list.
 func (m *Model) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches())-1)
-	m.Props().SetCursor(n)
 }
 
 func DefaultKeyMap() keys.KeyMap {
