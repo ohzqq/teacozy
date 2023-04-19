@@ -32,10 +32,6 @@ func (c *List) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func (c Props) Matches() []Item {
-	return c.Choices.Filter(c.Search)
-}
-
 func (c *List) Render(w, h int) string {
 
 	items := c.Props().Choices.Filter(c.Props().Search)
@@ -52,4 +48,12 @@ func (c *List) Render(w, h int) string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
+}
+
+func (c *Props) SetCursor(n int) {
+	c.Cursor = n
+}
+
+func (c Props) Matches() []Item {
+	return c.Choices.Filter(c.Search)
 }

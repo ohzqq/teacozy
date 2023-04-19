@@ -51,6 +51,18 @@ func NewView() *Model {
 	return &m
 }
 
+func NewProps(c item.Choices) Props {
+	return Props{
+		Props: item.Props{
+			Choices:  c,
+			Selected: make(map[int]struct{}),
+			Start:    0,
+			End:      10,
+			Cursor:   0,
+		},
+	}
+}
+
 func (m *Model) Props() Props {
 	return m.props
 }

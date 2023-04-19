@@ -43,7 +43,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
+func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -71,7 +71,7 @@ func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
 		}
 	}
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (m *Component) Render(w, h int) string {
