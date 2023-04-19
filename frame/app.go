@@ -6,6 +6,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/util"
+	"github.com/ohzqq/teacozy/view"
 )
 
 type App struct {
@@ -17,7 +18,7 @@ type App struct {
 	choices item.Choices
 }
 
-func NewApp(c []string) *App {
+func New(c []string) *App {
 	return &App{
 		mainRouter: router.New(),
 		choices:    item.SliceToChoices(c),
@@ -27,8 +28,8 @@ func NewApp(c []string) *App {
 func (m *App) Init(reactea.NoProps) tea.Cmd {
 	return m.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewComponent()
-			return component, component.Init(NewProps(m.choices))
+			component := view.NewComponent()
+			return component, component.Init(view.NewProps(m.choices))
 		},
 	})
 }

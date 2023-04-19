@@ -106,6 +106,18 @@ func (m Model) View() string {
 	return m.Viewport.View()
 }
 
+func (m Model) ItemProps() item.Props {
+	p := item.Props{
+		Choices:    m.Props().Choices,
+		Selectable: m.Props().Selectable,
+		Start:      m.Start,
+		End:        m.End,
+		Selected:   m.Props().Selected,
+	}
+	p.Cursor = m.Cursor
+	return p
+}
+
 // UpdateItems updates the list content based on the previously defined
 // columns and rows.
 func (m *Model) UpdateItems() {
@@ -126,58 +138,17 @@ func (m *Model) UpdateItems() {
 		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
 	}
 
-	p := item.Props{
-		Choices:    m.Props().Choices,
-		Selectable: m.Props().Selectable,
-		Start:      m.Start,
-		End:        m.End,
-		Selected:   m.Props().Selected,
-	}
-	p.Cursor = m.Cursor
 	l := item.NewList()
-	l.Init(p)
+	l.Init(m.ItemProps())
 	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
-
-	//  m.Viewport.SetContent(
-	//    lipgloss.JoinVertical(lipgloss.Left, m.itemsToRender()...),
-	//  )
 }
 
 func (m *Model) itemsToRender() []string {
 	items := make([]string, 0, len(m.Props().Matches()))
-	//fmt.Println(m.sliceStart())
-	//fmt.Println(m.sliceEnd())
 	for i := m.Start; i < m.End; i++ {
 		items = append(items, m.renderItem(i))
 	}
-	//for _, i := range m.Props().Matches()[m.sliceStart():m.sliceEnd()] {
-	//items = append(items, m.renderItem(i.Index))
-	//}
-
 	return items
-}
-
-func (m *Model) sliceBounds() {
-	m.sliceStart()
-	m.sliceEnd()
-}
-
-func (m *Model) sliceStart() int {
-	if m.Cursor >= 0 {
-		m.Start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
-	} else {
-		m.Start = 0
-		m.SetCursor(0)
-	}
-	return m.Start
-}
-
-func (m *Model) sliceEnd() int {
-	m.End = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches()))
-	if m.Cursor > m.End {
-		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
-	}
-	return m.End
 }
 
 func (m *Model) renderItem(rowID int) string {
