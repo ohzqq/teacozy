@@ -24,7 +24,7 @@ import (
 
 type App struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter reactea.Component[router.Props]
 	prevRoute  string
@@ -51,10 +51,6 @@ type App struct {
 	limit       int
 
 	helpKeyMap item.Choices
-}
-
-type Props struct {
-	Options []Option
 }
 
 type Style struct {
