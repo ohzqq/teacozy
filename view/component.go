@@ -4,7 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
@@ -13,12 +12,10 @@ type Component struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	KeyMap keys.KeyMap
-
 	*Model
 }
 
-func NewC() *Component {
+func NewComponent() *Component {
 	m := Component{}
 	return &m
 }
