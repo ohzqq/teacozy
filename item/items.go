@@ -14,13 +14,15 @@ type List struct {
 }
 
 type Props struct {
-	Choices    Choices
-	Selectable bool
-	Selected   map[int]struct{}
-	Cursor     int
-	Start      int
-	End        int
-	Search     string
+	Choices      Choices
+	Selectable   bool
+	Selected     map[int]struct{}
+	Cursor       int
+	Start        int
+	End          int
+	Search       string
+	SetCursor    func(int)
+	TotalMatches func(int)
 }
 
 func NewList() *List {
@@ -35,6 +37,7 @@ func (c *List) Init(props Props) tea.Cmd {
 func (c *List) Render(w, h int) string {
 
 	items := c.Props().Choices.Filter(c.Props().Search)
+	c.Props().TotalMatches(len(items))
 
 	for i, _ := range c.Props().Selected {
 		items[i].Selected = true
@@ -48,10 +51,6 @@ func (c *List) Render(w, h int) string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
-}
-
-func (c *Props) SetCursor(n int) {
-	c.Cursor = n
 }
 
 func (c Props) Matches() []Item {

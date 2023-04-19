@@ -1,8 +1,6 @@
 package view
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -143,38 +141,6 @@ func (m *Model) UpdateItems() {
 	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
 }
 
-func (m *Model) itemsToRender() []string {
-	items := make([]string, 0, len(m.Props().Matches()))
-	for i := m.Start; i < m.End; i++ {
-		items = append(items, m.renderItem(i))
-	}
-	return items
-}
-
-func (m *Model) renderItem(rowID int) string {
-	item := m.Props().Matches()[rowID]
-
-	var s strings.Builder
-
-	if m.Props().Selectable {
-		switch {
-		case rowID == m.Cursor:
-			item.Current = true
-		case m.IsSelected(rowID):
-			item.Selected = true
-		}
-	}
-
-	s.WriteString(item.Render(m.Width(), m.Height()))
-
-	return s.String()
-}
-
-func (m Model) IsSelected(idx int) bool {
-	_, ok := m.Props().Selected[m.Props().Matches()[idx].Index]
-	return ok
-}
-
 // CurrentItem returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) CurrentItem() int {
@@ -257,6 +223,7 @@ func (m Model) GetCursor() int {
 // SetCursor sets the cursor position in the list.
 func (m *Model) SetCursor(n int) {
 	m.Cursor = clamp(n, 0, len(m.Props().Matches())-1)
+	m.Props().SetCursor(n)
 }
 
 func DefaultKeyMap() keys.KeyMap {
