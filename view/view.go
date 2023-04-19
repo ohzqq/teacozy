@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -27,6 +26,7 @@ type Props struct {
 	Selectable bool
 	Selected   map[int]struct{}
 	Matches    []item.Item
+	Choices    item.Choices
 }
 
 func New(props Props) *Model {
@@ -92,23 +92,44 @@ func (m *Model) UpdateItems() {
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
-	m.sliceBounds()
 
-	m.Viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, m.itemsToRender()...),
-	)
+	p := item.Props{
+		Choices:    m.Props().Choices,
+		Selectable: m.Props().Selectable,
+		Start:      m.sliceStart(),
+		End:        m.sliceEnd(),
+		Selected:   m.Props().Selected,
+	}
+	p.Cursor = m.Cursor
+	l := item.NewList()
+	l.Init(p)
+	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
+
+	//if m.Cursor >= 0 {
+	//  m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
+	//} else {
+	//  m.start = 0
+	//  m.SetCursor(0)
+	//}
+	//m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
+	//  if m.Cursor > m.end {
+	//    m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+	//  }
+	//  m.Viewport.SetContent(
+	//    lipgloss.JoinVertical(lipgloss.Left, m.itemsToRender()...),
+	//  )
 }
 
 func (m *Model) itemsToRender() []string {
 	items := make([]string, 0, len(m.Props().Matches))
 	//fmt.Println(m.sliceStart())
 	//fmt.Println(m.sliceEnd())
-	//for i := m.start; i < m.end; i++ {
-	//  items = append(items, m.renderItem(i))
-	//}
-	for _, i := range m.Props().Matches[m.sliceStart():m.sliceEnd()] {
-		items = append(items, m.renderItem(i.Index))
+	for i := m.start; i < m.end; i++ {
+		items = append(items, m.renderItem(i))
 	}
+	//for _, i := range m.Props().Matches[m.sliceStart():m.sliceEnd()] {
+	//items = append(items, m.renderItem(i.Index))
+	//}
 
 	return items
 }
@@ -170,6 +191,7 @@ func (m Model) CurrentItem() int {
 // It can not go above the first row.
 func (m *Model) MoveUp(n int) {
 	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
 	switch {
 	case m.start == 0:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
@@ -184,6 +206,7 @@ func (m *Model) MoveUp(n int) {
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
 	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
+	m.UpdateItems()
 	switch {
 	case m.end == len(m.Props().Matches):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Height()))

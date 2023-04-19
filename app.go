@@ -305,6 +305,7 @@ func (c *App) listProps() list.Props {
 			Selected:   c.selected,
 			Filterable: c.filterable,
 			Editable:   c.editable,
+			Choices:    c.Choices,
 		},
 		ToggleItems: c.ToggleItems,
 		ShowHelp:    c.setHelp,
