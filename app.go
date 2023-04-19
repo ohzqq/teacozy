@@ -144,7 +144,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"help": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := help.New()
 			p := view.Props{
-				Matches: item.ChoicesToItems(c.helpKeyMap),
+				//Matches: item.ChoicesToItems(c.helpKeyMap),
 			}
 			return component, component.Init(help.Props{Props: p})
 		},
@@ -301,11 +301,13 @@ func (c App) renderFooter(w, h int) string {
 func (c *App) listProps() list.Props {
 	p := list.Props{
 		Props: view.Props{
-			Matches:    c.Choices.Filter(c.filter),
-			Selected:   c.selected,
+			Props: item.Props{
+				Selected: c.selected,
+				Choices:  c.Choices,
+			},
+			//Matches:    c.Choices.Filter(c.filter),
 			Filterable: c.filterable,
 			Editable:   c.editable,
-			Choices:    c.Choices,
 		},
 		ToggleItems: c.ToggleItems,
 		ShowHelp:    c.setHelp,

@@ -29,25 +29,27 @@ func NewList() *List {
 
 func (c *List) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-
-	items := props.Choices.Filter(props.Search)
-
-	for i, _ := range props.Selected {
-		items[i].Selected = true
-	}
-
-	items[props.Cursor].Current = true
-
-	c.items = items[props.Start:props.End]
-
 	return nil
 }
 
+func (c Props) Matches() []Item {
+	return c.Choices.Filter(c.Search)
+}
+
 func (c *List) Render(w, h int) string {
-	var items []string
-	for _, i := range c.items {
-		items = append(items, i.Render(w, h))
+
+	items := c.Props().Choices.Filter(c.Props().Search)
+
+	for i, _ := range c.Props().Selected {
+		items[i].Selected = true
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, items...)
+	items[c.Props().Cursor].Current = true
+
+	var rendered []string
+	for _, i := range items[c.Props().Start:c.Props().End] {
+		rendered = append(rendered, i.Render(w, h))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
 }

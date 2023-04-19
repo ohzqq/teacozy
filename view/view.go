@@ -15,18 +15,18 @@ type Model struct {
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
-	start    int
-	end      int
+	Start    int
+	End      int
 	props    Props
 }
 
 type Props struct {
+	item.Props
 	Editable   bool
 	Filterable bool
-	Selectable bool
-	Selected   map[int]struct{}
-	Matches    []item.Item
-	Choices    item.Choices
+	//Matches    []item.Item
+	Width  int
+	Height int
 }
 
 func New(props Props) *Model {
@@ -39,6 +39,15 @@ func New(props Props) *Model {
 	//fmt.Println(len(m.props.Matches))
 	m.UpdateItems()
 
+	return &m
+}
+
+func NewView() *Model {
+	m := Model{
+		Cursor: 0,
+	}
+	m.SetKeyMap(DefaultKeyMap())
+	m.Viewport = viewport.New(0, 0)
 	return &m
 }
 
@@ -94,22 +103,22 @@ func (m *Model) UpdateItems() {
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
 
 	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
+		m.Start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
 	} else {
-		m.start = 0
+		m.Start = 0
 		m.SetCursor(0)
 	}
 
-	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
-	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+	m.End = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches()))
+	if m.Cursor > m.End {
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
 	}
 
 	p := item.Props{
 		Choices:    m.Props().Choices,
 		Selectable: m.Props().Selectable,
-		Start:      m.start,
-		End:        m.end,
+		Start:      m.Start,
+		End:        m.End,
 		Selected:   m.Props().Selected,
 	}
 	p.Cursor = m.Cursor
@@ -123,13 +132,13 @@ func (m *Model) UpdateItems() {
 }
 
 func (m *Model) itemsToRender() []string {
-	items := make([]string, 0, len(m.Props().Matches))
+	items := make([]string, 0, len(m.Props().Matches()))
 	//fmt.Println(m.sliceStart())
 	//fmt.Println(m.sliceEnd())
-	for i := m.start; i < m.end; i++ {
+	for i := m.Start; i < m.End; i++ {
 		items = append(items, m.renderItem(i))
 	}
-	//for _, i := range m.Props().Matches[m.sliceStart():m.sliceEnd()] {
+	//for _, i := range m.Props().Matches()[m.sliceStart():m.sliceEnd()] {
 	//items = append(items, m.renderItem(i.Index))
 	//}
 
@@ -143,24 +152,24 @@ func (m *Model) sliceBounds() {
 
 func (m *Model) sliceStart() int {
 	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
+		m.Start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
 	} else {
-		m.start = 0
+		m.Start = 0
 		m.SetCursor(0)
 	}
-	return m.start
+	return m.Start
 }
 
 func (m *Model) sliceEnd() int {
-	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
-	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+	m.End = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches()))
+	if m.Cursor > m.End {
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
 	}
-	return m.end
+	return m.End
 }
 
 func (m *Model) renderItem(rowID int) string {
-	item := m.Props().Matches[rowID]
+	item := m.Props().Matches()[rowID]
 
 	var s strings.Builder
 
@@ -179,25 +188,25 @@ func (m *Model) renderItem(rowID int) string {
 }
 
 func (m Model) IsSelected(idx int) bool {
-	_, ok := m.Props().Selected[m.Props().Matches[idx].Index]
+	_, ok := m.Props().Selected[m.Props().Matches()[idx].Index]
 	return ok
 }
 
 // CurrentItem returns the selected row.
 // You can cast it to your own implementation.
 func (m Model) CurrentItem() int {
-	return m.Props().Matches[m.Cursor].Index
+	return m.Props().Matches()[m.Cursor].Index
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *Model) MoveUp(n int) {
-	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches())-1))
 	m.UpdateItems()
 	switch {
-	case m.start == 0:
+	case m.Start == 0:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset, 0, m.Cursor))
-	case m.start < m.Height():
+	case m.Start < m.Height():
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+n, 0, m.Cursor))
 	case m.Viewport.YOffset >= 1:
 		m.Viewport.YOffset = clamp(m.Viewport.YOffset+n, 1, m.Height())
@@ -207,12 +216,12 @@ func (m *Model) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
-	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches())-1))
 	m.UpdateItems()
 	switch {
-	case m.end == len(m.Props().Matches):
+	case m.End == len(m.Props().Matches()):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Height()))
-	case m.Cursor > (m.end-m.start)/2:
+	case m.Cursor > (m.End-m.Start)/2:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
 	case m.Viewport.YOffset > 1:
 	case m.Cursor > m.Viewport.YOffset+m.Height()-1:
@@ -227,7 +236,7 @@ func (m *Model) GotoTop() {
 
 // GotoBottom moves the selection to the last row.
 func (m *Model) GotoBottom() {
-	m.MoveDown(len(m.Props().Matches))
+	m.MoveDown(len(m.Props().Matches()))
 }
 
 // SetWidth sets the width of the viewport of the list.
@@ -264,7 +273,7 @@ func (m Model) GetCursor() int {
 
 // SetCursor sets the cursor position in the list.
 func (m *Model) SetCursor(n int) {
-	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
+	m.Cursor = clamp(n, 0, len(m.Props().Matches())-1)
 }
 
 func DefaultKeyMap() keys.KeyMap {

@@ -22,43 +22,25 @@ type Component struct {
 	KeyMap keys.KeyMap
 
 	Viewport viewport.Model
+	list     *item.List
 	start    int
 	end      int
-	props    Props
 }
 
-type App struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[react.NoProps]
-
-	mainRouter reactea.Component[router.Props]
-}
-
-func NewC(props Props) *Component {
+func NewC() *Component {
 	m := Component{
-		mainRouter: router.New(),
-		Cursor:     0,
-		props:      props,
+		Cursor: 0,
 	}
-	m.SetKeyMap(DefaultKeyMap())
-	m.Viewport = viewport.New(0, 0)
-	//fmt.Println(len(m.props.Matches))
-	m.UpdateItems()
-
 	return &m
 }
 
-func (m *Component) Init(reactea.NoProps) tea.Cmd {
-	m.UpdateProps(m.props)
-	return m.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := new(struct {
-				reactea.BasicComponent
-				reactea.InvisibleComponent
-			})
-			return component, nil
-		},
-	})
+func (c *Component) Init(props Props) tea.Cmd {
+	c.UpdateProps(props)
+	c.SetKeyMap(DefaultKeyMap())
+	c.Viewport = viewport.New(props.Width, props.Height)
+	c.list = item.NewList()
+	//fmt.Println(len(m.props.Matches))
+	return nil
 }
 
 func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
@@ -92,7 +74,10 @@ func (m *Component) Update(msg tea.Msg) (*Component, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Component) View() string {
+func (m *Component) Render(w, h int) string {
+	m.SetWidth(w)
+	m.SetHeight(h)
+	m.UpdateItems()
 	return m.Viewport.View()
 }
 
@@ -111,9 +96,9 @@ func (m *Component) UpdateItems() {
 		m.SetCursor(0)
 	}
 
-	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
+	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches()))
 	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
 	}
 
 	p := item.Props{
@@ -128,50 +113,19 @@ func (m *Component) UpdateItems() {
 	l.Init(p)
 	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
 
-	//  m.Viewport.SetContent(
-	//    lipgloss.JoinVertical(lipgloss.Left, m.itemsToRender()...),
-	//  )
 }
 
 func (m *Component) itemsToRender() []string {
-	items := make([]string, 0, len(m.Props().Matches))
-	//fmt.Println(m.sliceStart())
-	//fmt.Println(m.sliceEnd())
+	items := make([]string, 0, len(m.Props().Matches()))
 	for i := m.start; i < m.end; i++ {
 		items = append(items, m.renderItem(i))
 	}
-	//for _, i := range m.Props().Matches[m.sliceStart():m.sliceEnd()] {
-	//items = append(items, m.renderItem(i.Index))
-	//}
 
 	return items
 }
 
-func (m *Component) sliceBounds() {
-	m.sliceStart()
-	m.sliceEnd()
-}
-
-func (m *Component) sliceStart() int {
-	if m.Cursor >= 0 {
-		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
-	} else {
-		m.start = 0
-		m.SetCursor(0)
-	}
-	return m.start
-}
-
-func (m *Component) sliceEnd() int {
-	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
-	if m.Cursor > m.end {
-		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
-	}
-	return m.end
-}
-
 func (m *Component) renderItem(rowID int) string {
-	item := m.Props().Matches[rowID]
+	item := m.Props().Matches()[rowID]
 
 	var s strings.Builder
 
@@ -190,20 +144,20 @@ func (m *Component) renderItem(rowID int) string {
 }
 
 func (m Component) IsSelected(idx int) bool {
-	_, ok := m.Props().Selected[m.Props().Matches[idx].Index]
+	_, ok := m.Props().Selected[m.Props().Matches()[idx].Index]
 	return ok
 }
 
 // CurrentItem returns the selected row.
 // You can cast it to your own implementation.
 func (m Component) CurrentItem() int {
-	return m.Props().Matches[m.Cursor].Index
+	return m.Props().Matches()[m.Cursor].Index
 }
 
 // MoveUp moves the selection up by any number of rows.
 // It can not go above the first row.
 func (m *Component) MoveUp(n int) {
-	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor-n, 0, len(m.Props().Matches())-1))
 	m.UpdateItems()
 	switch {
 	case m.start == 0:
@@ -218,10 +172,10 @@ func (m *Component) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Component) MoveDown(n int) {
-	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches)-1))
+	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches())-1))
 	m.UpdateItems()
 	switch {
-	case m.end == len(m.Props().Matches):
+	case m.end == len(m.Props().Matches()):
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Height()))
 	case m.Cursor > (m.end-m.start)/2:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset-n, 1, m.Cursor))
@@ -238,7 +192,7 @@ func (m *Component) GotoTop() {
 
 // GotoBottom moves the selection to the last row.
 func (m *Component) GotoBottom() {
-	m.MoveDown(len(m.Props().Matches))
+	m.MoveDown(len(m.Props().Matches()))
 }
 
 // SetWidth sets the width of the viewport of the list.
@@ -275,5 +229,5 @@ func (m Component) GetCursor() int {
 
 // SetCursor sets the cursor position in the list.
 func (m *Component) SetCursor(n int) {
-	m.Cursor = clamp(n, 0, len(m.Props().Matches)-1)
+	m.Cursor = clamp(n, 0, len(m.Props().Matches())-1)
 }

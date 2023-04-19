@@ -76,7 +76,7 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, keys.ChangeRoute("help"))
 
 	case keys.ToggleAllItemsMsg:
-		for _, i := range m.Props().Matches {
+		for _, i := range m.Props().Matches() {
 			m.Props().ToggleItems(i.Index)
 		}
 	case keys.ToggleItemMsg:
