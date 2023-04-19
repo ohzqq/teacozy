@@ -93,11 +93,23 @@ func (m *Model) UpdateItems() {
 	// Constant runtime, independent of number of rows in a table.
 	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
 
+	if m.Cursor >= 0 {
+		m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
+	} else {
+		m.start = 0
+		m.SetCursor(0)
+	}
+
+	m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
+	if m.Cursor > m.end {
+		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
+	}
+
 	p := item.Props{
 		Choices:    m.Props().Choices,
 		Selectable: m.Props().Selectable,
-		Start:      m.sliceStart(),
-		End:        m.sliceEnd(),
+		Start:      m.start,
+		End:        m.end,
 		Selected:   m.Props().Selected,
 	}
 	p.Cursor = m.Cursor
@@ -105,16 +117,6 @@ func (m *Model) UpdateItems() {
 	l.Init(p)
 	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
 
-	//if m.Cursor >= 0 {
-	//  m.start = clamp(m.Cursor-m.Height(), 0, m.Cursor)
-	//} else {
-	//  m.start = 0
-	//  m.SetCursor(0)
-	//}
-	//m.end = clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches))
-	//  if m.Cursor > m.end {
-	//    m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches)-1))
-	//  }
 	//  m.Viewport.SetContent(
 	//    lipgloss.JoinVertical(lipgloss.Left, m.itemsToRender()...),
 	//  )
