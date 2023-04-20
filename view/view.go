@@ -103,11 +103,10 @@ func (m Model) View() string {
 
 func (m Model) ItemProps() item.Props {
 	p := item.Props{
-		Choices:    m.Props().Choices,
-		Selectable: m.Props().Selectable,
-		Start:      m.Start,
-		End:        m.End,
-		Selected:   m.Props().Selected,
+		Choices:  m.Props().Choices,
+		Start:    m.Start,
+		End:      m.End,
+		Selected: m.Props().Selected,
 	}
 	p.Cursor = m.Cursor
 	return p

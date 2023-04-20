@@ -9,22 +9,40 @@ import (
 type List struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
-
-	items []Item
 }
 
 type Props struct {
-	Choices    Choices
-	Selectable bool
-	Selected   map[int]struct{}
-	Cursor     int
-	Start      int
-	End        int
-	Search     string
+	Choices  Choices
+	Selected map[int]struct{}
+	Cursor   int
+	Start    int
+	End      int
+	Search   string
 }
 
 func NewList() *List {
 	return &List{}
+}
+
+func Renderer(props Props, w, h int) string {
+	items := props.Choices.Filter(props.Search)
+
+	for i, _ := range props.Selected {
+		items[i].Selected = true
+	}
+
+	items[props.Cursor].Current = true
+
+	var rendered []string
+	for _, i := range items[props.Start:props.End] {
+		rendered = append(rendered, i.Render(w, h))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
+}
+
+func (p *Props) SetCursor(n int) {
+	p.Cursor = n
 }
 
 func (c *List) Init(props Props) tea.Cmd {
@@ -36,7 +54,6 @@ func (c *List) Init(props Props) tea.Cmd {
 //}
 
 func (c *List) Render(w, h int) string {
-
 	items := c.Props().Choices.Filter(c.Props().Search)
 
 	for i, _ := range c.Props().Selected {

@@ -2,7 +2,6 @@ package list
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/confirm"
@@ -19,14 +18,14 @@ type Component struct {
 	Cursor int
 	KeyMap keys.KeyMap
 
-	Viewport viewport.Model
-	view     *view.Model
-	start    int
-	end      int
+	view  *view.Model
+	start int
+	end   int
 }
 
 type Props struct {
 	view.Props
+	Selectable  bool
 	ToggleItems func(...int)
 	ShowHelp    func([]map[string]string)
 }
@@ -42,8 +41,7 @@ func New() *Component {
 
 func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
-	m.Viewport = viewport.New(0, 0)
-	props.Props.Selectable = true
+	props.Selectable = true
 	m.view = view.NewModel(props.Props)
 	m.view.UpdateItems()
 	return nil
