@@ -6,6 +6,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/ohzqq/teacozy/view"
 )
@@ -28,10 +29,11 @@ type App struct {
 	limit       int
 	cursor      int
 	choices     item.Choices
+	paginator   *pagy.Model
 }
 
 func New(c []string) *App {
-	return &App{
+	a := &App{
 		mainRouter: router.New(),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
@@ -42,6 +44,9 @@ func New(c []string) *App {
 		width:      util.TermWidth(),
 		height:     10,
 	}
+	a.paginator = pagy.New(10, len(c))
+
+	return a
 }
 
 func (c App) itemProps() item.Props {
