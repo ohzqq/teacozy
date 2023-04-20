@@ -28,9 +28,9 @@ type Props struct {
 
 func NewModel(props Props) *Model {
 	m := Model{
-		Cursor: props.Cursor,
-		Start:  props.Start,
-		End:    props.End,
+		Cursor: props.Cursor(),
+		Start:  props.Start(),
+		End:    props.End(),
 		props:  props,
 	}
 	m.SetKeyMap(DefaultKeyMap())
@@ -45,18 +45,6 @@ func NewView() *Model {
 	m.SetKeyMap(DefaultKeyMap())
 	m.Viewport = viewport.New(0, 0)
 	return &m
-}
-
-func NewProps(c item.Choices) Props {
-	return Props{
-		Props: item.Props{
-			Choices:  c,
-			Selected: make(map[int]struct{}),
-			Start:    0,
-			End:      10,
-			Cursor:   0,
-		},
-	}
 }
 
 func (m *Model) Props() Props {
@@ -105,11 +93,8 @@ func (m Model) View() string {
 func (m Model) ItemProps() item.Props {
 	p := item.Props{
 		Choices:  m.Props().Choices,
-		Start:    m.Start,
-		End:      m.End,
 		Selected: m.Props().Selected,
 	}
-	p.Cursor = m.Cursor
 	return p
 }
 

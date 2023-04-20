@@ -17,10 +17,7 @@ type List struct {
 
 type Props struct {
 	*pagy.Paginator
-	PerPage          int
-	Total            int
-	UpdatePagination func(*pagy.Paginator)
-	ToggleItems      func(...int)
+	ToggleItems func(...int)
 }
 
 func NewList() *List {
@@ -55,6 +52,7 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *List) Render(w, h int) string {
+	//view := item.Renderer(c.itemProps(), c.width, c.height)
 	return c.Props().View()
 }
 

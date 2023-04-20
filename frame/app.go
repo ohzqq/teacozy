@@ -53,12 +53,10 @@ func New(c []string) *App {
 
 func (c App) itemProps() item.Props {
 	return item.Props{
-		Choices:  c.choices,
-		Selected: c.selected,
-		Start:    c.paginator.Start(),
-		End:      c.paginator.End(),
-		Cursor:   c.paginator.Cursor(),
-		Search:   c.filter,
+		Paginator: c.paginator,
+		Choices:   c.choices,
+		Selected:  c.selected,
+		Search:    c.filter,
 	}
 }
 
