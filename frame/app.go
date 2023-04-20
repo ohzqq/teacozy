@@ -69,7 +69,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := NewList()
 			p := Props{
-				Paginator:   c.paginator,
+				Props:       c.itemProps(),
 				ToggleItems: c.ToggleItems,
 			}
 			return comp, comp.Init(p)
@@ -113,8 +113,8 @@ func (c *App) UpdatePagination(p *pagy.Paginator) {
 }
 
 func (c *App) Render(w, h int) string {
-	//view := c.mainRouter.Render(c.width, c.height)
-	view := item.Renderer(c.itemProps(), c.width, c.height)
+	view := c.mainRouter.Render(c.width, c.height)
+	//view := item.Renderer(c.itemProps(), c.width, c.height)
 	//view += fmt.Sprintf("\ncursor %d start %d:end %d", c.cursor, c.start, c.end)
 	return view
 }

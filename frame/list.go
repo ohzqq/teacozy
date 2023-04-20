@@ -4,8 +4,8 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pagy"
 )
 
 type List struct {
@@ -16,7 +16,7 @@ type List struct {
 }
 
 type Props struct {
-	*pagy.Paginator
+	item.Props
 	ToggleItems func(...int)
 }
 
@@ -52,8 +52,9 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *List) Render(w, h int) string {
-	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	return c.Props().View()
+	view := item.Renderer(c.Props().Props, w, h)
+	return view
+	//return c.Props().View()
 }
 
 func DefaultKeyMap() keys.KeyMap {
