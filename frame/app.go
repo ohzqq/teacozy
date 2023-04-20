@@ -63,7 +63,8 @@ func (c App) itemProps() item.Props {
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := reactea.Componentify[item.Props](item.Renderer)
+			//component := reactea.Componentify[item.Props](item.Renderer)
+			component := NewDefault()
 			return component, component.Init(c.itemProps())
 		},
 		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
@@ -99,8 +100,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.paginator, cmd = c.paginator.Update(msg)
-	cmds = append(cmds, cmd)
+	//c.paginator, cmd = c.paginator.Update(msg)
+	//cmds = append(cmds, cmd)
 
 	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
