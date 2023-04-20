@@ -30,7 +30,7 @@ type App struct {
 	limit       int
 	cursor      int
 	choices     item.Choices
-	paginator   *pagy.Model
+	paginator   *pagy.Paginator
 }
 
 func New(c []string) *App {
@@ -68,13 +68,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := reactea.Componentify[item.Props](item.Renderer)
 			return component, component.Init(c.itemProps())
 		},
-		"pagy": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := NewList()
 			p := Props{
-				PerPage:          c.height,
-				Total:            len(c.choices),
-				UpdatePagination: c.UpdatePagination,
-				ToggleItems:      c.ToggleItems,
+				Paginator:   c.paginator,
+				ToggleItems: c.ToggleItems,
 			}
 			return comp, comp.Init(p)
 
@@ -99,16 +97,20 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.String() == "n" {
-			reactea.SetCurrentRoute("pagy")
+			reactea.SetCurrentRoute("list")
 		}
 	}
+
+	c.paginator, cmd = c.paginator.Update(msg)
+	cmds = append(cmds, cmd)
+
 	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
 }
 
-func (c *App) UpdatePagination(p *pagy.Model) {
+func (c *App) UpdatePagination(p *pagy.Paginator) {
 	c.paginator = p
 }
 

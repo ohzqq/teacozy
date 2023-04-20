@@ -7,7 +7,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Model struct {
+type Paginator struct {
 	paginator.Model
 
 	cursor int
@@ -17,19 +17,20 @@ type Model struct {
 	KeyMap keys.KeyMap
 }
 
-func New(per, total int) *Model {
-	m := &Model{
+func New(per, total int) *Paginator {
+	m := &Paginator{
 		KeyMap: DefaultKeyMap(),
 		total:  total,
 		Model:  paginator.New(),
 	}
 	m.PerPage = per
 	m.SetTotalPages(total)
+	m.SliceBounds()
 
 	return m
 }
 
-func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case keys.PageUpMsg:
@@ -80,44 +81,44 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) Cursor() int {
+func (m Paginator) Cursor() int {
 	return m.cursor
 }
 
-func (m Model) Len() int {
+func (m Paginator) Len() int {
 	return m.total
 }
 
-func (m Model) Start() int {
+func (m Paginator) Start() int {
 	return m.start
 }
 
-func (m Model) End() int {
+func (m Paginator) End() int {
 	return m.end
 }
 
-func (m *Model) SetCursor(n int) *Model {
+func (m *Paginator) SetCursor(n int) *Paginator {
 	m.cursor = n
 	return m
 }
 
-func (m *Model) SetKeyMap(km keys.KeyMap) *Model {
+func (m *Paginator) SetKeyMap(km keys.KeyMap) *Paginator {
 	m.KeyMap = km
 	return m
 }
 
-func (m *Model) SetTotal(n int) *Model {
+func (m *Paginator) SetTotal(n int) *Paginator {
 	m.total = n
 	m.SetTotalPages(n)
 	return m
 }
 
-func (m *Model) SetPerPage(n int) *Model {
+func (m *Paginator) SetPerPage(n int) *Paginator {
 	m.PerPage = n
 	return m
 }
 
-func (m Model) Highlighted() int {
+func (m Paginator) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.PerPage {
 			return i
@@ -126,51 +127,51 @@ func (m Model) Highlighted() int {
 	return 0
 }
 
-func (m *Model) SliceBounds() (int, int) {
+func (m *Paginator) SliceBounds() (int, int) {
 	m.start, m.end = m.GetSliceBounds(m.total)
 	m.start = clamp(m.start, 0, m.total-1)
 	return m.start, m.end
 }
 
-func (m Model) OnLastItem() bool {
+func (m Paginator) OnLastItem() bool {
 	return m.cursor == m.total-1
 }
 
-func (m Model) OnFirstItem() bool {
+func (m Paginator) OnFirstItem() bool {
 	return m.cursor == 0
 }
 
-func (m *Model) NextItem() {
+func (m *Paginator) NextItem() {
 	if !m.OnLastItem() {
 		m.cursor++
 	}
 }
 
-func (m *Model) PrevItem() {
+func (m *Paginator) PrevItem() {
 	if !m.OnFirstItem() {
 		m.cursor--
 	}
 }
 
-func (m *Model) HalfDown() {
+func (m *Paginator) HalfDown() {
 	if !m.OnLastItem() {
 		m.cursor = m.cursor + m.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Model) HalfUp() {
+func (m *Paginator) HalfUp() {
 	if !m.OnFirstItem() {
 		m.cursor = m.cursor - m.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *Paginator) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) View() string {
+func (m *Paginator) View() string {
 	return m.Model.View()
 }
 

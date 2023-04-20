@@ -12,14 +12,14 @@ type List struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	*pagy.Model
 	KeyMap keys.KeyMap
 }
 
 type Props struct {
+	*pagy.Paginator
 	PerPage          int
 	Total            int
-	UpdatePagination func(*pagy.Model)
+	UpdatePagination func(*pagy.Paginator)
 	ToggleItems      func(...int)
 }
 
@@ -31,18 +31,17 @@ func NewList() *List {
 
 func (c *List) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.Model = pagy.New(c.Props().PerPage, c.Props().Total)
 	return nil
 }
 
 func (c *List) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
-	var cmd tea.Cmd
+	//var cmd tea.Cmd
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.Cursor())
+		c.Props().ToggleItems(c.Props().Cursor())
 		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
@@ -52,16 +51,11 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.Model, cmd = c.Model.Update(msg)
-	cmds = append(cmds, cmd)
-
-	c.Props().UpdatePagination(c.Model)
-
 	return tea.Batch(cmds...)
 }
 
 func (c *List) Render(w, h int) string {
-	return c.Model.View()
+	return c.Props().View()
 }
 
 func DefaultKeyMap() keys.KeyMap {
