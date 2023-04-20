@@ -83,10 +83,18 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case keys.ReturnToListMsg:
+		reactea.SetCurrentRoute("default")
+		//cmds = append(cmds, keys.ChangeRoute("default"))
+
 	case keys.ChangeRouteMsg:
 		route := msg.Name
-		c.prevRoute = reactea.CurrentRoute()
+		switch route {
+		case "prev":
+			route = c.prevRoute
+		}
 		reactea.SetCurrentRoute(route)
+		c.prevRoute = reactea.CurrentRoute()
 
 	case tea.KeyMsg:
 		// ctrl+c support

@@ -70,6 +70,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
+		keys.Esc(),
 	}
 	//return keys.KeyMap{
 	//keys.Toggle(),
