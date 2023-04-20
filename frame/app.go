@@ -1,6 +1,8 @@
 package frame
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
@@ -8,7 +10,6 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
-	"github.com/ohzqq/teacozy/view"
 )
 
 type App struct {
@@ -43,6 +44,7 @@ func New(c []string) *App {
 		view:       reactea.Componentify[item.Props](item.Renderer),
 		width:      util.TermWidth(),
 		height:     10,
+		limit:      10,
 	}
 	a.paginator = pagy.New(10, len(c))
 
@@ -52,10 +54,10 @@ func New(c []string) *App {
 func (c App) itemProps() item.Props {
 	return item.Props{
 		Choices:  c.choices,
-		Selected: make(map[int]struct{}),
-		Start:    c.start,
-		End:      c.end,
-		Cursor:   c.cursor,
+		Selected: c.selected,
+		Start:    c.paginator.Start(),
+		End:      c.paginator.End(),
+		Cursor:   c.paginator.Cursor(),
 		Search:   c.filter,
 	}
 }
@@ -66,20 +68,16 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			component := reactea.Componentify[item.Props](item.Renderer)
 			return component, component.Init(c.itemProps())
 		},
-		"nav": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			comp := view.New()
-			i := c.itemProps()
-			p := view.CProps{
-				Props: view.Props{
-					Props:  i,
-					Width:  c.width,
-					Height: c.height,
-				},
-				SetCursor: c.SetCursor,
-				SetStart:  c.SetStart,
-				SetEnd:    c.SetEnd,
+		"pagy": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			comp := NewList()
+			p := Props{
+				PerPage:          c.height,
+				Total:            len(c.choices),
+				UpdatePagination: c.UpdatePagination,
+				ToggleItems:      c.ToggleItems,
 			}
 			return comp, comp.Init(p)
+
 		},
 	})
 }
@@ -101,7 +99,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.String() == "n" {
-			reactea.SetCurrentRoute("nav")
+			reactea.SetCurrentRoute("pagy")
 		}
 	}
 	cmd = c.mainRouter.Update(msg)
@@ -110,9 +108,13 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+func (c *App) UpdatePagination(p *pagy.Model) {
+	c.paginator = p
+}
+
 func (c *App) Render(w, h int) string {
-	view := c.mainRouter.Render(c.width, c.height)
-	//view := item.Renderer(c.itemProps(), c.width, c.height)
+	//view := c.mainRouter.Render(c.width, c.height)
+	view := item.Renderer(c.itemProps(), c.width, c.height)
 	//view += fmt.Sprintf("\ncursor %d start %d:end %d", c.cursor, c.start, c.end)
 	return view
 }
@@ -143,4 +145,8 @@ func (m *App) ToggleItems(items ...int) {
 
 func (c *App) Filter(search string) []item.Item {
 	return c.choices.Filter(search)
+}
+
+func (c App) Selected() {
+	fmt.Printf("sel %+V\n", c.selected)
 }

@@ -29,7 +29,7 @@ func New(per, total int) *Model {
 	return m
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case keys.PageUpMsg:
@@ -117,7 +117,7 @@ func (m *Model) SetPerPage(n int) *Model {
 	return m
 }
 
-func (m Model) Current() int {
+func (m Model) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.PerPage {
 			return i
