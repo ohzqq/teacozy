@@ -27,7 +27,7 @@ func New(c []string) *App {
 func (m *App) Init(reactea.NoProps) tea.Cmd {
 	return m.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := view.NewComponent()
+			component := view.New()
 			return component, component.Init(view.NewProps(m.choices))
 		},
 	})

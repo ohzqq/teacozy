@@ -15,14 +15,14 @@ type Component struct {
 	*Model
 }
 
-func NewComponent() *Component {
+func New() *Component {
 	m := Component{}
 	return &m
 }
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.Model = New(props)
+	c.Model = NewModel(props)
 	return nil
 }
 

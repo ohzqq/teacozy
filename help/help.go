@@ -29,7 +29,7 @@ func New() *Component {
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.view = view.New(props.Props)
+	c.view = view.NewModel(props.Props)
 	return nil
 }
 

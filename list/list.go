@@ -44,7 +44,7 @@ func (m *Component) Init(props Props) tea.Cmd {
 	m.UpdateProps(props)
 	m.Viewport = viewport.New(0, 0)
 	props.Props.Selectable = true
-	m.view = view.New(props.Props)
+	m.view = view.NewModel(props.Props)
 	m.view.UpdateItems()
 	return nil
 }

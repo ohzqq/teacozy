@@ -27,7 +27,7 @@ type Props struct {
 	Height int
 }
 
-func New(props Props) *Model {
+func NewModel(props Props) *Model {
 	m := Model{
 		Cursor: 0,
 		props:  props,
