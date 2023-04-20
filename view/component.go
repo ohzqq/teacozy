@@ -8,11 +8,18 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[CProps]
 
 	mainRouter reactea.Component[router.Props]
 
-	*Model
+	Model *Model
+}
+
+type CProps struct {
+	Props
+	SetCursor func(int)
+	SetStart  func(int)
+	SetEnd    func(int)
 }
 
 func New() *Component {
@@ -20,13 +27,15 @@ func New() *Component {
 	return &m
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Component) Init(props CProps) tea.Cmd {
 	c.UpdateProps(props)
-	c.Model = NewModel(props)
+	c.Model = NewModel(props.Props)
 	return nil
 }
 
 func (m *Component) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(m)
+
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -36,8 +45,16 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+func (m *Component) AfterUpdate() tea.Cmd {
+	m.Props().SetCursor(m.Model.Cursor)
+	m.Props().SetStart(m.Model.Start)
+	m.Props().SetEnd(m.Model.End)
+	//return keys.ChangeRoute("default")
+	return nil
+}
+
 func (m *Component) Render(w, h int) string {
-	m.SetWidth(w)
-	m.SetHeight(h)
+	m.Model.SetWidth(w)
+	m.Model.SetHeight(h)
 	return m.Model.View()
 }

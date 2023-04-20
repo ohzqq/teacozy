@@ -22,18 +22,19 @@ type Props struct {
 	item.Props
 	Editable   bool
 	Filterable bool
-	//Matches    []item.Item
-	Width  int
-	Height int
+	Width      int
+	Height     int
 }
 
 func NewModel(props Props) *Model {
 	m := Model{
-		Cursor: 0,
+		Cursor: props.Cursor,
+		Start:  props.Start,
+		End:    props.End,
 		props:  props,
 	}
 	m.SetKeyMap(DefaultKeyMap())
-	m.Viewport = viewport.New(0, 0)
+	m.Viewport = viewport.New(props.Width, props.Height)
 	return &m
 }
 
@@ -132,9 +133,8 @@ func (m *Model) UpdateItems() {
 		m.SetCursor(clamp(m.Cursor+m.Height(), m.Cursor, len(m.Props().Matches())-1))
 	}
 
-	l := item.NewList()
-	l.Init(m.ItemProps())
-	m.Viewport.SetContent(l.Render(m.Width(), m.Height()))
+	l := item.Renderer(m.ItemProps(), m.Width(), m.Height())
+	m.Viewport.SetContent(l)
 }
 
 // CurrentItem returns the selected row.
@@ -161,6 +161,7 @@ func (m *Model) MoveUp(n int) {
 // MoveDown moves the selection down by any number of rows.
 // It can not go below the last row.
 func (m *Model) MoveDown(n int) {
+
 	m.SetCursor(clamp(m.Cursor+n, 0, len(m.Props().Matches())-1))
 	m.UpdateItems()
 	switch {
@@ -172,6 +173,7 @@ func (m *Model) MoveDown(n int) {
 	case m.Cursor > m.Viewport.YOffset+m.Height()-1:
 		m.Viewport.SetYOffset(clamp(m.Viewport.YOffset+1, 0, 1))
 	}
+
 }
 
 // GotoTop moves the selection to the first row.
