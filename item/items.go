@@ -42,3 +42,7 @@ func Renderer(props Props, w, h int) string {
 func (c Props) Matches() []Item {
 	return c.Choices.Filter(c.Search)
 }
+
+func (c *Props) SetPaginator(p *pagy.Paginator) {
+	c.Paginator = p
+}

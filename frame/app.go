@@ -41,7 +41,6 @@ func New(c []string) *App {
 		start:      0,
 		end:        10,
 		cursor:     0,
-		view:       reactea.Componentify[item.Props](item.Renderer),
 		width:      util.TermWidth(),
 		height:     10,
 		limit:      10,
@@ -63,8 +62,7 @@ func (c App) itemProps() item.Props {
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			//component := reactea.Componentify[item.Props](item.Renderer)
-			component := NewDefault()
+			component := reactea.Componentify[item.Props](item.Renderer)
 			return component, component.Init(c.itemProps())
 		},
 		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
@@ -100,8 +98,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	//c.paginator, cmd = c.paginator.Update(msg)
-	//cmds = append(cmds, cmd)
+	c.paginator, cmd = c.paginator.Update(msg)
+	cmds = append(cmds, cmd)
 
 	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
@@ -109,27 +107,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *App) UpdatePagination(p *pagy.Paginator) {
-	c.paginator = p
-}
-
 func (c *App) Render(w, h int) string {
 	view := c.mainRouter.Render(c.width, c.height)
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
 	//view += fmt.Sprintf("\ncursor %d start %d:end %d", c.cursor, c.start, c.end)
 	return view
-}
-
-func (c *App) SetCursor(n int) {
-	c.cursor = n
-}
-
-func (c *App) SetStart(n int) {
-	c.start = n
-}
-
-func (c *App) SetEnd(n int) {
-	c.end = n
 }
 
 func (m *App) ToggleItems(items ...int) {
