@@ -60,22 +60,35 @@ func NewProps() Props {
 }
 
 func Renderer(props Props, w, h int) string {
+	// get matched items
 	items := props.exactMatches(props.Search)
+
+	// update the total items based on the filter results, this prevents from
+	// going out of bounds
 	props.SetTotal(len(items))
+
+	cur := items[props.Cursor()]
 
 	var rendered []string
 	for _, m := range items[props.Start():props.End()] {
 		var s strings.Builder
 
+		// render prefix
 		var pre string
+
+		// if item has a label, that's the prefix
 		label := props.Items.Label(m.Index)
 		if label != "" {
 			pre = label
 		}
+
+		// style the prefix
 		switch {
-		case m.Index == props.Paginator.Cursor():
+		case m.Index == cur.Index:
+			// current item is highlighted
 			pre = props.Prefix.Cursor.Render(pre)
 		default:
+			// if it's a list, show when an item is toggled
 			if props.Selectable {
 				if _, ok := props.Selected[m.Index]; ok {
 					pre = props.Prefix.Selected.Render(pre)
@@ -83,20 +96,25 @@ func Renderer(props Props, w, h int) string {
 					pre = props.Prefix.Unselected.Render(pre)
 				}
 			}
+			// it there's a label, render it with the style
 			if label != "" {
 				pre = props.Style.Label.Render(pre)
 			}
 		}
+
+		// only print the prefix if it's a list or there's a label
 		if props.Selectable || label != "" {
 			s.WriteString(pre)
 		}
 
+		// render the rest of the line
 		text := lipgloss.StyleRunes(
 			m.Str,
 			m.MatchedIndexes,
 			props.Style.Match,
 			props.Style.Unselected,
 		)
+
 		s.WriteString(lipgloss.NewStyle().Render(text))
 
 		rendered = append(rendered, s.String())
@@ -130,7 +148,6 @@ func (p Prefix) Render(pre ...string) string {
 
 func SourceToMatches(src Source) fuzzy.Matches {
 	items := make(fuzzy.Matches, src.Len())
-
 	for i := 0; i < src.Len(); i++ {
 		m := fuzzy.Match{
 			Str:   src.String(i),

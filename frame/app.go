@@ -61,7 +61,7 @@ func (c *App) ItemProps() teacozy.Props {
 	}
 	props := teacozy.NewProps()
 	props.Paginator = c.paginator
-	props.Choices = c.choices
+	//props.Choices = c.choices
 	props.Items = c.choices
 	props.Selected = c.selected
 	props.Search = c.filter
