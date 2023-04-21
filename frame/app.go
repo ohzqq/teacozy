@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -16,9 +15,9 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter reactea.Component[router.Props]
+	mainRouter reactea.Component[RouterProps]
 	prevRoute  string
-	routes     map[string]router.RouteInitializer
+	routes     map[string]RouteInitializer
 
 	filter      string
 	start       int
@@ -35,7 +34,7 @@ type App struct {
 
 func New(c []string) *App {
 	a := &App{
-		mainRouter: router.New(),
+		mainRouter: NewRouter(),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
@@ -60,12 +59,12 @@ func (c App) itemProps() item.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+	return c.mainRouter.Init(map[string]RouteInitializer{
+		"default": func(Params) (reactea.SomeComponent, tea.Cmd) {
 			component := reactea.Componentify[item.Props](item.Renderer)
 			return component, component.Init(c.itemProps())
 		},
-		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		"list": func(Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := NewList()
 			p := Props{
 				Props:       c.itemProps(),
@@ -86,15 +85,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ReturnToListMsg:
 		reactea.SetCurrentRoute("default")
 		//cmds = append(cmds, keys.ChangeRoute("default"))
-
-	case keys.ChangeRouteMsg:
-		route := msg.Name
-		switch route {
-		case "prev":
-			route = c.prevRoute
-		}
-		reactea.SetCurrentRoute(route)
-		c.prevRoute = reactea.CurrentRoute()
 
 	case tea.KeyMsg:
 		// ctrl+c support
