@@ -1,7 +1,7 @@
 // Heavily borrowed from
 // https://github.com/londek/reactea/blob/v0.4.2/router/router.go
 // under MIT license
-package frame
+package router
 
 import (
 	"fmt"
@@ -11,29 +11,29 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Router struct {
+type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[RouterProps]
+	reactea.BasicPropfulComponent[Props]
 
 	lastComponent reactea.SomeComponent
 	PrevRoute     string
 }
 
-type RouterProps map[string]RouteInitializer
+type Props map[string]RouteInitializer
 type RouteInitializer func(Params) (reactea.SomeComponent, tea.Cmd)
 type Params = map[string]string
 
-func NewRouter() *Router {
-	return &Router{}
+func NewRouter() *Component {
+	return &Component{}
 }
 
-func (c *Router) Init(props RouterProps) tea.Cmd {
+func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 
 	return c.initializeRoute()
 }
 
-func (c *Router) Update(msg tea.Msg) tea.Cmd {
+func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	if c.lastComponent == nil {
@@ -55,7 +55,7 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 	return c.lastComponent.Update(msg)
 }
 
-func (c *Router) AfterUpdate() tea.Cmd {
+func (c *Component) AfterUpdate() tea.Cmd {
 	// If last route != currentRoute we want to reinitialize the component
 	if !reactea.WasRouteChanged() {
 		return nil
@@ -70,7 +70,7 @@ func (c *Router) AfterUpdate() tea.Cmd {
 	return c.initializeRoute()
 }
 
-func (c *Router) Render(width, height int) string {
+func (c *Component) Render(width, height int) string {
 	if c.lastComponent != nil {
 		return c.lastComponent.Render(width, height)
 	}
@@ -78,7 +78,7 @@ func (c *Router) Render(width, height int) string {
 	return fmt.Sprintf("Couldn't route for \"%s\"", reactea.CurrentRoute())
 }
 
-func (c *Router) initializeRoute() tea.Cmd {
+func (c *Component) initializeRoute() tea.Cmd {
 	var cmd tea.Cmd
 
 	if initializer, ok := c.Props()[reactea.CurrentRoute()]; ok {
@@ -92,7 +92,7 @@ func (c *Router) initializeRoute() tea.Cmd {
 	return cmd
 }
 
-func (c *Router) findMatchingRouteInitializer() (RouteInitializer, Params, bool) {
+func (c *Component) findMatchingRouteInitializer() (RouteInitializer, Params, bool) {
 	currentRoute := reactea.CurrentRoute()
 
 	for placeholder, initializer := range c.Props() {

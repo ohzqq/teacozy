@@ -8,6 +8,7 @@ import (
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
+	"github.com/ohzqq/teacozy/router"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -15,9 +16,9 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter reactea.Component[RouterProps]
+	mainRouter reactea.Component[router.Props]
 	prevRoute  string
-	routes     map[string]RouteInitializer
+	routes     map[string]router.RouteInitializer
 
 	filter      string
 	start       int
@@ -34,7 +35,7 @@ type App struct {
 
 func New(c []string) *App {
 	a := &App{
-		mainRouter: NewRouter(),
+		mainRouter: router.NewRouter(),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
@@ -59,12 +60,12 @@ func (c App) itemProps() item.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.mainRouter.Init(map[string]RouteInitializer{
-		"default": func(Params) (reactea.SomeComponent, tea.Cmd) {
+	return c.mainRouter.Init(map[string]router.RouteInitializer{
+		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := reactea.Componentify[item.Props](item.Renderer)
 			return component, component.Init(c.itemProps())
 		},
-		"list": func(Params) (reactea.SomeComponent, tea.Cmd) {
+		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := NewList()
 			p := Props{
 				Props:       c.itemProps(),
