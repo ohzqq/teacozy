@@ -76,21 +76,19 @@ func Renderer(props Props, w, h int) string {
 		case m.Index == props.Paginator.Cursor():
 			pre = props.Prefix.Cursor.Render(pre)
 		default:
-			if _, ok := props.Selected[m.Index]; ok {
-				pre = props.Prefix.Selected.Render(pre)
-			} else {
-				pre = props.Prefix.Unselected.Render(pre)
-				//pre = strings.Repeat(" ", lipgloss.Width(props.Prefix.Cursor.Text))
-				//} else if i.Label == "" {
-				//  pre = strings.Repeat(" ", lipgloss.Width(pre))
-				//} else {
-				//  pre = i.Style.Label.Render(pre)
+			if props.Selectable {
+				if _, ok := props.Selected[m.Index]; ok {
+					pre = props.Prefix.Selected.Render(pre)
+				} else {
+					pre = props.Prefix.Unselected.Render(pre)
+				}
+			}
+			if label != "" {
+				pre = props.Style.Label.Render(pre)
 			}
 		}
 		if props.Selectable || label != "" {
-			//s.WriteString("[")
 			s.WriteString(pre)
-			//s.WriteString("]")
 		}
 
 		text := lipgloss.StyleRunes(
