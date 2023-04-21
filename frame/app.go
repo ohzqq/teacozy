@@ -70,6 +70,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		c.limit = c.choices.Len()
 	}
 	c.paginator = pagy.New(10, c.choices.Len())
+	c.paginator.SetKeyMap(DefaultKeyMap())
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -172,5 +173,17 @@ func WithLimit(l int) Opt {
 func WithTitle(t string) Opt {
 	return func(a *App) {
 		a.title = t
+	}
+}
+
+func DefaultKeyMap() keys.KeyMap {
+	return keys.KeyMap{
+		keys.Up().AddKeys("k"),
+		keys.Down().AddKeys("j"),
+		keys.HalfPgUp().AddKeys("K"),
+		keys.HalfPgDown().AddKeys("J"),
+		keys.Home().AddKeys("g"),
+		keys.End().AddKeys("G"),
+		keys.Quit().AddKeys("q"),
 	}
 }

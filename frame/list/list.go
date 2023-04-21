@@ -73,45 +73,9 @@ func (c *Component) Render(w, h int) string {
 func DefaultKeyMap() keys.KeyMap {
 	return keys.KeyMap{
 		keys.Toggle().AddKeys(" "),
-		keys.Up().WithKeys("k"),
-		keys.Down().WithKeys("j"),
-		keys.HalfPgUp().WithKeys("K"),
-		keys.HalfPgDown().WithKeys("J"),
-		keys.Home().WithKeys("g"),
-		keys.End().WithKeys("G"),
-		keys.Quit().AddKeys("q"),
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
 		keys.Esc(),
-	}
-	//return keys.KeyMap{
-	//keys.Toggle(),
-	//keys.Up(),
-	//keys.Down(),
-	//keys.HalfPgUp(),
-	//keys.HalfPgDown(),
-	//keys.Home(),
-	//keys.End(),
-	//keys.Quit(),
-	//keys.New("ctrl+a").
-	//WithHelp("toggle all").
-	//Cmd(keys.ToggleAllItems),
-	//}
-}
-
-func VimKeyMap() keys.KeyMap {
-	return keys.KeyMap{
-		keys.Toggle().AddKeys(" "),
-		keys.Up().WithKeys("k"),
-		keys.Down().WithKeys("j"),
-		keys.HalfPgUp().WithKeys("K"),
-		keys.HalfPgDown().WithKeys("J"),
-		keys.Home().WithKeys("g"),
-		keys.End().WithKeys("G"),
-		keys.Quit().AddKeys("q"),
-		keys.New("ctrl+a", "v").
-			WithHelp("toggle all").
-			Cmd(keys.ToggleAllItems),
 	}
 }
