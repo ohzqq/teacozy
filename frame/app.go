@@ -59,13 +59,13 @@ func (c *App) ItemProps() teacozy.Props {
 	if reactea.CurrentRoute() == "default" {
 		c.paginator.SetPerPage(c.height)
 	}
-	return teacozy.Props{
-		Paginator: c.paginator,
-		Choices:   c.choices,
-		Items:     c.choices,
-		Selected:  c.selected,
-		Search:    c.filter,
-	}
+	props := teacozy.NewProps()
+	props.Paginator = c.paginator
+	props.Choices = c.choices
+	props.Items = c.choices
+	props.Selected = c.selected
+	props.Search = c.filter
+	return props
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {

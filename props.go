@@ -1,6 +1,8 @@
 package teacozy
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/pagy"
@@ -13,11 +15,7 @@ type Props struct {
 	Items    Items
 	Selected map[int]struct{}
 	Search   string
-	Prefix   struct {
-		Cursor     Prefix
-		Selected   Prefix
-		Unselected Prefix
-	}
+	Prefix   Prefixes
 }
 
 type Prefix struct {
@@ -25,8 +23,35 @@ type Prefix struct {
 	Style lipgloss.Style
 }
 
+type Prefixes struct {
+	Cursor     Prefix
+	Selected   Prefix
+	Unselected Prefix
+}
+
 type Items interface {
 	Find(string) fuzzy.Matches
+}
+
+func NewProps() Props {
+	d := item.DefaultStyle()
+	return Props{
+		Selected: make(map[int]struct{}),
+		Prefix: Prefixes{
+			Cursor: Prefix{
+				Text:  "x",
+				Style: d.Cursor,
+			},
+			Selected: Prefix{
+				Text:  "x",
+				Style: d.Selected,
+			},
+			Unselected: Prefix{
+				Text:  " ",
+				Style: d.Unselected,
+			},
+		},
+	}
 }
 
 func Renderer(props Props, w, h int) string {
@@ -41,7 +66,40 @@ func Renderer(props Props, w, h int) string {
 
 	var rendered []string
 	for _, i := range items[props.Start():props.End()] {
-		rendered = append(rendered, i.Render(w, h))
+		var s strings.Builder
+		//rendered = append(rendered, i.Render(w, h))
+		pre := "x"
+
+		if i.Label != "" {
+			pre = i.Label
+		}
+
+		switch {
+		case i.Current:
+			pre = i.Style.Cursor.Render(pre)
+		default:
+			if i.Selected {
+				pre = i.Style.Selected.Render(pre)
+			} else if i.Label == "" {
+				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			} else {
+				pre = i.Style.Label.Render(pre)
+			}
+		}
+
+		s.WriteString("[")
+		s.WriteString(pre)
+		s.WriteString("]")
+
+		text := lipgloss.StyleRunes(
+			i.Str,
+			i.MatchedIndexes,
+			i.Style.Match,
+			i.Style.Unselected,
+		)
+		s.WriteString(lipgloss.NewStyle().Render(text))
+
+		rendered = append(rendered, s.String())
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
