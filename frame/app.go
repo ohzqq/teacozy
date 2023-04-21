@@ -5,10 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
-	"github.com/ohzqq/teacozy/router"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -16,7 +16,7 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter reactea.Component[router.Props]
+	mainRouter *Router
 	prevRoute  string
 	routes     map[string]router.RouteInitializer
 
@@ -35,7 +35,7 @@ type App struct {
 
 func New(c []string) *App {
 	a := &App{
-		mainRouter: router.New(),
+		mainRouter: NewRouter(),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
@@ -78,14 +78,18 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
+	switch reactea.CurrentRoute() {
+	case "":
+		reactea.SetCurrentRoute("default")
+	}
+
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
 	case keys.ReturnToListMsg:
-		reactea.SetCurrentRoute("default")
-		//cmds = append(cmds, keys.ChangeRoute("default"))
+		cmds = append(cmds, keys.ChangeRoute("default"))
 
 	case tea.KeyMsg:
 		// ctrl+c support
@@ -93,7 +97,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.String() == "n" {
-			reactea.SetCurrentRoute("list")
+			cmds = append(cmds, keys.ChangeRoute("list"))
 		}
 	}
 
@@ -109,7 +113,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(w, h int) string {
 	view := c.mainRouter.Render(c.width, c.height)
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	view += fmt.Sprintf("\ncurrent %v", reactea.CurrentRoute())
+	//view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
 	return view
 }
 
