@@ -54,7 +54,10 @@ func New(opts ...Opt) *App {
 	return a
 }
 
-func (c App) ItemProps() item.Props {
+func (c *App) ItemProps() item.Props {
+	if reactea.CurrentRoute() == "default" {
+		c.paginator.SetPerPage(c.height)
+	}
 	return item.Props{
 		Paginator: c.paginator,
 		Choices:   c.choices,
@@ -68,7 +71,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	if c.limit == -1 {
 		c.limit = c.choices.Len()
 	}
-	c.paginator = pagy.New(10, c.choices.Len())
+	c.paginator = pagy.New(c.height, c.choices.Len())
 	c.paginator.SetKeyMap(DefaultKeyMap())
 	c.end = c.height
 	return c.mainRouter.Init(c.Routes)
@@ -107,7 +110,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(w, h int) string {
 	view := c.mainRouter.Render(c.width, c.height)
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
+	//view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
 	return view
 }
 

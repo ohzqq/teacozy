@@ -72,7 +72,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	if c.input.Focused() {
 		c.input, cmd = c.input.Update(msg)
-		//c.Filter(c.input.Value())
 		cmds = append(cmds, cmd)
 	}
 
@@ -82,6 +81,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	view := c.input.View()
 	props := c.Props().Props
+	props.SetPerPage(h - 1)
 	props.Filter(c.input.Value())
 	return lipgloss.JoinVertical(lipgloss.Left, view, item.Renderer(props, w, h))
 }
@@ -93,7 +93,6 @@ func (c *Component) Initialize(a *frame.App) {
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
 		}
-		p.SetCursor(0)
 		a.SetKeyMap(DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
