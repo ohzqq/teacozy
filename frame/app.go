@@ -62,6 +62,7 @@ func (c *App) ItemProps() teacozy.Props {
 	return teacozy.Props{
 		Paginator: c.paginator,
 		Choices:   c.choices,
+		Items:     c.choices,
 		Selected:  c.selected,
 		Search:    c.filter,
 	}

@@ -38,6 +38,11 @@ func (c Choices) Filter(s string) []Item {
 	return matches
 }
 
+func (c Choices) Find(s string) fuzzy.Matches {
+	m := fuzzy.FindFrom(s, c)
+	return m
+}
+
 // Set sets the value for an item in the slice
 func (c Choices) Set(idx int, val string) {
 	c[idx] = c[idx].Set(val)
