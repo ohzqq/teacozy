@@ -136,10 +136,6 @@ func (m *App) ToggleItems(items ...int) {
 	}
 }
 
-func (c *App) Filter(search string) []item.Item {
-	return c.choices.Filter(search)
-}
-
 func (c App) Selected() {
 	fmt.Printf("sel %+V\n", c.selected)
 }
