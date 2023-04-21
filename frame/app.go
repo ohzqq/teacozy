@@ -35,7 +35,7 @@ type App struct {
 
 func New(c []string) *App {
 	a := &App{
-		mainRouter: router.NewRouter(),
+		mainRouter: router.New(),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
