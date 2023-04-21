@@ -17,8 +17,7 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	mainRouter *Router
-	prevRoute  string
-	routes     map[string]router.RouteInitializer
+	Routes     map[string]router.RouteInitializer
 
 	filter      string
 	start       int
@@ -33,9 +32,12 @@ type App struct {
 	paginator   *pagy.Paginator
 }
 
-func New(c []string) *App {
+type Opt func(*App)
+
+func New(c []string, opts ...Opt) *App {
 	a := &App{
 		mainRouter: NewRouter(),
+		Routes:     make(map[string]router.RouteInitializer),
 		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
@@ -47,10 +49,17 @@ func New(c []string) *App {
 	}
 	a.paginator = pagy.New(10, len(c))
 
+	a.NewRoute(a)
+	a.NewRoute(NewList())
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
 	return a
 }
 
-func (c App) itemProps() item.Props {
+func (c App) ItemProps() item.Props {
 	return item.Props{
 		Paginator: c.paginator,
 		Choices:   c.choices,
@@ -60,21 +69,7 @@ func (c App) itemProps() item.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := reactea.Componentify[item.Props](item.Renderer)
-			return component, component.Init(c.itemProps())
-		},
-		"list": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			comp := NewList()
-			p := Props{
-				Props:       c.itemProps(),
-				ToggleItems: c.ToggleItems,
-			}
-			return comp, comp.Init(p)
-
-		},
-	})
+	return c.mainRouter.Init(c.Routes)
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -114,6 +109,10 @@ func (c *App) Render(w, h int) string {
 	return view
 }
 
+func (c *App) NewRoute(r Route) {
+	r.Initialize(c)
+}
+
 func (m *App) ToggleItems(items ...int) {
 	for _, idx := range items {
 		if _, ok := m.selected[idx]; ok {
@@ -132,4 +131,11 @@ func (c *App) Filter(search string) []item.Item {
 
 func (c App) Selected() {
 	fmt.Printf("sel %+V\n", c.selected)
+}
+
+func (c *App) Initialize(a *App) {
+	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := reactea.Componentify[item.Props](item.Renderer)
+		return component, component.Init(a.ItemProps())
+	}
 }

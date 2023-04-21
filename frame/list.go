@@ -27,15 +27,14 @@ func NewList() *List {
 	}
 }
 
-func (c *List) Initialize() router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+func (c *List) Initialize(a *App) {
+	a.Routes["list"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := NewList()
 		p := Props{
-			Props:       c.itemProps(),
-			ToggleItems: c.ToggleItems,
+			Props:       a.ItemProps(),
+			ToggleItems: a.ToggleItems,
 		}
 		return comp, comp.Init(p)
-
 	}
 }
 

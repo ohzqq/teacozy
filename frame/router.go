@@ -13,7 +13,7 @@ type Router struct {
 }
 
 type Route interface {
-	Initialize() router.RouteInitializer
+	Initialize(*App)
 }
 
 func NewRouter() *Router {
