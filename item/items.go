@@ -24,6 +24,7 @@ func NewList() *List {
 
 func Renderer(props Props, w, h int) string {
 	items := props.Choices.Filter(props.Search)
+	props.SetTotal(len(items))
 
 	for i, _ := range props.Selected {
 		items[i].Selected = true
@@ -37,6 +38,10 @@ func Renderer(props Props, w, h int) string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
+}
+
+func (c *Props) Filter(s string) {
+	c.Search = s
 }
 
 func (c Props) Matches() []Item {

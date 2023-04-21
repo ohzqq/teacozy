@@ -222,20 +222,38 @@ func TextArea() KeyMap {
 	return km
 }
 
+var TextInputDefaultKeyMap = textinput.KeyMap{
+	CharacterForward:        key.NewBinding(key.WithKeys("right")),
+	CharacterBackward:       key.NewBinding(key.WithKeys("left")),
+	WordForward:             key.NewBinding(key.WithKeys("alt+right", "alt+f")),
+	WordBackward:            key.NewBinding(key.WithKeys("alt+left", "alt+b")),
+	DeleteWordBackward:      key.NewBinding(key.WithKeys("alt+backspace")),
+	DeleteWordForward:       key.NewBinding(key.WithKeys("alt+delete")),
+	DeleteAfterCursor:       key.NewBinding(key.WithKeys("ctrl+k")),
+	DeleteBeforeCursor:      key.NewBinding(key.WithKeys("ctrl+u")),
+	DeleteCharacterBackward: key.NewBinding(key.WithKeys("backspace")),
+	DeleteCharacterForward:  key.NewBinding(key.WithKeys("delete")),
+	LineStart:               key.NewBinding(key.WithKeys("home", "ctrl+a")),
+	LineEnd:                 key.NewBinding(key.WithKeys("end", "ctrl+e")),
+	Paste:                   key.NewBinding(key.WithKeys("ctrl+v")),
+}
+
 var textInput = KeyMap{
-	NewBind(textinput.DefaultKeyMap.CharacterBackward).WithHelp("character backward"),
-	NewBind(textinput.DefaultKeyMap.CharacterForward).WithHelp("char forward"),
-	NewBind(textinput.DefaultKeyMap.DeleteAfterCursor).WithHelp("delete after cursor"),
-	NewBind(textinput.DefaultKeyMap.DeleteBeforeCursor).WithHelp("delete before cursor"),
-	NewBind(textinput.DefaultKeyMap.DeleteCharacterBackward).WithHelp("delete char backward"),
-	NewBind(textinput.DefaultKeyMap.DeleteCharacterForward).WithHelp("delete char forward"),
-	NewBind(textinput.DefaultKeyMap.DeleteWordBackward).WithHelp("delete word backward"),
-	NewBind(textinput.DefaultKeyMap.DeleteWordForward).WithHelp("delete word forward"),
-	NewBind(textinput.DefaultKeyMap.LineEnd).WithHelp("line end"),
-	NewBind(textinput.DefaultKeyMap.LineStart).WithHelp("line start"),
-	NewBind(textinput.DefaultKeyMap.Paste).WithHelp("paste"),
-	NewBind(textinput.DefaultKeyMap.WordBackward).WithHelp("word backward"),
-	NewBind(textinput.DefaultKeyMap.WordForward).WithHelp("word forward"),
+	NewBind(TextInputDefaultKeyMap.CharacterBackward).WithHelp("character backward"),
+	NewBind(TextInputDefaultKeyMap.CharacterForward).WithHelp("char forward"),
+	NewBind(TextInputDefaultKeyMap.DeleteAfterCursor).WithHelp("delete after cursor"),
+	NewBind(TextInputDefaultKeyMap.DeleteBeforeCursor).WithHelp("delete before cursor"),
+	NewBind(TextInputDefaultKeyMap.DeleteCharacterBackward).WithHelp("delete char backward"),
+	NewBind(TextInputDefaultKeyMap.DeleteCharacterForward).WithHelp("delete char forward"),
+	NewBind(TextInputDefaultKeyMap.DeleteWordBackward).
+		WithHelp("delete word backward"),
+	NewBind(TextInputDefaultKeyMap.DeleteWordForward).
+		WithHelp("delete word forward"),
+	NewBind(TextInputDefaultKeyMap.LineEnd).WithHelp("line end"),
+	NewBind(TextInputDefaultKeyMap.LineStart).WithHelp("line start"),
+	NewBind(TextInputDefaultKeyMap.Paste).WithHelp("paste"),
+	NewBind(TextInputDefaultKeyMap.WordBackward).WithHelp("word backward"),
+	NewBind(TextInputDefaultKeyMap.WordForward).WithHelp("word forward"),
 }
 
 var textArea = KeyMap{

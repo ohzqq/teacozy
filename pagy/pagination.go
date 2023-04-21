@@ -82,7 +82,8 @@ func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 }
 
 func (m Paginator) Cursor() int {
-	return m.cursor
+	c := clamp(m.cursor, 0, m.end-1)
+	return c
 }
 
 func (m Paginator) Len() int {
@@ -110,11 +111,14 @@ func (m *Paginator) SetKeyMap(km keys.KeyMap) *Paginator {
 func (m *Paginator) SetTotal(n int) *Paginator {
 	m.total = n
 	m.SetTotalPages(n)
+	m.SliceBounds()
 	return m
 }
 
 func (m *Paginator) SetPerPage(n int) *Paginator {
 	m.PerPage = n
+	m.SetTotalPages(m.total)
+	m.SliceBounds()
 	return m
 }
 
@@ -185,7 +189,6 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.HalfPgDown(),
 		keys.Home(),
 		keys.End(),
-		keys.Quit(),
 	}
 }
 

@@ -41,7 +41,6 @@ func New(opts ...Opt) *App {
 		Routes:     make(map[string]router.RouteInitializer),
 		selected:   make(map[int]struct{}),
 		start:      0,
-		end:        10,
 		cursor:     0,
 		width:      util.TermWidth(),
 		height:     10,
@@ -71,6 +70,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	}
 	c.paginator = pagy.New(10, c.choices.Len())
 	c.paginator.SetKeyMap(DefaultKeyMap())
+	c.end = c.height
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -90,8 +90,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
-		if msg.String() == "n" {
-			cmds = append(cmds, keys.ChangeRoute("list"))
+		if msg.String() == "/" {
+			cmds = append(cmds, keys.ChangeRoute("filter"))
 		}
 	}
 
@@ -113,6 +113,11 @@ func (c *App) Render(w, h int) string {
 
 func (c *App) NewRoute(r Route) {
 	r.Initialize(c)
+}
+
+func (c *App) SetKeyMap(km keys.KeyMap) *App {
+	c.paginator.SetKeyMap(km)
+	return c
 }
 
 func (m *App) ToggleItems(items ...int) {
