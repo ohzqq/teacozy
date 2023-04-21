@@ -18,7 +18,7 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 	prevRoute  string
-	view       reactea.Component[item.Props]
+	routes     map[string]router.RouteInitializer
 
 	filter      string
 	start       int
@@ -118,7 +118,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(w, h int) string {
 	view := c.mainRouter.Render(c.width, c.height)
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	//view += fmt.Sprintf("\ncursor %d start %d:end %d", c.cursor, c.start, c.end)
+	view += fmt.Sprintf("\ncurrent %v", reactea.CurrentRoute())
 	return view
 }
 
