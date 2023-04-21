@@ -36,16 +36,6 @@ type Source interface {
 	Set(int, string)
 }
 
-type Items struct {
-	src   Source
-	items []Item
-}
-
-type Item struct {
-	fuzzy.Match
-	Label string
-}
-
 func NewProps() Props {
 	d := item.DefaultStyle()
 	return Props{
@@ -166,20 +156,4 @@ func SourceToMatches(src Source) fuzzy.Matches {
 		items[i] = m
 	}
 	return items
-}
-
-func (i Items) String(idx int) string {
-	return i.items[idx].Str
-}
-
-func (i Items) Label(idx int) string {
-	return i.items[idx].Label
-}
-
-func (i Items) Len() int {
-	return len(i.items)
-}
-
-func (i *Items) Set(idx int, val string) {
-	i.src.Set(idx, val)
 }
