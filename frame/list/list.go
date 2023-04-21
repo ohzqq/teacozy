@@ -5,11 +5,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type List struct {
+type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
@@ -21,15 +22,15 @@ type Props struct {
 	ToggleItems func(...int)
 }
 
-func NewList() *List {
-	return &List{
+func New() *Component {
+	return &Component{
 		KeyMap: DefaultKeyMap(),
 	}
 }
 
-func (c *List) Initialize(a *App) {
+func (c *Component) Initialize(a *frame.App) {
 	a.Routes["list"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		comp := NewList()
+		comp := New()
 		p := Props{
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
@@ -38,12 +39,12 @@ func (c *List) Initialize(a *App) {
 	}
 }
 
-func (c *List) Init(props Props) tea.Cmd {
+func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	return nil
 }
 
-func (c *List) Update(msg tea.Msg) tea.Cmd {
+func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 	//var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -63,7 +64,7 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *List) Render(w, h int) string {
+func (c *Component) Render(w, h int) string {
 	view := item.Renderer(c.Props().Props, w, h)
 	return view
 	//return c.Props().View()
