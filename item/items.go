@@ -2,24 +2,14 @@ package item
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/pagy"
 )
-
-type List struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-}
 
 type Props struct {
 	*pagy.Paginator
 	Choices  Choices
 	Selected map[int]struct{}
 	Search   string
-}
-
-func NewList() *List {
-	return &List{}
 }
 
 func Renderer(props Props, w, h int) string {
