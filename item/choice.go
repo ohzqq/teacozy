@@ -15,7 +15,11 @@ type Choice map[string]string
 
 // String satisfies the fuzzy.Source interface
 func (c Choices) String(i int) string {
-	return c[i].Value()
+	return c[i].String()
+}
+
+func (c Choices) Label(i int) string {
+	return c[i].Label()
 }
 
 // Len satisfies the fuzzy.Source interface
@@ -32,7 +36,7 @@ func (c Choices) Filter(s string) []Item {
 	}
 	for _, match := range m {
 		item := New()
-		item.SetMatch(match).SetLabel(c[match.Index].Key())
+		item.SetMatch(match).SetLabel(c[match.Index].Label())
 		matches = append(matches, item)
 	}
 	return matches
@@ -48,13 +52,13 @@ func (c Choices) Set(idx int, val string) {
 	c[idx] = c[idx].Set(val)
 }
 
-// Key returns the key or label
-func (c Choice) Key() string {
+// Label returns the key or label
+func (c Choice) Label() string {
 	return maps.Keys(c)[0]
 }
 
-// Value returns the string value
-func (c Choice) Value() string {
+// String returns the string value
+func (c Choice) String() string {
 	return maps.Values(c)[0]
 }
 

@@ -12,10 +12,11 @@ import (
 type Props struct {
 	*pagy.Paginator
 	Choices  item.Choices
-	Items    Items
+	Items    Source
 	Selected map[int]struct{}
 	Search   string
 	Prefix   Prefixes
+	Style    item.Style
 }
 
 type Prefix struct {
@@ -29,32 +30,45 @@ type Prefixes struct {
 	Unselected Prefix
 }
 
-type Items interface {
-	Find(string) fuzzy.Matches
+type Source interface {
+	fuzzy.Source
+	Label(int) string
+	Set(int, string)
+}
+
+type Items struct {
+	src   Source
+	items []Item
+}
+
+type Item struct {
+	fuzzy.Match
+	Label string
 }
 
 func NewProps() Props {
 	d := item.DefaultStyle()
 	return Props{
+		Style:    d,
 		Selected: make(map[int]struct{}),
 		Prefix: Prefixes{
 			Cursor: Prefix{
-				Text:  "x",
+				Text:  "[x]",
 				Style: d.Cursor,
 			},
 			Selected: Prefix{
-				Text:  "x",
+				Text:  "[x]",
 				Style: d.Selected,
 			},
 			Unselected: Prefix{
-				Text:  " ",
+				Text:  "[ ]",
 				Style: d.Unselected,
 			},
 		},
 	}
 }
 
-func Renderer(props Props, w, h int) string {
+func OldRenderer(props Props, w, h int) string {
 	items := props.Choices.Filter(props.Search)
 	props.SetTotal(len(items))
 
@@ -66,36 +80,53 @@ func Renderer(props Props, w, h int) string {
 
 	var rendered []string
 	for _, i := range items[props.Start():props.End()] {
-		var s strings.Builder
-		//rendered = append(rendered, i.Render(w, h))
-		pre := "x"
+		rendered = append(rendered, i.Render(w, h))
+	}
 
-		if i.Label != "" {
-			pre = i.Label
+	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
+}
+
+func Renderer(props Props, w, h int) string {
+	items := props.exactMatches(props.Search)
+	props.SetTotal(items.Len())
+
+	var rendered []string
+	for _, m := range items[props.Start():props.End()] {
+		var s strings.Builder
+
+		var pre string
+		label := props.Items.Label(m.Index)
+		if label != "" {
+			pre = label
 		}
 
 		switch {
-		case i.Current:
-			pre = i.Style.Cursor.Render(pre)
+		case m.Index == props.Paginator.Cursor():
+			//pre = props.Style.Cursor.Render(pre)
+			pre = props.Prefix.Cursor.Render(pre)
 		default:
-			if i.Selected {
-				pre = i.Style.Selected.Render(pre)
-			} else if i.Label == "" {
-				pre = strings.Repeat(" ", lipgloss.Width(pre))
+			if _, ok := props.Selected[m.Index]; ok {
+				//pre = props.Style.Selected.Render(pre)
+				pre = props.Prefix.Selected.Render(pre)
 			} else {
-				pre = i.Style.Label.Render(pre)
+				pre = props.Prefix.Unselected.Render(pre)
+				//pre = strings.Repeat(" ", lipgloss.Width(props.Prefix.Cursor.Text))
+				//} else if i.Label == "" {
+				//  pre = strings.Repeat(" ", lipgloss.Width(pre))
+				//} else {
+				//  pre = i.Style.Label.Render(pre)
 			}
 		}
 
-		s.WriteString("[")
+		//s.WriteString("[")
 		s.WriteString(pre)
-		s.WriteString("]")
+		//s.WriteString("]")
 
 		text := lipgloss.StyleRunes(
-			i.Str,
-			i.MatchedIndexes,
-			i.Style.Match,
-			i.Style.Unselected,
+			m.Str,
+			m.MatchedIndexes,
+			props.Style.Match,
+			props.Style.Unselected,
 		)
 		s.WriteString(lipgloss.NewStyle().Render(text))
 
@@ -109,10 +140,46 @@ func (c *Props) Filter(s string) {
 	c.Search = s
 }
 
+func (c Props) exactMatches(search string) fuzzy.Matches {
+	if search != "" {
+		return fuzzy.FindFrom(search, c.Items)
+	}
+	return SourceToMatches(c.Items)
+}
+
 func (p Prefix) Render(t ...string) string {
 	text := p.Text
 	if len(t) > 0 {
 		text = t[0]
 	}
 	return p.Style.Render(text)
+}
+
+func SourceToMatches(src Source) fuzzy.Matches {
+	items := make(fuzzy.Matches, src.Len())
+
+	for i := 0; i < src.Len(); i++ {
+		m := fuzzy.Match{
+			Str:   src.String(i),
+			Index: i,
+		}
+		items[i] = m
+	}
+	return items
+}
+
+func (i Items) String(idx int) string {
+	return i.items[idx].Str
+}
+
+func (i Items) Label(idx int) string {
+	return i.items[idx].Label
+}
+
+func (i Items) Len() int {
+	return len(i.items)
+}
+
+func (i *Items) Set(idx int, val string) {
+	i.src.Set(idx, val)
 }

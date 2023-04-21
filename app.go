@@ -128,7 +128,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.ResetInput()
 			component := edit.New()
 			c.list.SetKeyMap(keys.Global)
-			c.SetInput(c.CurrentItem().Value())
+			c.SetInput(c.CurrentItem().String())
 			p := edit.Props{
 				Save:     c.SetInput,
 				Value:    c.inputValue,
