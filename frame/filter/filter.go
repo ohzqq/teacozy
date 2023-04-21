@@ -83,6 +83,7 @@ func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.SetPerPage(h - 1)
 	props.Filter(c.input.Value())
+	props.Selectable = true
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h))
 }
 
