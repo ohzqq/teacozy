@@ -28,17 +28,17 @@ type App struct {
 	numSelected int
 	limit       int
 	cursor      int
+	title       string
 	choices     item.Choices
 	paginator   *pagy.Paginator
 }
 
 type Opt func(*App)
 
-func New(c []string, opts ...Opt) *App {
+func New(opts ...Opt) *App {
 	a := &App{
 		mainRouter: NewRouter(),
 		Routes:     make(map[string]router.RouteInitializer),
-		choices:    item.SliceToChoices(c),
 		selected:   make(map[int]struct{}),
 		start:      0,
 		end:        10,
@@ -47,10 +47,6 @@ func New(c []string, opts ...Opt) *App {
 		height:     10,
 		limit:      10,
 	}
-	a.paginator = pagy.New(10, len(c))
-
-	a.NewRoute(a)
-	a.NewRoute(NewList())
 
 	for _, opt := range opts {
 		opt(a)
@@ -69,6 +65,11 @@ func (c App) ItemProps() item.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
+	c.NewRoute(c)
+	if c.limit == -1 {
+		c.limit = c.choices.Len()
+	}
+	c.paginator = pagy.New(10, c.choices.Len())
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -137,5 +138,39 @@ func (c *App) Initialize(a *App) {
 	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := reactea.Componentify[item.Props](item.Renderer)
 		return component, component.Init(a.ItemProps())
+	}
+}
+
+func WithSlice[E any](c []E) Opt {
+	return func(a *App) {
+		a.choices = item.SliceToChoices(c)
+	}
+}
+
+func WithMap[K comparable, V any, M ~map[K]V](c []M) Opt {
+	return func(a *App) {
+		a.choices = item.MapToChoices(c)
+	}
+}
+
+func WithRoute(r Route) Opt {
+	return r.Initialize
+}
+
+func NoLimit() Opt {
+	return func(a *App) {
+		a.limit = -1
+	}
+}
+
+func WithLimit(l int) Opt {
+	return func(a *App) {
+		a.limit = l
+	}
+}
+
+func WithTitle(t string) Opt {
+	return func(a *App) {
+		a.title = t
 	}
 }
