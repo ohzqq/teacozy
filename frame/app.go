@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -54,11 +55,11 @@ func New(opts ...Opt) *App {
 	return a
 }
 
-func (c *App) ItemProps() item.Props {
+func (c *App) ItemProps() teacozy.Props {
 	if reactea.CurrentRoute() == "default" {
 		c.paginator.SetPerPage(c.height)
 	}
-	return item.Props{
+	return teacozy.Props{
 		Paginator: c.paginator,
 		Choices:   c.choices,
 		Selected:  c.selected,
@@ -145,7 +146,7 @@ func (c App) Selected() {
 
 func (c *App) Initialize(a *App) {
 	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := reactea.Componentify[item.Props](item.Renderer)
+		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
 		return component, component.Init(a.ItemProps())
 	}
 }

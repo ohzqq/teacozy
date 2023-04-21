@@ -5,8 +5,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/frame"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -18,7 +18,7 @@ type Component struct {
 }
 
 type Props struct {
-	item.Props
+	teacozy.Props
 	ToggleItems func(...int)
 }
 
@@ -65,7 +65,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	view := item.Renderer(c.Props().Props, w, h)
+	view := teacozy.Renderer(c.Props().Props, w, h)
 	return view
 	//return c.Props().View()
 }

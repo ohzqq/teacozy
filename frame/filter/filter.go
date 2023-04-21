@@ -7,9 +7,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/frame"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 )
@@ -27,7 +27,7 @@ type Component struct {
 }
 
 type Props struct {
-	item.Props
+	teacozy.Props
 	ShowHelp    func([]map[string]string)
 	ToggleItems func(...int)
 }
@@ -83,7 +83,7 @@ func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.SetPerPage(h - 1)
 	props.Filter(c.input.Value())
-	return lipgloss.JoinVertical(lipgloss.Left, view, item.Renderer(props, w, h))
+	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h))
 }
 
 func (c *Component) Initialize(a *frame.App) {
