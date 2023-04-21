@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -23,6 +24,18 @@ type Props struct {
 func NewList() *List {
 	return &List{
 		KeyMap: DefaultKeyMap(),
+	}
+}
+
+func (c *List) Initialize() router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := NewList()
+		p := Props{
+			Props:       c.itemProps(),
+			ToggleItems: c.ToggleItems,
+		}
+		return comp, comp.Init(p)
+
 	}
 }
 

@@ -12,6 +12,10 @@ type Router struct {
 	PrevRoute string
 }
 
+type Route interface {
+	Initialize() router.RouteInitializer
+}
+
 func NewRouter() *Router {
 	return &Router{
 		Component: router.New(),
