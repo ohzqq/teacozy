@@ -88,9 +88,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
-	case keys.ReturnToListMsg:
-		cmds = append(cmds, keys.ChangeRoute("default"))
-
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
@@ -113,7 +110,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 func (c *App) Render(w, h int) string {
 	view := c.mainRouter.Render(c.width, c.height)
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	//view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
+	view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
 	return view
 }
 

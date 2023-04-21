@@ -22,6 +22,9 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	switch msg := msg.(type) {
+	case keys.ReturnToListMsg:
+		return keys.ChangeRoute("default")
+
 	case keys.ChangeRouteMsg:
 		route := msg.Name
 
