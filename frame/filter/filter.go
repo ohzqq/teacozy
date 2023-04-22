@@ -48,7 +48,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.input.Prompt = c.Prefix
 	c.input.PromptStyle = c.Style
-	c.input.KeyMap = keys.TextInputDefaultKeyMap
+	c.input.KeyMap = keys.TextInputDefault()
 	return c.input.Focus()
 }
 
