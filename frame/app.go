@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -31,8 +33,18 @@ type App struct {
 	noLimit     bool
 	cursor      int
 	title       string
+	header      string
+	footer      string
 	choices     item.Choices
 	paginator   *pagy.Paginator
+	Style       Style
+}
+
+type Style struct {
+	Confirm lipgloss.Style
+	Footer  lipgloss.Style
+	Header  lipgloss.Style
+	Status  lipgloss.Style
 }
 
 type Opt func(*App)
@@ -42,6 +54,7 @@ func New(opts ...Opt) *App {
 		mainRouter: NewRouter(),
 		Routes:     make(map[string]router.RouteInitializer),
 		selected:   make(map[int]struct{}),
+		Style:      DefaultStyle(),
 		start:      0,
 		cursor:     0,
 		width:      util.TermWidth(),
@@ -110,10 +123,45 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *App) Render(w, h int) string {
-	view := c.mainRouter.Render(c.width, c.height)
+	height := c.height
+	var view []string
+
+	if head := c.renderHeader(w, h); head != "" {
+		height -= lipgloss.Height(head)
+		view = append(view, head)
+	}
+
+	footer := c.renderFooter(w, h)
+	if footer != "" {
+		h -= lipgloss.Height(footer)
+	}
+
+	body := c.mainRouter.Render(c.width, height)
+	view = append(view, body)
+
+	if footer != "" {
+		view = append(view, footer)
+	}
+
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
 	//view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
-	return view
+	return lipgloss.JoinVertical(lipgloss.Left, view...)
+}
+
+func (c App) renderHeader(w, h int) string {
+	var header string
+	if c.title != "" {
+		header = c.Style.Header.Render(c.title)
+	}
+	return header
+}
+
+func (c App) renderFooter(w, h int) string {
+	var footer string
+	if c.footer != "" {
+		footer = c.Style.Header.Render(c.footer)
+	}
+	return footer
 }
 
 func (c *App) NewRoute(r Route) {
@@ -210,5 +258,14 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
 		keys.Quit().AddKeys("q"),
+	}
+}
+
+func DefaultStyle() Style {
+	return Style{
+		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
+		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
+		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
+		Status:  lipgloss.NewStyle().Foreground(color.Green()),
 	}
 }

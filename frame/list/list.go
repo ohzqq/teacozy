@@ -65,7 +65,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	view := teacozy.Renderer(c.Props().Props, w, h)
+	props := c.Props().Props
+	props.Selectable = true
+	view := teacozy.Renderer(props, w, h)
 	return view
 	//return c.Props().View()
 }
