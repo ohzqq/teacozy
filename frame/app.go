@@ -28,6 +28,7 @@ type App struct {
 	selected    map[int]struct{}
 	numSelected int
 	limit       int
+	noLimit     bool
 	cursor      int
 	title       string
 	choices     item.Choices
@@ -44,7 +45,7 @@ func New(opts ...Opt) *App {
 		start:      0,
 		cursor:     0,
 		width:      util.TermWidth(),
-		height:     10,
+		height:     util.TermHeight() - 2,
 		limit:      10,
 	}
 
@@ -69,7 +70,7 @@ func (c *App) ItemProps() teacozy.Props {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.NewRoute(c)
-	if c.limit == -1 {
+	if c.noLimit {
 		c.limit = c.choices.Len()
 	}
 	c.paginator = pagy.New(c.height, c.choices.Len())
@@ -165,7 +166,7 @@ func WithRoute(r Route) Opt {
 
 func NoLimit() Opt {
 	return func(a *App) {
-		a.limit = -1
+		a.noLimit = true
 	}
 }
 
@@ -178,6 +179,25 @@ func WithLimit(l int) Opt {
 func WithTitle(t string) Opt {
 	return func(a *App) {
 		a.title = t
+	}
+}
+
+func WithWidth(w int) Opt {
+	return func(a *App) {
+		a.width = w
+	}
+}
+
+func WithHeight(h int) Opt {
+	return func(a *App) {
+		a.height = h
+	}
+}
+
+func WithSize(w, h int) Opt {
+	return func(a *App) {
+		a.width = w
+		a.height = h
 	}
 }
 

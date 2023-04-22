@@ -34,8 +34,7 @@ type Props struct {
 
 func New() *Component {
 	c := &Component{
-		input: textinput.New(),
-		//KeyMap: DefaultKeyMap(),
+		input:  textinput.New(),
 		Prefix: "> ",
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 	}

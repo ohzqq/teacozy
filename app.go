@@ -339,7 +339,8 @@ func (m App) Chosen() []map[string]string {
 	var chosen []map[string]string
 	if len(m.selected) > 0 {
 		for k := range m.selected {
-			chosen = append(chosen, m.Choices[k])
+			c := m.Choices[k]
+			chosen = append(chosen, map[string]string{c.Label(): c.Str})
 		}
 	}
 	return chosen

@@ -88,11 +88,9 @@ func (i Item) Render(w, h int) string {
 func ChoicesToItems(options Choices) []Item {
 	matches := make([]Item, len(options))
 	for i, option := range options {
-		for label, val := range option {
-			item := New()
-			item.SetIndex(i).SetValue(val).SetLabel(label)
-			matches[i] = item
-		}
+		item := New()
+		item.SetIndex(i).SetValue(option.Str).SetLabel(option.label)
+		matches[i] = item
 	}
 	return matches
 }
