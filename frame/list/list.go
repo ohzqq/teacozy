@@ -36,7 +36,7 @@ func (c *Component) Initialize(a *frame.App) {
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
 		}
-		//a.SetKeyMap(DefaultKeyMap())
+		a.SetKeyMap(frame.DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
 }

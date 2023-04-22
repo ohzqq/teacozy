@@ -56,6 +56,8 @@ func Renderer(props Props, w, h int) string {
 	// get matched items
 	items := props.exactMatches(props.Search)
 
+	props.SetPerPage(h)
+
 	// update the total items based on the filter results, this prevents from
 	// going out of bounds
 	props.SetTotal(len(items))

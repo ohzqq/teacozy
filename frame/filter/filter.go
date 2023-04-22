@@ -82,11 +82,10 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	view := c.input.View()
 	props := c.Props().Props
-	props.SetPerPage(h - 1)
 	props.Filter(c.input.Value())
 	props.Selectable = true
 	props.SetCurrent = c.setCurrent
-	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h))
+	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
 }
 
 func (c *Component) Initialize(a *frame.App) {
