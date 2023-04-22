@@ -1,6 +1,7 @@
 package teacozy
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -12,7 +13,7 @@ import (
 type Props struct {
 	*pagy.Paginator
 	Choices    item.Choices
-	Items      Source
+	Items      Items
 	Selected   map[int]struct{}
 	Search     string
 	Selectable bool
@@ -21,6 +22,7 @@ type Props struct {
 }
 
 type Prefix struct {
+	Fmt   string
 	Text  string
 	Style lipgloss.Style
 }
@@ -29,9 +31,10 @@ type Prefixes struct {
 	Cursor     Prefix
 	Selected   Prefix
 	Unselected Prefix
+	Label      Prefix
 }
 
-type Source interface {
+type Items interface {
 	fuzzy.Source
 	Label(int) string
 	Set(int, string)
@@ -44,22 +47,31 @@ func NewProps() Props {
 		Selected: make(map[int]struct{}),
 		Prefix: Prefixes{
 			Cursor: Prefix{
-				Text:  "[x]",
+				Fmt:   "[%s]",
+				Text:  "x",
 				Style: d.Cursor,
 			},
 			Selected: Prefix{
-				Text:  "[x]",
+				Fmt:   "[%s]",
+				Text:  "x",
 				Style: d.Selected,
 			},
 			Unselected: Prefix{
-				Text:  "[ ]",
+				Fmt:   "[%s]",
+				Text:  " ",
 				Style: d.Unselected,
+			},
+			Label: Prefix{
+				Fmt:   "[%s]",
+				Style: d.Label,
 			},
 		},
 	}
 }
 
 func Renderer(props Props, w, h int) string {
+	var s strings.Builder
+
 	// get matched items
 	items := props.exactMatches(props.Search)
 
@@ -67,44 +79,24 @@ func Renderer(props Props, w, h int) string {
 	// going out of bounds
 	props.SetTotal(len(items))
 
-	cur := items[props.Cursor()]
-
-	var rendered []string
 	for _, m := range items[props.Start():props.End()] {
-		var s strings.Builder
+		var cur bool
+		if m.Index == items[props.Cursor()].Index {
+			cur = true
+		}
 
-		// render prefix
-		var pre string
+		var sel bool
+		if _, ok := props.Selected[m.Index]; ok {
+			sel = true
+		}
 
-		// if item has a label, that's the prefix
 		label := props.Items.Label(m.Index)
-		if label != "" {
-			pre = label
-		}
-
-		// style the prefix
-		switch {
-		case m.Index == cur.Index:
-			// current item is highlighted
-			pre = props.Prefix.Cursor.Render(pre)
-		default:
-			// if it's a list, show when an item is toggled
-			if props.Selectable {
-				if _, ok := props.Selected[m.Index]; ok {
-					pre = props.Prefix.Selected.Render(pre)
-				} else {
-					pre = props.Prefix.Unselected.Render(pre)
-				}
-			}
-			// it there's a label, render it with the style
-			if label != "" {
-				pre = props.Style.Label.Render(pre)
-			}
-		}
+		pre := props.prefixText(label, sel, cur)
+		style := props.prefixStyle(label, sel, cur)
 
 		// only print the prefix if it's a list or there's a label
 		if props.Selectable || label != "" {
-			s.WriteString(pre)
+			s.WriteString(style.Render(pre))
 		}
 
 		// render the rest of the line
@@ -116,11 +108,36 @@ func Renderer(props Props, w, h int) string {
 		)
 
 		s.WriteString(lipgloss.NewStyle().Render(text))
-
-		rendered = append(rendered, s.String())
+		s.WriteString("\n")
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, rendered...)
+	return s.String()
+}
+
+func (c Props) prefixText(label string, selected, current bool) string {
+	switch {
+	case label != "":
+		return label
+	case current:
+		return c.Prefix.Cursor.Text
+	case selected && c.Selectable:
+		return c.Prefix.Selected.Text
+	default:
+		return c.Prefix.Unselected.Text
+	}
+}
+
+func (c Props) prefixStyle(label string, selected, current bool) Prefix {
+	switch {
+	case current:
+		return c.Prefix.Cursor
+	case selected && c.Selectable:
+		return c.Prefix.Selected
+	case label != "":
+		return c.Prefix.Label
+	default:
+		return c.Prefix.Unselected
+	}
 }
 
 func (c *Props) Filter(s string) {
@@ -143,10 +160,10 @@ func (p Prefix) Render(pre ...string) string {
 			text = t
 		}
 	}
-	return p.Style.Render(text)
+	return fmt.Sprintf(p.Fmt, p.Style.Render(text))
 }
 
-func SourceToMatches(src Source) fuzzy.Matches {
+func SourceToMatches(src Items) fuzzy.Matches {
 	items := make(fuzzy.Matches, src.Len())
 	for i := 0; i < src.Len(); i++ {
 		m := fuzzy.Match{
