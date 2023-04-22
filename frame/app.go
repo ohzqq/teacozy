@@ -48,9 +48,7 @@ type Style struct {
 	Status  lipgloss.Style
 }
 
-type Opt func(*App)
-
-func New(opts ...Opt) *App {
+func New(opts ...Option) *App {
 	a := &App{
 		mainRouter: NewRouter(),
 		Routes:     make(map[string]router.RouteInitializer),
@@ -201,65 +199,6 @@ func (c *App) Initialize(a *App) {
 	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
 		return component, component.Init(a.ItemProps())
-	}
-}
-
-func WithSlice[E any](c []E) Opt {
-	return func(a *App) {
-		a.choices = item.SliceToChoices(c)
-	}
-}
-
-func WithMap[K comparable, V any, M ~map[K]V](c []M) Opt {
-	return func(a *App) {
-		a.choices = item.MapToChoices(c)
-	}
-}
-
-func WithRoute(r Route) Opt {
-	return r.Initialize
-}
-
-func NoLimit() Opt {
-	return func(a *App) {
-		a.noLimit = true
-	}
-}
-
-func WithLimit(l int) Opt {
-	return func(a *App) {
-		a.limit = l
-	}
-}
-
-func WithTitle(t string) Opt {
-	return func(a *App) {
-		a.title = t
-	}
-}
-
-func DefaultRoute(r string) Opt {
-	return func(a *App) {
-		a.defaultRoute = r
-	}
-}
-
-func WithWidth(w int) Opt {
-	return func(a *App) {
-		a.width = w
-	}
-}
-
-func WithHeight(h int) Opt {
-	return func(a *App) {
-		a.height = h
-	}
-}
-
-func WithSize(w, h int) Opt {
-	return func(a *App) {
-		a.width = w
-		a.height = h
 	}
 }
 
