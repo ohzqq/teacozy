@@ -20,10 +20,11 @@ type Component struct {
 
 	input textinput.Model
 
-	KeyMap keys.KeyMap
-	Prefix string
-	Style  lipgloss.Style
-	help   keys.KeyMap
+	KeyMap  keys.KeyMap
+	Prefix  string
+	Style   lipgloss.Style
+	help    keys.KeyMap
+	current int
 }
 
 type Props struct {
@@ -58,7 +59,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.Props().Cursor())
+		c.Props().ToggleItems(c.current)
 		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
@@ -83,6 +84,7 @@ func (c *Component) Render(w, h int) string {
 	props.SetPerPage(h - 1)
 	props.Filter(c.input.Value())
 	props.Selectable = true
+	props.SetCurrent = c.setCurrent
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h))
 }
 
@@ -96,6 +98,10 @@ func (c *Component) Initialize(a *frame.App) {
 		a.SetKeyMap(DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
+}
+
+func (c *Component) setCurrent(i int) {
+	c.current = i
 }
 
 func DefaultKeyMap() keys.KeyMap {

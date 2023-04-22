@@ -14,7 +14,8 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	KeyMap keys.KeyMap
+	KeyMap  keys.KeyMap
+	current int
 }
 
 type Props struct {
@@ -51,7 +52,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.Props().Cursor())
+		c.Props().ToggleItems(c.current)
 		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
@@ -67,9 +68,12 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.Selectable = true
-	view := teacozy.Renderer(props, w, h)
-	return view
-	//return c.Props().View()
+	props.SetCurrent = c.setCurrent
+	return teacozy.Renderer(props, w, h)
+}
+
+func (c *Component) setCurrent(i int) {
+	c.current = i
 }
 
 func DefaultKeyMap() keys.KeyMap {

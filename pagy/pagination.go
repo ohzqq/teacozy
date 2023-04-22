@@ -82,8 +82,12 @@ func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 }
 
 func (m Paginator) Cursor() int {
-	c := clamp(m.cursor, 0, m.end-1)
-	return c
+	m.cursor = clamp(m.cursor, 0, m.end-1)
+	return m.cursor
+}
+
+func (m *Paginator) ResetCursor() {
+	m.cursor = clamp(m.cursor, 0, m.end-1)
 }
 
 func (m Paginator) Len() int {

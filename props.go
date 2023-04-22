@@ -18,6 +18,7 @@ type Props struct {
 	Selected   map[int]struct{}
 	Search     string
 	Selectable bool
+	SetCurrent func(int)
 	Style      PropsStyle
 }
 
@@ -42,10 +43,11 @@ type Items interface {
 }
 
 func NewProps() Props {
-	return Props{
+	p := Props{
 		Selected: make(map[int]struct{}),
 		Style:    DefaultPropsStyle(),
 	}
+	return p
 }
 
 func Renderer(props Props, w, h int) string {
@@ -58,9 +60,10 @@ func Renderer(props Props, w, h int) string {
 	// going out of bounds
 	props.SetTotal(len(items))
 
-	for _, m := range items[props.Start():props.End()] {
+	for i, m := range items[props.Start():props.End()] {
 		var cur bool
-		if m.Index == items[props.Cursor()].Index {
+		if i == props.Highlighted() {
+			props.SetCurrent(m.Index)
 			cur = true
 		}
 
@@ -121,9 +124,10 @@ func (c Props) prefixStyle(label string, selected, current bool) Prefix {
 
 func (c *Props) Filter(s string) {
 	c.Search = s
+	c.ResetCursor()
 }
 
-func (c Props) exactMatches(search string) fuzzy.Matches {
+func (c *Props) exactMatches(search string) fuzzy.Matches {
 	if search != "" {
 		if m := fuzzy.FindFrom(search, c.Items); len(m) > 0 {
 			return m

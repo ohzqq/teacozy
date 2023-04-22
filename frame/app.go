@@ -23,7 +23,6 @@ type App struct {
 	Routes       map[string]router.RouteInitializer
 	defaultRoute string
 
-	filter      string
 	start       int
 	end         int
 	width       int
@@ -31,6 +30,7 @@ type App struct {
 	selected    map[int]struct{}
 	numSelected int
 	limit       int
+	currentItem int
 	noLimit     bool
 	cursor      int
 	title       string
@@ -54,7 +54,6 @@ func New(opts ...Option) *App {
 		Routes:     make(map[string]router.RouteInitializer),
 		selected:   make(map[int]struct{}),
 		Style:      DefaultStyle(),
-		start:      0,
 		cursor:     0,
 		width:      util.TermWidth(),
 		height:     util.TermHeight() - 2,
@@ -76,7 +75,8 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Paginator = c.paginator
 	props.Items = c.choices
 	props.Selected = c.selected
-	props.Search = c.filter
+	props.SetCurrent = c.CurrentItem
+	//props.CurrentItem = c.currentItem
 	return props
 }
 
@@ -85,8 +85,6 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	if c.defaultRoute != "" {
 		c.Routes["default"] = c.Routes[c.defaultRoute]
 	}
-
-	c.end = c.height
 
 	if c.noLimit {
 		c.limit = c.choices.Len()
@@ -150,7 +148,6 @@ func (c *App) Render(w, h int) string {
 	}
 
 	//view := item.Renderer(c.itemProps(), c.width, c.height)
-	//view += fmt.Sprintf("\ncurrent %v\nprev %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
 	return lipgloss.JoinVertical(lipgloss.Left, view...)
 }
 
@@ -164,9 +161,13 @@ func (c App) renderHeader(w, h int) string {
 
 func (c App) renderFooter(w, h int) string {
 	var footer string
+
+	footer = fmt.Sprintf("cursor %v, heighlight %v, cur %v", c.paginator.Cursor(), c.paginator.Highlighted())
+
 	if c.footer != "" {
 		footer = c.Style.Header.Render(c.footer)
 	}
+
 	return footer
 }
 
@@ -189,6 +190,10 @@ func (m *App) ToggleItems(items ...int) {
 			m.numSelected++
 		}
 	}
+}
+
+func (m *App) CurrentItem(idx int) {
+	m.currentItem = idx
 }
 
 func (c App) Selected() {
