@@ -19,8 +19,9 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter *Router
-	Routes     map[string]router.RouteInitializer
+	mainRouter   *Router
+	Routes       map[string]router.RouteInitializer
+	defaultRoute string
 
 	filter      string
 	start       int
@@ -83,12 +84,19 @@ func (c *App) ItemProps() teacozy.Props {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.NewRoute(c)
+	if c.defaultRoute != "" {
+		c.Routes["default"] = c.Routes[c.defaultRoute]
+	}
+
+	c.end = c.height
+
 	if c.noLimit {
 		c.limit = c.choices.Len()
 	}
+
 	c.paginator = pagy.New(c.height, c.choices.Len())
 	c.paginator.SetKeyMap(DefaultKeyMap())
-	c.end = c.height
+
 	return c.mainRouter.Init(c.Routes)
 }
 
@@ -227,6 +235,12 @@ func WithLimit(l int) Opt {
 func WithTitle(t string) Opt {
 	return func(a *App) {
 		a.title = t
+	}
+}
+
+func DefaultRoute(r string) Opt {
+	return func(a *App) {
+		a.defaultRoute = r
 	}
 }
 
