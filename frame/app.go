@@ -75,8 +75,6 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Paginator = c.paginator
 	props.Items = c.choices
 	props.Selected = c.selected
-	props.SetCurrent = c.CurrentItem
-	//props.CurrentItem = c.currentItem
 	return props
 }
 
@@ -147,7 +145,6 @@ func (c *App) Render(w, h int) string {
 		view = append(view, footer)
 	}
 
-	//view := item.Renderer(c.itemProps(), c.width, c.height)
 	return lipgloss.JoinVertical(lipgloss.Left, view...)
 }
 
@@ -162,7 +159,7 @@ func (c App) renderHeader(w, h int) string {
 func (c App) renderFooter(w, h int) string {
 	var footer string
 
-	footer = fmt.Sprintf("cursor %v, heighlight %v, cur %v", c.paginator.Cursor(), c.paginator.Highlighted())
+	footer = fmt.Sprintf("cur %v, last %v, cur %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
 
 	if c.footer != "" {
 		footer = c.Style.Header.Render(c.footer)

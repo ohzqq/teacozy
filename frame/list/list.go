@@ -36,6 +36,7 @@ func (c *Component) Initialize(a *frame.App) {
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
 		}
+		//a.SetKeyMap(DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
 }
@@ -77,11 +78,12 @@ func (c *Component) setCurrent(i int) {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := keys.KeyMap{
 		keys.Toggle().AddKeys(" "),
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
 		keys.Esc(),
 	}
+	return km
 }

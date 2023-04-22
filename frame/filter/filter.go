@@ -38,6 +38,7 @@ func New() *Component {
 		input:  textinput.New(),
 		Prefix: "> ",
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
+		KeyMap: DefaultKeyMap(),
 	}
 
 	return c
@@ -95,7 +96,7 @@ func (c *Component) Initialize(a *frame.App) {
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
 		}
-		a.SetKeyMap(DefaultKeyMap())
+		a.SetKeyMap(pagy.DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
 }
@@ -112,7 +113,6 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Enter().WithHelp("stop filtering").Cmd(StopFiltering),
 		keys.Esc().Cmd(StopFiltering),
 	}
-	km = append(km, pagy.DefaultKeyMap()...)
 	return km
 }
 
