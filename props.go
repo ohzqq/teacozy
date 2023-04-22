@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/sahilm/fuzzy"
@@ -17,8 +18,7 @@ type Props struct {
 	Selected   map[int]struct{}
 	Search     string
 	Selectable bool
-	Prefix     Prefixes
-	Style      item.Style
+	Style      PropsStyle
 }
 
 type Prefix struct {
@@ -27,11 +27,12 @@ type Prefix struct {
 	Style lipgloss.Style
 }
 
-type Prefixes struct {
-	Cursor     Prefix
-	Selected   Prefix
-	Unselected Prefix
-	Label      Prefix
+type PropsStyle struct {
+	Cursor   Prefix
+	Label    Prefix
+	Normal   Prefix
+	Selected Prefix
+	Match    lipgloss.Style
 }
 
 type Items interface {
@@ -41,31 +42,9 @@ type Items interface {
 }
 
 func NewProps() Props {
-	d := item.DefaultStyle()
 	return Props{
-		Style:    d,
 		Selected: make(map[int]struct{}),
-		Prefix: Prefixes{
-			Cursor: Prefix{
-				Fmt:   "[%s]",
-				Text:  "x",
-				Style: d.Cursor,
-			},
-			Selected: Prefix{
-				Fmt:   "[%s]",
-				Text:  "x",
-				Style: d.Selected,
-			},
-			Unselected: Prefix{
-				Fmt:   "[%s]",
-				Text:  " ",
-				Style: d.Unselected,
-			},
-			Label: Prefix{
-				Fmt:   "[%s]",
-				Style: d.Label,
-			},
-		},
+		Style:    DefaultPropsStyle(),
 	}
 }
 
@@ -104,7 +83,7 @@ func Renderer(props Props, w, h int) string {
 			m.Str,
 			m.MatchedIndexes,
 			props.Style.Match,
-			props.Style.Unselected,
+			props.Style.Normal.Style,
 		)
 
 		s.WriteString(lipgloss.NewStyle().Render(text))
@@ -119,24 +98,24 @@ func (c Props) prefixText(label string, selected, current bool) string {
 	case label != "":
 		return label
 	case current:
-		return c.Prefix.Cursor.Text
+		return c.Style.Cursor.Text
 	case selected && c.Selectable:
-		return c.Prefix.Selected.Text
+		return c.Style.Selected.Text
 	default:
-		return c.Prefix.Unselected.Text
+		return c.Style.Normal.Text
 	}
 }
 
 func (c Props) prefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
-		return c.Prefix.Cursor
+		return c.Style.Cursor
 	case selected && c.Selectable:
-		return c.Prefix.Selected
+		return c.Style.Selected
 	case label != "":
-		return c.Prefix.Label
+		return c.Style.Label
 	default:
-		return c.Prefix.Unselected
+		return c.Style.Normal
 	}
 }
 
@@ -174,3 +153,38 @@ func SourceToMatches(src Items) fuzzy.Matches {
 	}
 	return items
 }
+
+func DefaultPropsStyle() PropsStyle {
+	return PropsStyle{
+		Match: lipgloss.NewStyle().Foreground(color.Cyan()),
+		Cursor: Prefix{
+			Fmt:   currentFmt,
+			Text:  currentPrefix,
+			Style: lipgloss.NewStyle().Foreground(color.Green()),
+		},
+		Selected: Prefix{
+			Fmt:   selectedFmt,
+			Text:  selectedPrefix,
+			Style: lipgloss.NewStyle().Foreground(color.Grey()),
+		},
+		Normal: Prefix{
+			Fmt:   unselectedFmt,
+			Text:  unselectedPrefix,
+			Style: lipgloss.NewStyle().Foreground(color.Fg()),
+		},
+		Label: Prefix{
+			Fmt:   labelFmt,
+			Style: lipgloss.NewStyle().Foreground(color.Purple()),
+		},
+	}
+}
+
+const (
+	selectedPrefix   = "x"
+	selectedFmt      = "[%s]"
+	unselectedPrefix = " "
+	unselectedFmt    = "[%s]"
+	currentPrefix    = "x"
+	currentFmt       = "[%s]"
+	labelFmt         = "[%s]"
+)
