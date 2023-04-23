@@ -31,6 +31,7 @@ type App struct {
 	limit       int
 	CurrentItem int
 	noLimit     bool
+	readOnly    bool
 	cursor      int
 	title       string
 	header      string
@@ -74,6 +75,7 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Selected = c.selected
 	props.SetKeyMap(c.paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
+	props.ReadOnly = c.readOnly
 	return props
 }
 
@@ -115,6 +117,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
+		}
+		if msg.String() == "/" {
+			return keys.ChangeRoute("filter")
 		}
 	}
 
@@ -190,15 +195,19 @@ func (c *App) SetKeyMap(km keys.KeyMap) *App {
 	return c
 }
 
-func (m *App) ToggleItems(items ...int) {
+func (c App) ToggleItem() {
+	c.ToggleItems(c.Current())
+}
+
+func (c *App) ToggleItems(items ...int) {
 	for _, idx := range items {
-		m.CurrentItem = idx
-		if _, ok := m.selected[idx]; ok {
-			delete(m.selected, idx)
-			m.numSelected--
-		} else if m.numSelected < m.limit {
-			m.selected[idx] = struct{}{}
-			m.numSelected++
+		c.CurrentItem = idx
+		if _, ok := c.selected[idx]; ok {
+			delete(c.selected, idx)
+			c.numSelected--
+		} else if c.numSelected < c.limit {
+			c.selected[idx] = struct{}{}
+			c.numSelected++
 		}
 	}
 }
@@ -231,7 +240,8 @@ func (c App) Selected() {
 func (c *App) Initialize(a *App) {
 	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
-		return component, component.Init(a.ItemProps())
+		props := a.ItemProps()
+		return component, component.Init(props)
 	}
 }
 
@@ -264,6 +274,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
 		keys.Quit().AddKeys("q"),
+		keys.Toggle().AddKeys(" "),
 	}
 }
 

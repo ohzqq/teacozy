@@ -21,7 +21,7 @@ type Component struct {
 
 type Props struct {
 	teacozy.Props
-	ToggleItems func(...int)
+	ToggleItem func()
 }
 
 func New() *Component {
@@ -34,8 +34,8 @@ func (c *Component) Initialize(a *frame.App) {
 	a.Routes["list"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props:       a.ItemProps(),
-			ToggleItems: a.ToggleItems,
+			Props:      a.ItemProps(),
+			ToggleItem: a.ToggleItem,
 		}
 		a.SetKeyMap(frame.DefaultKeyMap())
 		return comp, comp.Init(p)
@@ -73,7 +73,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
-	props.Selectable = true
 	return teacozy.Renderer(props, w, h)
 }
 

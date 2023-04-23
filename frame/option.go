@@ -26,6 +26,12 @@ func NoLimit() Option {
 	}
 }
 
+func ReadOnly() Option {
+	return func(a *App) {
+		a.readOnly = true
+	}
+}
+
 func WithLimit(l int) Option {
 	return func(a *App) {
 		a.limit = l

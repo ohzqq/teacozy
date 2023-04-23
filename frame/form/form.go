@@ -101,7 +101,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
-	props.Selectable = true
 
 	if c.input.Focused() {
 		c.input.SetWidth(w)

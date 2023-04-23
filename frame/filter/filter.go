@@ -80,7 +80,6 @@ func (c *Component) Render(w, h int) string {
 	view := c.input.View()
 	props := c.Props().Props
 	props.Filter(c.input.Value())
-	props.Selectable = true
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
 }
 

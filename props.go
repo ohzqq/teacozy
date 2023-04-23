@@ -17,7 +17,7 @@ type Props struct {
 	Items      Items
 	Selected   map[int]struct{}
 	Search     string
-	Selectable bool
+	ReadOnly   bool
 	SetCurrent func(int)
 	Style      PropsStyle
 }
@@ -80,7 +80,7 @@ func Renderer(props Props, w, h int) string {
 		style := props.prefixStyle(label, sel, cur)
 
 		// only print the prefix if it's a list or there's a label
-		if props.Selectable || label != "" {
+		if !props.ReadOnly || label != "" {
 			s.WriteString(style.Render(pre))
 		}
 
@@ -105,7 +105,7 @@ func (c Props) prefixText(label string, selected, current bool) string {
 		return label
 	case current:
 		return c.Style.Cursor.Text
-	case selected && c.Selectable:
+	case selected && !c.ReadOnly:
 		return c.Style.Selected.Text
 	default:
 		return c.Style.Normal.Text
@@ -116,7 +116,7 @@ func (c Props) prefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
 		return c.Style.Cursor
-	case selected && c.Selectable:
+	case selected && !c.ReadOnly:
 		return c.Style.Selected
 	case label != "":
 		return c.Style.Label
