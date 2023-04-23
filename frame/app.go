@@ -72,7 +72,8 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Items = c.choices
 	props.Selected = c.selected
 	props.SetKeyMap(c.paginator.KeyMap)
-	//props.SetCurrent = c.SetCurrent
+	props.SetCurrent = c.SetCurrent
+	props.Current = c.currentItem
 	return props
 }
 
@@ -89,15 +90,13 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.paginator = pagy.New(c.height, c.choices.Len())
 	c.paginator.SetKeyMap(DefaultKeyMap())
 
-	return c.mainRouter.Init(c.Routes)
+	var cmds []tea.Cmd
+	cmds = append(cmds, keys.ChangeRoute("default"))
+	cmds = append(cmds, c.mainRouter.Init(c.Routes))
+	return tea.Batch(cmds...)
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
-	switch reactea.CurrentRoute() {
-	case "":
-		reactea.SetCurrentRoute("default")
-	}
-
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -185,6 +184,7 @@ func (c *App) SetKeyMap(km keys.KeyMap) *App {
 }
 
 func (m *App) ToggleItems(items ...int) {
+	items = append(items, m.Current())
 	for _, idx := range items {
 		m.currentItem = idx
 		if _, ok := m.selected[idx]; ok {

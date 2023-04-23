@@ -60,12 +60,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.current)
+		c.Props().ToggleItems()
 		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
-				c.input.Reset()
 				cmds = append(cmds, k.TeaCmd)
 			}
 		}
@@ -84,7 +83,7 @@ func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.Filter(c.input.Value())
 	props.Selectable = true
-	props.SetCurrent = c.setCurrent
+	//props.SetCurrent = c.setCurrent
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
 }
 
