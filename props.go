@@ -18,7 +18,6 @@ type Props struct {
 	Selected   map[int]struct{}
 	Search     string
 	Selectable bool
-	Current    int
 	SetCurrent func(int)
 	Style      PropsStyle
 }

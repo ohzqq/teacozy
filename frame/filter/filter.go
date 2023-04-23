@@ -31,6 +31,7 @@ type Props struct {
 	teacozy.Props
 	ShowHelp    func([]map[string]string)
 	ToggleItems func(...int)
+	Current     int
 }
 
 func New() *Component {
@@ -83,7 +84,6 @@ func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.Filter(c.input.Value())
 	props.Selectable = true
-	//props.SetCurrent = c.setCurrent
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
 }
 

@@ -14,6 +14,7 @@ type Paginator struct {
 	total  int
 	start  int
 	end    int
+	Index  int
 	KeyMap keys.KeyMap
 }
 
@@ -94,6 +95,10 @@ func (m Paginator) Len() int {
 	return m.total
 }
 
+func (m Paginator) Current() int {
+	return m.Index
+}
+
 func (m Paginator) Start() int {
 	return m.start
 }
@@ -109,6 +114,11 @@ func (m *Paginator) SetCursor(n int) *Paginator {
 
 func (m *Paginator) SetKeyMap(km keys.KeyMap) *Paginator {
 	m.KeyMap = km
+	return m
+}
+
+func (m *Paginator) SetCurrent(n int) *Paginator {
+	m.Index = n
 	return m
 }
 

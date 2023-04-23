@@ -29,7 +29,7 @@ type App struct {
 	selected    map[int]struct{}
 	numSelected int
 	limit       int
-	currentItem int
+	CurrentItem int
 	noLimit     bool
 	cursor      int
 	title       string
@@ -73,7 +73,7 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Selected = c.selected
 	props.SetKeyMap(c.paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
-	props.Current = c.currentItem
+	props.Index = c.paginator.Current()
 	return props
 }
 
@@ -163,7 +163,7 @@ func (c App) renderFooter(w, h int) string {
 	footer = fmt.Sprintf(
 		"cur route %v, per %v, current %v",
 		reactea.CurrentRoute(),
-		c.paginator.Cursor(),
+		c.paginator.Current(),
 		c.Current(),
 	)
 
@@ -186,7 +186,7 @@ func (c *App) SetKeyMap(km keys.KeyMap) *App {
 func (m *App) ToggleItems(items ...int) {
 	items = append(items, m.Current())
 	for _, idx := range items {
-		m.currentItem = idx
+		m.CurrentItem = idx
 		if _, ok := m.selected[idx]; ok {
 			delete(m.selected, idx)
 			m.numSelected--
@@ -210,11 +210,12 @@ func (m App) Chosen() []map[string]string {
 }
 
 func (m *App) SetCurrent(idx int) {
-	m.currentItem = idx
+	m.CurrentItem = idx
+	m.paginator.SetCurrent(idx)
 }
 
 func (m *App) Current() int {
-	return m.currentItem
+	return m.CurrentItem
 }
 
 func (c App) Selected() {

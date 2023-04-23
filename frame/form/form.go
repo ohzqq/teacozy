@@ -30,6 +30,7 @@ type Props struct {
 	ShowHelp    func([]map[string]string)
 	SetCurrent  func(int)
 	ToggleItems func(...int)
+	Current     int
 	teacozy.Props
 }
 
@@ -68,7 +69,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		//}
 		return keys.ReturnToList
 	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.current)
+		c.Props().ToggleItems()
 		cmds = append(cmds, keys.LineDown)
 	case keys.StopEditingMsg:
 		c.input.Reset()
@@ -104,7 +105,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
-	props.SetCurrent = c.setCurrent
 	props.Selectable = true
 
 	if c.input.Focused() {
@@ -129,7 +129,6 @@ func (c *Component) Initialize(a *frame.App) {
 		p := Props{
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
-			SetCurrent:  a.SetCurrent,
 		}
 		//a.SetKeyMap(pagy.DefaultKeyMap())
 		a.SetKeyMap(frame.DefaultKeyMap())
