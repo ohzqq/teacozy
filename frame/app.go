@@ -9,7 +9,6 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
@@ -36,7 +35,7 @@ type App struct {
 	title       string
 	header      string
 	footer      string
-	choices     item.Choices
+	choices     teacozy.Items
 	paginator   *pagy.Paginator
 	Style       Style
 }
@@ -73,6 +72,7 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Items = c.choices
 	props.Selected = c.selected
 	props.SetKeyMap(c.paginator.KeyMap)
+	//props.SetCurrent = c.SetCurrent
 	return props
 }
 
@@ -104,7 +104,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		fmt.Println("poor")
 		c.width = msg.Width
 		c.height = msg.Height - 2
 		return nil
@@ -118,10 +117,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.paginator, cmd = c.paginator.Update(msg)
+	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
 
-	cmd = c.mainRouter.Update(msg)
+	c.paginator, cmd = c.paginator.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
@@ -162,7 +161,12 @@ func (c App) renderHeader(w, h int) string {
 func (c App) renderFooter(w, h int) string {
 	var footer string
 
-	footer = fmt.Sprintf("cur %v, last %v, cur %v", reactea.CurrentRoute(), c.mainRouter.PrevRoute)
+	footer = fmt.Sprintf(
+		"cur route %v, per %v, current %v",
+		reactea.CurrentRoute(),
+		c.paginator.Cursor(),
+		c.Current(),
+	)
 
 	if c.footer != "" {
 		footer = c.Style.Header.Render(c.footer)
@@ -182,6 +186,7 @@ func (c *App) SetKeyMap(km keys.KeyMap) *App {
 
 func (m *App) ToggleItems(items ...int) {
 	for _, idx := range items {
+		m.currentItem = idx
 		if _, ok := m.selected[idx]; ok {
 			delete(m.selected, idx)
 			m.numSelected--
@@ -192,8 +197,24 @@ func (m *App) ToggleItems(items ...int) {
 	}
 }
 
-func (m *App) CurrentItem(idx int) {
+func (m App) Chosen() []map[string]string {
+	var chosen []map[string]string
+	if len(m.selected) > 0 {
+		for k := range m.selected {
+			l := m.choices.Label(k)
+			v := m.choices.String(k)
+			chosen = append(chosen, map[string]string{l: v})
+		}
+	}
+	return chosen
+}
+
+func (m *App) SetCurrent(idx int) {
 	m.currentItem = idx
+}
+
+func (m *App) Current() int {
+	return m.currentItem
 }
 
 func (c App) Selected() {
