@@ -82,7 +82,7 @@ func (c *Component) setCurrent(i int) {
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
-		keys.Toggle().AddKeys(" "),
+		//keys.Toggle().AddKeys(" "),
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),

@@ -126,13 +126,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
-
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
 		}
 	}
+
+	//fmt.Printf("%+V\n", c.keyMap.Keys())
 
 	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
@@ -182,7 +183,7 @@ func (c App) renderFooter(w, h int) string {
 		"cur route %v, per %v, current %v",
 		reactea.CurrentRoute(),
 		c.paginator.Current(),
-		c.Current(),
+		len(c.keyMap.Keys()),
 	)
 
 	if c.footer != "" {
@@ -211,9 +212,11 @@ func (c App) ToggleItem() {
 }
 
 func (c *App) AddKey(k *keys.Binding) *App {
-	has := c.keyMap.Index(k)
-	fmt.Println(has)
-	c.keyMap.AddBinds(k)
+	if !c.keyMap.Contains(k) {
+		c.keyMap.AddBinds(k)
+	} else {
+		c.keyMap.Replace(k)
+	}
 	return c
 }
 
@@ -292,7 +295,6 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home().AddKeys("g"),
 		keys.End().AddKeys("G"),
 		keys.Quit().AddKeys("q"),
-		keys.Toggle().AddKeys(" "),
 	}
 	return keys.NewKeyMap(km...)
 }

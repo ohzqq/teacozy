@@ -110,6 +110,12 @@ func (km KeyMap) Index(bind *Binding) int {
 	})
 }
 
+func (km *KeyMap) Replace(b *Binding) {
+	if idx := km.Index(b); idx != -1 {
+		km.keys = slices.Replace(km.Keys(), idx, idx+1, b)
+	}
+}
+
 func MapKeys(keys ...key.Binding) []map[string]string {
 	c := make([]map[string]string, len(keys))
 	for i, k := range keys {
