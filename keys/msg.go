@@ -17,6 +17,30 @@ func ChangeRoute(name string) tea.Cmd {
 	}
 }
 
+type UpdateItemMsg struct {
+	Cmd func(int) tea.Cmd
+}
+
+func UpdateItem(cmd func(int) tea.Cmd) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateItemMsg{
+			Cmd: cmd,
+		}
+	}
+}
+
+type ToggleItemsMsg struct {
+	Index int
+}
+
+func ToggleItems(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return ToggleItemsMsg{
+			Index: idx,
+		}
+	}
+}
+
 // List Msg
 type ReturnSelectionsMsg struct{}
 

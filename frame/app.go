@@ -62,7 +62,7 @@ func New(opts ...Option) *App {
 		limit:      10,
 	}
 
-	a.AddKey(keys.Toggle().AddKeys(" "))
+	a.AddKey(keys.New("a").Cmd(keys.UpdateItem(keys.ToggleItems)))
 	a.mainRouter.UpdateRoutes = a.UpdateRoutes
 
 	for _, opt := range opts {
@@ -112,6 +112,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case keys.UpdateItemMsg:
+		return msg.Cmd(c.Current())
+	case keys.ToggleItemsMsg:
+		fmt.Println("toggle")
+		c.ToggleItems(c.Current())
+		cmds = append(cmds, keys.LineDown)
 	case keys.ToggleItemMsg:
 		c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)

@@ -1,6 +1,8 @@
 package list
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
@@ -57,6 +59,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case keys.ToggleItemsMsg:
+		fmt.Println("toggle")
+		//cmds = append(cmds, keys.UpdateItem(keys.ToggleItems))
+		//c.ToggleItems(c.Current())
+		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		if msg.String() == "/" {
 			return frame.ChangeRoute(filter.New())
@@ -82,7 +89,7 @@ func (c *Component) setCurrent(i int) {
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
-		//keys.Toggle().AddKeys(" "),
+		keys.Toggle().AddKeys(" ").Cmd(keys.UpdateItem(keys.ToggleItems)),
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
