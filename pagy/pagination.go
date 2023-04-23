@@ -70,7 +70,7 @@ func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -194,7 +194,7 @@ func (m *Paginator) View() string {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	k := []*keys.Binding{
 		keys.PgUp(),
 		keys.PgDown(),
 		keys.Up(),
@@ -204,6 +204,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Home(),
 		keys.End(),
 	}
+	return keys.NewKeyMap(k...)
 }
 
 func clamp(x, min, max int) int {

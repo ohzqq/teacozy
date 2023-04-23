@@ -48,7 +48,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		for _, k := range c.KeyMap() {
+		for _, k := range c.KeyMap().Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -58,12 +58,12 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) KeyMap() keys.KeyMap {
-	km := keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Quit(),
 		keys.Yes().Cmd(c.Confirmed(true)),
 		keys.No().Cmd(c.Confirmed(false)),
 	}
-	return km
+	return keys.NewKeyMap(km...)
 }
 
 func (c *Component) Render(w, h int) string {

@@ -40,7 +40,7 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -60,7 +60,8 @@ func (m *Component) Render(w, h int) string {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Esc().AddKeys("q").Cmd(keys.ChangeRoute("prev")),
 	}
+	return keys.NewKeyMap(km...)
 }

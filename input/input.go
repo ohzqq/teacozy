@@ -53,7 +53,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		for _, k := range c.KeyMap {
+		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				c.input.Reset()
 				cmds = append(cmds, k.TeaCmd)
@@ -75,13 +75,13 @@ func (c *Component) Render(int, int) string {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	km := keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Quit(),
 		keys.Help(),
 		keys.Enter().WithHelp("stop filtering").Cmd(StopFiltering),
 		keys.Esc().Cmd(StopFiltering),
 	}
-	return km
+	return keys.NewKeyMap(km...)
 }
 
 func StopFiltering() tea.Msg {

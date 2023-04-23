@@ -76,7 +76,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case keys.BottomMsg:
 		m.GotoBottom()
 	case tea.KeyMsg:
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -209,7 +209,7 @@ func (m *Model) SetCursor(n int) {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := []*keys.Binding{
 		keys.PgUp(),
 		keys.PgDown(),
 		keys.Up(),
@@ -220,6 +220,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.End(),
 		keys.Quit(),
 	}
+	return keys.NewKeyMap(km...)
 }
 
 func max(a, b int) int {

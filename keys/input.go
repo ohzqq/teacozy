@@ -12,7 +12,8 @@ func TextInput() KeyMap {
 
 func TextArea() KeyMap {
 	km := textInput
-	km = append(km, textArea...)
+	km.AddBinds(textArea.Keys()...)
+	//km = append(km, textArea...)
 	return km
 }
 
@@ -60,29 +61,33 @@ func TextAreaDefault() textarea.KeyMap {
 }
 
 var textInput = KeyMap{
-	NewBind(CharacterBackward),
-	NewBind(CharacterForward),
-	NewBind(DeleteCharacterBackward),
-	NewBind(DeleteCharacterForward),
-	NewBind(DeleteWordBackward),
-	NewBind(DeleteWordForward),
-	NewBind(LineEnd),
-	NewBind(LineStart),
-	NewBind(Paste),
-	NewBind(WordBackward),
-	NewBind(WordForward),
+	keys: []*Binding{
+		NewBind(CharacterBackward),
+		NewBind(CharacterForward),
+		NewBind(DeleteCharacterBackward),
+		NewBind(DeleteCharacterForward),
+		NewBind(DeleteWordBackward),
+		NewBind(DeleteWordForward),
+		NewBind(LineEnd),
+		NewBind(LineStart),
+		NewBind(Paste),
+		NewBind(WordBackward),
+		NewBind(WordForward),
+	},
 }
 
 var textArea = KeyMap{
-	NewBind(InsertNewline),
-	NewBind(LineNext),
-	NewBind(LinePrevious),
-	NewBind(InputBegin),
-	NewBind(InputEnd),
-	NewBind(UppercaseWordForward),
-	NewBind(LowercaseWordForward),
-	NewBind(CapitalizeWordForward),
-	NewBind(TransposeCharacterBackward),
+	keys: []*Binding{
+		NewBind(InsertNewline),
+		NewBind(LineNext),
+		NewBind(LinePrevious),
+		NewBind(InputBegin),
+		NewBind(InputEnd),
+		NewBind(UppercaseWordForward),
+		NewBind(LowercaseWordForward),
+		NewBind(CapitalizeWordForward),
+		NewBind(TransposeCharacterBackward),
+	},
 }
 
 var (

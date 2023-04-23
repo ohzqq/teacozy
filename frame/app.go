@@ -3,6 +3,7 @@ package frame
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -38,6 +39,7 @@ type App struct {
 	footer      string
 	choices     teacozy.Items
 	paginator   *pagy.Paginator
+	keyMap      keys.KeyMap
 	Style       Style
 }
 
@@ -59,6 +61,8 @@ func New(opts ...Option) *App {
 		height:     util.TermHeight() - 2,
 		limit:      10,
 	}
+
+	a.AddKey(keys.Toggle().AddKeys(" "))
 	a.mainRouter.UpdateRoutes = a.UpdateRoutes
 
 	for _, opt := range opts {
@@ -87,6 +91,10 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 	if c.noLimit {
 		c.limit = c.choices.Len()
+	}
+
+	if !c.readOnly {
+		c.AddKey(keys.Toggle().AddKeys(" "))
 	}
 
 	c.paginator = pagy.New(c.height, c.choices.Len())
@@ -118,8 +126,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
-		if msg.String() == "/" {
-			return keys.ChangeRoute("filter")
+
+		for _, k := range c.keyMap.Keys() {
+			if key.Matches(msg, k.Binding) {
+				cmds = append(cmds, k.TeaCmd)
+			}
 		}
 	}
 
@@ -199,6 +210,13 @@ func (c App) ToggleItem() {
 	c.ToggleItems(c.Current())
 }
 
+func (c *App) AddKey(k *keys.Binding) *App {
+	has := c.keyMap.Index(k)
+	fmt.Println(has)
+	c.keyMap.AddBinds(k)
+	return c
+}
+
 func (c *App) ToggleItems(items ...int) {
 	for _, idx := range items {
 		c.CurrentItem = idx
@@ -266,7 +284,7 @@ func (c *App) SetSize(w, h int) *App {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Up().AddKeys("k"),
 		keys.Down().AddKeys("j"),
 		keys.HalfPgUp().AddKeys("K"),
@@ -276,6 +294,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Quit().AddKeys("q"),
 		keys.Toggle().AddKeys(" "),
 	}
+	return keys.NewKeyMap(km...)
 }
 
 func DefaultStyle() Style {

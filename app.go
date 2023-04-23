@@ -127,7 +127,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"edit": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			c.ResetInput()
 			component := edit.New()
-			c.list.SetKeyMap(keys.Global)
+			//c.list.SetKeyMap(keys.Global)
 			c.SetInput(c.CurrentItem().String())
 			p := edit.Props{
 				Save:     c.SetInput,
@@ -202,7 +202,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		reactea.SetCurrentRoute(route)
 
 	case tea.KeyMsg:
-		for _, k := range c.keyMap {
+		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -360,8 +360,7 @@ func (c *App) ClearSelections() tea.Cmd {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	km := keys.Global
-	return km
+	return keys.NewKeyMap()
 }
 
 func (c *App) SetInput(value string) {

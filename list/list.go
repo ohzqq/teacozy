@@ -94,7 +94,7 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 				}
 			}
 		}
-		for _, k := range m.KeyMap {
+		for _, k := range m.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -120,28 +120,25 @@ func (m Component) CurrentItem() int {
 }
 
 func (m *Component) commonKeys() keys.KeyMap {
-	var km = keys.KeyMap{
+	var km = []*keys.Binding{
 		keys.PgUp(),
 		keys.PgDown(),
 		keys.Enter().
 			WithHelp("return selections").
 			Cmd(keys.ReturnSelections),
 	}
-	return km
+	return keys.NewKeyMap(km...)
 }
 
 // SetKeyMap sets the keymap for the list.
 func (m *Component) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = m.commonKeys()
-	m.KeyMap = append(m.KeyMap, km...)
+	m.KeyMap.AddBinds(km.Keys()...)
 }
 
 func (m *Component) VimKeyMap() *Component {
 	m.SetKeyMap(VimKeyMap())
-
-	h := keys.Help().AddKeys("h")
-	m.KeyMap = append(m.KeyMap, h)
-
+	m.KeyMap.AddBinds(keys.Help().AddKeys("h"))
 	return m
 }
 
@@ -159,7 +156,7 @@ func AcceptChoices(accept bool) tea.Cmd {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Toggle(),
 		keys.Up(),
 		keys.Down(),
@@ -172,10 +169,11 @@ func DefaultKeyMap() keys.KeyMap {
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
 	}
+	return keys.NewKeyMap(km...)
 }
 
 func VimKeyMap() keys.KeyMap {
-	return keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Toggle().AddKeys(" "),
 		keys.Up().WithKeys("k"),
 		keys.Down().WithKeys("j"),
@@ -188,4 +186,5 @@ func VimKeyMap() keys.KeyMap {
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
 	}
+	return keys.NewKeyMap(km...)
 }

@@ -66,12 +66,12 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		return keys.ReturnToList
 	case keys.ShowHelpMsg:
 		var help keys.KeyMap
-		help = append(help, c.KeyMap...)
-		help = append(help, keys.TextArea()...)
+		help.AddBinds(c.KeyMap.Keys()...)
+		help.AddBinds(keys.TextArea().Keys()...)
 		c.Props().ShowHelp(help.Map())
 		cmds = append(cmds, keys.ChangeRoute("help"))
 	case tea.KeyMsg:
-		for _, k := range c.KeyMap {
+		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -91,13 +91,13 @@ func (c *Component) Render(w, h int) string {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	km := keys.KeyMap{
+	km := []*keys.Binding{
 		keys.Esc(),
 		keys.Quit(),
 		keys.Save().Cmd(ConfirmEdit),
 		keys.Help(),
 	}
-	return km
+	return keys.NewKeyMap(km...)
 }
 
 func DefaultStyle() textarea.Style {
