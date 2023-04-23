@@ -73,7 +73,6 @@ func (c *App) ItemProps() teacozy.Props {
 	props.Selected = c.selected
 	props.SetKeyMap(c.paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
-	props.Index = c.paginator.Current()
 	return props
 }
 
@@ -102,6 +101,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case keys.ToggleItemMsg:
+		c.ToggleItems(c.Current())
+		cmds = append(cmds, keys.LineDown)
+	case keys.StartEditingMsg:
+		return keys.EditItem(c.Current())
 	case tea.WindowSizeMsg:
 		c.width = msg.Width
 		c.height = msg.Height - 2
@@ -184,7 +188,6 @@ func (c *App) SetKeyMap(km keys.KeyMap) *App {
 }
 
 func (m *App) ToggleItems(items ...int) {
-	items = append(items, m.Current())
 	for _, idx := range items {
 		m.CurrentItem = idx
 		if _, ok := m.selected[idx]; ok {

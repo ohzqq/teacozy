@@ -64,6 +64,9 @@ func Bottom() tea.Msg { return BottomMsg{} }
 
 // formj
 
+type EditItemMsg struct {
+	Index int
+}
 type StartEditingMsg struct{}
 type StopEditingMsg struct{}
 type SaveEditMsg struct{}
@@ -86,6 +89,14 @@ func ConfirmEdit() tea.Msg {
 
 func StopEditing() tea.Msg {
 	return StopEditingMsg{}
+}
+
+func EditItem(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return EditItemMsg{
+			Index: idx,
+		}
+	}
 }
 
 func StartEditing() tea.Msg {

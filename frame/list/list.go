@@ -52,9 +52,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case keys.ToggleItemMsg:
-		c.Props().ToggleItems(c.current)
-		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
@@ -69,7 +66,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.Selectable = true
-	props.SetCurrent = c.setCurrent
 	return teacozy.Renderer(props, w, h)
 }
 

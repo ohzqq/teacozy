@@ -68,17 +68,13 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		//return confirm.GetConfirmation("Save edit?", SaveEdit)
 		//}
 		return keys.ReturnToList
-	case keys.ToggleItemMsg:
-		c.Props().ToggleItems()
-		cmds = append(cmds, keys.LineDown)
 	case keys.StopEditingMsg:
 		c.input.Reset()
 		c.input.Blur()
 		c.Props().SetKeyMap(frame.DefaultKeyMap())
 		return nil
-	case keys.StartEditingMsg:
-		//c.Props().SetCurrent(c.current)
-		val := c.Props().Items.String(c.Props().Current)
+	case keys.EditItemMsg:
+		val := c.Props().Items.String(msg.Index)
 		c.Props().SetKeyMap(pagy.DefaultKeyMap())
 		c.input.SetValue(val)
 		return c.input.Focus()
@@ -129,6 +125,7 @@ func (c *Component) Initialize(a *frame.App) {
 		p := Props{
 			Props:       a.ItemProps(),
 			ToggleItems: a.ToggleItems,
+			Current:     a.Current(),
 		}
 		//a.SetKeyMap(pagy.DefaultKeyMap())
 		a.SetKeyMap(frame.DefaultKeyMap())
