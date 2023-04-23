@@ -19,7 +19,8 @@ type Props struct {
 	Search     string
 	Selectable bool
 	SetCurrent func(int)
-	Style      PropsStyle
+	//SetKeyMap  func(keys.KeyMap)
+	Style PropsStyle
 }
 
 type Prefix struct {
@@ -128,6 +129,10 @@ func (c *Props) Filter(s string) {
 	c.Search = s
 	c.ResetCursor()
 }
+
+//func (c *Props) SetKeyMap(km keys.KeyMap) {
+//  c.paginator.SetKeyMap(km)
+//}
 
 func (c *Props) exactMatches(search string) fuzzy.Matches {
 	if search != "" {

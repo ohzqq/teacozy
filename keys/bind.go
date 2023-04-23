@@ -12,11 +12,6 @@ func Filter() *Binding {
 		Cmd(ChangeRoute("filter"))
 }
 
-func Save() *Binding {
-	return New("ctrl+s").
-		WithHelp("save edit")
-}
-
 func HalfPgUp() *Binding {
 	return New("ctrl+u").
 		WithHelp("½ page up").
@@ -114,5 +109,10 @@ func Esc() *Binding {
 func Edit() *Binding {
 	return New("e").
 		WithHelp("edit field").
-		Cmd(ChangeRoute("edit"))
+		Cmd(StartEditing)
+}
+
+func Save() *Binding {
+	return New("ctrl+s").
+		WithHelp("save edit")
 }

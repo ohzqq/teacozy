@@ -68,13 +68,11 @@ func New(opts ...Option) *App {
 }
 
 func (c *App) ItemProps() teacozy.Props {
-	if reactea.CurrentRoute() == "default" {
-		c.paginator.SetPerPage(c.height)
-	}
 	props := teacozy.NewProps()
 	props.Paginator = c.paginator
 	props.Items = c.choices
 	props.Selected = c.selected
+	props.SetKeyMap(c.paginator.KeyMap)
 	return props
 }
 
@@ -105,6 +103,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		fmt.Println("poor")
+		c.width = msg.Width
+		c.height = msg.Height - 2
+		return nil
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
@@ -128,14 +131,14 @@ func (c *App) Render(w, h int) string {
 	height := c.height
 	var view []string
 
-	if head := c.renderHeader(w, h); head != "" {
+	if head := c.renderHeader(w, height); head != "" {
 		height -= lipgloss.Height(head)
 		view = append(view, head)
 	}
 
-	footer := c.renderFooter(w, h)
+	footer := c.renderFooter(w, height)
 	if footer != "" {
-		h -= lipgloss.Height(footer)
+		height -= lipgloss.Height(footer)
 	}
 
 	body := c.mainRouter.Render(c.width, height)
@@ -202,6 +205,22 @@ func (c *App) Initialize(a *App) {
 		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
 		return component, component.Init(a.ItemProps())
 	}
+}
+
+func (c *App) SetWidth(n int) *App {
+	c.width = n
+	return c
+}
+
+func (c *App) SetHeight(n int) *App {
+	c.height = n
+	return c
+}
+
+func (c *App) SetSize(w, h int) *App {
+	c.width = w
+	c.height = h
+	return c
 }
 
 func DefaultKeyMap() keys.KeyMap {

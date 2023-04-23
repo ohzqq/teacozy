@@ -61,3 +61,33 @@ type BottomMsg struct{}
 
 func Top() tea.Msg    { return TopMsg{} }
 func Bottom() tea.Msg { return BottomMsg{} }
+
+// formj
+
+type StartEditingMsg struct{}
+type StopEditingMsg struct{}
+type SaveEditMsg struct{}
+type ConfirmEditMsg struct{}
+
+func SaveChanges() tea.Msg {
+	return SaveEditMsg{}
+}
+
+func SaveEdit(save bool) tea.Cmd {
+	if save {
+		return SaveChanges
+	}
+	return ReturnToList
+}
+
+func ConfirmEdit() tea.Msg {
+	return ConfirmEditMsg{}
+}
+
+func StopEditing() tea.Msg {
+	return StopEditingMsg{}
+}
+
+func StartEditing() tea.Msg {
+	return StartEditingMsg{}
+}

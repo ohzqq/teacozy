@@ -31,15 +31,10 @@ type Props struct {
 	ShowHelp func([]map[string]string)
 }
 
-type StartEditingMsg struct{}
-type SaveEditMsg struct{}
-type ConfirmEditMsg struct{}
-
 func New() *Component {
 	c := &Component{
 		input:  textarea.New(),
 		Prompt: "> ",
-		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 		KeyMap: DefaultKeyMap(),
 	}
 
@@ -52,7 +47,8 @@ func (c *Component) Init(props Props) tea.Cmd {
 	c.input.KeyMap = keys.TextAreaDefault()
 	c.input.ShowLineNumbers = false
 	c.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
-	return c.input.Focus()
+	c.input.Blur()
+	return nil
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -62,13 +58,24 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case ConfirmEditMsg:
+	case keys.ConfirmEditMsg:
 		//if c.Props().Value != c.input.Value() {
 		//c.Props().Save(c.input.Value())
 		//c.input.Reset()
 		//return confirm.GetConfirmation("Save edit?", SaveEdit)
 		//}
 		return keys.ReturnToList
+	case keys.StopEditingMsg:
+		c.input.Reset()
+		c.input.Blur()
+		c.Props().SetKeyMap(frame.DefaultKeyMap())
+		return nil
+	case keys.StartEditingMsg:
+		val := c.Props().Items.String(c.current)
+		c.Props().SetKeyMap(pagy.DefaultKeyMap())
+		c.input.SetValue(val)
+		return c.input.Focus()
+	case keys.SaveEditMsg:
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
@@ -86,23 +93,33 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	c.input.SetWidth(w)
-	ih := c.input.LineInfo().Height + 1
-	c.input.SetHeight(ih)
-	view := c.input.View()
 	props := c.Props().Props
 	props.SetCurrent = c.setCurrent
-	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-ih))
+
+	if c.input.Focused() {
+		c.input.SetWidth(w)
+		ih := c.input.LineInfo().Height + 1
+		h = h - ih
+		c.input.SetHeight(ih)
+	}
+	input := c.input.View()
+
+	view := teacozy.Renderer(props, w, h)
+	if !c.input.Focused() {
+		return view
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, view, input)
 }
 
 func (c *Component) Initialize(a *frame.App) {
 	a.Routes["form"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props:       a.ItemProps(),
-			ToggleItems: a.ToggleItems,
+			Props: a.ItemProps(),
 		}
-		a.SetKeyMap(pagy.DefaultKeyMap())
+		//a.SetKeyMap(pagy.DefaultKeyMap())
+		a.SetKeyMap(frame.DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
 }
@@ -113,10 +130,11 @@ func (c *Component) setCurrent(i int) {
 
 func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
-		keys.Esc(),
+		keys.Esc().Cmd(keys.StopEditing),
 		keys.Quit(),
-		keys.Save().Cmd(ConfirmEdit),
+		keys.Save().Cmd(keys.ConfirmEdit),
 		keys.Help(),
+		keys.Edit(),
 	}
 	return km
 }
@@ -126,23 +144,4 @@ func DefaultStyle() textarea.Style {
 		Base:       lipgloss.NewStyle(),
 		CursorLine: lipgloss.NewStyle().Background(color.Grey()),
 	}
-}
-
-func Save() tea.Msg {
-	return SaveEditMsg{}
-}
-
-func SaveEdit(save bool) tea.Cmd {
-	if save {
-		return Save
-	}
-	return keys.ReturnToList
-}
-
-func ConfirmEdit() tea.Msg {
-	return ConfirmEditMsg{}
-}
-
-func StartEditing() tea.Msg {
-	return StartEditingMsg{}
 }
