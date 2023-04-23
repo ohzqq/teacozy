@@ -133,6 +133,10 @@ func (c *Component) Initialize(a *frame.App) {
 	}
 }
 
+func (c Component) Name() string {
+	return "form"
+}
+
 func (c *Component) setCurrent(i int) {
 	c.current = i
 }

@@ -58,6 +58,7 @@ func New(opts ...Option) *App {
 		height:     util.TermHeight() - 2,
 		limit:      10,
 	}
+	a.mainRouter.UpdateRoutes = a.UpdateRoutes
 
 	for _, opt := range opts {
 		opt(a)
@@ -114,9 +115,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
-		}
-		if msg.String() == "/" {
-			cmds = append(cmds, keys.ChangeRoute("filter"))
 		}
 	}
 
@@ -182,6 +180,11 @@ func (c *App) NewRoute(r Route) {
 	r.Initialize(c)
 }
 
+func (c *App) UpdateRoutes(r Route) {
+	c.NewRoute(r)
+	c.mainRouter.Init(c.Routes)
+}
+
 func (c *App) SetKeyMap(km keys.KeyMap) *App {
 	c.paginator.SetKeyMap(km)
 	return c
@@ -230,6 +233,10 @@ func (c *App) Initialize(a *App) {
 		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
 		return component, component.Init(a.ItemProps())
 	}
+}
+
+func (c App) Name() string {
+	return "default"
 }
 
 func (c *App) SetWidth(n int) *App {

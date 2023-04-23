@@ -7,6 +7,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/frame"
+	"github.com/ohzqq/teacozy/frame/filter"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -41,6 +42,10 @@ func (c *Component) Initialize(a *frame.App) {
 	}
 }
 
+func (c Component) Name() string {
+	return "list"
+}
+
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	return nil
@@ -53,6 +58,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if msg.String() == "/" {
+			return frame.ChangeRoute(filter.New())
+		}
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)

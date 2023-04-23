@@ -9,11 +9,13 @@ import (
 
 type Router struct {
 	*router.Component
-	PrevRoute string
+	PrevRoute    string
+	UpdateRoutes func(Route)
 }
 
 type Route interface {
 	Initialize(*App)
+	Name() string
 }
 
 func NewRouter() *Router {
@@ -28,6 +30,10 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case keys.ReturnToListMsg:
 		return keys.ChangeRoute("default")
+
+	case ChangeRouteMsg:
+		c.UpdateRoutes(msg.Route)
+		return keys.ChangeRoute(msg.Route.Name())
 
 	case keys.ChangeRouteMsg:
 		route := msg.Name
@@ -47,4 +53,14 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	return c.Component.Update(msg)
+}
+
+type ChangeRouteMsg struct {
+	Route Route
+}
+
+func ChangeRoute(r Route) tea.Cmd {
+	return func() tea.Msg {
+		return ChangeRouteMsg{Route: r}
+	}
 }
