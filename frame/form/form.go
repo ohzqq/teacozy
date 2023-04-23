@@ -27,8 +27,10 @@ type Component struct {
 }
 
 type Props struct {
+	ShowHelp    func([]map[string]string)
+	SetCurrent  func(int)
+	ToggleItems func(...int)
 	teacozy.Props
-	ShowHelp func([]map[string]string)
 }
 
 func New() *Component {
@@ -65,28 +67,36 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		//return confirm.GetConfirmation("Save edit?", SaveEdit)
 		//}
 		return keys.ReturnToList
+	case keys.ToggleItemMsg:
+		c.Props().ToggleItems(c.current)
+		cmds = append(cmds, keys.LineDown)
 	case keys.StopEditingMsg:
 		c.input.Reset()
 		c.input.Blur()
 		c.Props().SetKeyMap(frame.DefaultKeyMap())
 		return nil
 	case keys.StartEditingMsg:
-		val := c.Props().Items.String(c.current)
+		//c.Props().SetCurrent(c.current)
+		val := c.Props().Items.String(c.Props().Current)
 		c.Props().SetKeyMap(pagy.DefaultKeyMap())
 		c.input.SetValue(val)
 		return c.input.Focus()
 	case keys.SaveEditMsg:
+		val := c.Props().Items.String(c.current)
+		if in := c.input.Value(); in != val {
+			c.Props().Items.Set(c.current, in)
+		}
+		return keys.StopEditing
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
 		}
-	}
-
-	if c.input.Focused() {
-		c.input, cmd = c.input.Update(msg)
-		cmds = append(cmds, cmd)
+		if c.input.Focused() {
+			c.input, cmd = c.input.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	return tea.Batch(cmds...)
@@ -95,6 +105,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.SetCurrent = c.setCurrent
+	props.Selectable = true
 
 	if c.input.Focused() {
 		c.input.SetWidth(w)
@@ -116,7 +127,9 @@ func (c *Component) Initialize(a *frame.App) {
 	a.Routes["form"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props: a.ItemProps(),
+			Props:       a.ItemProps(),
+			ToggleItems: a.ToggleItems,
+			SetCurrent:  a.SetCurrent,
 		}
 		//a.SetKeyMap(pagy.DefaultKeyMap())
 		a.SetKeyMap(frame.DefaultKeyMap())
@@ -132,7 +145,8 @@ func DefaultKeyMap() keys.KeyMap {
 	km := keys.KeyMap{
 		keys.Esc().Cmd(keys.StopEditing),
 		keys.Quit(),
-		keys.Save().Cmd(keys.ConfirmEdit),
+		keys.Toggle().AddKeys(" "),
+		keys.Save().Cmd(keys.SaveChanges),
 		keys.Help(),
 		keys.Edit(),
 	}
