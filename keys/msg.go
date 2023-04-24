@@ -91,18 +91,21 @@ func Bottom() tea.Msg { return BottomMsg{} }
 type EditItemMsg struct {
 	Index int
 }
+type SaveChangesMsg struct {
+	Index int
+}
 type StartEditingMsg struct{}
 type StopEditingMsg struct{}
 type SaveEditMsg struct{}
 type ConfirmEditMsg struct{}
 
-func SaveChanges() tea.Msg {
-	return SaveEditMsg{}
-}
+//func SaveChanges() tea.Msg {
+//  return SaveEditMsg{}
+//}
 
 func SaveEdit(save bool) tea.Cmd {
 	if save {
-		return SaveChanges
+		//return SaveChanges
 	}
 	return ReturnToList
 }
@@ -113,6 +116,14 @@ func ConfirmEdit() tea.Msg {
 
 func StopEditing() tea.Msg {
 	return StopEditingMsg{}
+}
+
+func SaveChanges(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return SaveChangesMsg{
+			Index: idx,
+		}
+	}
 }
 
 func EditItem(idx int) tea.Cmd {

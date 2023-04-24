@@ -38,6 +38,7 @@ type App struct {
 	title       string
 	header      string
 	footer      string
+	editedVal   string
 	choices     teacozy.Items
 	paginator   *pagy.Paginator
 	keyMap      keys.KeyMap
@@ -130,6 +131,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, keys.LineDown)
 	case keys.StartEditingMsg:
 		return keys.EditItem(c.Current())
+	//case keys.SaveChangesMsg:
+	//return msg.Cmd(c.Current())
+	case keys.SaveEditMsg:
+		fmt.Println("save edit")
 	case tea.WindowSizeMsg:
 		c.width = msg.Width
 		c.height = msg.Height - 2

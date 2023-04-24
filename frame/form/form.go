@@ -1,6 +1,8 @@
 package form
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,10 +29,7 @@ type Component struct {
 }
 
 type Props struct {
-	ShowHelp    func([]map[string]string)
-	SetCurrent  func(int)
-	ToggleItems func(...int)
-	Current     int
+	ShowHelp func([]map[string]string)
 	teacozy.Props
 }
 
@@ -79,13 +78,15 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		c.input.SetValue(val)
 		return c.input.Focus()
 	case keys.SaveEditMsg:
-		val := c.Props().Items.String(c.current)
-		if in := c.input.Value(); in != val {
-			c.Props().Items.Set(c.current, in)
-		}
-		return keys.StopEditing
+		fmt.Println("save edit")
+	//case keys.SaveEditMsg:
+	//val := c.Props().Items.String(c.current)
+	//if in := c.input.Value(); in != val {
+	//c.Props().Items.Set(c.current, in)
+	//}
+	//return keys.StopEditing
 	case tea.KeyMsg:
-		for _, k := range c.KeyMap {
+		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -122,9 +123,7 @@ func (c *Component) Initialize(a *frame.App) {
 	a.Routes["form"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props:       a.ItemProps(),
-			ToggleItems: a.ToggleItems,
-			Current:     a.Current(),
+			Props: a.ItemProps(),
 		}
 		//a.SetKeyMap(pagy.DefaultKeyMap())
 		a.SetKeyMap(frame.DefaultKeyMap())
@@ -136,19 +135,16 @@ func (c Component) Name() string {
 	return "form"
 }
 
-func (c *Component) setCurrent(i int) {
-	c.current = i
-}
-
 func DefaultKeyMap() keys.KeyMap {
-	km := keys.KeyMap{
+	k := []*keys.Binding{
 		keys.Esc().Cmd(keys.StopEditing),
 		keys.Quit(),
-		keys.Toggle().AddKeys(" "),
-		keys.Save().Cmd(keys.SaveChanges),
 		keys.Help(),
 		keys.Edit(),
+		keys.Save().
+			Cmd(keys.UpdateItem(keys.SaveChanges)),
 	}
+	km := keys.NewKeyMap(k...)
 	return km
 }
 
