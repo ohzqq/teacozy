@@ -8,8 +8,8 @@ func Enter() *Binding {
 
 func Filter() *Binding {
 	return New("/").
-		WithHelp("filter items").
-		Cmd(ChangeRoute("filter"))
+		WithHelp("filter items")
+	//Cmd(ChangeRoute("filter"))
 }
 
 func HalfPgUp() *Binding {

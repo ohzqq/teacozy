@@ -1,8 +1,6 @@
 package list
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
@@ -39,7 +37,10 @@ func (c *Component) Initialize(a *frame.App) {
 			Props:      a.ItemProps(),
 			ToggleItem: a.ToggleItem,
 		}
-		a.SetKeyMap(frame.DefaultKeyMap())
+		km := frame.DefaultKeyMap()
+		f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
+		km.AddBinds(f)
+		a.SetKeyMap(km)
 		return comp, comp.Init(p)
 	}
 }
@@ -59,16 +60,8 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case keys.ToggleItemsMsg:
-		fmt.Println("toggle")
-		//cmds = append(cmds, keys.UpdateItem(keys.ToggleItems))
-		//c.ToggleItems(c.Current())
-		cmds = append(cmds, keys.LineDown)
 	case tea.KeyMsg:
-		if msg.String() == "/" {
-			return frame.ChangeRoute(filter.New())
-		}
-		for _, k := range c.KeyMap {
+		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
@@ -88,12 +81,14 @@ func (c *Component) setCurrent(i int) {
 }
 
 func DefaultKeyMap() keys.KeyMap {
-	km := keys.KeyMap{
-		keys.Toggle().AddKeys(" ").Cmd(keys.UpdateItem(keys.ToggleItems)),
+	km := []*keys.Binding{
 		keys.New("ctrl+a", "v").
 			WithHelp("toggle all").
 			Cmd(keys.ToggleAllItems),
 		keys.Esc(),
 	}
-	return km
+	m := keys.NewKeyMap(km...)
+	f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
+	m.AddBinds(f)
+	return m
 }

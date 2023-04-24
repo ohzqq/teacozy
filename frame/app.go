@@ -13,6 +13,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -84,9 +85,16 @@ func (c *App) ItemProps() teacozy.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.NewRoute(c)
-	if c.defaultRoute != "" {
-		c.Routes["default"] = c.Routes[c.defaultRoute]
+	switch len(c.Routes) {
+	case 0:
+		c.NewRoute(c)
+	default:
+		if c.defaultRoute != "" {
+			c.Routes["default"] = c.Routes[c.defaultRoute]
+		} else {
+			k := maps.Keys(c.Routes)[0]
+			c.Routes["default"] = c.Routes[k]
+		}
 	}
 
 	if c.noLimit {
@@ -115,7 +123,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
 	case keys.ToggleItemsMsg:
-		fmt.Println("toggle")
 		c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)
 	case keys.ToggleItemMsg:
@@ -139,12 +146,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	//fmt.Printf("%+V\n", c.keyMap.Keys())
-
-	cmd = c.mainRouter.Update(msg)
+	c.paginator, cmd = c.paginator.Update(msg)
 	cmds = append(cmds, cmd)
 
-	c.paginator, cmd = c.paginator.Update(msg)
+	cmd = c.mainRouter.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
@@ -186,10 +191,9 @@ func (c App) renderFooter(w, h int) string {
 	var footer string
 
 	footer = fmt.Sprintf(
-		"cur route %v, per %v, current %v",
+		"cur route %v, per %v",
 		reactea.CurrentRoute(),
-		c.paginator.Current(),
-		len(c.keyMap.Keys()),
+		c.mainRouter.PrevRoute,
 	)
 
 	if c.footer != "" {
