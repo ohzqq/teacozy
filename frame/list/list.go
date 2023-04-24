@@ -15,13 +15,11 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 
-	KeyMap  keys.KeyMap
-	current int
+	KeyMap keys.KeyMap
 }
 
 type Props struct {
 	teacozy.Props
-	ToggleItem func()
 }
 
 func New() *Component {
@@ -34,8 +32,7 @@ func (c *Component) Initialize(a *frame.App) {
 	a.Routes["list"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props:      a.ItemProps(),
-			ToggleItem: a.ToggleItem,
+			Props: a.ItemProps(),
 		}
 		km := frame.DefaultKeyMap()
 		f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
@@ -74,10 +71,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	return teacozy.Renderer(props, w, h)
-}
-
-func (c *Component) setCurrent(i int) {
-	c.current = i
 }
 
 func DefaultKeyMap() keys.KeyMap {

@@ -20,11 +20,10 @@ type Component struct {
 
 	input textinput.Model
 
-	KeyMap  keys.KeyMap
-	Prefix  string
-	Style   lipgloss.Style
-	help    keys.KeyMap
-	current int
+	KeyMap keys.KeyMap
+	Prefix string
+	Style  lipgloss.Style
+	help   keys.KeyMap
 }
 
 type Props struct {
@@ -87,8 +86,7 @@ func (c *Component) Initialize(a *frame.App) {
 	a.Routes["filter"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{
-			Props:       a.ItemProps(),
-			ToggleItems: a.ToggleItems,
+			Props: a.ItemProps(),
 		}
 		a.SetKeyMap(pagy.DefaultKeyMap())
 		return comp, comp.Init(p)
@@ -99,15 +97,10 @@ func (c Component) Name() string {
 	return "filter"
 }
 
-func (c *Component) setCurrent(i int) {
-	c.current = i
-}
-
 func DefaultKeyMap() keys.KeyMap {
 	km := []*keys.Binding{
 		keys.Quit(),
 		keys.Help(),
-		keys.Toggle(),
 		keys.Enter().WithHelp("stop filtering").Cmd(StopFiltering),
 		keys.Esc().Cmd(StopFiltering),
 	}
