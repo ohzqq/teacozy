@@ -11,6 +11,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/frame/header"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
@@ -49,6 +50,8 @@ type App struct {
 	paginator   *pagy.Paginator
 	keyMap      keys.KeyMap
 	Style       Style
+
+	Header *header.Component
 }
 
 type Style struct {
@@ -115,6 +118,14 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.paginator = pagy.New(c.height, c.choices.Len())
 	c.paginator.SetKeyMap(DefaultKeyMap())
 
+	c.Header = header.New()
+	c.Header.Init(
+		header.Props{
+			SetHeader: c.SetHeader,
+			Title:     c.title,
+		},
+	)
+
 	var cmds []tea.Cmd
 	cmds = append(cmds, keys.ChangeRoute("default"))
 	cmds = append(cmds, c.mainRouter.Init(c.Routes))
@@ -127,10 +138,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
-	case statusMessageTimeoutMsg:
-		c.hideStatusMessage()
-		cmds = append(cmds, keys.ReturnToList)
-
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
 	case keys.ToggleItemsMsg:
@@ -154,6 +161,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
+
+		if msg.String() == "s" {
+			return keys.UpdateStatus("status")
+		}
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -162,6 +173,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	c.paginator, cmd = c.paginator.Update(msg)
+	cmds = append(cmds, cmd)
+
+	cmd = c.Header.Update(msg)
 	cmds = append(cmds, cmd)
 
 	cmd = c.mainRouter.Update(msg)
@@ -195,11 +209,11 @@ func (c *App) Render(w, h int) string {
 }
 
 func (c App) renderHeader(w, h int) string {
-	var header string
-	if c.title != "" {
-		header = c.Style.Header.Render(c.title)
-	}
-	return header
+	//var header string
+	//if c.title != "" {
+	//header = c.Style.Header.Render(c.title)
+	//}
+	return c.Header.Render(w, h)
 }
 
 func (c App) renderFooter(w, h int) string {
@@ -311,6 +325,10 @@ func (c *App) SetSize(w, h int) *App {
 	return c
 }
 
+func (c *App) SetHeader(h string) {
+	c.header = h
+}
+
 func DefaultKeyMap() keys.KeyMap {
 	km := []*keys.Binding{
 		keys.Up().AddKeys("k"),
@@ -330,31 +348,5 @@ func DefaultStyle() Style {
 		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
 		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 		Status:  lipgloss.NewStyle().Foreground(color.Green()),
-	}
-}
-
-// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
-
-// NewStatusMessage sets a new status message, which will show for a limited
-// amount of time. Note that this also returns a command.
-func (m *App) NewStatusMessage(s string) tea.Cmd {
-	m.status = s
-	if m.statusMessageTimer != nil {
-		m.statusMessageTimer.Stop()
-	}
-
-	m.statusMessageTimer = time.NewTimer(m.StatusMessageLifetime)
-
-	// Wait for timeout
-	return func() tea.Msg {
-		<-m.statusMessageTimer.C
-		return statusMessageTimeoutMsg{}
-	}
-}
-
-func (m *App) hideStatusMessage() {
-	m.status = ""
-	if m.statusMessageTimer != nil {
-		m.statusMessageTimer.Stop()
 	}
 }

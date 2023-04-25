@@ -41,6 +41,18 @@ func ToggleItems(idx int) tea.Cmd {
 	}
 }
 
+type UpdateStatusMsg struct {
+	Status string
+}
+
+func UpdateStatus(s string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateStatusMsg{
+			Status: s,
+		}
+	}
+}
+
 // List Msg
 type ReturnSelectionsMsg struct{}
 
