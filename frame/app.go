@@ -2,6 +2,7 @@ package frame
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,6 +24,11 @@ type App struct {
 	mainRouter   *Router
 	Routes       map[string]router.RouteInitializer
 	defaultRoute string
+
+	StatusMessageLifetime time.Duration
+	statusMessage         string
+	statusMessageTimer    *time.Timer
+	status                string
 
 	start       int
 	end         int
@@ -121,6 +127,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case statusMessageTimeoutMsg:
+		c.hideStatusMessage()
+		cmds = append(cmds, keys.ReturnToList)
+
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
 	case keys.ToggleItemsMsg:
@@ -320,5 +330,31 @@ func DefaultStyle() Style {
 		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
 		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
 		Status:  lipgloss.NewStyle().Foreground(color.Green()),
+	}
+}
+
+// from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
+
+// NewStatusMessage sets a new status message, which will show for a limited
+// amount of time. Note that this also returns a command.
+func (m *App) NewStatusMessage(s string) tea.Cmd {
+	m.status = s
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
+	}
+
+	m.statusMessageTimer = time.NewTimer(m.StatusMessageLifetime)
+
+	// Wait for timeout
+	return func() tea.Msg {
+		<-m.statusMessageTimer.C
+		return statusMessageTimeoutMsg{}
+	}
+}
+
+func (m *App) hideStatusMessage() {
+	m.status = ""
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
 	}
 }
