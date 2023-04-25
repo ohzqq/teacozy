@@ -139,10 +139,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
-	case keys.ToggleItemsMsg:
-		c.ToggleItems(c.Current())
-		cmds = append(cmds, keys.LineDown)
-	case keys.ToggleItemMsg:
+	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
 		c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)
 	//case keys.SaveChangesMsg:
