@@ -62,7 +62,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		fmt.Println("save edit")
+		return keys.UpdateStatus("confirm edit")
 		//if c.Props().Value != c.input.Value() {
 		//c.Props().Save(c.input.Value())
 		//c.input.Reset()

@@ -28,8 +28,7 @@ type Style struct {
 }
 
 type Props struct {
-	SetHeader func(string)
-	Title     string
+	Title string
 }
 
 func New() *Component {

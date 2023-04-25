@@ -121,8 +121,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.Header = header.New()
 	c.Header.Init(
 		header.Props{
-			SetHeader: c.SetHeader,
-			Title:     c.title,
+			Title: c.title,
 		},
 	)
 
@@ -146,8 +145,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.ToggleItemMsg:
 		c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)
-	case keys.StartEditingMsg:
-		return keys.EditItem(c.Current())
 	//case keys.SaveChangesMsg:
 	//fmt.Println("save edit")
 	//return msg.Cmd(c.Current())
@@ -162,9 +159,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 
-		if msg.String() == "s" {
-			return keys.UpdateStatus("status")
-		}
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)

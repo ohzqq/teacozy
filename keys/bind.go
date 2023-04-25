@@ -109,7 +109,7 @@ func Esc() *Binding {
 func Edit() *Binding {
 	return New("e").
 		WithHelp("edit field").
-		Cmd(StartEditing)
+		Cmd(UpdateItem(EditItem))
 }
 
 func Save() *Binding {
