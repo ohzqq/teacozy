@@ -1,32 +1,54 @@
-package frame
+package status
 
 import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/color"
 )
 
-type Status struct {
+type Component struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[Props]
+
 	// How long status messages should stay visible. By default this is
 	// 1 second.
 	StatusMessageLifetime time.Duration
 	statusMessage         string
 	statusMessageTimer    *time.Timer
-	status                string
+	Style                 lipgloss.Style
 }
 
-type StatusProps struct {
+type Props struct {
 	SetStatus func(string)
+	Status    string
+}
+
+func New() *Component {
+	return &Component{
+		Style: lipgloss.NewStyle().Foreground(color.Pink()),
+	}
+}
+
+func (c *Component) Init(props Props) tea.Cmd {
+	c.UpdateProps(props)
+	return nil
+}
+
+func (c *Component) Render(w, h int) string {
+	return c.Style.Render(c.Props().Status)
 }
 
 // from: https://github.com/charmbracelet/bubbles/blob/v0.15.0/list/list.go#L290
 
-type statusMessageTimeoutMsg struct{}
+type StatusMessageTimeoutMsg struct{}
 
 // NewStatusMessage sets a new status message, which will show for a limited
 // amount of time. Note that this also returns a command.
-func (m *Status) NewStatusMessage(s string) tea.Cmd {
-	m.status = s
+func (m *Component) NewStatusMessage(s string) tea.Cmd {
+	m.SetStatus(s)
 	if m.statusMessageTimer != nil {
 		m.statusMessageTimer.Stop()
 	}
@@ -40,8 +62,8 @@ func (m *Status) NewStatusMessage(s string) tea.Cmd {
 	}
 }
 
-func (m *Status) hideStatusMessage() {
-	m.status = ""
+func (m *Component) HideStatusMessage() {
+	m.SetStatus("")
 	if m.statusMessageTimer != nil {
 		m.statusMessageTimer.Stop()
 	}
