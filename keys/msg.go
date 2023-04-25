@@ -114,10 +114,6 @@ type ConfirmEditMsg struct {
 	Value string
 }
 
-//func SaveChanges() tea.Msg {
-//  return SaveEditMsg{}
-//}
-
 func SaveEdit(save bool) tea.Cmd {
 	if save {
 		return UpdateItem(SaveChanges)

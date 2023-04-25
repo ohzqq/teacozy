@@ -62,18 +62,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		//c.Props().Save(c.input.Value())
-		//c.input.Reset()
-		cmds = append(cmds, confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value)))
-		//cmds = append(cmds, keys.UpdateStatus("confirm"))
-		//cmds = append(cmds, keys.ReturnToList)
-		return tea.Batch(cmds...)
+		return confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value))
 	case keys.StopEditingMsg:
-		//c.input.Reset()
 		c.input.Blur()
 		c.Props().SetKeyMap(frame.DefaultKeyMap())
-		c.newVal = c.input.Value()
-		if c.newVal != c.originalVal {
+		if c.input.Value() != c.originalVal {
 			return keys.ConfirmEdit(c.input.Value())
 		}
 		return nil
@@ -83,15 +76,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		c.Props().SetKeyMap(pagy.DefaultKeyMap())
 		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
-	//case keys.SaveChangesMsg:
-	//return keys.UpdateStatus(strconv.Itoa(msg.Index))
-	//return keys.UpdateStatus(c.newVal)
-	//case keys.SaveEditMsg:
-	//val := c.Props().Items.String(c.current)
-	//if in := c.input.Value(); in != val {
-	//c.Props().Items.Set(c.current, in)
-	//}
-	//return keys.StopEditing
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
