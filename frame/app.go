@@ -2,7 +2,6 @@ package frame
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -26,11 +25,6 @@ type App struct {
 	mainRouter   *Router
 	Routes       map[string]router.RouteInitializer
 	defaultRoute string
-
-	StatusMessageLifetime time.Duration
-	statusMessage         string
-	statusMessageTimer    *time.Timer
-	status                string
 
 	Confirm        confirm.Props
 	confirmChoices bool
