@@ -93,6 +93,7 @@ type EditItemMsg struct {
 }
 type SaveChangesMsg struct {
 	Index int
+	Value string
 }
 type StartEditingMsg struct{}
 type StopEditingMsg struct{}

@@ -22,10 +22,11 @@ type Component struct {
 
 	input textarea.Model
 
-	KeyMap  keys.KeyMap
-	Prompt  string
-	help    keys.KeyMap
-	current int
+	KeyMap      keys.KeyMap
+	Prompt      string
+	help        keys.KeyMap
+	current     int
+	originalVal string
 }
 
 type Props struct {
@@ -61,6 +62,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
+		fmt.Println("save edit")
 		//if c.Props().Value != c.input.Value() {
 		//c.Props().Save(c.input.Value())
 		//c.input.Reset()
@@ -71,11 +73,15 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		c.input.Reset()
 		c.input.Blur()
 		c.Props().SetKeyMap(frame.DefaultKeyMap())
+		if c.input.Value() != c.originalVal {
+			return keys.ConfirmEdit
+		}
 		return nil
 	case keys.EditItemMsg:
-		val := c.Props().Items.String(msg.Index)
+		c.current = msg.Index
+		c.originalVal = c.Props().Items.String(c.current)
 		c.Props().SetKeyMap(pagy.DefaultKeyMap())
-		c.input.SetValue(val)
+		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
 	case keys.SaveEditMsg:
 		fmt.Println("save edit")
@@ -142,7 +148,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Help(),
 		keys.Edit(),
 		keys.Save().
-			Cmd(keys.UpdateItem(keys.SaveChanges)),
+			Cmd(keys.StopEditing),
 	}
 	km := keys.NewKeyMap(k...)
 	return km

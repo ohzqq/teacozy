@@ -132,9 +132,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.StartEditingMsg:
 		return keys.EditItem(c.Current())
 	//case keys.SaveChangesMsg:
+	//fmt.Println("save edit")
 	//return msg.Cmd(c.Current())
-	case keys.SaveEditMsg:
-		fmt.Println("save edit")
+	//case keys.SaveEditMsg:
 	case tea.WindowSizeMsg:
 		c.width = msg.Width
 		c.height = msg.Height - 2
