@@ -32,7 +32,7 @@ type App struct {
 	statusMessageTimer    *time.Timer
 	status                string
 
-	confirm        confirm.Props
+	Confirm        confirm.Props
 	confirmChoices bool
 
 	start       int
@@ -112,7 +112,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	}
 	c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := confirm.New()
-		p := c.confirm
+		p := c.Confirm
 		return component, component.Init(p)
 	}
 
@@ -163,7 +163,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		//fallthrough
 		//default:
-		c.confirm = msg.Props
+		c.Confirm = msg.Props
 		cmds = append(cmds, keys.ChangeRoute("confirm"))
 		//}
 

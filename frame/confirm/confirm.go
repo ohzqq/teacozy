@@ -7,7 +7,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -64,6 +66,14 @@ func (c *Component) KeyMap() keys.KeyMap {
 		keys.No().Cmd(c.Confirmed(false)),
 	}
 	return keys.NewKeyMap(km...)
+}
+
+func (c *Component) Initialize(a *frame.App) {
+	a.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := New()
+		p := a.Confirm
+		return component, component.Init(p)
+	}
 }
 
 func (c *Component) Render(w, h int) string {
