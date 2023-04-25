@@ -110,7 +110,9 @@ type SaveChangesMsg struct {
 type StartEditingMsg struct{}
 type StopEditingMsg struct{}
 type SaveEditMsg struct{}
-type ConfirmEditMsg struct{}
+type ConfirmEditMsg struct {
+	Value string
+}
 
 //func SaveChanges() tea.Msg {
 //  return SaveEditMsg{}
@@ -118,13 +120,17 @@ type ConfirmEditMsg struct{}
 
 func SaveEdit(save bool) tea.Cmd {
 	if save {
-		//return SaveChanges
+		return UpdateItem(SaveChanges)
 	}
 	return ReturnToList
 }
 
-func ConfirmEdit() tea.Msg {
-	return ConfirmEditMsg{}
+func ConfirmEdit(v string) tea.Cmd {
+	return func() tea.Msg {
+		return ConfirmEditMsg{
+			Value: v,
+		}
+	}
 }
 
 func StopEditing() tea.Msg {

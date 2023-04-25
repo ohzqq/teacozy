@@ -68,3 +68,9 @@ func WithSize(w, h int) Option {
 		a.height = h
 	}
 }
+
+func ConfirmChoices() Option {
+	return func(a *App) {
+		a.confirmChoices = true
+	}
+}

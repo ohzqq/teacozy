@@ -1,8 +1,6 @@
 package form
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,6 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -27,6 +26,7 @@ type Component struct {
 	help        keys.KeyMap
 	current     int
 	originalVal string
+	newVal      string
 }
 
 type Props struct {
@@ -62,19 +62,19 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		return keys.UpdateStatus("confirm edit")
-		//if c.Props().Value != c.input.Value() {
 		//c.Props().Save(c.input.Value())
 		//c.input.Reset()
-		//return confirm.GetConfirmation("Save edit?", SaveEdit)
-		//}
-		return keys.ReturnToList
+		cmds = append(cmds, confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value)))
+		//cmds = append(cmds, keys.UpdateStatus("confirm"))
+		//cmds = append(cmds, keys.ReturnToList)
+		return tea.Batch(cmds...)
 	case keys.StopEditingMsg:
-		c.input.Reset()
+		//c.input.Reset()
 		c.input.Blur()
 		c.Props().SetKeyMap(frame.DefaultKeyMap())
-		if c.input.Value() != c.originalVal {
-			return keys.ConfirmEdit
+		c.newVal = c.input.Value()
+		if c.newVal != c.originalVal {
+			return keys.ConfirmEdit(c.input.Value())
 		}
 		return nil
 	case keys.EditItemMsg:
@@ -83,8 +83,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		c.Props().SetKeyMap(pagy.DefaultKeyMap())
 		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
-	case keys.SaveEditMsg:
-		fmt.Println("save edit")
+	//case keys.SaveChangesMsg:
+	//return keys.UpdateStatus(strconv.Itoa(msg.Index))
+	//return keys.UpdateStatus(c.newVal)
 	//case keys.SaveEditMsg:
 	//val := c.Props().Items.String(c.current)
 	//if in := c.input.Value(); in != val {
@@ -104,6 +105,19 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (c *Component) SaveEdit(v string) func(bool) tea.Cmd {
+	return func(save bool) tea.Cmd {
+		if save {
+			fn := func(idx int) tea.Cmd {
+				c.Props().Items.Set(idx, v)
+				return nil
+			}
+			return keys.UpdateItem(fn)
+		}
+		return keys.ReturnToList
+	}
 }
 
 func (c *Component) Render(w, h int) string {

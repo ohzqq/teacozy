@@ -72,5 +72,7 @@ func (c *Component) Render(w, h int) string {
 }
 
 func (c *Component) Confirmed(y bool) tea.Cmd {
-	return c.Props().Confirm(y)
+	cmd := c.Props().Confirm(y)
+	return tea.Batch(cmd, keys.ChangeRoute("prev"))
+	//return tea.Batch(keys.ChangeRoute("prev"), cmd)
 }

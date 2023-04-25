@@ -11,6 +11,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/frame/header"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -30,6 +31,9 @@ type App struct {
 	statusMessage         string
 	statusMessageTimer    *time.Timer
 	status                string
+
+	confirm        confirm.Props
+	confirmChoices bool
 
 	start       int
 	end         int
@@ -106,6 +110,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.Routes["default"] = c.Routes[k]
 		}
 	}
+	c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := confirm.New()
+		p := c.confirm
+		return component, component.Init(p)
+	}
 
 	if c.noLimit {
 		c.limit = c.choices.Len()
@@ -146,6 +155,22 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	//fmt.Println("save edit")
 	//return msg.Cmd(c.Current())
 	//case keys.SaveEditMsg:
+	case confirm.GetConfirmationMsg:
+		//switch reactea.CurrentRoute() {
+		//case "list":
+		if !c.confirmChoices {
+			return reactea.Destroy
+		}
+		//fallthrough
+		//default:
+		c.confirm = msg.Props
+		cmds = append(cmds, keys.ChangeRoute("confirm"))
+		//}
+
+	case keys.SaveChangesMsg:
+		return keys.UpdateStatus("save main")
+	//fmt.Println("save edit main")
+
 	case tea.WindowSizeMsg:
 		c.width = msg.Width
 		c.height = msg.Height - 2
