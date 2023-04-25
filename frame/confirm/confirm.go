@@ -35,6 +35,10 @@ func New() *Component {
 	return &Component{}
 }
 
+func ConfirmThing() tea.Cmd {
+	return frame.ChangeRoute(New())
+}
+
 func GetConfirmation(q string, c Confirm) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{

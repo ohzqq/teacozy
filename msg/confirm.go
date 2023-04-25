@@ -2,18 +2,16 @@ package msg
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type ConfirmFunc func(bool) tea.Cmd
-
 type Confirm struct {
 	Question string
-	Confirm  ConfirmFunc
+	Func     func(bool) tea.Cmd
 }
 
-func GetConfirmation(q string, c Confirm) tea.Cmd {
+func GetConfirmation(q string, fn func(bool) tea.Cmd) tea.Cmd {
 	return func() tea.Msg {
 		return Confirm{
 			Question: q,
-			Confirm:  c,
+			Func:     fn,
 		}
 	}
 }

@@ -141,11 +141,16 @@ func SaveChanges(idx int) tea.Cmd {
 	}
 }
 
-func EditItem(idx int) tea.Cmd {
-	return func() tea.Msg {
-		return EditItemMsg{
-			Index: idx,
+func EditItem() tea.Msg {
+	fn := func(idx int) tea.Cmd {
+		return func() tea.Msg {
+			return EditItemMsg{
+				Index: idx,
+			}
 		}
+	}
+	return UpdateItemMsg{
+		Cmd: fn,
 	}
 }
 
