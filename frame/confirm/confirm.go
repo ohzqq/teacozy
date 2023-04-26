@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
@@ -21,25 +22,32 @@ type Component struct {
 }
 
 type Props struct {
+	teacozy.Props
 	Question string
-	Confirm  Confirm
+	Confirm  ConfirmFunc
 }
 
 type GetConfirmationMsg struct {
 	Props
 }
 
-type Confirm func(bool) tea.Cmd
+type ConfirmFunc func(bool) tea.Cmd
 
 func New() *Component {
 	return &Component{}
+}
+
+func (c *Component) Init(props Props) tea.Cmd {
+	c.UpdateProps(props)
+
+	return keys.ChangeRoute("confirm")
 }
 
 func ConfirmThing() tea.Cmd {
 	return frame.ChangeRoute(New())
 }
 
-func GetConfirmation(q string, c Confirm) tea.Cmd {
+func GetConfirmation(q string, c ConfirmFunc) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{
 			Props: Props{
@@ -72,10 +80,12 @@ func (c *Component) KeyMap() keys.KeyMap {
 	return keys.NewKeyMap(km...)
 }
 
-func (c *Component) Initialize(a *frame.App) {
-	a.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+func (c *Component) Initializer(props teacozy.Props) {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
-		p := a.Confirm
+		p := Props{
+			Props: props,
+		}
 		return component, component.Init(p)
 	}
 }

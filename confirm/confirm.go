@@ -20,20 +20,20 @@ type Component struct {
 
 type Props struct {
 	Question string
-	Confirm  Confirm
+	Confirm  ConfirmFunc
 }
 
 type GetConfirmationMsg struct {
 	Props
 }
 
-type Confirm func(bool) tea.Cmd
+type ConfirmFunc func(bool) tea.Cmd
 
 func New() *Component {
 	return &Component{}
 }
 
-func GetConfirmation(q string, c Confirm) tea.Cmd {
+func GetConfirmation(q string, c ConfirmFunc) tea.Cmd {
 	return func() tea.Msg {
 		return GetConfirmationMsg{
 			Props: Props{
