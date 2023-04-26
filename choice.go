@@ -33,19 +33,6 @@ func (c Choices) Len() int {
 }
 
 // Filter fuzzy matches items in the list
-func (c Choices) Filter(s string) []Item {
-	matches := []Item{}
-	m := fuzzy.FindFrom(s, c)
-	if len(m) == 0 {
-		return ChoicesToItems(c)
-	}
-	for _, match := range m {
-		item := New()
-		item.SetMatch(match).SetLabel(c[match.Index].Label())
-		matches = append(matches, item)
-	}
-	return matches
-}
 
 func (c Choices) Find(s string) fuzzy.Matches {
 	m := fuzzy.FindFrom(s, c)
