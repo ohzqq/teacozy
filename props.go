@@ -6,14 +6,12 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/item"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/sahilm/fuzzy"
 )
 
 type Props struct {
 	*pagy.Paginator
-	Choices    item.Choices
 	Items      Items
 	Selected   map[int]struct{}
 	Search     string

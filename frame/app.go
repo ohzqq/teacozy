@@ -52,6 +52,10 @@ type App struct {
 	Header *header.Component
 }
 
+type Props struct {
+	Items teacozy.Items
+}
+
 type Style struct {
 	Confirm lipgloss.Style
 	Footer  lipgloss.Style
