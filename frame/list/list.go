@@ -82,6 +82,7 @@ func DefaultKeyMap() keys.KeyMap {
 	}
 	m := keys.NewKeyMap(km...)
 	f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
+	//f := keys.Filter().Cmd(keys.ChangeRoute("filter"))
 	m.AddBinds(f)
 	return m
 }

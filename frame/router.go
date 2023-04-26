@@ -11,7 +11,10 @@ import (
 type Router struct {
 	*router.Component
 
+	reactea.BasicPropfulComponent[RouterProps]
+
 	PrevRoute    string
+	defaultRoute string
 	UpdateRoutes func(Route) tea.Cmd
 }
 
@@ -20,10 +23,22 @@ type Route interface {
 	Name() string
 }
 
+type RouterProps struct {
+	Routes      router.Props
+	Default     string
+	ChangeRoute func(Route) tea.Cmd
+}
+
 func NewRouter() *Router {
 	return &Router{
 		Component: router.New(),
 	}
+}
+
+func (c *Router) Init(props RouterProps) tea.Cmd {
+	c.UpdateProps(props)
+
+	return c.Component.Init(c.Props().Routes)
 }
 
 func (c *Router) Update(msg tea.Msg) tea.Cmd {
@@ -34,8 +49,7 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 		return keys.ChangeRoute("default")
 
 	case ChangeRouteMsg:
-		c.UpdateRoutes(msg.Route)
-		return keys.ChangeRoute(msg.Route.Name())
+		return c.UpdateRoutes(msg.Route)
 
 	case keys.ChangeRouteMsg:
 		route := msg.Name
@@ -44,13 +58,18 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 
-		switch route {
-		case "prev":
+		if route == "prev" {
 			route = c.PrevRoute
+		}
+
+		if route == "default" && c.Props().Default != "default" {
+			route = c.Props().Default
 		}
 
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
+		//u := fmt.Sprintf("cur %s prev %s", reactea.CurrentRoute(), c.PrevRoute)
+		//u := fmt.Sprintf("routes %v", c.Props().Default)
 		return keys.UpdateStatus(route)
 		//return nil
 	}

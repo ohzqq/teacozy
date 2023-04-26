@@ -1,8 +1,6 @@
 package frame
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -15,7 +13,6 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
-	"golang.org/x/exp/maps"
 )
 
 type App struct {
@@ -59,19 +56,20 @@ type Style struct {
 
 func New(opts ...Option) *App {
 	a := &App{
-		router:   NewRouter(),
-		Routes:   make(map[string]Route),
-		selected: make(map[int]struct{}),
-		Style:    DefaultStyle(),
-		cursor:   0,
-		width:    util.TermWidth(),
-		height:   util.TermHeight() - 2,
-		limit:    10,
-		Props:    teacozy.NewProps(),
+		router:       NewRouter(),
+		Routes:       make(map[string]Route),
+		selected:     make(map[int]struct{}),
+		Style:        DefaultStyle(),
+		cursor:       0,
+		width:        util.TermWidth(),
+		height:       util.TermHeight() - 2,
+		limit:        10,
+		Props:        teacozy.NewProps(),
+		defaultRoute: "default",
 	}
 
 	//a.AddKey(keys.New("a").Cmd(keys.UpdateItem(keys.ToggleItems)))
-	a.router.UpdateRoutes = a.UpdateRoutes
+	a.router.UpdateRoutes = a.UpdateRoute
 
 	for _, opt := range opts {
 		opt(a)
@@ -92,17 +90,19 @@ func (c *App) ItemProps() teacozy.Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	switch len(c.Routes) {
-	case 0:
-		c.Routes["default"] = c
-	default:
-		if c.defaultRoute != "" {
-			c.Routes["default"] = c.Routes[c.defaultRoute]
-		} else {
-			k := maps.Keys(c.Routes)[0]
-			c.Routes["default"] = c.Routes[k]
-		}
-	}
+	c.Routes["default"] = c
+	//switch len(c.Routes) {
+	//case 0:
+	//  c.Routes["default"] = c
+	//default:
+	//  if c.defaultRoute != "" {
+	//    c.Routes["default"] = c.Routes[c.defaultRoute]
+	//  } else {
+	//    k := maps.Keys(c.Routes)[0]
+	//    c.Routes["default"] = c.Routes[k]
+	//  }
+	//}
+
 	//c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 	//  component := confirm.New()
 	//  p := c.Confirm
@@ -228,11 +228,11 @@ func (c App) renderHeader(w, h int) string {
 func (c App) renderFooter(w, h int) string {
 	var footer string
 
-	footer = fmt.Sprintf(
-		"cur route %v, per %v",
-		reactea.CurrentRoute(),
-		c.router.PrevRoute,
-	)
+	//footer = fmt.Sprintf(
+	//"cur route %v, per %v",
+	//reactea.CurrentRoute(),
+	//c.router.PrevRoute,
+	//)
 
 	if c.footer != "" {
 		footer = c.Style.Header.Render(c.footer)
@@ -247,10 +247,16 @@ func (c *App) InitRoutes() tea.Cmd {
 		routes[name] = route.Initializer(c.ItemProps())
 	}
 
-	return c.router.Init(routes)
+	p := RouterProps{
+		Routes:      routes,
+		Default:     c.defaultRoute,
+		ChangeRoute: c.UpdateRoute,
+	}
+
+	return c.router.Init(p)
 }
 
-func (c *App) UpdateRoutes(r Route) tea.Cmd {
+func (c *App) UpdateRoute(r Route) tea.Cmd {
 	c.Routes[c.Name()] = r
 	c.InitRoutes()
 	return keys.ChangeRoute(r.Name())

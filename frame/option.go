@@ -20,7 +20,6 @@ func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 
 func WithRoute(r Route) Option {
 	return func(a *App) {
-		//a.NewRoute(r)
 		a.Routes[r.Name()] = r
 	}
 }

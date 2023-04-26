@@ -103,7 +103,7 @@ func No() *Binding {
 func Esc() *Binding {
 	return New("esc").
 		WithHelp("exit screen").
-		Cmd(ReturnToList)
+		Cmd(ChangeRoute("prev"))
 }
 
 func Edit() *Binding {

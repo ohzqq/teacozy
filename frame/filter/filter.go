@@ -57,6 +57,11 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case StopFilteringMsg:
+		c.input.Blur()
+		c.Props().SetKeyMap(keys.VimKeyMap())
+		return keys.ChangeRoute("prev")
+		//return keys.UpdateStatus("stop filtering")
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
@@ -77,7 +82,10 @@ func (c *Component) Render(w, h int) string {
 	view := c.input.View()
 	props := c.Props().Props
 	props.Filter(c.input.Value())
-	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
+	if c.input.Focused() {
+		return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
+	}
+	return ""
 }
 
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
@@ -105,6 +113,8 @@ func DefaultKeyMap() keys.KeyMap {
 	return keys.NewKeyMap(km...)
 }
 
+type StopFilteringMsg struct{}
+
 func StopFiltering() tea.Msg {
-	return keys.ReturnToListMsg{}
+	return StopFilteringMsg{}
 }
