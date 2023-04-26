@@ -43,6 +43,14 @@ func (k *Binding) WithKeys(keys ...string) *Binding {
 	return k
 }
 
+func (k *Binding) Disable() {
+	k.Binding.SetEnabled(false)
+}
+
+func (k *Binding) Enable() {
+	k.Binding.SetEnabled(true)
+}
+
 func (k *Binding) AddKeys(keys ...string) *Binding {
 	keys = append(keys, k.Binding.Keys()...)
 	k.Binding.SetKeys(keys...)

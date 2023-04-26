@@ -68,6 +68,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 func (c *Component) KeyMap() keys.KeyMap {
 	km := []*keys.Binding{
 		keys.Quit(),
+		keys.Esc().AddKeys("q").Cmd(c.Confirmed(false)),
 		keys.Yes().Cmd(c.Confirmed(true)),
 		keys.No().Cmd(c.Confirmed(false)),
 	}
@@ -98,5 +99,4 @@ func (c *Component) Render(w, h int) string {
 func (c *Component) Confirmed(y bool) tea.Cmd {
 	cmd := c.Confirm(y)
 	return tea.Batch(cmd, keys.ChangeRoute("prev"))
-	//return tea.Batch(keys.ChangeRoute("prev"), cmd)
 }

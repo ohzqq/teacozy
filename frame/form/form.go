@@ -36,7 +36,6 @@ func New() *Component {
 	c := &Component{
 		input:  textarea.New(),
 		Prompt: "> ",
-		KeyMap: DefaultKeyMap(),
 	}
 
 	return c
@@ -44,6 +43,7 @@ func New() *Component {
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
+	c.KeyMap = DefaultKeyMap()
 	c.input.Prompt = c.Prompt
 	c.input.KeyMap = keys.TextAreaDefault()
 	c.input.ShowLineNumbers = false
@@ -60,29 +60,42 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		return confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value), c.Props().Props)
+		var val string
+		cmds = append(cmds, keys.UpdateStatus(c.originalVal))
+		if c.input.Value() != c.originalVal {
+			val = c.input.Value()
+			c.input.Reset()
+			return confirm.GetConfirmation("Save edit?", c.SaveEdit(val), c.Props().Props)
+		}
+		return keys.StopEditing
 	case keys.StopEditingMsg:
 		c.input.Blur()
+		c.input.Reset()
+		c.KeyMap.Get("e").Enable()
 		c.Props().SetKeyMap(keys.VimKeyMap())
-		if c.input.Value() != c.originalVal {
-			return keys.ConfirmEdit(c.input.Value())
-		}
-		return nil
+		//if c.input.Value() != c.originalVal {
+		//  return keys.ConfirmEdit(c.input.Value())
+		//}
+		return keys.ChangeRoute("prev")
 	case keys.EditItemMsg:
 		c.current = msg.Index
 		c.originalVal = c.Props().Items.String(c.current)
-		c.Props().SetKeyMap(keys.DefaultKeyMap())
+		//c.Props().SetKeyMap(keys.DefaultKeyMap())
+		c.Props().DisableKeys()
+		c.KeyMap.Get("e").Disable()
 		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
 	case tea.KeyMsg:
+		if c.input.Focused() {
+			c.input, cmd = c.input.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		//} else {
 		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
-		}
-		if c.input.Focused() {
-			c.input, cmd = c.input.Update(msg)
-			cmds = append(cmds, cmd)
+			//}
 		}
 	}
 
@@ -94,6 +107,7 @@ func (c *Component) SaveEdit(v string) func(bool) tea.Cmd {
 		if save {
 			fn := func(idx int) tea.Cmd {
 				c.Props().Items.Set(idx, v)
+				c.input.Reset()
 				return nil
 			}
 			return keys.UpdateItem(fn)
@@ -143,7 +157,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Help(),
 		keys.Edit(),
 		keys.Save().
-			Cmd(keys.StopEditing),
+			Cmd(keys.ConfirmEdit("")),
 	}
 	km := keys.NewKeyMap(k...)
 	return km
