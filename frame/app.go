@@ -22,15 +22,13 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	mainRouter   *Router
+	router       *Router
 	Routes       map[string]router.RouteInitializer
 	defaultRoute string
 
 	Confirm        confirm.Props
 	confirmChoices bool
 
-	start       int
-	end         int
 	width       int
 	height      int
 	selected    map[int]struct{}
@@ -50,10 +48,12 @@ type App struct {
 	Style       Style
 
 	Header *header.Component
+
+	teacozy.Props
 }
 
 type Props struct {
-	Items teacozy.Items
+	teacozy.Props
 }
 
 type Style struct {
@@ -65,18 +65,19 @@ type Style struct {
 
 func New(opts ...Option) *App {
 	a := &App{
-		mainRouter: NewRouter(),
-		Routes:     make(map[string]router.RouteInitializer),
-		selected:   make(map[int]struct{}),
-		Style:      DefaultStyle(),
-		cursor:     0,
-		width:      util.TermWidth(),
-		height:     util.TermHeight() - 2,
-		limit:      10,
+		router:   NewRouter(),
+		Routes:   make(map[string]router.RouteInitializer),
+		selected: make(map[int]struct{}),
+		Style:    DefaultStyle(),
+		cursor:   0,
+		width:    util.TermWidth(),
+		height:   util.TermHeight() - 2,
+		limit:    10,
+		Props:    teacozy.NewProps(),
 	}
 
-	a.AddKey(keys.New("a").Cmd(keys.UpdateItem(keys.ToggleItems)))
-	a.mainRouter.UpdateRoutes = a.UpdateRoutes
+	//a.AddKey(keys.New("a").Cmd(keys.UpdateItem(keys.ToggleItems)))
+	a.router.UpdateRoutes = a.UpdateRoutes
 
 	for _, opt := range opts {
 		opt(a)
@@ -87,10 +88,10 @@ func New(opts ...Option) *App {
 
 func (c *App) ItemProps() teacozy.Props {
 	props := teacozy.NewProps()
-	props.Paginator = c.paginator
+	props.Paginator = c.Paginator
 	props.Items = c.choices
 	props.Selected = c.selected
-	props.SetKeyMap(c.paginator.KeyMap)
+	props.SetKeyMap(c.Paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
 	props.ReadOnly = c.readOnly
 	return props
@@ -122,8 +123,8 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		c.AddKey(keys.Toggle().AddKeys(" "))
 	}
 
-	c.paginator = pagy.New(c.height, c.choices.Len())
-	c.paginator.SetKeyMap(DefaultKeyMap())
+	c.Paginator = pagy.New(c.height, c.choices.Len())
+	c.Paginator.SetKeyMap(DefaultKeyMap())
 
 	c.Header = header.New()
 	c.Header.Init(
@@ -134,7 +135,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 	var cmds []tea.Cmd
 	cmds = append(cmds, keys.ChangeRoute("default"))
-	cmds = append(cmds, c.mainRouter.Init(c.Routes))
+	cmds = append(cmds, c.router.Init(c.Routes))
 	return tea.Batch(cmds...)
 }
 
@@ -186,13 +187,13 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.paginator, cmd = c.paginator.Update(msg)
+	c.Paginator, cmd = c.Paginator.Update(msg)
 	cmds = append(cmds, cmd)
 
 	cmd = c.Header.Update(msg)
 	cmds = append(cmds, cmd)
 
-	cmd = c.mainRouter.Update(msg)
+	cmd = c.router.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
@@ -212,7 +213,7 @@ func (c *App) Render(w, h int) string {
 		height -= lipgloss.Height(footer)
 	}
 
-	body := c.mainRouter.Render(c.width, height)
+	body := c.router.Render(c.width, height)
 	view = append(view, body)
 
 	if footer != "" {
@@ -236,7 +237,7 @@ func (c App) renderFooter(w, h int) string {
 	footer = fmt.Sprintf(
 		"cur route %v, per %v",
 		reactea.CurrentRoute(),
-		c.mainRouter.PrevRoute,
+		c.router.PrevRoute,
 	)
 
 	if c.footer != "" {
@@ -252,11 +253,11 @@ func (c *App) NewRoute(r Route) {
 
 func (c *App) UpdateRoutes(r Route) {
 	c.NewRoute(r)
-	c.mainRouter.Init(c.Routes)
+	c.router.Init(c.Routes)
 }
 
 func (c *App) SetKeyMap(km keys.KeyMap) *App {
-	c.paginator.SetKeyMap(km)
+	c.Paginator.SetKeyMap(km)
 	return c
 }
 
@@ -300,7 +301,6 @@ func (m App) Chosen() []map[string]string {
 
 func (m *App) SetCurrent(idx int) {
 	m.CurrentItem = idx
-	m.paginator.SetCurrent(idx)
 }
 
 func (m *App) Current() int {
