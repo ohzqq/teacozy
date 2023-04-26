@@ -118,7 +118,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	}
 
 	c.Paginator = pagy.New(c.height, c.choices.Len())
-	c.Paginator.SetKeyMap(DefaultKeyMap())
+	c.Paginator.SetKeyMap(keys.VimKeyMap())
 
 	c.Header = header.New()
 	c.Header.Init(
@@ -242,7 +242,7 @@ func (c App) renderFooter(w, h int) string {
 }
 
 func (c *App) NewRoute(r Route) {
-	r.Initialize(c)
+	c.Routes[c.Name()] = r.Initializer(c.ItemProps())
 }
 
 func (c *App) UpdateRoutes(r Route) {
@@ -309,6 +309,13 @@ func (c *App) Initialize(a *App) {
 	}
 }
 
+func (c *App) Initializer(props teacozy.Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
+		return component, component.Init(props)
+	}
+}
+
 func (c App) Name() string {
 	return "default"
 }
@@ -331,19 +338,6 @@ func (c *App) SetSize(w, h int) *App {
 
 func (c *App) SetHeader(h string) {
 	c.header = h
-}
-
-func DefaultKeyMap() keys.KeyMap {
-	km := []*keys.Binding{
-		keys.Up().AddKeys("k"),
-		keys.Down().AddKeys("j"),
-		keys.HalfPgUp().AddKeys("K"),
-		keys.HalfPgDown().AddKeys("J"),
-		keys.Home().AddKeys("g"),
-		keys.End().AddKeys("G"),
-		keys.Quit().AddKeys("q"),
-	}
-	return keys.NewKeyMap(km...)
 }
 
 func DefaultStyle() Style {

@@ -12,7 +12,6 @@ import (
 	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pagy"
 )
 
 type Component struct {
@@ -65,7 +64,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		return confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value))
 	case keys.StopEditingMsg:
 		c.input.Blur()
-		c.Props().SetKeyMap(frame.DefaultKeyMap())
+		c.Props().SetKeyMap(keys.VimKeyMap())
 		if c.input.Value() != c.originalVal {
 			return keys.ConfirmEdit(c.input.Value())
 		}
@@ -73,7 +72,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	case keys.EditItemMsg:
 		c.current = msg.Index
 		c.originalVal = c.Props().Items.String(c.current)
-		c.Props().SetKeyMap(pagy.DefaultKeyMap())
+		c.Props().SetKeyMap(keys.DefaultKeyMap())
 		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
 	case tea.KeyMsg:
@@ -129,8 +128,18 @@ func (c *Component) Initialize(a *frame.App) {
 		p := Props{
 			Props: a.ItemProps(),
 		}
-		//a.SetKeyMap(pagy.DefaultKeyMap())
-		a.SetKeyMap(frame.DefaultKeyMap())
+		a.SetKeyMap(keys.VimKeyMap())
+		return comp, comp.Init(p)
+	}
+}
+
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := New()
+		p := Props{
+			Props: props,
+		}
+		p.SetKeyMap(keys.VimKeyMap())
 		return comp, comp.Init(p)
 	}
 }

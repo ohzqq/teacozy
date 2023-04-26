@@ -11,7 +11,6 @@ import (
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pagy"
 )
 
 type Component struct {
@@ -88,7 +87,18 @@ func (c *Component) Initialize(a *frame.App) {
 		p := Props{
 			Props: a.ItemProps(),
 		}
-		a.SetKeyMap(pagy.DefaultKeyMap())
+		p.SetKeyMap(keys.DefaultKeyMap())
+		return comp, comp.Init(p)
+	}
+}
+
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := New()
+		p := Props{
+			Props: props,
+		}
+		p.SetKeyMap(keys.DefaultKeyMap())
 		return comp, comp.Init(p)
 	}
 }

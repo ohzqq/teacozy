@@ -34,10 +34,24 @@ func (c *Component) Initialize(a *frame.App) {
 		p := Props{
 			Props: a.ItemProps(),
 		}
-		km := frame.DefaultKeyMap()
+		km := keys.VimKeyMap()
 		f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
 		km.AddBinds(f)
-		a.SetKeyMap(km)
+		p.SetKeyMap(km)
+		return comp, comp.Init(p)
+	}
+}
+
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := New()
+		p := Props{
+			Props: props,
+		}
+		km := keys.VimKeyMap()
+		f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
+		km.AddBinds(f)
+		p.SetKeyMap(km)
 		return comp, comp.Init(p)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -15,6 +16,7 @@ type Router struct {
 
 type Route interface {
 	Initialize(*App)
+	Initializer(teacozy.Props) router.RouteInitializer
 	Name() string
 }
 

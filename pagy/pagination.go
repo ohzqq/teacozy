@@ -20,7 +20,7 @@ type Paginator struct {
 
 func New(per, total int) *Paginator {
 	m := &Paginator{
-		KeyMap: DefaultKeyMap(),
+		KeyMap: keys.DefaultKeyMap(),
 		total:  total,
 		Model:  paginator.New(),
 	}
@@ -191,20 +191,6 @@ func (m *Paginator) Init() tea.Cmd {
 
 func (m *Paginator) View() string {
 	return m.Model.View()
-}
-
-func DefaultKeyMap() keys.KeyMap {
-	k := []*keys.Binding{
-		keys.PgUp(),
-		keys.PgDown(),
-		keys.Up(),
-		keys.Down(),
-		keys.HalfPgUp(),
-		keys.HalfPgDown(),
-		keys.Home(),
-		keys.End(),
-	}
-	return keys.NewKeyMap(k...)
 }
 
 func clamp(x, min, max int) int {
