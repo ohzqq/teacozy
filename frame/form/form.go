@@ -60,7 +60,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		return confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value))
+		return confirm.GetConfirmation("Save edit?", c.SaveEdit(msg.Value), c.Props().Props)
 	case keys.StopEditingMsg:
 		c.input.Blur()
 		c.Props().SetKeyMap(keys.VimKeyMap())
@@ -98,7 +98,7 @@ func (c *Component) SaveEdit(v string) func(bool) tea.Cmd {
 			}
 			return keys.UpdateItem(fn)
 		}
-		return keys.ReturnToList
+		return keys.ChangeRoute("prev")
 	}
 }
 

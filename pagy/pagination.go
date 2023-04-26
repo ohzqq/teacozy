@@ -185,6 +185,10 @@ func (m *Paginator) HalfUp() {
 	}
 }
 
+func (m *Paginator) DisableKeys() {
+	m.KeyMap = keys.NewKeyMap(keys.Quit())
+}
+
 func (m *Paginator) Init() tea.Cmd {
 	return nil
 }

@@ -22,7 +22,6 @@ type App struct {
 	Routes       map[string]Route
 	defaultRoute string
 
-	//Confirm        confirm.Props
 	confirmChoices bool
 
 	width       int
@@ -147,17 +146,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	//fmt.Println("save edit")
 	//return msg.Cmd(c.Current())
 	//case keys.SaveEditMsg:
-	//case confirm.GetConfirmationMsg:
-	//switch reactea.CurrentRoute() {
-	//case "list":
-	//if !c.confirmChoices {
-	//return reactea.Destroy
-	//}
-	//fallthrough
-	//default:
-	//c.Confirm = msg.Props
-	//cmds = append(cmds, keys.ChangeRoute("confirm"))
-	//}
 
 	case keys.SaveChangesMsg:
 		return keys.UpdateStatus("save main")

@@ -40,22 +40,21 @@ func New() *Component {
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 
-	return keys.ChangeRoute("confirm")
+	return frame.ChangeRoute(c)
 }
 
 func ConfirmThing() tea.Cmd {
 	return frame.ChangeRoute(New())
 }
 
-func GetConfirmation(q string, c ConfirmFunc) tea.Cmd {
-	return func() tea.Msg {
-		return GetConfirmationMsg{
-			Props: Props{
-				Question: q,
-				Confirm:  c,
-			},
-		}
+func GetConfirmation(q string, c ConfirmFunc, props teacozy.Props) tea.Cmd {
+	confirm := New()
+	p := Props{
+		Props:    props,
+		Question: q,
+		Confirm:  c,
 	}
+	return confirm.Init(p)
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -86,6 +85,7 @@ func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 		p := Props{
 			Props: props,
 		}
+		p.DisableKeys()
 		return component, component.Init(p)
 	}
 }
@@ -96,7 +96,9 @@ func (c Component) Name() string {
 
 func (c *Component) Render(w, h int) string {
 	q := fmt.Sprintf("%s (y/n)", c.Props().Question)
-	return lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()).Render(q)
+	view := lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()).Render(q)
+	props := c.Props().Props
+	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
 }
 
 func (c *Component) Confirmed(y bool) tea.Cmd {
