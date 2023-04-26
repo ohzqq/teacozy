@@ -9,7 +9,6 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -79,17 +78,6 @@ func (c *Component) Render(w, h int) string {
 	props := c.Props().Props
 	props.Filter(c.input.Value())
 	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
-}
-
-func (c *Component) Initialize(a *frame.App) {
-	a.Routes["filter"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		comp := New()
-		p := Props{
-			Props: a.ItemProps(),
-		}
-		p.SetKeyMap(keys.DefaultKeyMap())
-		return comp, comp.Init(p)
-	}
 }
 
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {

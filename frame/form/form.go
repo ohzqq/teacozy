@@ -10,7 +10,6 @@ import (
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/confirm"
-	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -120,17 +119,6 @@ func (c *Component) Render(w, h int) string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, view, input)
-}
-
-func (c *Component) Initialize(a *frame.App) {
-	a.Routes["form"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		comp := New()
-		p := Props{
-			Props: a.ItemProps(),
-		}
-		a.SetKeyMap(keys.VimKeyMap())
-		return comp, comp.Init(p)
-	}
 }
 
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {

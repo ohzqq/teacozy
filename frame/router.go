@@ -10,12 +10,12 @@ import (
 
 type Router struct {
 	*router.Component
+
 	PrevRoute    string
-	UpdateRoutes func(Route)
+	UpdateRoutes func(Route) tea.Cmd
 }
 
 type Route interface {
-	Initialize(*App)
 	Initializer(teacozy.Props) router.RouteInitializer
 	Name() string
 }

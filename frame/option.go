@@ -1,6 +1,8 @@
 package frame
 
-import "github.com/ohzqq/teacozy/item"
+import (
+	"github.com/ohzqq/teacozy/item"
+)
 
 type Option func(*App)
 
@@ -17,7 +19,10 @@ func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 }
 
 func WithRoute(r Route) Option {
-	return r.Initialize
+	return func(a *App) {
+		//a.NewRoute(r)
+		a.Routes[r.Name()] = r
+	}
 }
 
 func NoLimit() Option {

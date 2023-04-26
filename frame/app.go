@@ -23,7 +23,7 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	router       *Router
-	Routes       map[string]router.RouteInitializer
+	Routes       map[string]Route
 	defaultRoute string
 
 	Confirm        confirm.Props
@@ -60,7 +60,7 @@ type Style struct {
 func New(opts ...Option) *App {
 	a := &App{
 		router:   NewRouter(),
-		Routes:   make(map[string]router.RouteInitializer),
+		Routes:   make(map[string]Route),
 		selected: make(map[int]struct{}),
 		Style:    DefaultStyle(),
 		cursor:   0,
@@ -94,7 +94,7 @@ func (c *App) ItemProps() teacozy.Props {
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	switch len(c.Routes) {
 	case 0:
-		c.NewRoute(c)
+		c.Routes["default"] = c
 	default:
 		if c.defaultRoute != "" {
 			c.Routes["default"] = c.Routes[c.defaultRoute]
@@ -103,11 +103,11 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			c.Routes["default"] = c.Routes[k]
 		}
 	}
-	c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := confirm.New()
-		p := c.Confirm
-		return component, component.Init(p)
-	}
+	//c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+	//  component := confirm.New()
+	//  p := c.Confirm
+	//  return component, component.Init(p)
+	//}
 
 	if c.noLimit {
 		c.limit = c.choices.Len()
@@ -129,7 +129,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 	var cmds []tea.Cmd
 	cmds = append(cmds, keys.ChangeRoute("default"))
-	cmds = append(cmds, c.router.Init(c.Routes))
+	cmds = append(cmds, c.InitRoutes())
 	return tea.Batch(cmds...)
 }
 
@@ -241,13 +241,19 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
-func (c *App) NewRoute(r Route) {
-	c.Routes[c.Name()] = r.Initializer(c.ItemProps())
+func (c *App) InitRoutes() tea.Cmd {
+	routes := make(map[string]router.RouteInitializer, len(c.Routes))
+	for name, route := range c.Routes {
+		routes[name] = route.Initializer(c.ItemProps())
+	}
+
+	return c.router.Init(routes)
 }
 
-func (c *App) UpdateRoutes(r Route) {
-	c.NewRoute(r)
-	c.router.Init(c.Routes)
+func (c *App) UpdateRoutes(r Route) tea.Cmd {
+	c.Routes[c.Name()] = r
+	c.InitRoutes()
+	return keys.ChangeRoute(r.Name())
 }
 
 func (c *App) SetKeyMap(km keys.KeyMap) *App {
@@ -299,14 +305,6 @@ func (m *App) SetCurrent(idx int) {
 
 func (m *App) Current() int {
 	return m.CurrentItem
-}
-
-func (c *App) Initialize(a *App) {
-	a.Routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
-		props := a.ItemProps()
-		return component, component.Init(props)
-	}
 }
 
 func (c *App) Initializer(props teacozy.Props) router.RouteInitializer {
