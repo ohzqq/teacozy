@@ -69,7 +69,8 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
-		return keys.UpdateStatus(route)
+		//return keys.UpdateStatus(route)
+		return nil
 	}
 
 	return c.Component.Update(msg)

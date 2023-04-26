@@ -1,4 +1,4 @@
-package item
+package teacozy
 
 import (
 	"fmt"
@@ -24,7 +24,6 @@ func (c Choices) String(i int) string {
 
 func (c Choices) Label(i int) string {
 	return c[i].Label()
-	//return "oo"
 }
 
 // Len satisfies the fuzzy.Source interface

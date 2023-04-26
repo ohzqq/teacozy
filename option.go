@@ -1,20 +1,16 @@
 package teacozy
 
-import (
-	"github.com/ohzqq/teacozy/item"
-)
-
 type Option func(*App)
 
 func WithSlice[E any](c []E) Option {
 	return func(a *App) {
-		a.choices = item.SliceToChoices(c)
+		a.choices = SliceToChoices(c)
 	}
 }
 
 func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 	return func(a *App) {
-		a.choices = item.MapToChoices(c)
+		a.choices = MapToChoices(c)
 	}
 }
 
