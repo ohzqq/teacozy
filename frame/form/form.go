@@ -9,6 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/frame/confirm"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -57,7 +58,10 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	case keys.ConfirmEditMsg:
 		if val := c.input.Value(); val != c.originalVal {
 			c.input.Reset()
-			return confirm.GetConfirmation("Save edit?", c.SaveEdit(val), c.Props())
+			con := confirm.New().
+				Question("Save edit?").
+				Func(c.SaveEdit(val))
+			return frame.ChangeRoute(con)
 		}
 		return keys.StopEditing
 

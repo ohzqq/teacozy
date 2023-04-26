@@ -10,22 +10,22 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/frame"
 	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[teacozy.Props]
+	reactea.BasicPropfulComponent[Props]
 
-	confirmed bool
-	Question  string
-	Confirm   ConfirmFunc
-	Style     lipgloss.Style
+	question string
+	confirm  ConfirmFunc
+	Style    lipgloss.Style
 }
 
 type Props struct {
 	teacozy.Props
+	Question string
+	Func     ConfirmFunc
 }
 
 type GetConfirmationMsg struct {
@@ -42,16 +42,25 @@ func New() *Component {
 	}
 }
 
-func (c *Component) Init(props teacozy.Props) tea.Cmd {
-	c.UpdateProps(props)
-	return frame.ChangeRoute(c)
+func (c *Component) Question(q string) *Component {
+	c.question = q
+	return c
+}
+
+func (c *Component) Func(fn ConfirmFunc) *Component {
+	c.confirm = fn
+	return c
 }
 
 func GetConfirmation(q string, c ConfirmFunc, props teacozy.Props) tea.Cmd {
-	confirm := New()
-	confirm.Confirm = c
-	confirm.Question = q
-	return confirm.Init(props)
+	confirm := New().Question(q).Func(c)
+	return confirm.Init(Props{Props: props})
+}
+
+func (c *Component) Init(props Props) tea.Cmd {
+	c.UpdateProps(props)
+	return nil
+	//return frame.ChangeRoute(c)
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -80,7 +89,12 @@ func (c *Component) KeyMap() keys.KeyMap {
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		props.DisableKeys()
-		return c, c.Init(props)
+		p := Props{
+			Props:    props,
+			Question: c.question,
+			Func:     c.confirm,
+		}
+		return c, c.Init(p)
 	}
 }
 
@@ -89,15 +103,15 @@ func (c Component) Name() string {
 }
 
 func (c *Component) Render(w, h int) string {
-	view := c.Style.Render(fmt.Sprintf("%s (y/n)", c.Question))
+	view := c.Style.Render(fmt.Sprintf("%s (y/n)", c.question))
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		view,
-		teacozy.Renderer(c.Props(), w, h-1),
+		teacozy.Renderer(c.Props().Props, w, h-1),
 	)
 }
 
 func (c *Component) Confirmed(y bool) tea.Cmd {
-	cmd := c.Confirm(y)
+	cmd := c.confirm(y)
 	return tea.Batch(cmd, keys.ChangeRoute("prev"))
 }
