@@ -37,7 +37,6 @@ func NewRouter() *Router {
 
 func (c *Router) Init(props RouterProps) tea.Cmd {
 	c.UpdateProps(props)
-
 	return c.Component.Init(c.Props().Routes)
 }
 
@@ -52,7 +51,7 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 		if _, ok := c.Component.Props()[msg.Route.Name()]; ok {
 			return keys.ChangeRoute(msg.Route.Name())
 		}
-		return c.UpdateRoutes(msg.Route)
+		return c.Props().ChangeRoute(msg.Route)
 
 	case keys.ChangeRouteMsg:
 		route := msg.Name
@@ -71,10 +70,7 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
-		//u := fmt.Sprintf("cur %s prev %s", reactea.CurrentRoute(), c.PrevRoute)
-		//u := fmt.Sprintf("routes %v", c.Props().Default)
 		return keys.UpdateStatus(route)
-		//return nil
 	}
 
 	return c.Component.Update(msg)
