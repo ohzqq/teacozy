@@ -9,8 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/frame"
-	"github.com/ohzqq/teacozy/frame/confirm"
+	"github.com/ohzqq/teacozy/confirm"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -62,7 +61,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 			con := confirm.New().
 				Question("Save edit?").
 				Func(c.SaveEdit(val))
-			return frame.ChangeRoute(con)
+			return teacozy.ChangeRoute(con)
 		}
 		return keys.StopEditing
 

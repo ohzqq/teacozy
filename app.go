@@ -7,7 +7,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/frame/header"
+	"github.com/ohzqq/teacozy/header"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
