@@ -1,4 +1,4 @@
-package msg
+package message
 
 import tea "github.com/charmbracelet/bubbletea"
 
