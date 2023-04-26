@@ -17,7 +17,7 @@ type Props struct {
 	Search     string
 	ReadOnly   bool
 	SetCurrent func(int)
-	Style      PropsStyle
+	Style      Style
 }
 
 type Prefix struct {
@@ -26,7 +26,7 @@ type Prefix struct {
 	Style lipgloss.Style
 }
 
-type PropsStyle struct {
+type Style struct {
 	Cursor   Prefix
 	Label    Prefix
 	Normal   Prefix
@@ -43,7 +43,7 @@ type Items interface {
 func NewProps() Props {
 	p := Props{
 		Selected: make(map[int]struct{}),
-		Style:    DefaultPropsStyle(),
+		Style:    DefaultStyle(),
 	}
 	return p
 }
@@ -159,8 +159,8 @@ func SourceToMatches(src Items) fuzzy.Matches {
 	return items
 }
 
-func DefaultPropsStyle() PropsStyle {
-	return PropsStyle{
+func DefaultStyle() Style {
+	return Style{
 		Match: lipgloss.NewStyle().Foreground(color.Cyan()),
 		Cursor: Prefix{
 			Fmt:   currentFmt,

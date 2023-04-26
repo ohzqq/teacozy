@@ -23,49 +23,46 @@ type App struct {
 
 	confirmChoices bool
 
-	width       int
-	height      int
-	selected    map[int]struct{}
+	width  int
+	height int
+
 	numSelected int
 	limit       int
 	CurrentItem int
 	noLimit     bool
-	cursor      int
-	title       string
-	header      string
-	footer      string
-	editedVal   string
-	choices     Items
-	keyMap      keys.KeyMap
-	Style       Style
+
+	footer string
+
+	choices Items
+	keyMap  keys.KeyMap
+	Style   AppStyle
 
 	Header *header.Component
+	title  string
+	header string
 
 	Props
 }
 
-type Style struct {
-	Confirm lipgloss.Style
-	Footer  lipgloss.Style
-	Header  lipgloss.Style
-	Status  lipgloss.Style
+type AppStyle struct {
+	Footer lipgloss.Style
 }
 
 func New(opts ...Option) *App {
 	a := &App{
 		router:       NewRouter(),
 		Routes:       make(map[string]Route),
-		selected:     make(map[int]struct{}),
-		Style:        DefaultStyle(),
-		cursor:       0,
+		defaultRoute: "default",
+		Props:        NewProps(),
 		width:        util.TermWidth(),
 		height:       util.TermHeight() - 2,
 		limit:        10,
-		Props:        NewProps(),
-		defaultRoute: "default",
 	}
 
-	//a.AddKey(keys.New("a").Cmd(keys.UpdateItem(keys.ToggleItems)))
+	a.Style = AppStyle{
+		Footer: lipgloss.NewStyle().Foreground(color.Green()),
+	}
+
 	a.router.UpdateRoutes = a.UpdateRoute
 
 	for _, opt := range opts {
@@ -88,23 +85,6 @@ func (c *App) ItemProps() Props {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.Routes["default"] = c
-	//switch len(c.Routes) {
-	//case 0:
-	//  c.Routes["default"] = c
-	//default:
-	//  if c.defaultRoute != "" {
-	//    c.Routes["default"] = c.Routes[c.defaultRoute]
-	//  } else {
-	//    k := maps.Keys(c.Routes)[0]
-	//    c.Routes["default"] = c.Routes[k]
-	//  }
-	//}
-
-	//c.Routes["confirm"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-	//  component := confirm.New()
-	//  p := c.Confirm
-	//  return component, component.Init(p)
-	//}
 
 	if c.noLimit {
 		c.limit = c.choices.Len()
@@ -204,10 +184,6 @@ func (c *App) Render(w, h int) string {
 }
 
 func (c App) renderHeader(w, h int) string {
-	//var header string
-	//if c.title != "" {
-	//header = c.Style.Header.Render(c.title)
-	//}
 	return c.Header.Render(w, h)
 }
 
@@ -221,7 +197,7 @@ func (c App) renderFooter(w, h int) string {
 	//)
 
 	if c.footer != "" {
-		footer = c.Style.Header.Render(c.footer)
+		footer = c.Style.Footer.Render(c.footer)
 	}
 
 	return footer
@@ -328,13 +304,4 @@ func (c *App) SetSize(w, h int) *App {
 
 func (c *App) SetHeader(h string) {
 	c.header = h
-}
-
-func DefaultStyle() Style {
-	return Style{
-		Confirm: lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()),
-		Footer:  lipgloss.NewStyle().Foreground(color.Green()),
-		Header:  lipgloss.NewStyle().Background(color.Purple()).Foreground(color.Black()),
-		Status:  lipgloss.NewStyle().Foreground(color.Green()),
-	}
 }
