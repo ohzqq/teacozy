@@ -118,22 +118,11 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
+
 	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
 		c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)
-	//case keys.SaveChangesMsg:
-	//fmt.Println("save edit")
-	//return msg.Cmd(c.Current())
-	//case keys.SaveEditMsg:
 
-	case keys.SaveChangesMsg:
-		return keys.UpdateStatus("save main")
-	//fmt.Println("save edit main")
-
-	case tea.WindowSizeMsg:
-		c.width = msg.Width
-		c.height = msg.Height - 2
-		return nil
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
