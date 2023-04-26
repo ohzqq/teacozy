@@ -80,7 +80,7 @@ func (c *Component) KeyMap() keys.KeyMap {
 	return keys.NewKeyMap(km...)
 }
 
-func (c *Component) Initializer(props teacozy.Props) {
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
 		p := Props{
@@ -88,6 +88,10 @@ func (c *Component) Initializer(props teacozy.Props) {
 		}
 		return component, component.Init(p)
 	}
+}
+
+func (c Component) Name() string {
+	return "confirm"
 }
 
 func (c *Component) Render(w, h int) string {

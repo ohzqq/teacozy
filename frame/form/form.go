@@ -9,7 +9,7 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/confirm"
+	"github.com/ohzqq/teacozy/frame/confirm"
 	"github.com/ohzqq/teacozy/keys"
 )
 
