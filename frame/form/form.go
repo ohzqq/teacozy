@@ -27,11 +27,6 @@ type Component struct {
 	newVal      string
 }
 
-type Props struct {
-	ShowHelp func([]map[string]string)
-	teacozy.Props
-}
-
 func New() *Component {
 	c := &Component{
 		input:  textarea.New(),

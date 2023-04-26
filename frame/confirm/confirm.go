@@ -16,7 +16,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[teacozy.Props]
 
 	confirmed bool
 	Question  string
@@ -37,7 +37,7 @@ func New() *Component {
 	return &Component{}
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
 	return frame.ChangeRoute(c)
 }
@@ -46,10 +46,7 @@ func GetConfirmation(q string, c ConfirmFunc, props teacozy.Props) tea.Cmd {
 	confirm := New()
 	confirm.Confirm = c
 	confirm.Question = q
-	p := Props{
-		Props: props,
-	}
-	return confirm.Init(p)
+	return confirm.Init(props)
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -77,11 +74,8 @@ func (c *Component) KeyMap() keys.KeyMap {
 
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		p := Props{
-			Props: props,
-		}
-		p.DisableKeys()
-		return c, c.Init(p)
+		props.DisableKeys()
+		return c, c.Init(props)
 	}
 }
 
@@ -92,8 +86,7 @@ func (c Component) Name() string {
 func (c *Component) Render(w, h int) string {
 	q := fmt.Sprintf("%s (y/n)", c.Question)
 	view := lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()).Render(q)
-	props := c.Props().Props
-	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
+	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(c.Props(), w, h-1))
 }
 
 func (c *Component) Confirmed(y bool) tea.Cmd {

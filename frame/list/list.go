@@ -18,10 +18,6 @@ type Component struct {
 	KeyMap keys.KeyMap
 }
 
-type Props struct {
-	teacozy.Props
-}
-
 func New() *Component {
 	return &Component{
 		KeyMap: DefaultKeyMap(),
