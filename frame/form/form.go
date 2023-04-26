@@ -15,7 +15,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[teacozy.Props]
 
 	input textarea.Model
 
@@ -41,7 +41,7 @@ func New() *Component {
 	return c
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.KeyMap = DefaultKeyMap()
 	c.input.Prompt = c.Prompt
@@ -60,42 +60,35 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ConfirmEditMsg:
-		var val string
-		cmds = append(cmds, keys.UpdateStatus(c.originalVal))
-		if c.input.Value() != c.originalVal {
-			val = c.input.Value()
+		if val := c.input.Value(); val != c.originalVal {
 			c.input.Reset()
-			return confirm.GetConfirmation("Save edit?", c.SaveEdit(val), c.Props().Props)
+			return confirm.GetConfirmation("Save edit?", c.SaveEdit(val), c.Props())
 		}
 		return keys.StopEditing
+
 	case keys.StopEditingMsg:
 		c.input.Blur()
 		c.input.Reset()
-		c.KeyMap.Get("e").Enable()
 		c.Props().SetKeyMap(keys.VimKeyMap())
-		//if c.input.Value() != c.originalVal {
-		//  return keys.ConfirmEdit(c.input.Value())
-		//}
-		return keys.ChangeRoute("prev")
+		c.KeyMap.Get("e").Enable()
+
 	case keys.EditItemMsg:
 		c.current = msg.Index
 		c.originalVal = c.Props().Items.String(c.current)
-		//c.Props().SetKeyMap(keys.DefaultKeyMap())
 		c.Props().DisableKeys()
 		c.KeyMap.Get("e").Disable()
 		c.input.SetValue(c.originalVal)
 		return c.input.Focus()
+
 	case tea.KeyMsg:
 		if c.input.Focused() {
 			c.input, cmd = c.input.Update(msg)
 			cmds = append(cmds, cmd)
 		}
-		//} else {
 		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
-			//}
 		}
 	}
 
@@ -112,12 +105,13 @@ func (c *Component) SaveEdit(v string) func(bool) tea.Cmd {
 			}
 			return keys.UpdateItem(fn)
 		}
+		c.KeyMap = DefaultKeyMap()
 		return keys.ChangeRoute("form")
 	}
 }
 
 func (c *Component) Render(w, h int) string {
-	props := c.Props().Props
+	props := c.Props()
 
 	if c.input.Focused() {
 		c.input.SetWidth(w)
@@ -138,11 +132,8 @@ func (c *Component) Render(w, h int) string {
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
-		p := Props{
-			Props: props,
-		}
-		p.SetKeyMap(keys.VimKeyMap())
-		return comp, comp.Init(p)
+		props.SetKeyMap(keys.VimKeyMap())
+		return comp, comp.Init(props)
 	}
 }
 
@@ -157,7 +148,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Help(),
 		keys.Edit(),
 		keys.Save().
-			Cmd(keys.ConfirmEdit("")),
+			Cmd(keys.ConfirmEdit),
 	}
 	km := keys.NewKeyMap(k...)
 	return km

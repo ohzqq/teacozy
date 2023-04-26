@@ -13,7 +13,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[teacozy.Props]
 
 	KeyMap keys.KeyMap
 }
@@ -31,14 +31,11 @@ func New() *Component {
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
-		p := Props{
-			Props: props,
-		}
 		km := keys.VimKeyMap()
 		f := keys.Filter().Cmd(frame.ChangeRoute(filter.New()))
 		km.AddBinds(f)
-		p.SetKeyMap(km)
-		return comp, comp.Init(p)
+		props.SetKeyMap(km)
+		return comp, comp.Init(props)
 	}
 }
 
@@ -46,7 +43,7 @@ func (c Component) Name() string {
 	return "list"
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
 	return nil
 }
@@ -69,8 +66,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (c *Component) Render(w, h int) string {
-	props := c.Props().Props
-	return teacozy.Renderer(props, w, h)
+	return teacozy.Renderer(c.Props(), w, h)
 }
 
 func DefaultKeyMap() keys.KeyMap {

@@ -121,12 +121,8 @@ func SaveEdit(save bool) tea.Cmd {
 	return ReturnToList
 }
 
-func ConfirmEdit(v string) tea.Cmd {
-	return func() tea.Msg {
-		return ConfirmEditMsg{
-			Value: v,
-		}
-	}
+func ConfirmEdit() tea.Msg {
+	return ConfirmEditMsg{}
 }
 
 func StopEditing() tea.Msg {
