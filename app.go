@@ -1,4 +1,4 @@
-package frame
+package teacozy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/frame/header"
 	"github.com/ohzqq/teacozy/keys"
@@ -36,13 +35,13 @@ type App struct {
 	header      string
 	footer      string
 	editedVal   string
-	choices     teacozy.Items
+	choices     Items
 	keyMap      keys.KeyMap
 	Style       Style
 
 	Header *header.Component
 
-	teacozy.Props
+	Props
 }
 
 type Style struct {
@@ -62,7 +61,7 @@ func New(opts ...Option) *App {
 		width:        util.TermWidth(),
 		height:       util.TermHeight() - 2,
 		limit:        10,
-		Props:        teacozy.NewProps(),
+		Props:        NewProps(),
 		defaultRoute: "default",
 	}
 
@@ -76,8 +75,8 @@ func New(opts ...Option) *App {
 	return a
 }
 
-func (c *App) ItemProps() teacozy.Props {
-	props := teacozy.NewProps()
+func (c *App) ItemProps() Props {
+	props := NewProps()
 	props.Paginator = c.Paginator
 	props.Items = c.choices
 	props.Selected = c.Selected
@@ -300,9 +299,9 @@ func (m *App) Current() int {
 	return m.CurrentItem
 }
 
-func (c *App) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *App) Initializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := reactea.Componentify[teacozy.Props](teacozy.Renderer)
+		component := reactea.Componentify[Props](Renderer)
 		return component, component.Init(props)
 	}
 }

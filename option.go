@@ -1,4 +1,4 @@
-package frame
+package teacozy
 
 import (
 	"github.com/ohzqq/teacozy/item"
