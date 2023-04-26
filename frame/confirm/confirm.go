@@ -21,6 +21,7 @@ type Component struct {
 	confirmed bool
 	Question  string
 	Confirm   ConfirmFunc
+	Style     lipgloss.Style
 }
 
 type Props struct {
@@ -34,7 +35,11 @@ type GetConfirmationMsg struct {
 type ConfirmFunc func(bool) tea.Cmd
 
 func New() *Component {
-	return &Component{}
+	return &Component{
+		Style: lipgloss.NewStyle().
+			Background(color.Red()).
+			Foreground(color.Black()),
+	}
 }
 
 func (c *Component) Init(props teacozy.Props) tea.Cmd {
@@ -84,9 +89,12 @@ func (c Component) Name() string {
 }
 
 func (c *Component) Render(w, h int) string {
-	q := fmt.Sprintf("%s (y/n)", c.Question)
-	view := lipgloss.NewStyle().Background(color.Red()).Foreground(color.Black()).Render(q)
-	return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(c.Props(), w, h-1))
+	view := c.Style.Render(fmt.Sprintf("%s (y/n)", c.Question))
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		view,
+		teacozy.Renderer(c.Props(), w, h-1),
+	)
 }
 
 func (c *Component) Confirmed(y bool) tea.Cmd {
