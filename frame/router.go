@@ -49,6 +49,9 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 		return keys.ChangeRoute("default")
 
 	case ChangeRouteMsg:
+		if _, ok := c.Component.Props()[msg.Route.Name()]; ok {
+			return keys.ChangeRoute(msg.Route.Name())
+		}
 		return c.UpdateRoutes(msg.Route)
 
 	case keys.ChangeRouteMsg:
