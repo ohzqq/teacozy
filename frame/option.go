@@ -28,7 +28,7 @@ func NoLimit() Option {
 
 func ReadOnly() Option {
 	return func(a *App) {
-		a.readOnly = true
+		a.ReadOnly = true
 	}
 }
 

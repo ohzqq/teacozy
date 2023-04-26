@@ -36,23 +36,17 @@ type App struct {
 	limit       int
 	CurrentItem int
 	noLimit     bool
-	readOnly    bool
 	cursor      int
 	title       string
 	header      string
 	footer      string
 	editedVal   string
 	choices     teacozy.Items
-	paginator   *pagy.Paginator
 	keyMap      keys.KeyMap
 	Style       Style
 
 	Header *header.Component
 
-	teacozy.Props
-}
-
-type Props struct {
 	teacozy.Props
 }
 
@@ -90,10 +84,10 @@ func (c *App) ItemProps() teacozy.Props {
 	props := teacozy.NewProps()
 	props.Paginator = c.Paginator
 	props.Items = c.choices
-	props.Selected = c.selected
+	props.Selected = c.Selected
 	props.SetKeyMap(c.Paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
-	props.ReadOnly = c.readOnly
+	props.ReadOnly = c.ReadOnly
 	return props
 }
 
@@ -119,7 +113,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		c.limit = c.choices.Len()
 	}
 
-	if !c.readOnly {
+	if !c.ReadOnly {
 		c.AddKey(keys.Toggle().AddKeys(" "))
 	}
 
@@ -277,11 +271,11 @@ func (c *App) AddKey(k *keys.Binding) *App {
 func (c *App) ToggleItems(items ...int) {
 	for _, idx := range items {
 		c.CurrentItem = idx
-		if _, ok := c.selected[idx]; ok {
-			delete(c.selected, idx)
+		if _, ok := c.Selected[idx]; ok {
+			delete(c.Selected, idx)
 			c.numSelected--
 		} else if c.numSelected < c.limit {
-			c.selected[idx] = struct{}{}
+			c.Selected[idx] = struct{}{}
 			c.numSelected++
 		}
 	}
@@ -289,8 +283,8 @@ func (c *App) ToggleItems(items ...int) {
 
 func (m App) Chosen() []map[string]string {
 	var chosen []map[string]string
-	if len(m.selected) > 0 {
-		for k := range m.selected {
+	if len(m.Selected) > 0 {
+		for k := range m.Selected {
 			l := m.choices.Label(k)
 			v := m.choices.String(k)
 			chosen = append(chosen, map[string]string{l: v})
@@ -305,10 +299,6 @@ func (m *App) SetCurrent(idx int) {
 
 func (m *App) Current() int {
 	return m.CurrentItem
-}
-
-func (c App) Selected() {
-	fmt.Printf("sel %+V\n", c.selected)
 }
 
 func (c *App) Initialize(a *App) {
