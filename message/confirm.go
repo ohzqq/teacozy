@@ -1,6 +1,8 @@
 package message
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type Confirm struct {
 	Question string

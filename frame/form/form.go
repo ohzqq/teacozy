@@ -98,7 +98,7 @@ func (c *Component) SaveEdit(v string) func(bool) tea.Cmd {
 			}
 			return keys.UpdateItem(fn)
 		}
-		return keys.ChangeRoute("prev")
+		return keys.ChangeRoute("form")
 	}
 }
 

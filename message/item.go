@@ -6,15 +6,19 @@ type UpdateItem struct {
 	Cmd func(int) tea.Cmd
 }
 
+type EditItemMsg struct {
+	Index int
+}
+
 func EditItem() tea.Msg {
-	fn := func(int) tea.Cmd {
+	fn := func(idx int) tea.Cmd {
 		return func() tea.Msg {
 			return EditItemMsg{
 				Index: idx,
 			}
 		}
 	}
-	return UpdateItemMsg{
+	return UpdateItem{
 		Cmd: fn,
 	}
 }
