@@ -43,7 +43,8 @@ func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.input.Prompt = c.Prompt
 	c.input.KeyMap = keys.TextAreaDefault()
 	c.input.ShowLineNumbers = false
-	c.input.FocusedStyle.Prompt = lipgloss.NewStyle().Foreground(color.Cyan())
+	c.input.FocusedStyle = DefaultStyle()
+	c.input.BlurredStyle = DefaultStyle()
 	c.input.Blur()
 	return nil
 }
@@ -156,6 +157,7 @@ func DefaultKeyMap() keys.KeyMap {
 func DefaultStyle() textarea.Style {
 	return textarea.Style{
 		Base:       lipgloss.NewStyle(),
+		Prompt:     lipgloss.NewStyle().Foreground(color.Cyan()),
 		CursorLine: lipgloss.NewStyle().Background(color.Grey()),
 	}
 }

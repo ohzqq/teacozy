@@ -52,15 +52,9 @@ func (c *Component) Func(fn ConfirmFunc) *Component {
 	return c
 }
 
-func GetConfirmation(q string, c ConfirmFunc, props teacozy.Props) tea.Cmd {
-	confirm := New().Question(q).Func(c)
-	return confirm.Init(Props{Props: props})
-}
-
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	return nil
-	//return frame.ChangeRoute(c)
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
