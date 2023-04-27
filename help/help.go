@@ -1,9 +1,10 @@
 package help
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -12,37 +13,25 @@ type Component struct {
 }
 
 func New(km keys.KeyMap) *Component {
+	return &Component{KeyMap: km}
 }
 
-func (m *Component) Update(msg tea.Msg) tea.Cmd {
-	reactea.AfterUpdate(m)
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		for _, k := range m.KeyMap.Keys() {
-			if key.Matches(msg, k.Binding) {
-				cmds = append(cmds, k.TeaCmd)
-			}
-		}
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := reactea.Componentify[teacozy.Props](c.Render)
+		props.Items = c.KeyMap
+		props.ReadOnly = true
+		props.KeyMap.AddBinds(keys.Esc().AddKeys("q").Cmd(keys.ChangeRoute("prev")))
+		return component, component.Init(props)
 	}
-
-	m.view, cmd = m.view.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return tea.Batch(cmds...)
 }
 
-func (m *Component) Render(w, h int) string {
+func (c Component) Name() string {
+	return "help"
+}
+
+func (m *Component) Render(props teacozy.Props, w, h int) string {
 	m.view.SetWidth(w)
 	m.view.SetHeight(h)
 	return m.view.View()
-}
-
-func DefaultKeyMap() keys.KeyMap {
-	km := []*keys.Binding{
-		keys.Esc().AddKeys("q").Cmd(keys.ChangeRoute("prev")),
-	}
-	return keys.NewKeyMap(km...)
 }

@@ -69,6 +69,20 @@ func (km *KeyMap) Replace(b *Binding) {
 	}
 }
 
+func (km KeyMap) String(idx int) string {
+	return km.keys[idx].Help().Desc
+}
+
+func (km KeyMap) Label(idx int) string {
+	return km.keys[idx].Help().Key
+}
+
+func (km KeyMap) Len() int {
+	return len(km.keys)
+}
+
+func (km KeyMap) Set(int, string) {}
+
 func MapKeys(keys ...key.Binding) []map[string]string {
 	c := make([]map[string]string, len(keys))
 	for i, k := range keys {

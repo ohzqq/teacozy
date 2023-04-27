@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
+	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
 	"github.com/sahilm/fuzzy"
 )
@@ -17,6 +18,7 @@ type Props struct {
 	Search     string
 	ReadOnly   bool
 	SetCurrent func(int)
+	SetHelp    func(keys.KeyMap)
 	Style      Style
 }
 

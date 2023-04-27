@@ -41,6 +41,8 @@ type App struct {
 	title  string
 	header string
 
+	help keys.KeyMap
+
 	Props
 }
 
@@ -79,6 +81,7 @@ func (c *App) ItemProps() Props {
 	props.Selected = c.Selected
 	props.SetKeyMap(c.Paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
+	props.SetHelp = c.SetHelp
 	props.ReadOnly = c.ReadOnly
 	return props
 }
@@ -103,6 +106,9 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			Title: c.title,
 		},
 	)
+
+	c.SetHelp(c.Paginator.KeyMap)
+	c.AddKey(keys.Help())
 
 	var cmds []tea.Cmd
 	cmds = append(cmds, keys.ChangeRoute("default"))
@@ -278,6 +284,10 @@ func (c App) Name() string {
 func (c *App) SetWidth(n int) *App {
 	c.width = n
 	return c
+}
+
+func (c *App) SetHelp(km keys.KeyMap) {
+	c.help = km
 }
 
 func (c *App) SetHeight(n int) *App {
