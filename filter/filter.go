@@ -14,7 +14,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[teacozy.Props]
+	reactea.BasicPropfulComponent[Props]
 
 	input textinput.Model
 
@@ -25,10 +25,8 @@ type Component struct {
 }
 
 type Props struct {
-	teacozy.Props
-	ShowHelp    func([]map[string]string)
-	ToggleItems func(...int)
-	Current     int
+	SetKeyMap func(keys.KeyMap)
+	Filter    func(string, int, int) string
 }
 
 func New() *Component {
@@ -38,11 +36,10 @@ func New() *Component {
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 		KeyMap: DefaultKeyMap(),
 	}
-
 	return c
 }
 
-func (c *Component) Init(props teacozy.Props) tea.Cmd {
+func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.input.Prompt = c.Prefix
 	c.input.PromptStyle = c.Style
@@ -61,7 +58,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		c.input.Blur()
 		c.Props().SetKeyMap(keys.VimKeyMap())
 		return keys.ChangeRoute("prev")
-		//return keys.UpdateStatus("stop filtering")
 	case tea.KeyMsg:
 		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
@@ -80,10 +76,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	view := c.input.View()
-	props := c.Props()
-	props.Filter(c.input.Value())
+	f := c.Props().Filter(c.input.Value(), w, h-1)
 	if c.input.Focused() {
-		return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
+		return lipgloss.JoinVertical(lipgloss.Left, view, f)
 	}
 	return ""
 }
@@ -91,8 +86,12 @@ func (c *Component) Render(w, h int) string {
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
-		props.SetKeyMap(keys.DefaultKeyMap())
-		return comp, comp.Init(props)
+		p := Props{
+			SetKeyMap: props.SetKeyMap,
+			Filter:    props.Filter,
+		}
+		p.SetKeyMap(keys.DefaultKeyMap())
+		return comp, comp.Init(p)
 	}
 }
 

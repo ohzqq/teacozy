@@ -147,9 +147,11 @@ func (c Props) prefixStyle(label string, selected, current bool) Prefix {
 	}
 }
 
-func (c *Props) Filter(s string) {
+func (c *Props) Filter(s string, w, h int) string {
 	c.Search = s
 	c.ResetCursor()
+	p := *c
+	return Renderer(p, w, h)
 }
 
 func (c *Props) exactMatches(search string) fuzzy.Matches {

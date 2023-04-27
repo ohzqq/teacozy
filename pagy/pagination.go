@@ -112,9 +112,8 @@ func (m *Paginator) SetCursor(n int) *Paginator {
 	return m
 }
 
-func (m *Paginator) SetKeyMap(km keys.KeyMap) *Paginator {
+func (m *Paginator) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
-	return m
 }
 
 func (m *Paginator) SetCurrent(n int) *Paginator {
