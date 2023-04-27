@@ -5,32 +5,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/view"
 )
 
 type Component struct {
-	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
-
-	view *view.Model
-
 	KeyMap keys.KeyMap
 }
 
-type Props struct {
-	view.Props
-}
-
-func New() *Component {
-	return &Component{
-		KeyMap: DefaultKeyMap(),
-	}
-}
-
-func (c *Component) Init(props Props) tea.Cmd {
-	c.UpdateProps(props)
-	c.view = view.NewModel(props.Props)
-	return nil
+func New(km keys.KeyMap) *Component {
 }
 
 func (m *Component) Update(msg tea.Msg) tea.Cmd {

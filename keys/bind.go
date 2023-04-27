@@ -1,6 +1,64 @@
 package keys
 
-import "github.com/londek/reactea"
+import (
+	"strings"
+
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
+)
+
+type Binding struct {
+	key.Binding
+	help   string
+	TeaCmd tea.Cmd
+}
+
+func New(keys ...string) *Binding {
+	k := Binding{
+		Binding: key.NewBinding(),
+	}
+	k.WithKeys(keys...)
+	return &k
+}
+
+func NewBind(k key.Binding) *Binding {
+	return &Binding{
+		Binding: k,
+	}
+}
+
+func (k *Binding) Cmd(cmd tea.Cmd) *Binding {
+	k.TeaCmd = cmd
+	return k
+}
+
+func (k *Binding) WithKeys(keys ...string) *Binding {
+	k.Binding.SetKeys(keys...)
+	k.WithHelp(k.help)
+	return k
+}
+
+func (k *Binding) Disable() {
+	k.Binding.SetEnabled(false)
+}
+
+func (k *Binding) Enable() {
+	k.Binding.SetEnabled(true)
+}
+
+func (k *Binding) AddKeys(keys ...string) *Binding {
+	keys = append(keys, k.Binding.Keys()...)
+	k.Binding.SetKeys(keys...)
+	k.WithHelp(k.help)
+	return k
+}
+
+func (k *Binding) WithHelp(h string) *Binding {
+	k.help = h
+	k.Binding.SetHelp(strings.Join(k.Keys(), "/"), h)
+	return k
+}
 
 func Enter() *Binding {
 	return New("enter")
