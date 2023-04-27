@@ -107,9 +107,7 @@ func Renderer(props Props, w, h int) string {
 func (p Props) Initializer(props Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := reactea.Componentify[Props](Renderer)
-		np := props
-		np.ReadOnly = true
-		return component, component.Init(np)
+		return component, component.Init(props)
 	}
 }
 

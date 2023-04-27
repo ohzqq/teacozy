@@ -6,7 +6,6 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/filter"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -27,8 +26,8 @@ func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		km := keys.VimKeyMap()
-		f := keys.Filter().Cmd(teacozy.ChangeRoute(filter.New()))
-		km.AddBinds(f)
+		//f := keys.Filter().Cmd(teacozy.ChangeRoute(filter.New()))
+		//km.AddBinds(f)
 		props.SetKeyMap(km)
 		return comp, comp.Init(props)
 	}
@@ -72,7 +71,7 @@ func DefaultKeyMap() keys.KeyMap {
 		keys.Esc(),
 	}
 	m := keys.NewKeyMap(km...)
-	f := keys.Filter().Cmd(teacozy.ChangeRoute(filter.New()))
-	m.AddBinds(f)
+	//f := keys.Filter().Cmd(teacozy.ChangeRoute(filter.New()))
+	//m.AddBinds(f)
 	return m
 }

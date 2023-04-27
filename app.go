@@ -22,6 +22,7 @@ type App struct {
 	defaultRoute string
 
 	confirmChoices bool
+	readOnly       bool
 
 	width  int
 	height int
@@ -51,7 +52,7 @@ type AppStyle struct {
 }
 
 func New(opts ...Option) *App {
-	a := &App{
+	c := &App{
 		router:       NewRouter(),
 		Routes:       make(map[string]Route),
 		defaultRoute: "default",
@@ -60,32 +61,25 @@ func New(opts ...Option) *App {
 		limit:        10,
 	}
 
-	a.Style = AppStyle{
+	c.Style = AppStyle{
 		Footer: lipgloss.NewStyle().Foreground(color.Green()),
 	}
 
-	a.router.UpdateRoutes = a.UpdateRoute
+	c.router.UpdateRoutes = c.UpdateRoute
 
 	for _, opt := range opts {
-		opt(a)
+		opt(c)
 	}
 
-	return a
-}
+	c.Props = NewProps(c.choices)
+	c.Props.SetCurrent = c.SetCurrent
+	c.Props.SetHelp = c.SetHelp
+	c.Props.ReadOnly = c.readOnly
 
-func (c *App) ItemProps() Props {
-	props := NewProps(c.choices)
-	props.Paginator = c.Paginator
-	props.Selected = c.Selected
-	props.SetKeyMap(c.Paginator.KeyMap)
-	props.SetCurrent = c.SetCurrent
-	props.SetHelp = c.SetHelp
-	props.ReadOnly = c.ReadOnly
-	return props
+	return c
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	c.Props = NewProps(c.choices)
 	c.Routes["default"] = c
 
 	if c.noLimit {
@@ -204,10 +198,21 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
+func (c *App) ItemProps() Props {
+	props := NewProps(c.choices)
+	props.Paginator = c.Paginator
+	props.Selected = c.Selected
+	props.SetKeyMap(c.Paginator.KeyMap)
+	props.SetCurrent = c.SetCurrent
+	props.SetHelp = c.SetHelp
+	props.ReadOnly = c.ReadOnly
+	return props
+}
+
 func (c *App) InitRoutes() tea.Cmd {
 	routes := make(map[string]router.RouteInitializer, len(c.Routes))
 	for name, route := range c.Routes {
-		routes[name] = route.Initializer(c.ItemProps())
+		routes[name] = route.Initializer(c.Props)
 	}
 
 	p := RouterProps{

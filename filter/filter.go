@@ -14,7 +14,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	//reactea.BasicPropfulComponent[Props]
 
 	input textinput.Model
 
@@ -22,6 +22,8 @@ type Component struct {
 	Prefix string
 	Style  lipgloss.Style
 	help   keys.KeyMap
+
+	props Props
 }
 
 type Props struct {
@@ -36,15 +38,16 @@ func New() *Component {
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 		KeyMap: DefaultKeyMap(),
 	}
-	return c
-}
 
-func (c *Component) Init(props Props) tea.Cmd {
-	c.UpdateProps(props)
 	c.input.Prompt = c.Prefix
 	c.input.PromptStyle = c.Style
 	c.input.KeyMap = keys.TextInputDefault()
-	return c.input.Focus()
+
+	return c
+}
+
+func (c Component) Props() Props {
+	return c.props
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
@@ -91,7 +94,8 @@ func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 			Filter:    props.Filter,
 		}
 		p.SetKeyMap(keys.DefaultKeyMap())
-		return comp, comp.Init(p)
+		comp.props = p
+		return comp, comp.input.Focus()
 	}
 }
 
