@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
@@ -13,6 +16,7 @@ import (
 
 type Props struct {
 	*pagy.Paginator
+	name       string
 	Items      Items
 	Selected   map[int]struct{}
 	Search     string
@@ -42,8 +46,9 @@ type Items interface {
 	Set(int, string)
 }
 
-func NewProps() Props {
+func NewProps(items Items) Props {
 	p := Props{
+		Items:    items,
 		Selected: make(map[int]struct{}),
 		Style:    DefaultStyle(),
 	}
@@ -97,6 +102,23 @@ func Renderer(props Props, w, h int) string {
 	}
 
 	return s.String()
+}
+
+func (p Props) Initializer(props Props) router.RouteInitializer {
+	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		component := reactea.Componentify[Props](Renderer)
+		np := props
+		np.ReadOnly = true
+		return component, component.Init(np)
+	}
+}
+
+func (p Props) Name() string {
+	return p.name
+}
+
+func (p *Props) SetName(name string) {
+	p.name = name
 }
 
 func (c Props) prefixText(label string, selected, current bool) string {

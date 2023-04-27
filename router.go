@@ -22,6 +22,11 @@ type Route interface {
 	Name() string
 }
 
+type Routez[TProps any] interface {
+	Initializer(TProps) router.RouteInitializer
+	Name() string
+}
+
 type RouterProps struct {
 	Routes      router.Props
 	Default     string
@@ -69,8 +74,8 @@ func (c *Router) Update(msg tea.Msg) tea.Cmd {
 
 		c.PrevRoute = reactea.CurrentRoute()
 		reactea.SetCurrentRoute(route)
-		//return keys.UpdateStatus(route)
-		return nil
+		return keys.UpdateStatus(route)
+		//return nil
 	}
 
 	return c.Component.Update(msg)

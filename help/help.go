@@ -21,7 +21,11 @@ func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 		component := reactea.Componentify[teacozy.Props](c.Render)
 		props.Items = c.KeyMap
 		props.ReadOnly = true
-		props.KeyMap.AddBinds(keys.Esc().AddKeys("q").Cmd(keys.ChangeRoute("prev")))
+		props.KeyMap.AddBinds(
+			keys.Esc().
+				AddKeys("q").
+				Cmd(keys.ChangeRoute("prev")),
+		)
 		return component, component.Init(props)
 	}
 }

@@ -55,7 +55,6 @@ func New(opts ...Option) *App {
 		router:       NewRouter(),
 		Routes:       make(map[string]Route),
 		defaultRoute: "default",
-		Props:        NewProps(),
 		width:        util.TermWidth(),
 		height:       util.TermHeight() - 2,
 		limit:        10,
@@ -75,9 +74,8 @@ func New(opts ...Option) *App {
 }
 
 func (c *App) ItemProps() Props {
-	props := NewProps()
+	props := NewProps(c.choices)
 	props.Paginator = c.Paginator
-	props.Items = c.choices
 	props.Selected = c.Selected
 	props.SetKeyMap(c.Paginator.KeyMap)
 	props.SetCurrent = c.SetCurrent
@@ -87,6 +85,7 @@ func (c *App) ItemProps() Props {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
+	c.Props = NewProps(c.choices)
 	c.Routes["default"] = c
 
 	if c.noLimit {
@@ -109,6 +108,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 	c.SetHelp(c.Paginator.KeyMap)
 	c.AddKey(keys.Help())
+	c.Routes["help"] = NewProps(c.help)
 
 	var cmds []tea.Cmd
 	cmds = append(cmds, keys.ChangeRoute("default"))
@@ -122,6 +122,12 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case keys.ShowHelpMsg:
+		cmds = append(cmds, keys.ChangeRoute("help"))
+		//help := NewProps(c.help)
+		//help.SetName("help")
+		//return ChangeRoute(&help)
+
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
 
@@ -268,17 +274,6 @@ func (m *App) SetCurrent(idx int) {
 
 func (m *App) Current() int {
 	return m.CurrentItem
-}
-
-func (c *App) Initializer(props Props) router.RouteInitializer {
-	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := reactea.Componentify[Props](Renderer)
-		return component, component.Init(props)
-	}
-}
-
-func (c App) Name() string {
-	return "default"
 }
 
 func (c *App) SetWidth(n int) *App {

@@ -14,7 +14,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[teacozy.Props]
 
 	input textinput.Model
 
@@ -42,7 +42,7 @@ func New() *Component {
 	return c
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.input.Prompt = c.Prefix
 	c.input.PromptStyle = c.Style
@@ -80,7 +80,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	view := c.input.View()
-	props := c.Props().Props
+	props := c.Props()
 	props.Filter(c.input.Value())
 	if c.input.Focused() {
 		return lipgloss.JoinVertical(lipgloss.Left, view, teacozy.Renderer(props, w, h-1))
@@ -91,11 +91,8 @@ func (c *Component) Render(w, h int) string {
 func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
-		p := Props{
-			Props: props,
-		}
-		p.SetKeyMap(keys.DefaultKeyMap())
-		return comp, comp.Init(p)
+		props.SetKeyMap(keys.DefaultKeyMap())
+		return comp, comp.Init(props)
 	}
 }
 
