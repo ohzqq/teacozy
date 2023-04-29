@@ -142,8 +142,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.Paginator, cmd = c.Paginator.Update(msg)
-	cmds = append(cmds, cmd)
+	//c.Paginator, cmd = c.Paginator.Update(msg)
+	//cmds = append(cmds, cmd)
 
 	cmd = c.Header.Update(msg)
 	cmds = append(cmds, cmd)
