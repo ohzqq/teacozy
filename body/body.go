@@ -1,12 +1,16 @@
 package body
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -20,6 +24,8 @@ type Component struct {
 	CurrentItem int
 
 	keyMap keys.KeyMap
+
+	*pagy.Paginator
 }
 
 type Props struct {
@@ -39,6 +45,10 @@ func New() *Component {
 
 func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
+
+	c.Paginator = pagy.New(c.width, c.Props().Items.Len())
+	c.Paginator.SetKeyMap(keys.VimKeyMap())
+
 	return nil
 }
 
@@ -81,8 +91,53 @@ func (c Component) Name() string {
 }
 
 func (c *Component) Render(w, h int) string {
-	view := teacozy.Renderer(c.Props(), c.width, c.height)
-	return view
+	var s strings.Builder
+	h = h - 2
+
+	// get matched items
+	p := c.Props()
+	items := p.ExactMatches(c.Props().Search)
+
+	c.Props().SetPerPage(h)
+
+	// update the total items based on the filter results, this prevents from
+	// going out of bounds
+	c.Props().SetTotal(len(items))
+
+	for i, m := range items[c.Props().Start():c.Props().End()] {
+		var cur bool
+		if i == c.Props().Highlighted() {
+			c.Props().SetCurrent(m.Index)
+			cur = true
+		}
+
+		var sel bool
+		if _, ok := c.Props().Selected[m.Index]; ok {
+			sel = true
+		}
+
+		label := c.Props().Items.Label(m.Index)
+		pre := c.Props().PrefixText(label, sel, cur)
+		style := c.Props().PrefixStyle(label, sel, cur)
+
+		// only print the prefix if it's a list or there's a label
+		if !c.Props().ReadOnly || label != "" {
+			s.WriteString(style.Render(pre))
+		}
+
+		// render the rest of the line
+		text := lipgloss.StyleRunes(
+			m.Str,
+			m.MatchedIndexes,
+			c.Props().Style.Match,
+			c.Props().Style.Normal.Style,
+		)
+
+		s.WriteString(lipgloss.NewStyle().Render(text))
+		s.WriteString("\n")
+	}
+
+	return s.String()
 }
 
 func (c *Component) SetKeyMap(km keys.KeyMap) *Component {
