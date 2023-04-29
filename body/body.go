@@ -7,11 +7,10 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pagy"
 	"github.com/ohzqq/teacozy/util"
 )
 
-type App struct {
+type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[teacozy.Props]
 
@@ -21,8 +20,6 @@ type App struct {
 	CurrentItem int
 
 	keyMap keys.KeyMap
-
-	*pagy.Paginator
 }
 
 type Props struct {
@@ -31,8 +28,8 @@ type Props struct {
 	Height int
 }
 
-func New() *App {
-	c := &App{
+func New() *Component {
+	c := &Component{
 		width:  util.TermWidth(),
 		height: util.TermHeight() - 2,
 	}
@@ -40,26 +37,19 @@ func New() *App {
 	return c
 }
 
-func (c *App) Init(props teacozy.Props) tea.Cmd {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
-
-	//c.Paginator = pagy.New(c.width, c.Props().Items.Len())
-	//c.Paginator.SetKeyMap(keys.VimKeyMap())
-
 	return nil
 }
 
-func (c *App) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		component := New()
-		//p := Props{
-		//Props: props,
-		//}
 		return component, component.Init(props)
 	}
 }
 
-func (c *App) Update(msg tea.Msg) tea.Cmd {
+func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -86,22 +76,21 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c App) Name() string {
+func (c Component) Name() string {
 	return "body"
 }
 
-func (c *App) Render(w, h int) string {
+func (c *Component) Render(w, h int) string {
 	view := teacozy.Renderer(c.Props(), c.width, c.height)
-
 	return view
 }
 
-func (c *App) SetKeyMap(km keys.KeyMap) *App {
+func (c *Component) SetKeyMap(km keys.KeyMap) *Component {
 	c.Paginator.SetKeyMap(km)
 	return c
 }
 
-func (c *App) AddKey(k *keys.Binding) *App {
+func (c *Component) AddKey(k *keys.Binding) *Component {
 	if !c.keyMap.Contains(k) {
 		c.keyMap.AddBinds(k)
 	} else {
@@ -110,10 +99,10 @@ func (c *App) AddKey(k *keys.Binding) *App {
 	return c
 }
 
-func (m *App) SetCurrent(idx int) {
+func (m *Component) SetCurrent(idx int) {
 	m.CurrentItem = idx
 }
 
-func (m *App) Current() int {
+func (m *Component) Current() int {
 	return m.CurrentItem
 }
