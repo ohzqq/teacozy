@@ -11,30 +11,21 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[reactea.NoProps]
+	reactea.BasicPropfulComponent[Props]
+}
 
-	routes reactea.Component[router.Props]
-
-	model tea.Model
+type Props struct {
+	SetValue  func(string)
+	Component reactea.SomeComponent
 }
 
 func New() *Component {
-	c := &Component{
-		routes: router.New(),
-	}
-	c.model = reactea.New(c)
+	c := &Component{}
 	return c
 }
 
-func (c *Component) Init(reactea.NoProps) tea.Cmd {
-	var cmds []tea.Cmd
-
-	cmds = append(cmds, c.routes.Init(c.Routes()))
-
-	return tea.Batch(cmds...)
-}
-
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -44,17 +35,18 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.String() == "h" {
-			reactea.SetCurrentRoute("alt header")
+			c.Props().SetValue("alt body")
 		}
 	}
 
-	cmds = append(cmds, c.routes.Update(msg))
+	cmd = c.Props().Component.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
 }
 
 func (c *Component) Render(w, h int) string {
-	view := c.routes.Render(w, h)
+	view := "headerz"
 
 	return lipgloss.JoinVertical(lipgloss.Left, view)
 }

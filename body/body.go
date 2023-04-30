@@ -4,38 +4,25 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 )
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[reactea.NoProps]
-
-	routes reactea.Component[router.Props]
-	model  tea.Model
+	SetValue func(string)
 }
 
-func New() *Component {
+func New(fn func(string)) *Component {
 	c := &Component{
-		routes: router.New(),
+		SetValue: fn,
 	}
-	//c.model = reactea.New(c)
 	return c
-}
-
-func (c *Component) Init(reactea.NoProps) tea.Cmd {
-	var cmds []tea.Cmd
-
-	cmds = append(cmds, c.routes.Init(c.Routes()))
-
-	return tea.Batch(cmds...)
 }
 
 func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	//var cmd tea.Cmd
-	var cmds []tea.Cmd
+	//var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -43,20 +30,27 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
+		//c.Props().SetValue("poot")
 		if msg.String() == "b" {
-			reactea.SetCurrentRoute("alt body")
+			//c.Props().SetValue("alt body")
+			//reactea.SetCurrentRoute("alt body")
 		}
+
 	}
 
-	cmds = append(cmds, c.routes.Update(msg))
+	//cmd = c.Props().Component.Update(msg)
+	//cmds = append(cmds, cmd)
 
-	return tea.Batch(cmds...)
+	//return tea.Batch(cmds...)
+	return nil
 }
 
 func (c *Component) Render(w, h int) string {
-	view := c.routes.Render(w, h)
+	//view := c.Props().Component.Render(w, h)
+	c.SetValue("pooot")
 
-	return lipgloss.JoinVertical(lipgloss.Left, view)
+	return "poot"
+	//return lipgloss.JoinVertical(lipgloss.Left, view)
 }
 
 func (c *Component) Routes() router.Props {

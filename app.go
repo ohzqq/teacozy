@@ -7,34 +7,35 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
-	"github.com/ohzqq/teacozy/body"
-	"github.com/ohzqq/teacozy/footer"
-	"github.com/ohzqq/teacozy/header"
 )
 
 type App struct {
-	reactea.BasicComponent                         // It implements AfterUpdate()
-	reactea.BasicPropfulComponent[reactea.NoProps] // It implements props backend - UpdateProps() and Props()
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	body   *body.Component
-	header *header.Component
-	footer *footer.Component
+	header reactea.Component[router.Props]
+	body   reactea.Component[router.Props]
+	footer reactea.Component[router.Props]
+
+	foot string
 }
+
+const RoutePlaceholder = ":header/:body/:footer"
 
 func New() *App {
 	return &App{
-		header: header.New(),
-		body:   body.New(),
-		footer: footer.New(),
+		header: router.New(),
+		body:   router.New(),
+		footer: router.New(),
 	}
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	var cmds []tea.Cmd
 
-	cmds = append(cmds, c.header.Init(reactea.NoProps{}))
-	cmds = append(cmds, c.body.Init(reactea.NoProps{}))
-	cmds = append(cmds, c.footer.Init(reactea.NoProps{}))
+	cmds = append(cmds, c.header.Init(c.HeaderRoutes()))
+	cmds = append(cmds, c.body.Init(c.BodyRoutes()))
+	cmds = append(cmds, c.footer.Init(c.FooterRoutes()))
 
 	return tea.Batch(cmds...)
 }
@@ -47,6 +48,15 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
+		}
+		if msg.String() == "h" {
+			reactea.SetCurrentRoute("header/alt")
+		}
+		if msg.String() == "b" {
+			reactea.SetCurrentRoute("header/body/footer")
+		}
+		if msg.String() == "f" {
+			reactea.SetCurrentRoute("footer/alt")
 		}
 	}
 
@@ -62,7 +72,7 @@ func (c *App) Render(w, h int) string {
 	body := c.body.Render(w, h)
 	footer := c.footer.Render(w, h)
 
-	return lipgloss.JoinVertical(lipgloss.Left, header, body, footer, reactea.CurrentRoute())
+	return lipgloss.JoinVertical(lipgloss.Left, header, body, footer)
 }
 
 func (c *App) HeaderRoutes() router.Props {
@@ -71,7 +81,7 @@ func (c *App) HeaderRoutes() router.Props {
 			comp := reactea.Componentify[string](Renderer)
 			return comp, comp.Init("header")
 		},
-		"alt": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		"header/alt": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := reactea.Componentify[string](Renderer)
 			return comp, comp.Init("alt header")
 		},
@@ -84,9 +94,10 @@ func (c *App) BodyRoutes() router.Props {
 			comp := reactea.Componentify[string](Renderer)
 			return comp, comp.Init("body")
 		},
-		"alt": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		RoutePlaceholder: func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
+			c.foot = fmt.Sprintf("%+V", params["body"])
 			comp := reactea.Componentify[string](Renderer)
-			return comp, comp.Init("alt body")
+			return comp, comp.Init(c.foot)
 		},
 	}
 }
@@ -97,7 +108,7 @@ func (c *App) FooterRoutes() router.Props {
 			comp := reactea.Componentify[string](Renderer)
 			return comp, comp.Init("Footer")
 		},
-		"alt": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		"footer/alt": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			comp := reactea.Componentify[string](Renderer)
 			return comp, comp.Init("alt footer")
 		},
