@@ -7,31 +7,34 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/body"
+	"github.com/ohzqq/teacozy/footer"
+	"github.com/ohzqq/teacozy/header"
 )
 
 type App struct {
 	reactea.BasicComponent                         // It implements AfterUpdate()
 	reactea.BasicPropfulComponent[reactea.NoProps] // It implements props backend - UpdateProps() and Props()
 
-	header reactea.Component[router.Props] // Our router
-	body   reactea.Component[router.Props] // Our router
-	footer reactea.Component[router.Props] // Our router
+	body   *body.Component
+	header *header.Component
+	footer *footer.Component
 }
 
 func New() *App {
 	return &App{
-		header: router.New(),
-		body:   router.New(),
-		footer: router.New(),
+		header: header.New(),
+		body:   body.New(),
+		footer: footer.New(),
 	}
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	var cmds []tea.Cmd
 
-	cmds = append(cmds, c.header.Init(c.HeaderRoutes()))
-	cmds = append(cmds, c.body.Init(c.BodyRoutes()))
-	cmds = append(cmds, c.footer.Init(c.FooterRoutes()))
+	cmds = append(cmds, c.header.Init(reactea.NoProps{}))
+	cmds = append(cmds, c.body.Init(reactea.NoProps{}))
+	cmds = append(cmds, c.footer.Init(reactea.NoProps{}))
 
 	return tea.Batch(cmds...)
 }
@@ -44,9 +47,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
-		}
-		if msg.String() == "a" {
-			reactea.SetCurrentRoute("alt")
 		}
 	}
 
@@ -62,7 +62,7 @@ func (c *App) Render(w, h int) string {
 	body := c.body.Render(w, h)
 	footer := c.footer.Render(w, h)
 
-	return lipgloss.JoinVertical(lipgloss.Left, header, body, footer)
+	return lipgloss.JoinVertical(lipgloss.Left, header, body, footer, reactea.CurrentRoute())
 }
 
 func (c *App) HeaderRoutes() router.Props {
