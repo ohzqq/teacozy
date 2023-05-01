@@ -13,28 +13,33 @@ type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	headers map[string]RouteInitializer
-	mains   map[string]RouteInitializer
-	footers map[string]RouteInitializer
+	headers map[string]ComponentInitializer
+	mains   map[string]ComponentInitializer
+	footers map[string]ComponentInitializer
 
 	Header reactea.SomeComponent
 	Main   reactea.SomeComponent
 	Footer reactea.SomeComponent
 }
 
-type RouteInitializer func() (reactea.SomeComponent, tea.Cmd)
+type ComponentInitializer func() (reactea.SomeComponent, tea.Cmd)
+type Opt func(c *Component)
 
 const RoutePlaceholder = ":header/:main/:footer"
 
-func New(main RouteInitializer) *Component {
+func New(main ComponentInitializer, opts ...Opt) *Component {
 	c := &Component{
-		headers: make(map[string]RouteInitializer),
-		mains:   make(map[string]RouteInitializer),
-		footers: make(map[string]RouteInitializer),
+		headers: make(map[string]ComponentInitializer),
+		mains:   make(map[string]ComponentInitializer),
+		footers: make(map[string]ComponentInitializer),
 	}
 	c.headers["default"] = DefaultInitializer()
 	c.mains["default"] = main
 	c.footers["default"] = DefaultInitializer()
+
+	for _, opt := range opts {
+		opt(c)
+	}
 
 	return c
 }
@@ -42,7 +47,7 @@ func New(main RouteInitializer) *Component {
 func (c *Component) Init(reactea.NoProps) tea.Cmd {
 	var cmds []tea.Cmd
 
-	cmds = append(cmds, c.initializeRoutes())
+	cmds = append(cmds, c.initializeRoute())
 
 	cmds = append(cmds, keys.ChangeRoute("default/default/default"))
 
@@ -59,30 +64,44 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	case keys.ChangeRouteMsg:
 		reactea.SetCurrentRoute(msg.Name)
 		return nil
+
 	case ChangeHeaderMsg:
 		if header, ok := c.headers[msg.Name]; ok {
 			c.Header, cmd = header()
-		} else {
-			c.Header, cmd = c.headers["default"]()
+			cmds = append(cmds, cmd)
 		}
+	case NewHeaderMsg:
+		c.Header, cmd = msg.Init()
 		cmds = append(cmds, cmd)
+
 	case ChangeMainMsg:
 		if main, ok := c.mains[msg.Name]; ok {
 			c.Main, cmd = main()
-		} else {
-			c.Main, cmd = c.mains["default"]()
+			cmds = append(cmds, cmd)
 		}
+	case NewMainMsg:
+		c.Main, cmd = msg.Init()
 		cmds = append(cmds, cmd)
+
 	case ChangeFooterMsg:
 		if footer, ok := c.footers[msg.Name]; ok {
 			c.Footer, cmd = footer()
-		} else {
-			c.Footer, cmd = c.footers["default"]()
+			cmds = append(cmds, cmd)
 		}
+	case NewFooterMsg:
+		c.Footer, cmd = msg.Init()
 		cmds = append(cmds, cmd)
+
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
+		}
+
+		if msg.String() == "m" {
+			return NewMain(func() (reactea.SomeComponent, tea.Cmd) {
+				footer := reactea.Componentify[string](Renderer)
+				return footer, footer.Init("new main")
+			})
 		}
 	}
 
@@ -121,10 +140,10 @@ func (c *Component) AfterUpdate() tea.Cmd {
 	}
 	c.Footer = nil
 
-	return c.initializeRoutes()
+	return c.initializeRoute()
 }
 
-func (c *Component) initializeRoutes() tea.Cmd {
+func (c *Component) initializeRoute() tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -143,15 +162,6 @@ func (c *Component) initializeRoutes() tea.Cmd {
 			c.Footer, cmd = footer()
 		}
 		cmds = append(cmds, cmd)
-	} else {
-		//c.Header, cmd = c.headers["default"]()
-		//cmds = append(cmds, cmd)
-
-		//c.Main, cmd = c.mains["default"]()
-		//cmds = append(cmds, cmd)
-
-		//c.Footer, cmd = c.footers["default"]()
-		//cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
@@ -177,10 +187,11 @@ func (c *Component) Render(w, h int) string {
 			views = append(views, footer)
 		}
 	}
+
 	return lipgloss.JoinVertical(lipgloss.Left, views...)
 }
 
-func DefaultInitializer() RouteInitializer {
+func DefaultInitializer() ComponentInitializer {
 	return func() (reactea.SomeComponent, tea.Cmd) {
 		return invisibleComponent(), nil
 	}
@@ -193,30 +204,62 @@ func invisibleComponent() reactea.SomeComponent {
 	}{}
 }
 
-type TestProps = string
-
-func Renderer(p TestProps, w, h int) string {
-	return fmt.Sprintf("%s", p)
-}
-
-func (c *Component) AddHeader(name string, init RouteInitializer) *Component {
+func (c *Component) AddHeader(name string, init ComponentInitializer) *Component {
 	c.headers[name] = init
 	return c
 }
 
-func (c *Component) AddMain(name string, init RouteInitializer) *Component {
+func (c *Component) AddMain(name string, init ComponentInitializer) *Component {
 	c.mains[name] = init
 	return c
 }
 
-func (c *Component) AddFooter(name string, init RouteInitializer) *Component {
+func (c *Component) AddFooter(name string, init ComponentInitializer) *Component {
 	c.footers[name] = init
 	return c
 }
 
-type ChangeHeaderMsg struct {
+func Header(name string, init ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.headers[name] = init
+	}
+}
+
+func Main(name string, init ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.mains[name] = init
+	}
+}
+
+func Footer(name string, init ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.footers[name] = init
+	}
+}
+
+func Headers(headers map[string]ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.headers = headers
+	}
+}
+
+func Mains(mains map[string]ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.mains = mains
+	}
+}
+
+func Footers(footers map[string]ComponentInitializer) Opt {
+	return func(c *Component) {
+		c.footers = footers
+	}
+}
+
+type changeComponentMsg struct {
 	Name string
 }
+
+type ChangeHeaderMsg changeComponentMsg
 
 func ChangeHeader(name string) tea.Cmd {
 	return func() tea.Msg {
@@ -224,9 +267,7 @@ func ChangeHeader(name string) tea.Cmd {
 	}
 }
 
-type ChangeMainMsg struct {
-	Name string
-}
+type ChangeMainMsg changeComponentMsg
 
 func ChangeMain(name string) tea.Cmd {
 	return func() tea.Msg {
@@ -234,12 +275,44 @@ func ChangeMain(name string) tea.Cmd {
 	}
 }
 
-type ChangeFooterMsg struct {
-	Name string
-}
+type ChangeFooterMsg changeComponentMsg
 
 func ChangeFooter(name string) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeFooterMsg{Name: name}
 	}
+}
+
+type newComponentMsg struct {
+	Init ComponentInitializer
+}
+
+type NewHeaderMsg newComponentMsg
+
+func NewHeader(route ComponentInitializer) tea.Cmd {
+	return func() tea.Msg {
+		return NewHeaderMsg{Init: route}
+	}
+}
+
+type NewMainMsg newComponentMsg
+
+func NewMain(route ComponentInitializer) tea.Cmd {
+	return func() tea.Msg {
+		return NewMainMsg{Init: route}
+	}
+}
+
+type NewFooterMsg newComponentMsg
+
+func NewFooter(route ComponentInitializer) tea.Cmd {
+	return func() tea.Msg {
+		return NewFooterMsg{Init: route}
+	}
+}
+
+type TestProps = string
+
+func Renderer(p TestProps, w, h int) string {
+	return fmt.Sprintf("%s", p)
 }
