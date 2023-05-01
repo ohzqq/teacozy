@@ -65,6 +65,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 
 	case ChangeHeaderMsg:
 		if header, ok := c.headers[msg.Name]; ok {
+			//return keys.UpdateStatus("poot")
 			c.Header, cmd = header()
 			cmds = append(cmds, cmd)
 		}
@@ -93,6 +94,9 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
+		}
+		if msg.String() == "s" {
+			return ChangeHeader("status")
 		}
 	}
 
