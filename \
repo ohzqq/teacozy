@@ -1,0 +1,109 @@
+package router
+
+import (
+	"fmt"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
+)
+
+type Component struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[reactea.NoProps]
+
+	headers map[string]router.RouteInitializer
+	mains   map[string]router.RouteInitializer
+	footers map[string]router.RouteInitializer
+}
+
+//type Route struct {
+//Path string
+//Init router.RouteInitializer
+//}
+
+type Route string
+
+type View struct {
+	Path   string
+	Header reactea.SomeComponent
+	Body   reactea.SomeComponent
+	Footer reactea.SomeComponent
+}
+
+const RoutePlaceholder = ":header/:body/:footer"
+
+func New() *Component {
+	c := &Component{
+		headers: make(map[string]router.RouteInitializer),
+		mains:   make(map[string]router.RouteInitializer),
+		footers: make(map[string]router.RouteInitializer),
+	}
+	c.headers["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := reactea.Componentify[string](Renderer)
+		return comp, comp.Init("header")
+	}
+	c.mains["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := reactea.Componentify[string](Renderer)
+		return comp, comp.Init("body")
+	}
+	c.footers["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		comp := reactea.Componentify[string](Renderer)
+		return comp, comp.Init("footer")
+	}
+	return c
+}
+
+func (c *Component) AddHeader(name string, init router.RouteInitializer) *Component {
+	c.headers[name] = init
+	return c
+}
+
+func (c *Component) AddMain(name string, init router.RouteInitializer) *Component {
+	c.mains[name] = init
+	return c
+}
+
+func (c *Component) AddFooter(name string, init router.RouteInitializer) *Component {
+	c.footers[name] = init
+	return c
+}
+
+func (c *Component) Init(reactea.NoProps) tea.Cmd {
+	var cmds []tea.Cmd
+	reactea.SetCurrentRoute("default/default/default")
+	return tea.Batch(cmds...)
+}
+
+func (c *Component) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(c)
+	var cmds []tea.Cmd
+
+	cmds = append(cmds, c.header.Update(msg))
+	cmds = append(cmds, c.body.Update(msg))
+	cmds = append(cmds, c.footer.Update(msg))
+
+	return tea.Batch(cmds...)
+}
+
+func (c Component) View() View {
+	var view View
+	if params, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), RoutePlaceholder); ok {
+	}
+	return view
+}
+
+func (c *Component) Render(w, h int) string {
+	header := c.header.Render(w, h)
+	body := c.body.Render(w, h)
+	footer := c.footer.Render(w, h)
+
+	return lipgloss.JoinVertical(lipgloss.Left, header, body, footer)
+}
+
+type TestProps = string
+
+func Renderer(p TestProps, w, h int) string {
+	return fmt.Sprintf("%s", p)
+}
