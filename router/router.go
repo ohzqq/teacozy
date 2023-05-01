@@ -1,12 +1,9 @@
 package router
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/keys"
 )
 
 type Component struct {
@@ -49,7 +46,7 @@ func (c *Component) Init(reactea.NoProps) tea.Cmd {
 
 	cmds = append(cmds, c.initializeRoute())
 
-	cmds = append(cmds, keys.ChangeRoute("default/default/default"))
+	cmds = append(cmds, ChangeRoute("default/default/default"))
 
 	return tea.Batch(cmds...)
 }
@@ -61,7 +58,7 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case keys.ChangeRouteMsg:
+	case ChangeRouteMsg:
 		reactea.SetCurrentRoute(msg.Name)
 		return nil
 
@@ -95,13 +92,6 @@ func (c *Component) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
-		}
-
-		if msg.String() == "m" {
-			return NewMain(func() (reactea.SomeComponent, tea.Cmd) {
-				footer := reactea.Componentify[string](Renderer)
-				return footer, footer.Init("new main")
-			})
 		}
 	}
 
@@ -311,8 +301,12 @@ func NewFooter(route ComponentInitializer) tea.Cmd {
 	}
 }
 
-type TestProps = string
+type ChangeRouteMsg struct {
+	Name string
+}
 
-func Renderer(p TestProps, w, h int) string {
-	return fmt.Sprintf("%s", p)
+func ChangeRoute(name string) tea.Cmd {
+	return func() tea.Msg {
+		return ChangeRouteMsg{Name: name}
+	}
 }
