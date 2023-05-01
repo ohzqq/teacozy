@@ -46,7 +46,7 @@ func New() *Component {
 func (c *Component) Init(props teacozy.Props) tea.Cmd {
 	c.UpdateProps(props)
 
-	c.Paginator = pagy.New(c.width, c.Props().Items.Len())
+	c.Paginator = pagy.New(c.height, c.Props().Items.Len())
 	c.Paginator.SetKeyMap(keys.VimKeyMap())
 
 	return nil

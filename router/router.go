@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type Component struct {
@@ -159,6 +160,7 @@ func (c *Component) initializeRoute() tea.Cmd {
 
 func (c *Component) Render(w, h int) string {
 	var views []string
+	w, h = util.TermSize()
 
 	if c.Header != nil {
 		if header := c.Header.Render(w, h); header != "" {
