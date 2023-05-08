@@ -5,13 +5,6 @@ import (
 	"github.com/londek/reactea"
 )
 
-type State struct {
-	cursor int
-	total  int
-	start  int
-	end    int
-}
-
 type Page interface {
 	Header() reactea.SomeComponent
 	Main() reactea.SomeComponent
