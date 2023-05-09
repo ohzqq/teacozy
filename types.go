@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
+	"github.com/sahilm/fuzzy"
 )
 
 type PlaceHolder string
@@ -31,6 +32,24 @@ type Page struct {
 type PageProps struct {
 	Width  int
 	Height int
+}
+
+type Items interface {
+	fuzzy.Source
+	Label(int) string
+	Set(int, string)
+}
+
+func SourceToMatches(src Items) fuzzy.Matches {
+	items := make(fuzzy.Matches, src.Len())
+	for i := 0; i < src.Len(); i++ {
+		m := fuzzy.Match{
+			Str:   src.String(i),
+			Index: i,
+		}
+		items[i] = m
+	}
+	return items
 }
 
 func NewPage(w, h int) *Page {
