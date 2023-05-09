@@ -1,4 +1,4 @@
-package list
+package pagy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
