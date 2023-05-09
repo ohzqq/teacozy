@@ -9,6 +9,10 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
+	Items    Items
+	Selected map[int]struct{}
+	Search   string
+
 	Routes map[PlaceHolder]PageComponent
 	page   *Page
 }

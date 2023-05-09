@@ -1,13 +1,20 @@
 package pager
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Paginator struct {
+type Component struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[teacozy.Props]
 	paginator.Model
 
 	cursor int
@@ -18,20 +25,34 @@ type Paginator struct {
 	KeyMap keys.KeyMap
 }
 
-func New(per, total int) *Paginator {
-	m := &Paginator{
+type Props struct {
+	Items      Items
+	Selected   map[int]struct{}
+	PerPage    int
+	Total      int
+	ReadOnly   bool
+	SetCurrent func(int)
+}
+
+func New() *Component {
+	m := &Component{
 		KeyMap: keys.DefaultKeyMap(),
-		total:  total,
 		Model:  paginator.New(),
 	}
-	m.PerPage = per
-	m.SetTotalPages(total)
-	m.SliceBounds()
-
 	return m
 }
 
-func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
+func (c *Component) Init(props teacozy.Props) tea.Cmd {
+	c.UpdateProps(props)
+	c.SetTotalPages(c.Props().Items.Len())
+	c.SetPerPage(10)
+	//m.PerPage = c.Props().PerPage
+	//m.SetTotalPages(c.Props().Total)
+	c.SliceBounds()
+	return nil
+}
+
+func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case keys.PageUpMsg:
@@ -68,7 +89,7 @@ func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 		m.Page = m.TotalPages - 1
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
-			return m, tea.Quit
+			return tea.Quit
 		}
 		for _, k := range m.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
@@ -79,62 +100,111 @@ func (m *Paginator) Update(msg tea.Msg) (*Paginator, tea.Cmd) {
 
 	m.SliceBounds()
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
-func (m Paginator) Cursor() int {
+func (c *Component) Render(w, h int) string {
+	var s strings.Builder
+	h = h - 2
+
+	// get matched items
+	p := c.Props()
+	items := p.ExactMatches(c.Props().Search)
+
+	c.SetPerPage(h)
+
+	// update the total items based on the filter results, this prevents from
+	// going out of bounds
+	c.SetTotal(len(items))
+
+	for i, m := range items[c.Start():c.End()] {
+		var cur bool
+		if i == c.Highlighted() {
+			c.SetCurrent(m.Index)
+			cur = true
+		}
+
+		var sel bool
+		if _, ok := c.Props().Selected[m.Index]; ok {
+			sel = true
+		}
+
+		label := c.Props().Items.Label(m.Index)
+		pre := c.Props().PrefixText(label, sel, cur)
+		style := c.Props().PrefixStyle(label, sel, cur)
+
+		// only print the prefix if it's a list or there's a label
+		if !c.Props().ReadOnly || label != "" {
+			s.WriteString(style.Render(pre))
+		}
+
+		// render the rest of the line
+		text := lipgloss.StyleRunes(
+			m.Str,
+			m.MatchedIndexes,
+			c.Props().Style.Match,
+			c.Props().Style.Normal.Style,
+		)
+
+		s.WriteString(lipgloss.NewStyle().Render(text))
+		s.WriteString("\n")
+	}
+
+	return s.String()
+}
+func (m Component) Cursor() int {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 	return m.cursor
 }
 
-func (m *Paginator) ResetCursor() {
+func (m *Component) ResetCursor() {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 }
 
-func (m Paginator) Len() int {
+func (m Component) Len() int {
 	return m.total
 }
 
-func (m Paginator) Current() int {
+func (m Component) Current() int {
 	return m.Index
 }
 
-func (m Paginator) Start() int {
+func (m Component) Start() int {
 	return m.start
 }
 
-func (m Paginator) End() int {
+func (m Component) End() int {
 	return m.end
 }
 
-func (m *Paginator) SetCursor(n int) *Paginator {
+func (m *Component) SetCursor(n int) *Component {
 	m.cursor = n
 	return m
 }
 
-func (m *Paginator) SetKeyMap(km keys.KeyMap) {
+func (m *Component) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
 }
 
-func (m *Paginator) SetCurrent(n int) {
+func (m *Component) SetCurrent(n int) {
 	m.Index = n
 }
 
-func (m *Paginator) SetTotal(n int) *Paginator {
+func (m *Component) SetTotal(n int) *Component {
 	m.total = n
 	m.SetTotalPages(n)
 	m.SliceBounds()
 	return m
 }
 
-func (m *Paginator) SetPerPage(n int) *Paginator {
+func (m *Component) SetPerPage(n int) *Component {
 	m.PerPage = n
 	m.SetTotalPages(m.total)
 	m.SliceBounds()
 	return m
 }
 
-func (m Paginator) Highlighted() int {
+func (m Component) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.PerPage {
 			return i
@@ -143,56 +213,48 @@ func (m Paginator) Highlighted() int {
 	return 0
 }
 
-func (m *Paginator) SliceBounds() (int, int) {
+func (m *Component) SliceBounds() (int, int) {
 	m.start, m.end = m.GetSliceBounds(m.total)
 	m.start = clamp(m.start, 0, m.total-1)
 	return m.start, m.end
 }
 
-func (m Paginator) OnLastItem() bool {
+func (m Component) OnLastItem() bool {
 	return m.cursor == m.total-1
 }
 
-func (m Paginator) OnFirstItem() bool {
+func (m Component) OnFirstItem() bool {
 	return m.cursor == 0
 }
 
-func (m *Paginator) NextItem() {
+func (m *Component) NextItem() {
 	if !m.OnLastItem() {
 		m.cursor++
 	}
 }
 
-func (m *Paginator) PrevItem() {
+func (m *Component) PrevItem() {
 	if !m.OnFirstItem() {
 		m.cursor--
 	}
 }
 
-func (m *Paginator) HalfDown() {
+func (m *Component) HalfDown() {
 	if !m.OnLastItem() {
 		m.cursor = m.cursor + m.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Paginator) HalfUp() {
+func (m *Component) HalfUp() {
 	if !m.OnFirstItem() {
 		m.cursor = m.cursor - m.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Paginator) DisableKeys() {
+func (m *Component) DisableKeys() {
 	m.KeyMap = keys.NewKeyMap(keys.Quit())
-}
-
-func (m *Paginator) Init() tea.Cmd {
-	return nil
-}
-
-func (m *Paginator) View() string {
-	return m.Model.View()
 }
 
 func clamp(x, min, max int) int {
