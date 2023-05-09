@@ -10,12 +10,12 @@ import (
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/teacozy/color"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pager"
+	"github.com/ohzqq/teacozy/pagy"
 	"github.com/sahilm/fuzzy"
 )
 
 type Props struct {
-	*pager.Paginator
+	*pagy.Paginator
 	name       string
 	Items      Items
 	Selected   map[int]struct{}
