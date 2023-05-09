@@ -40,6 +40,15 @@ type Items interface {
 	Set(int, string)
 }
 
+func (c *Props) ExactMatches(search string) fuzzy.Matches {
+	if search != "" {
+		if m := fuzzy.FindFrom(search, c.Items); len(m) > 0 {
+			return m
+		}
+	}
+	return SourceToMatches(c.Items)
+}
+
 func SourceToMatches(src Items) fuzzy.Matches {
 	items := make(fuzzy.Matches, src.Len())
 	for i := 0; i < src.Len(); i++ {

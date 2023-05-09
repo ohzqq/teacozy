@@ -9,9 +9,10 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	Items    Items
-	Selected map[int]struct{}
-	Search   string
+	Items       Items
+	Selected    map[int]struct{}
+	Search      string
+	currentItem int
 
 	Routes map[PlaceHolder]PageComponent
 	page   *Page
@@ -19,7 +20,8 @@ type App struct {
 
 func New(routes map[PlaceHolder]PageComponent) *App {
 	return &App{
-		Routes: routes,
+		Routes:   routes,
+		Selected: make(map[int]struct{}),
 	}
 }
 
@@ -55,6 +57,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (c *App) SetCurrentItem(idx int) {
+	c.currentItem = idx
+}
+
+func (c *App) CurrentItem() int {
+	return c.currentItem
 }
 
 func (c *App) Render(w, h int) string {

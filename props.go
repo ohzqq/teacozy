@@ -3,7 +3,6 @@ package teacozy
 import (
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/pagy"
-	"github.com/sahilm/fuzzy"
 )
 
 type Props struct {
@@ -15,7 +14,6 @@ type Props struct {
 	ReadOnly   bool
 	SetCurrent func(int)
 	SetHelp    func(keys.KeyMap)
-	Style      Style
 }
 
 func NewProps(items Items) Props {
@@ -24,13 +22,4 @@ func NewProps(items Items) Props {
 		Selected: make(map[int]struct{}),
 	}
 	return p
-}
-
-func (c *Props) ExactMatches(search string) fuzzy.Matches {
-	if search != "" {
-		if m := fuzzy.FindFrom(search, c.Items); len(m) > 0 {
-			return m
-		}
-	}
-	return SourceToMatches(c.Items)
 }
