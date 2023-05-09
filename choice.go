@@ -7,11 +7,37 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+type Items interface {
+	fuzzy.Source
+	Label(int) string
+	Set(int, string)
+}
+
+func ExactMatches(search string, items Items) fuzzy.Matches {
+	if search != "" {
+		if m := fuzzy.FindFrom(search, items); len(m) > 0 {
+			return m
+		}
+	}
+	return SourceToMatches(items)
+}
+
+func SourceToMatches(src Items) fuzzy.Matches {
+	items := make(fuzzy.Matches, src.Len())
+	for i := 0; i < src.Len(); i++ {
+		m := fuzzy.Match{
+			Str:   src.String(i),
+			Index: i,
+		}
+		items[i] = m
+	}
+	return items
+}
+
 // Choices is a slice of string maps to satisfy the fuzzy.Source interface
 type Choices []Choice
 
-// Choice is a map[string]string for a single choice
-// type Choice map[string]string
+// Choice is a for a single choice
 type Choice struct {
 	fuzzy.Match
 	label string

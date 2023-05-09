@@ -11,7 +11,7 @@ type App struct {
 
 	Items       Items
 	Selected    map[int]struct{}
-	Search      string
+	InputValue  string
 	currentItem int
 
 	Routes map[PlaceHolder]PageComponent

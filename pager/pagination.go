@@ -14,7 +14,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[teacozy.Props]
+	reactea.BasicPropfulComponent[Props]
 	paginator.Model
 
 	cursor   int
@@ -32,6 +32,8 @@ type Props struct {
 	Selected   map[int]struct{}
 	PerPage    int
 	Total      int
+	ReadOnly   bool
+	InputValue string
 	SetCurrent func(int)
 }
 
@@ -44,7 +46,15 @@ func New() *Component {
 	return m
 }
 
-func (c *Component) Init(props teacozy.Props) tea.Cmd {
+func NewProps(items teacozy.Items) Props {
+	p := Props{
+		Items:    items,
+		Selected: make(map[int]struct{}),
+	}
+	return p
+}
+
+func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetTotalPages(c.Props().Items.Len())
 	c.SetPerPage(10)
@@ -110,8 +120,7 @@ func (c *Component) Render(w, h int) string {
 	h = h - 2
 
 	// get matched items
-	p := c.Props()
-	items := p.ExactMatches(c.Props().Search)
+	items := teacozy.ExactMatches(c.Props().InputValue, c.Props().Items)
 
 	c.SetPerPage(h)
 

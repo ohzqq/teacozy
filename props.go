@@ -10,7 +10,7 @@ type Props struct {
 	name       string
 	Items      Items
 	Selected   map[int]struct{}
-	Search     string
+	InputValue string
 	ReadOnly   bool
 	SetCurrent func(int)
 	SetHelp    func(keys.KeyMap)
