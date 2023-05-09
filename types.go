@@ -131,6 +131,14 @@ func (c *Page) Render(w, h int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, views...)
 }
 
+func (c Page) Height() int {
+	return c.height
+}
+
+func (c Page) Width() int {
+	return c.width
+}
+
 func (c Page) Init() tea.Cmd {
 	return nil
 }
