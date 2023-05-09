@@ -17,20 +17,21 @@ type Component struct {
 	reactea.BasicPropfulComponent[teacozy.Props]
 	paginator.Model
 
-	cursor int
-	total  int
-	start  int
-	end    int
-	Index  int
-	KeyMap keys.KeyMap
+	cursor   int
+	total    int
+	start    int
+	end      int
+	ReadOnly bool
+	Index    int
+	KeyMap   keys.KeyMap
+	Style    Style
 }
 
 type Props struct {
-	Items      Items
+	Items      teacozy.Items
 	Selected   map[int]struct{}
 	PerPage    int
 	Total      int
-	ReadOnly   bool
 	SetCurrent func(int)
 }
 
@@ -38,6 +39,7 @@ func New() *Component {
 	m := &Component{
 		KeyMap: keys.DefaultKeyMap(),
 		Model:  paginator.New(),
+		Style:  DefaultStyle(),
 	}
 	return m
 }
@@ -130,8 +132,8 @@ func (c *Component) Render(w, h int) string {
 		}
 
 		label := c.Props().Items.Label(m.Index)
-		pre := c.Props().PrefixText(label, sel, cur)
-		style := c.Props().PrefixStyle(label, sel, cur)
+		pre := c.PrefixText(label, sel, cur)
+		style := c.PrefixStyle(label, sel, cur)
 
 		// only print the prefix if it's a list or there's a label
 		if !c.Props().ReadOnly || label != "" {
@@ -142,8 +144,8 @@ func (c *Component) Render(w, h int) string {
 		text := lipgloss.StyleRunes(
 			m.Str,
 			m.MatchedIndexes,
-			c.Props().Style.Match,
-			c.Props().Style.Normal.Style,
+			c.Style.Match,
+			c.Style.Normal.Style,
 		)
 
 		s.WriteString(lipgloss.NewStyle().Render(text))
