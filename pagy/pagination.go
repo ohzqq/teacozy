@@ -1,4 +1,4 @@
-package pager
+package pagy
 
 import (
 	"github.com/charmbracelet/bubbles/key"
