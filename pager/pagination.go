@@ -15,7 +15,7 @@ import (
 type Component struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
-	paginator.Model
+	Model paginator.Model
 
 	cursor   int
 	total    int
@@ -56,7 +56,7 @@ func NewProps(items teacozy.Items) Props {
 
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
-	c.SetTotalPages(c.Props().Items.Len())
+	c.Model.SetTotalPages(c.Props().Items.Len())
 	c.SetPerPage(10)
 	//m.PerPage = c.Props().PerPage
 	//m.SetTotalPages(c.Props().Total)
@@ -65,40 +65,42 @@ func (c *Component) Init(props Props) tea.Cmd {
 }
 
 func (m *Component) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(m)
+
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case keys.PageUpMsg:
-		m.cursor = clamp(m.cursor-m.PerPage, 0, m.total-1)
-		m.PrevPage()
+		m.cursor = clamp(m.cursor-m.Model.PerPage, 0, m.total-1)
+		m.Model.PrevPage()
 	case keys.PageDownMsg:
-		m.cursor = clamp(m.cursor+m.PerPage, 0, m.total-1)
-		m.NextPage()
+		m.cursor = clamp(m.cursor+m.Model.PerPage, 0, m.total-1)
+		m.Model.NextPage()
 	case keys.HalfPageUpMsg:
 		m.HalfUp()
 		if m.cursor < m.start {
-			m.PrevPage()
+			m.Model.PrevPage()
 		}
 	case keys.HalfPageDownMsg:
 		m.HalfDown()
 		if m.cursor >= m.end {
-			m.NextPage()
+			m.Model.NextPage()
 		}
 	case keys.LineDownMsg:
 		m.NextItem()
 		if m.cursor >= m.end {
-			m.NextPage()
+			m.Model.NextPage()
 		}
 	case keys.LineUpMsg:
 		m.PrevItem()
 		if m.cursor < m.start {
-			m.PrevPage()
+			m.Model.PrevPage()
 		}
 	case keys.TopMsg:
 		m.cursor = 0
-		m.Page = 0
+		m.Model.Page = 0
 	case keys.BottomMsg:
 		m.cursor = m.total - 1
-		m.Page = m.TotalPages - 1
+		m.Model.Page = m.Model.TotalPages - 1
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return tea.Quit
@@ -203,21 +205,21 @@ func (m *Component) SetCurrent(n int) {
 
 func (m *Component) SetTotal(n int) *Component {
 	m.total = n
-	m.SetTotalPages(n)
+	m.Model.SetTotalPages(n)
 	m.SliceBounds()
 	return m
 }
 
 func (m *Component) SetPerPage(n int) *Component {
-	m.PerPage = n
-	m.SetTotalPages(m.total)
+	m.Model.PerPage = n
+	m.Model.SetTotalPages(m.total)
 	m.SliceBounds()
 	return m
 }
 
 func (m Component) Highlighted() int {
 	for i := 0; i < m.end; i++ {
-		if i == m.cursor%m.PerPage {
+		if i == m.cursor%m.Model.PerPage {
 			return i
 		}
 	}
@@ -225,7 +227,7 @@ func (m Component) Highlighted() int {
 }
 
 func (m *Component) SliceBounds() (int, int) {
-	m.start, m.end = m.GetSliceBounds(m.total)
+	m.start, m.end = m.Model.GetSliceBounds(m.total)
 	m.start = clamp(m.start, 0, m.total-1)
 	return m.start, m.end
 }
@@ -252,14 +254,14 @@ func (m *Component) PrevItem() {
 
 func (m *Component) HalfDown() {
 	if !m.OnLastItem() {
-		m.cursor = m.cursor + m.PerPage/2 - 1
+		m.cursor = m.cursor + m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
 func (m *Component) HalfUp() {
 	if !m.OnFirstItem() {
-		m.cursor = m.cursor - m.PerPage/2 - 1
+		m.cursor = m.cursor - m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
