@@ -15,11 +15,11 @@ type App struct {
 	InputValue  string
 	currentItem int
 
-	Routes map[PlaceHolder]PageComponent
+	Routes map[string]PageComponent
 	page   *Page
 }
 
-func New(routes map[PlaceHolder]PageComponent) *App {
+func New(routes map[string]PageComponent) *App {
 	return &App{
 		Routes:   routes,
 		Selected: make(map[int]struct{}),
@@ -27,24 +27,7 @@ func New(routes map[PlaceHolder]PageComponent) *App {
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.InitializePage()
-}
-
-func (c *App) InitializePage() tea.Cmd {
-	for ph, page := range c.Routes {
-		if _, ok := ph.Matches(reactea.CurrentRoute()); ok {
-			p := NewPage(util.TermSize())
-			props := PageProps{
-				Width:  util.TermWidth(),
-				Height: util.TermHeight(),
-				Page:   page,
-			}
-			p.Init(props)
-			c.page = p
-			return nil
-		}
-	}
-	return nil
+	return c.initializePage()
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -64,6 +47,37 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (c *App) AfterUpdate() tea.Cmd {
+	if !reactea.WasRouteChanged() {
+		return nil
+	}
+
+	if c.page != nil {
+		c.page.Destroy()
+	}
+
+	c.page = nil
+
+	return c.initializePage()
+}
+
+func (c *App) initializePage() tea.Cmd {
+	for ph, page := range c.Routes {
+		if _, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
+			p := NewPage()
+			props := PageProps{
+				Width:  util.TermWidth(),
+				Height: util.TermHeight(),
+				Page:   page,
+			}
+			p.Init(props)
+			c.page = p
+			return nil
+		}
+	}
+	return nil
 }
 
 func (c *App) SetCurrentItem(idx int) {

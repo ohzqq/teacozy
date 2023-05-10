@@ -21,11 +21,6 @@ type PageComponent interface {
 type Page struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[PageProps]
-	header reactea.SomeComponent
-	main   reactea.SomeComponent
-	footer reactea.SomeComponent
-	width  int
-	height int
 }
 
 type PageProps struct {
@@ -34,11 +29,8 @@ type PageProps struct {
 	Height int
 }
 
-func NewPage(w, h int) *Page {
-	return &Page{
-		width:  w,
-		height: h,
-	}
+func NewPage() *Page {
+	return &Page{}
 }
 
 func (c *Page) Init(props PageProps) tea.Cmd {
@@ -56,18 +48,6 @@ func (c *Page) Main() reactea.SomeComponent {
 
 func (c *Page) Footer() reactea.SomeComponent {
 	return c.Props().Page.Footer()
-}
-
-func (c *Page) SetHeader(comp reactea.SomeComponent) {
-	c.header = comp
-}
-
-func (c *Page) SetMain(comp reactea.SomeComponent) {
-	c.main = comp
-}
-
-func (c *Page) SetFooter(comp reactea.SomeComponent) {
-	c.footer = comp
 }
 
 func (c *Page) Update(msg tea.Msg) tea.Cmd {
