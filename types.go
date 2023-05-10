@@ -6,13 +6,6 @@ import (
 	"github.com/londek/reactea"
 )
 
-type PageComponent interface {
-	Header() reactea.SomeComponent
-	Main() reactea.SomeComponent
-	Footer() reactea.SomeComponent
-	Slug() string
-}
-
 type Page struct {
 	reactea.BasicComponent
 

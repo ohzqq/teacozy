@@ -86,8 +86,7 @@ func (c *App) initializePage() tea.Cmd {
 		if params, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
 			fmt.Println(params)
 			if page, ok := c.Pages[params["slug"]]; ok {
-				p := NewPage(params["slug"], page.Main())
-				c.page = p
+				c.page = page
 				return nil
 			}
 		}
