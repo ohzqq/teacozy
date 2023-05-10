@@ -20,6 +20,7 @@ type PageComponent interface {
 
 type Page struct {
 	reactea.BasicComponent
+	reactea.BasicPropfulComponent[PageProps]
 	header reactea.SomeComponent
 	main   reactea.SomeComponent
 	footer reactea.SomeComponent
@@ -28,6 +29,7 @@ type Page struct {
 }
 
 type PageProps struct {
+	Page   PageComponent
 	Width  int
 	Height int
 }
@@ -39,20 +41,21 @@ func NewPage(w, h int) *Page {
 	}
 }
 
-func (c *Page) Initialize(params map[string]string) (*Page, tea.Cmd) {
-	return c, nil
+func (c *Page) Init(props PageProps) tea.Cmd {
+	c.UpdateProps(props)
+	return nil
 }
 
 func (c *Page) Header() reactea.SomeComponent {
-	return c.header
+	return c.Props().Page.Header()
 }
 
 func (c *Page) Main() reactea.SomeComponent {
-	return c.main
+	return c.Props().Page.Main()
 }
 
 func (c *Page) Footer() reactea.SomeComponent {
-	return c.footer
+	return c.Props().Page.Footer()
 }
 
 func (c *Page) SetHeader(comp reactea.SomeComponent) {
@@ -67,7 +70,7 @@ func (c *Page) SetFooter(comp reactea.SomeComponent) {
 	c.footer = comp
 }
 
-func (c *Page) Update(msg tea.Msg) (*Page, tea.Cmd) {
+func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	//var cmd tea.Cmd
@@ -76,49 +79,49 @@ func (c *Page) Update(msg tea.Msg) (*Page, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
-			return c, reactea.Destroy
+			return reactea.Destroy
 		}
 	}
 
-	if c.header != nil {
-		cmds = append(cmds, c.header.Update(msg))
+	if c.Header() != nil {
+		cmds = append(cmds, c.Header().Update(msg))
 	}
 
-	if c.main != nil {
-		cmds = append(cmds, c.main.Update(msg))
+	if c.Main() != nil {
+		cmds = append(cmds, c.Main().Update(msg))
 	}
 
-	if c.footer != nil {
-		cmds = append(cmds, c.footer.Update(msg))
+	if c.Footer() != nil {
+		cmds = append(cmds, c.Footer().Update(msg))
 	}
 
-	return c, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (c *Page) View() string {
-	return c.Render(c.width, c.height)
+	return c.Render(c.Props().Width, c.Props().Height)
 }
 
 func (c *Page) Render(w, h int) string {
 	var views []string
 
-	if c.header != nil {
-		if head := c.header.Render(w, h); head != "" {
+	if c.Header() != nil {
+		if head := c.Header().Render(w, h); head != "" {
 			views = append(views, head)
 			h -= lipgloss.Height(head)
 		}
 	}
 
 	var footer string
-	if c.footer != nil {
-		if f := c.footer.Render(w, h); f != "" {
+	if c.Footer() != nil {
+		if f := c.Footer().Render(w, h); f != "" {
 			footer = f
 			h -= lipgloss.Height(footer)
 		}
 	}
 
-	if c.main != nil {
-		if m := c.main.Render(w, h); m != "" {
+	if c.Main() != nil {
+		if m := c.Main().Render(w, h); m != "" {
 			views = append(views, m)
 		}
 	}
@@ -128,16 +131,4 @@ func (c *Page) Render(w, h int) string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, views...)
-}
-
-func (c Page) Height() int {
-	return c.height
-}
-
-func (c Page) Width() int {
-	return c.width
-}
-
-func (c Page) Init() tea.Cmd {
-	return nil
 }

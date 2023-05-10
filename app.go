@@ -34,9 +34,12 @@ func (c *App) InitializePage() tea.Cmd {
 	for ph, page := range c.Routes {
 		if _, ok := ph.Matches(reactea.CurrentRoute()); ok {
 			p := NewPage(util.TermSize())
-			p.SetHeader(page.Header())
-			p.SetMain(page.Main())
-			p.SetFooter(page.Footer())
+			props := PageProps{
+				Width:  util.TermWidth(),
+				Height: util.TermHeight(),
+				Page:   page,
+			}
+			p.Init(props)
 			c.page = p
 			return nil
 		}
@@ -57,7 +60,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.page, cmd = c.page.Update(msg)
+	cmd = c.page.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
