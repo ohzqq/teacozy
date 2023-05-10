@@ -6,48 +6,52 @@ import (
 	"github.com/londek/reactea"
 )
 
-type PlaceHolder string
-
-func (ph PlaceHolder) Matches(route string) (map[string]string, bool) {
-	return reactea.RouteMatchesPlaceholder(route, string(ph))
-}
-
 type PageComponent interface {
 	Header() reactea.SomeComponent
 	Main() reactea.SomeComponent
 	Footer() reactea.SomeComponent
+	Slug() string
 }
 
 type Page struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[PageProps]
+
+	header reactea.SomeComponent
+	main   reactea.SomeComponent
+	footer reactea.SomeComponent
+
+	slug string
 }
 
-type PageProps struct {
-	Page   PageComponent
-	Width  int
-	Height int
-}
+type Opt func(*Page)
 
-func NewPage() *Page {
-	return &Page{}
-}
-
-func (c *Page) Init(props PageProps) tea.Cmd {
-	c.UpdateProps(props)
-	return nil
+func NewPage(title string, main reactea.SomeComponent, opts ...Opt) *Page {
+	return &Page{
+		slug: title,
+		main: main,
+	}
 }
 
 func (c *Page) Header() reactea.SomeComponent {
-	return c.Props().Page.Header()
+	if head := c.header; head != nil {
+		return head
+	}
+	return nil
+}
+
+func (c Page) Slug() string {
+	return c.slug
 }
 
 func (c *Page) Main() reactea.SomeComponent {
-	return c.Props().Page.Main()
+	return c.main
 }
 
 func (c *Page) Footer() reactea.SomeComponent {
-	return c.Props().Page.Footer()
+	if foot := c.footer; foot != nil {
+		return foot
+	}
+	return nil
 }
 
 func (c *Page) Update(msg tea.Msg) tea.Cmd {
@@ -76,10 +80,6 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
-}
-
-func (c *Page) View() string {
-	return c.Render(c.Props().Width, c.Props().Height)
 }
 
 func (c *Page) Render(w, h int) string {

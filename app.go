@@ -1,9 +1,11 @@
 package teacozy
 
 import (
+	"fmt"
+	"path/filepath"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type App struct {
@@ -14,14 +16,22 @@ type App struct {
 	Selected    map[int]struct{}
 	InputValue  string
 	currentItem int
+	width       int
+	height      int
 
-	Routes map[string]PageComponent
+	Pages  map[string]*Page
+	Routes []string
 	page   *Page
 }
 
-func New(routes map[string]PageComponent) *App {
+func New(pages map[string]*Page, routes ...string) *App {
+	r := make([]string, len(routes))
+	for i, route := range routes {
+		r[i] = filepath.Join(route, ":slug")
+	}
 	return &App{
-		Routes:   routes,
+		Pages:    pages,
+		Routes:   r,
 		Selected: make(map[int]struct{}),
 	}
 }
@@ -40,6 +50,14 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
+		}
+		if msg.String() == "s" {
+			reactea.SetCurrentRoute("list/slice")
+			return nil
+		}
+		if msg.String() == "p" {
+			reactea.SetCurrentRoute("list/page")
+			return nil
 		}
 	}
 
@@ -64,17 +82,14 @@ func (c *App) AfterUpdate() tea.Cmd {
 }
 
 func (c *App) initializePage() tea.Cmd {
-	for ph, page := range c.Routes {
-		if _, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
-			p := NewPage()
-			props := PageProps{
-				Width:  util.TermWidth(),
-				Height: util.TermHeight(),
-				Page:   page,
+	for _, ph := range c.Routes {
+		if params, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
+			fmt.Println(params)
+			if page, ok := c.Pages[params["slug"]]; ok {
+				p := NewPage(params["slug"], page.Main())
+				c.page = p
+				return nil
 			}
-			p.Init(props)
-			c.page = p
-			return nil
 		}
 	}
 	return nil
@@ -92,5 +107,5 @@ func (c *App) Render(w, h int) string {
 	if c.page == nil {
 		return "404 not found"
 	}
-	return c.page.View()
+	return c.page.Render(w, h)
 }
