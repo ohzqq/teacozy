@@ -10,13 +10,12 @@ import (
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type Component struct {
+	reactea.BasicComponent
 	reactea.BasicPropfulComponent[Props]
 	Model paginator.Model
-	*teacozy.Page
 
 	cursor   int
 	total    int
@@ -43,7 +42,6 @@ func New() *Component {
 		KeyMap: keys.DefaultKeyMap(),
 		Model:  paginator.New(),
 		Style:  DefaultStyle(),
-		Page:   teacozy.NewPage(util.TermSize()),
 	}
 	return m
 }
@@ -59,9 +57,8 @@ func NewProps(items teacozy.Items) Props {
 func (c *Component) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.Model.SetTotalPages(c.Props().Items.Len())
-	c.SetPerPage(c.Height())
+	c.SetPerPage(10)
 	c.SliceBounds()
-	c.Page.SetMain(c)
 	return nil
 }
 
