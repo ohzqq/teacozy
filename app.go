@@ -1,7 +1,6 @@
 package teacozy
 
 import (
-	"fmt"
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,7 +20,7 @@ type App struct {
 
 	Pages  map[string]*Page
 	Routes []string
-	page   *Page
+	page   reactea.SomeComponent
 }
 
 func New(pages map[string]*Page, routes ...string) *App {
@@ -84,7 +83,6 @@ func (c *App) AfterUpdate() tea.Cmd {
 func (c *App) initializePage() tea.Cmd {
 	for _, ph := range c.Routes {
 		if params, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
-			fmt.Println(params)
 			if page, ok := c.Pages[params["slug"]]; ok {
 				c.page = page
 				return nil
