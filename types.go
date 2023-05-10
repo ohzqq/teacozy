@@ -16,7 +16,6 @@ type PageComponent interface {
 	Header() reactea.SomeComponent
 	Main() reactea.SomeComponent
 	Footer() reactea.SomeComponent
-	Initialize(map[string]string) (*Page, tea.Cmd)
 }
 
 type Page struct {

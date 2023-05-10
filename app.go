@@ -3,6 +3,7 @@ package teacozy
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type App struct {
@@ -31,10 +32,13 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 func (c *App) InitializePage() tea.Cmd {
 	for ph, page := range c.Routes {
-		if params, ok := ph.Matches(reactea.CurrentRoute()); ok {
-			p, cmd := page.Initialize(params)
+		if _, ok := ph.Matches(reactea.CurrentRoute()); ok {
+			p := NewPage(util.TermSize())
+			p.SetHeader(page.Header())
+			p.SetMain(page.Main())
+			p.SetFooter(page.Footer())
 			c.page = p
-			return cmd
+			return nil
 		}
 	}
 	return nil
