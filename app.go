@@ -45,20 +45,30 @@ func (c *App) AddPage(pages ...*Page) *App {
 	return c
 }
 
+var blankPage = &struct {
+	reactea.BasicComponent
+	reactea.InvisibleComponent
+}{}
+
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	routes := map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			return c.Pages["page"], nil
+			for _, p := range c.Pages {
+				return p, nil
+			}
+			return blankPage, nil
 		},
 		"": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			return c.Pages["page"], nil
+			for _, p := range c.Pages {
+				return p, nil
+			}
+			return blankPage, nil
 		},
 	}
 
 	for _, route := range c.Endpoints {
 		routes[filepath.Join(route, ":slug")] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
-			//fmt.Printf("%+V\n", c.Pages[params["slug"]])
-			return c.Pages[params["slug"]], nil
+			return c.Pages[params["$"]], nil
 		}
 	}
 
