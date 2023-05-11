@@ -25,26 +25,41 @@ func NewPage(title string, main reactea.SomeComponent, opts ...Opt) *Page {
 	}
 }
 
-func (c *Page) Header() reactea.SomeComponent {
+func (c Page) Slug() string {
+	return c.slug
+}
+
+func (c Page) Header() reactea.SomeComponent {
 	if head := c.header; head != nil {
 		return head
 	}
 	return nil
 }
 
-func (c Page) Slug() string {
-	return c.slug
-}
-
-func (c *Page) Main() reactea.SomeComponent {
+func (c Page) Main() reactea.SomeComponent {
 	return c.main
 }
 
-func (c *Page) Footer() reactea.SomeComponent {
+func (c Page) Footer() reactea.SomeComponent {
 	if foot := c.footer; foot != nil {
 		return foot
 	}
 	return nil
+}
+
+func (c *Page) SetHeader(head reactea.SomeComponent) *Page {
+	c.header = head
+	return c
+}
+
+func (c *Page) SetMain(main reactea.SomeComponent) *Page {
+	c.main = main
+	return c
+}
+
+func (c *Page) SetFooter(footer reactea.SomeComponent) *Page {
+	c.footer = footer
+	return c
 }
 
 func (c *Page) Update(msg tea.Msg) tea.Cmd {
