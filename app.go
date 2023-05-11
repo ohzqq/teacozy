@@ -5,11 +5,15 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
+
+	router *router.Component
 
 	Items       Items
 	Selected    map[int]struct{}
@@ -18,25 +22,47 @@ type App struct {
 	width       int
 	height      int
 
-	Pages  map[string]*Page
-	Routes []string
-	page   reactea.SomeComponent
+	Pages     map[string]*Page
+	Endpoints []string
+	page      reactea.SomeComponent
 }
 
-func New(pages map[string]*Page, routes ...string) *App {
-	r := make([]string, len(routes))
-	for i, route := range routes {
-		r[i] = filepath.Join(route, ":slug")
-	}
+func New(routes ...string) *App {
 	return &App{
-		Pages:    pages,
-		Routes:   r,
-		Selected: make(map[int]struct{}),
+		Pages:     make(map[string]*Page),
+		router:    router.New(),
+		Endpoints: routes,
+		Selected:  make(map[int]struct{}),
+		width:     util.TermWidth(),
+		height:    util.TermHeight(),
 	}
+}
+
+func (c *App) AddPage(pages ...*Page) *App {
+	for _, p := range pages {
+		c.Pages[p.Slug()] = p
+	}
+	return c
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.initializePage()
+	routes := map[string]router.RouteInitializer{
+		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			return c.Pages["page"], nil
+		},
+		"": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			return c.Pages["page"], nil
+		},
+	}
+
+	for _, route := range c.Endpoints {
+		routes[filepath.Join(route, ":slug")] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
+			//fmt.Printf("%+V\n", c.Pages[params["slug"]])
+			return c.Pages[params["slug"]], nil
+		}
+	}
+
+	return c.router.Init(routes)
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -52,44 +78,16 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		}
 		if msg.String() == "s" {
 			reactea.SetCurrentRoute("list/slice")
-			return nil
 		}
 		if msg.String() == "p" {
 			reactea.SetCurrentRoute("list/page")
-			return nil
 		}
 	}
 
-	cmd = c.page.Update(msg)
+	cmd = c.router.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
-}
-
-func (c *App) AfterUpdate() tea.Cmd {
-	if !reactea.WasRouteChanged() {
-		return nil
-	}
-
-	if c.page != nil {
-		c.page.Destroy()
-	}
-
-	c.page = nil
-
-	return c.initializePage()
-}
-
-func (c *App) initializePage() tea.Cmd {
-	for _, ph := range c.Routes {
-		if params, ok := reactea.RouteMatchesPlaceholder(reactea.CurrentRoute(), ph); ok {
-			if page, ok := c.Pages[params["slug"]]; ok {
-				c.page = page
-				return nil
-			}
-		}
-	}
-	return nil
 }
 
 func (c *App) SetCurrentItem(idx int) {
@@ -101,8 +99,5 @@ func (c *App) CurrentItem() int {
 }
 
 func (c *App) Render(w, h int) string {
-	if c.page == nil {
-		return "404 not found"
-	}
-	return c.page.Render(w, h)
+	return c.router.Render(c.width, c.height)
 }
