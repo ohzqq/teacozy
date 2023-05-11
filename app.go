@@ -111,3 +111,19 @@ func (c *App) CurrentItem() int {
 func (c *App) Render(w, h int) string {
 	return c.router.Render(c.width, c.height)
 }
+
+func (c *App) SetSize(w, h int) *App {
+	c.width = w
+	c.height = h
+	return c
+}
+
+func (c *App) SetHeight(h int) *App {
+	c.height = h
+	return c
+}
+
+func (c *App) SetWidth(w int) *App {
+	c.width = w
+	return c
+}

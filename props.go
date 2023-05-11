@@ -2,11 +2,9 @@ package teacozy
 
 import (
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/pagy"
 )
 
 type Props struct {
-	*pagy.Paginator
 	name       string
 	Items      Items
 	Selected   map[int]struct{}
