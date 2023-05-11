@@ -10,6 +10,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/state"
 )
 
 type Component struct {
@@ -133,6 +134,7 @@ func (c *Component) Render(w, h int) string {
 		var cur bool
 		if i == c.Highlighted() {
 			c.SetCurrent(m.Index)
+			state.SetCurrentItem(m.Index)
 			cur = true
 		}
 

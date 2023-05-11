@@ -27,7 +27,7 @@ type InputValueMsg struct {
 func InputValue(val string) tea.Cmd {
 	//return inputValue
 	return func() tea.Msg {
-		return InputValueMsg{Value: string}
+		return InputValueMsg{Value: val}
 	}
 }
 
