@@ -35,7 +35,7 @@ type PagerProps struct {
 	PerPage    int
 	Total      int
 	ReadOnly   bool
-	InputValue string
+	InputValue func() string
 	SetCurrent func(int)
 }
 
@@ -50,8 +50,9 @@ func NewPager() *Pager {
 
 func NewPagerProps(items teacozy.Items) PagerProps {
 	p := PagerProps{
-		Items:    items,
-		Selected: make(map[int]struct{}),
+		Items:      items,
+		Selected:   make(map[int]struct{}),
+		InputValue: state.InputValue,
 	}
 	return p
 }
@@ -122,7 +123,7 @@ func (c *Pager) Render(w, h int) string {
 	h = h - 2
 
 	// get matched items
-	items := teacozy.ExactMatches(c.Props().InputValue, c.Props().Items)
+	items := teacozy.ExactMatches(c.Props().InputValue(), c.Props().Items)
 
 	c.SetPerPage(h)
 

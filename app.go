@@ -92,12 +92,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "ctrl+c" {
 			return reactea.Destroy
 		}
-		if msg.String() == "s" {
-			reactea.SetCurrentRoute("list/slice")
-		}
-		if msg.String() == "p" {
-			reactea.SetCurrentRoute("list/page")
-		}
 	}
 
 	cmd = c.router.Update(msg)

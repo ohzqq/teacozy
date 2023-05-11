@@ -11,7 +11,7 @@ type TextInput struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[InputProps]
 
-	input textinput.Model
+	Input textinput.Model
 }
 
 type TextArea struct {
@@ -28,32 +28,32 @@ type InputProps struct {
 func NewTextInput() *TextInput {
 	input := textinput.New()
 	return &TextInput{
-		input: input,
+		Input: input,
 	}
 }
 
 func (c *TextInput) Init(props InputProps) tea.Cmd {
 	c.UpdateProps(props)
-	return c.input.Focus()
+	return c.Input.Focus()
 }
 
 func (c *TextInput) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyEnter {
-			c.Props().SetValue(c.input.Value())
-			c.input.Blur()
+			c.Props().SetValue(c.Input.Value())
+			c.Input.Blur()
 			return nil
 		}
 	}
 
 	var cmd tea.Cmd
-	c.input, cmd = c.input.Update(msg)
+	c.Input, cmd = c.Input.Update(msg)
 	return cmd
 }
 
 func (c TextInput) Render(w, h int) string {
-	return c.input.View()
+	return c.Input.View()
 }
 
 func NewTextArea() *TextArea {

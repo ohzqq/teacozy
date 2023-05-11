@@ -1,7 +1,5 @@
 package state
 
-import tea "github.com/charmbracelet/bubbletea"
-
 var (
 	currentItem   int
 	selectedItems = make(map[int]struct{})
@@ -24,12 +22,16 @@ type InputValueMsg struct {
 	Value string
 }
 
-func InputValue(val string) tea.Cmd {
-	//return inputValue
-	return func() tea.Msg {
-		return InputValueMsg{Value: val}
-	}
+func InputValue() string {
+	return inputValue
 }
+
+//func InputValue(val string) tea.Cmd {
+//  //return inputValue
+//  return func() tea.Msg {
+//    return InputValueMsg{Value: val}
+//  }
+//}
 
 func SetInputValue(val string) {
 	inputValue = val
