@@ -22,14 +22,14 @@ type App struct {
 	width       int
 	height      int
 
-	Pages     map[string]*Page
+	Pages     []*Page
 	Endpoints []string
 	page      reactea.SomeComponent
 }
 
 func New(routes ...string) *App {
 	return &App{
-		Pages:     make(map[string]*Page),
+		//Pages:     make(map[string]*Page),
 		router:    router.New(),
 		Endpoints: routes,
 		Selected:  make(map[int]struct{}),
@@ -39,9 +39,10 @@ func New(routes ...string) *App {
 }
 
 func (c *App) AddPage(pages ...*Page) *App {
-	for _, p := range pages {
-		c.Pages[p.Slug()] = p
-	}
+	c.Pages = pages
+	//for _, p := range pages {
+	//  c.Pages[p.Slug()] = p
+	//}
 	return c
 }
 
@@ -53,14 +54,14 @@ var blankPage = &struct {
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	routes := map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			for _, p := range c.Pages {
-				return p, nil
+			if len(c.Pages) > 0 {
+				return c.Pages[0], nil
 			}
 			return blankPage, nil
 		},
 		"": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			for _, p := range c.Pages {
-				return p, nil
+			if len(c.Pages) > 0 {
+				return c.Pages[0], nil
 			}
 			return blankPage, nil
 		},
@@ -68,7 +69,12 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 
 	for _, route := range c.Endpoints {
 		routes[filepath.Join(route, ":slug")] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
-			return c.Pages[params["$"]], nil
+			for _, p := range c.Pages {
+				if p.Slug() == params["$"] {
+					return p, nil
+				}
+			}
+			return nil, nil
 		}
 	}
 

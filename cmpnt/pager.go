@@ -1,4 +1,4 @@
-package pager
+package cmpnt
 
 import (
 	"strings"
@@ -13,9 +13,9 @@ import (
 	"github.com/ohzqq/teacozy/state"
 )
 
-type Component struct {
+type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[PagerProps]
 	Model paginator.Model
 
 	cursor   int
@@ -29,7 +29,7 @@ type Component struct {
 	slug     string
 }
 
-type Props struct {
+type PagerProps struct {
 	Items      teacozy.Items
 	Selected   map[int]struct{}
 	PerPage    int
@@ -39,8 +39,8 @@ type Props struct {
 	SetCurrent func(int)
 }
 
-func New() *Component {
-	m := &Component{
+func NewPager() *Pager {
+	m := &Pager{
 		KeyMap: keys.DefaultKeyMap(),
 		Model:  paginator.New(),
 		Style:  DefaultStyle(),
@@ -48,15 +48,15 @@ func New() *Component {
 	return m
 }
 
-func NewProps(items teacozy.Items) Props {
-	p := Props{
+func NewPagerProps(items teacozy.Items) PagerProps {
+	p := PagerProps{
 		Items:    items,
 		Selected: make(map[int]struct{}),
 	}
 	return p
 }
 
-func (c *Component) Init(props Props) tea.Cmd {
+func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)
 	c.Model.SetTotalPages(c.Props().Items.Len())
 	c.SetPerPage(10)
@@ -64,7 +64,7 @@ func (c *Component) Init(props Props) tea.Cmd {
 	return nil
 }
 
-func (m *Component) Update(msg tea.Msg) tea.Cmd {
+func (m *Pager) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(m)
 
 	var cmds []tea.Cmd
@@ -117,7 +117,7 @@ func (m *Component) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *Component) Render(w, h int) string {
+func (c *Pager) Render(w, h int) string {
 	var s strings.Builder
 	h = h - 2
 
@@ -166,59 +166,59 @@ func (c *Component) Render(w, h int) string {
 
 	return s.String()
 }
-func (m Component) Cursor() int {
+func (m Pager) Cursor() int {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 	return m.cursor
 }
 
-func (m *Component) ResetCursor() {
+func (m *Pager) ResetCursor() {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 }
 
-func (m Component) Len() int {
+func (m Pager) Len() int {
 	return m.total
 }
 
-func (m Component) Current() int {
+func (m Pager) Current() int {
 	return m.Index
 }
 
-func (m Component) Start() int {
+func (m Pager) Start() int {
 	return m.start
 }
 
-func (m Component) End() int {
+func (m Pager) End() int {
 	return m.end
 }
 
-func (m *Component) SetCursor(n int) *Component {
+func (m *Pager) SetCursor(n int) *Pager {
 	m.cursor = n
 	return m
 }
 
-func (m *Component) SetKeyMap(km keys.KeyMap) {
+func (m *Pager) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
 }
 
-func (m *Component) SetCurrent(n int) {
+func (m *Pager) SetCurrent(n int) {
 	m.Index = n
 }
 
-func (m *Component) SetTotal(n int) *Component {
+func (m *Pager) SetTotal(n int) *Pager {
 	m.total = n
 	m.Model.SetTotalPages(n)
 	m.SliceBounds()
 	return m
 }
 
-func (m *Component) SetPerPage(n int) *Component {
+func (m *Pager) SetPerPage(n int) *Pager {
 	m.Model.PerPage = n
 	m.Model.SetTotalPages(m.total)
 	m.SliceBounds()
 	return m
 }
 
-func (m Component) Highlighted() int {
+func (m Pager) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.Model.PerPage {
 			return i
@@ -227,47 +227,47 @@ func (m Component) Highlighted() int {
 	return 0
 }
 
-func (m *Component) SliceBounds() (int, int) {
+func (m *Pager) SliceBounds() (int, int) {
 	m.start, m.end = m.Model.GetSliceBounds(m.total)
 	m.start = clamp(m.start, 0, m.total-1)
 	return m.start, m.end
 }
 
-func (m Component) OnLastItem() bool {
+func (m Pager) OnLastItem() bool {
 	return m.cursor == m.total-1
 }
 
-func (m Component) OnFirstItem() bool {
+func (m Pager) OnFirstItem() bool {
 	return m.cursor == 0
 }
 
-func (m *Component) NextItem() {
+func (m *Pager) NextItem() {
 	if !m.OnLastItem() {
 		m.cursor++
 	}
 }
 
-func (m *Component) PrevItem() {
+func (m *Pager) PrevItem() {
 	if !m.OnFirstItem() {
 		m.cursor--
 	}
 }
 
-func (m *Component) HalfDown() {
+func (m *Pager) HalfDown() {
 	if !m.OnLastItem() {
 		m.cursor = m.cursor + m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Component) HalfUp() {
+func (m *Pager) HalfUp() {
 	if !m.OnFirstItem() {
 		m.cursor = m.cursor - m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Component) DisableKeys() {
+func (m *Pager) DisableKeys() {
 	m.KeyMap = keys.NewKeyMap(keys.Quit())
 }
 

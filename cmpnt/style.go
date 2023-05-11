@@ -1,4 +1,4 @@
-package pager
+package cmpnt
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ type Style struct {
 	Match    lipgloss.Style
 }
 
-func (c Component) PrefixText(label string, selected, current bool) string {
+func (c Pager) PrefixText(label string, selected, current bool) string {
 	switch {
 	case label != "":
 		return label
@@ -34,7 +34,7 @@ func (c Component) PrefixText(label string, selected, current bool) string {
 	}
 }
 
-func (c Component) PrefixStyle(label string, selected, current bool) Prefix {
+func (c Pager) PrefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
 		return c.Style.Cursor
