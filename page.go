@@ -16,9 +16,7 @@ type Page struct {
 	slug string
 }
 
-type Opt func(*Page)
-
-func NewPage(title string, main reactea.SomeComponent, opts ...Opt) *Page {
+func NewPage(title string, main reactea.SomeComponent) *Page {
 	return &Page{
 		slug: title,
 		main: main,
