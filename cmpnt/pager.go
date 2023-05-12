@@ -21,35 +21,33 @@ type Pager struct {
 	total  int
 	start  int
 	end    int
-	Index  int
 	KeyMap keys.KeyMap
-	Style  Style
 	slug   string
 }
 
 type PagerProps struct {
-	Items      teacozy.Items
-	PerPage    int
-	Total      int
-	ReadOnly   func() bool
+	name       string
+	Items      Items
+	Selected   map[int]struct{}
+	Search     string
+	ReadOnly   bool
 	SetCurrent func(int)
+	Style      Style
 }
 
 func NewPager() *Pager {
-	m := &Pager{
+	c := &Pager{
 		KeyMap: keys.DefaultKeyMap(),
 		Model:  paginator.New(),
 		Style:  DefaultStyle(),
 	}
-	return m
+	return c
 }
 
 func NewPagerProps(items teacozy.Items) PagerProps {
-	p := PagerProps{
-		Items:    items,
-		Selected: make(map[int]struct{}),
+	return PagerProps{
+		Items: items,
 	}
-	return p
 }
 
 func (c *Pager) Init(props PagerProps) tea.Cmd {
@@ -118,7 +116,7 @@ func (c *Pager) Render(w, h int) string {
 	h = h - 2
 
 	// get matched items
-	items := teacozy.ExactMatches(c.Props().InputValue(), c.Props().Items)
+	items := teacozy.ExactMatches(c.Props().Search, c.Props().Items)
 
 	c.SetPerPage(h)
 
@@ -174,10 +172,6 @@ func (m Pager) Len() int {
 	return m.total
 }
 
-func (m Pager) Current() int {
-	return m.Index
-}
-
 func (m Pager) Start() int {
 	return m.start
 }
@@ -193,10 +187,6 @@ func (m *Pager) SetCursor(n int) *Pager {
 
 func (m *Pager) SetKeyMap(km keys.KeyMap) {
 	m.KeyMap = km
-}
-
-func (m *Pager) SetCurrent(n int) {
-	m.Index = n
 }
 
 func (m *Pager) SetTotal(n int) *Pager {
