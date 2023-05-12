@@ -14,12 +14,11 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	router    *router.Component
-	pages     map[string]*cmpnt.Pager
-	endpoints []string
-	prevRoute string
-
-	*cmpnt.Pager
+	router      *router.Component
+	pages       map[string]*cmpnt.Pager
+	endpoints   []string
+	prevRoute   string
+	currentItem int
 }
 
 func New(opts ...cmpnt.Option) *App {
@@ -32,8 +31,7 @@ func New(opts ...cmpnt.Option) *App {
 		pages:     make(map[string]*cmpnt.Pager),
 		prevRoute: "default",
 	}
-	c.Pager = cmpnt.New(opts...)
-	c.pages["default"] = c.Pager
+	c.pages["default"] = cmpnt.New(opts...)
 
 	return c
 }
@@ -45,13 +43,9 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 			if p, ok := c.pages[params["name"]]; ok {
-				//opts := []cmpnt.Option{
-				//cmpnt.WithMap(p.KeyMap().Map()),
-				//cmpnt.ReadOnly(),
-				//}
-				//page := cmpnt.New(opts...)
-				page := cmpnt.NewHelp(p.KeyMap())
-				return page, nil
+				page := cmpnt.NewHelp()
+				cmd := page.Init(p.KeyMap())
+				return page, cmd
 			}
 			return c.pages["default"], nil
 		},
@@ -91,7 +85,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return msg.Cmd(c.Current())
 
 	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
-		c.ToggleItems(c.Current())
+		//c.ToggleItems(c.Current())
 		cmds = append(cmds, keys.LineDown)
 
 	case tea.KeyMsg:
@@ -119,6 +113,10 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 func (c *App) Render(w, h int) string {
 	return c.router.Render(w, h)
+}
+
+func (c App) Current() int {
+	return c.currentItem
 }
 
 var fields = []map[string]string{

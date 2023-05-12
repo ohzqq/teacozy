@@ -13,22 +13,25 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(maps ...keys.KeyMap) *Help {
+func NewHelp() *Help {
+	help := &Help{
+		keyMap: keys.NewKeyMap(keys.Esc()),
+	}
+	return help
+}
+
+func (c *Help) Init(maps ...keys.KeyMap) tea.Cmd {
 	var km keys.KeyMap
 	for _, m := range maps {
 		km.AddBinds(m.Keys()...)
 	}
 
-	help := &Help{
-		keyMap: keys.NewKeyMap(keys.Esc()),
-	}
-
-	help.Pager = New(
+	c.Pager = New(
 		WithMap(km.Map()),
 		ReadOnly(),
 	)
 
-	return help
+	return nil
 }
 
 func (c *Help) Update(msg tea.Msg) tea.Cmd {
