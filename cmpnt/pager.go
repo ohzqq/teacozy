@@ -16,7 +16,6 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[reactea.NoProps]
 	Model paginator.Model
 
 	ConfirmChoices bool
@@ -63,10 +62,6 @@ func New(opts ...Option) *Pager {
 		opt(c)
 	}
 
-	return c
-}
-
-func (c *Pager) Init(reactea.NoProps) tea.Cmd {
 	c.State = teacozy.NewProps(c.Choices)
 	c.State.SetCurrent = c.SetCurrent
 	c.State.SetHelp = c.SetHelp
@@ -95,7 +90,7 @@ func (c *Pager) Init(reactea.NoProps) tea.Cmd {
 
 	c.AddKey(keys.Help())
 
-	return nil
+	return c
 }
 
 func (c *Pager) Update(msg tea.Msg) tea.Cmd {
@@ -405,7 +400,11 @@ func (m *Pager) HalfUp() {
 }
 
 func (m *Pager) DisableKeys() {
-	m.KeyMap = keys.NewKeyMap(keys.Quit())
+	m.keyMap = keys.NewKeyMap(keys.Quit())
+}
+
+func (m Pager) KeyMap() keys.KeyMap {
+	return m.keyMap
 }
 
 func clamp(x, min, max int) int {
