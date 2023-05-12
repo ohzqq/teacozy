@@ -1,22 +1,18 @@
 package app
 
+import "github.com/ohzqq/teacozy"
+
 type Option func(*Page)
 
 func WithSlice[E any](c []E) Option {
 	return func(a *Page) {
-		a.choices = SliceToChoices(c)
+		a.choices = teacozy.SliceToChoices(c)
 	}
 }
 
 func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 	return func(a *Page) {
-		a.choices = MapToChoices(c)
-	}
-}
-
-func WithRoute(r Route) Option {
-	return func(a *Page) {
-		a.Routes[r.Name()] = r
+		a.choices = teacozy.MapToChoices(c)
 	}
 }
 
@@ -41,12 +37,6 @@ func WithLimit(l int) Option {
 func WithTitle(t string) Option {
 	return func(a *Page) {
 		a.title = t
-	}
-}
-
-func DefaultRoute(r string) Option {
-	return func(a *Page) {
-		a.defaultRoute = r
 	}
 }
 
