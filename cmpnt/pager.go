@@ -19,16 +19,16 @@ type Page struct {
 	reactea.BasicPropfulComponent[PageProps]
 	Model paginator.Model
 
-	confirmChoices bool
+	ConfirmChoices bool
 	readOnly       bool
 
-	width  int
-	height int
+	Width  int
+	Height int
 
-	numSelected int
-	limit       int
+	NumSelected int
+	Limit       int
 	CurrentItem int
-	noLimit     bool
+	NoLimit     bool
 
 	cursor int
 	total  int
@@ -37,12 +37,12 @@ type Page struct {
 
 	footer string
 
-	choices teacozy.Items
+	Choices teacozy.Items
 	keyMap  keys.KeyMap
-	Style   teacozy.Style
+	Style   Style
 
 	Header *header.Component
-	title  string
+	Title  string
 	header string
 
 	help keys.KeyMap
@@ -51,7 +51,8 @@ type Page struct {
 }
 
 type PageProps struct {
-	Items teacozy.Items
+	Items    teacozy.Items
+	ReadOnly bool
 }
 
 type AppStyle struct {
@@ -60,11 +61,11 @@ type AppStyle struct {
 
 func New(opts ...Option) *Page {
 	c := &Page{
-		width:  util.TermWidth(),
-		height: util.TermHeight() - 2,
-		limit:  10,
+		Width:  util.TermWidth(),
+		Height: util.TermHeight() - 2,
+		Limit:  10,
 		Model:  paginator.New(),
-		Style:  teacozy.DefaultStyle(),
+		Style:  DefaultStyle(),
 	}
 
 	for _, opt := range opts {
@@ -82,16 +83,16 @@ func (c *Page) Init(props PageProps) tea.Cmd {
 	c.State.SetHelp = c.SetHelp
 	c.State.ReadOnly = c.readOnly
 
-	if c.noLimit {
-		c.limit = c.choices.Len()
+	if c.NoLimit {
+		c.Limit = c.Choices.Len()
 	}
 
 	if !c.Props().ReadOnly {
 		c.AddKey(keys.Toggle().AddKeys(" "))
 	}
 
-	c.SetPerPage(c.height)
-	c.SetTotal(c.choices.Len())
+	c.SetPerPage(c.Height)
+	c.SetTotal(c.Choices.Len())
 	c.SliceBounds()
 
 	c.SetKeyMap(keys.VimKeyMap())
@@ -99,7 +100,7 @@ func (c *Page) Init(props PageProps) tea.Cmd {
 	c.Header = header.New()
 	c.Header.Init(
 		header.Props{
-			Title: c.title,
+			Title: c.Title,
 		},
 	)
 
@@ -184,7 +185,7 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 func (c *Page) Render(w, h int) string {
 	var s strings.Builder
 	//h = h - 2
-	h = c.height - 2
+	h = c.Height - 2
 
 	// get matched items
 	items := c.ExactMatches(c.Search)
@@ -269,10 +270,10 @@ func (c *Page) ToggleItems(items ...int) {
 		c.CurrentItem = idx
 		if _, ok := c.Selected[idx]; ok {
 			delete(c.Selected, idx)
-			c.numSelected--
-		} else if c.numSelected < c.limit {
+			c.NumSelected--
+		} else if c.NumSelected < c.Limit {
 			c.Selected[idx] = struct{}{}
-			c.numSelected++
+			c.NumSelected++
 		}
 	}
 }
@@ -281,8 +282,8 @@ func (m Page) Chosen() []map[string]string {
 	var chosen []map[string]string
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
-			l := m.choices.Label(k)
-			v := m.choices.String(k)
+			l := m.Choices.Label(k)
+			v := m.Choices.String(k)
 			chosen = append(chosen, map[string]string{l: v})
 		}
 	}
@@ -298,7 +299,7 @@ func (m *Page) Current() int {
 }
 
 func (c *Page) SetWidth(n int) *Page {
-	c.width = n
+	c.Width = n
 	return c
 }
 
@@ -307,13 +308,13 @@ func (c *Page) SetHelp(km keys.KeyMap) {
 }
 
 func (c *Page) SetHeight(n int) *Page {
-	c.height = n
+	c.Height = n
 	return c
 }
 
 func (c *Page) SetSize(w, h int) *Page {
-	c.width = w
-	c.height = h
+	c.Width = w
+	c.Height = h
 	return c
 }
 

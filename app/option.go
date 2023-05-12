@@ -6,61 +6,61 @@ type Option func(*Page)
 
 func WithSlice[E any](c []E) Option {
 	return func(a *Page) {
-		a.choices = teacozy.SliceToChoices(c)
+		a.Choices = teacozy.SliceToChoices(c)
 	}
 }
 
 func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 	return func(a *Page) {
-		a.choices = teacozy.MapToChoices(c)
+		a.Choices = teacozy.MapToChoices(c)
 	}
 }
 
 func NoLimit() Option {
 	return func(a *Page) {
-		a.noLimit = true
+		a.NoLimit = true
 	}
 }
 
 func ReadOnly() Option {
 	return func(a *Page) {
-		a.readOnly = true
+		a.ReadOnly = true
 	}
 }
 
 func WithLimit(l int) Option {
 	return func(a *Page) {
-		a.limit = l
+		a.Limit = l
 	}
 }
 
 func WithTitle(t string) Option {
 	return func(a *Page) {
-		a.title = t
+		a.Title = t
 	}
 }
 
 func WithWidth(w int) Option {
 	return func(a *Page) {
-		a.width = w
+		a.Width = w
 	}
 }
 
 func WithHeight(h int) Option {
 	return func(a *Page) {
-		a.height = h
+		a.Height = h
 	}
 }
 
 func WithSize(w, h int) Option {
 	return func(a *Page) {
-		a.width = w
-		a.height = h
+		a.Width = w
+		a.Height = h
 	}
 }
 
 func ConfirmChoices() Option {
 	return func(a *Page) {
-		a.confirmChoices = true
+		a.ConfirmChoices = true
 	}
 }
