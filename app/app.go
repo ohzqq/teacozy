@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
+	"github.com/ohzqq/teacozy/cmpnt"
 	"github.com/ohzqq/teacozy/header"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/util"
@@ -17,41 +18,8 @@ import (
 type Page struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
-	Model paginator.Model
 
-	confirmChoices bool
-	readOnly       bool
-
-	width  int
-	height int
-
-	numSelected int
-	limit       int
-	CurrentItem int
-	noLimit     bool
-
-	cursor int
-	total  int
-	start  int
-	end    int
-
-	footer string
-
-	choices teacozy.Items
-	keyMap  keys.KeyMap
-	Style   teacozy.Style
-
-	Header *header.Component
-	title  string
-	header string
-
-	help keys.KeyMap
-
-	teacozy.State
-}
-
-type Props struct {
-	teacozy.State
+	cmpnt.Page
 }
 
 type AppStyle struct {
@@ -71,10 +39,12 @@ func New(opts ...Option) *Page {
 		opt(c)
 	}
 
-	c.State = teacozy.NewProps(c.choices)
-	c.State.SetCurrent = c.SetCurrent
-	c.State.SetHelp = c.SetHelp
-	c.State.ReadOnly = c.readOnly
+	c.Page.Init(cmpnt.PageProps{Items: c.choices})
+
+	//c.State = teacozy.NewProps(c.choices)
+	//c.State.SetCurrent = c.SetCurrent
+	//c.State.SetHelp = c.SetHelp
+	//c.State.ReadOnly = c.readOnly
 
 	return c
 }
@@ -92,7 +62,6 @@ func (c *Page) Init(reactea.NoProps) tea.Cmd {
 	c.SetTotal(c.choices.Len())
 	c.SliceBounds()
 
-	//c.Paginator = pagy.New(c.height, c.choices.Len())
 	c.SetKeyMap(keys.VimKeyMap())
 
 	c.Header = header.New()
@@ -145,6 +114,7 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	case keys.BottomMsg:
 		c.cursor = c.total - 1
 		c.Model.Page = c.Model.TotalPages - 1
+
 	case keys.ShowHelpMsg:
 		cmds = append(cmds, keys.ChangeRoute("help"))
 		//help := NewProps(c.help)
@@ -172,8 +142,6 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	}
 
 	c.SliceBounds()
-	//c.Paginator, cmd = c.Paginator.Update(msg)
-	//cmds = append(cmds, cmd)
 
 	cmd = c.Header.Update(msg)
 	cmds = append(cmds, cmd)
