@@ -2,47 +2,30 @@ package app
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/cmpnt"
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Page struct {
+type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	*cmpnt.Page
+	*cmpnt.Pager
 }
 
-type AppStyle struct {
-	Footer lipgloss.Style
-}
-
-func New(opts ...cmpnt.Option) *Page {
-	c := &Page{
-		//width:  util.TermWidth(),
-		//height: util.TermHeight() - 2,
-		//limit:  10,
-		//Page: cmpnt
-		//Model: paginator.New(),
-		//Style: pager.DefaultStyle(),
-	}
-	c.Page = cmpnt.New(opts...)
-
-	//c.State = teacozy.NewProps(c.choices)
-	//c.State.SetCurrent = c.SetCurrent
-	//c.State.SetHelp = c.SetHelp
-	//c.State.ReadOnly = c.readOnly
+func New(opts ...cmpnt.Option) *App {
+	c := &App{}
+	c.Pager = cmpnt.New(opts...)
 
 	return c
 }
 
-func (c *Page) Init(reactea.NoProps) tea.Cmd {
-	return c.Page.Init(cmpnt.PageProps{Items: c.Choices})
+func (c *App) Init(reactea.NoProps) tea.Cmd {
+	return c.Pager.Init(reactea.NoProps{})
 }
 
-func (c *Page) Update(msg tea.Msg) tea.Cmd {
+func (c *App) Update(msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -75,35 +58,12 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 
 	}
 
-	cmd = c.Page.Update(msg)
-	cmds = append(cmds, cmd)
-
-	cmd = c.Header.Update(msg)
+	cmd = c.Pager.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
 }
 
-func (c *Page) Render(w, h int) string {
-	return c.Page.Render(w, h)
-}
-
-func (c Page) renderHeader(w, h int) string {
-	return c.Header.Render(w, h)
-}
-
-func (c Page) renderFooter(w, h int) string {
-	var footer string
-
-	//footer = fmt.Sprintf(
-	//"cur route %v, per %v",
-	//reactea.CurrentRoute(),
-	//c.router.PrevRoute,
-	//)
-
-	//if c.footer != "" {
-	//  footer = c.Style.Footer.Render(c.footer)
-	//}
-
-	return footer
+func (c *App) Render(w, h int) string {
+	return c.Pager.Render(w, h)
 }

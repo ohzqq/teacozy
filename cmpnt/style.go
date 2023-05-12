@@ -21,7 +21,7 @@ type Style struct {
 	Match    lipgloss.Style
 }
 
-func (c Page) PrefixText(label string, selected, current bool) string {
+func (c Pager) PrefixText(label string, selected, current bool) string {
 	switch {
 	case label != "":
 		return label
@@ -34,7 +34,7 @@ func (c Page) PrefixText(label string, selected, current bool) string {
 	}
 }
 
-func (c Page) PrefixStyle(label string, selected, current bool) Prefix {
+func (c Pager) PrefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
 		return c.Style.Cursor

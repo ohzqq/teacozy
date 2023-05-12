@@ -14,9 +14,9 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type Page struct {
+type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[PageProps]
+	reactea.BasicPropfulComponent[reactea.NoProps]
 	Model paginator.Model
 
 	ConfirmChoices bool
@@ -50,17 +50,8 @@ type Page struct {
 	teacozy.State
 }
 
-type PageProps struct {
-	Items    teacozy.Items
-	ReadOnly bool
-}
-
-type AppStyle struct {
-	Footer lipgloss.Style
-}
-
-func New(opts ...Option) *Page {
-	c := &Page{
+func New(opts ...Option) *Pager {
+	c := &Pager{
 		Width:  util.TermWidth(),
 		Height: util.TermHeight() - 2,
 		Limit:  10,
@@ -75,10 +66,8 @@ func New(opts ...Option) *Page {
 	return c
 }
 
-func (c *Page) Init(props PageProps) tea.Cmd {
-	c.UpdateProps(props)
-
-	c.State = teacozy.NewProps(c.Props().Items)
+func (c *Pager) Init(reactea.NoProps) tea.Cmd {
+	c.State = teacozy.NewProps(c.Choices)
 	c.State.SetCurrent = c.SetCurrent
 	c.State.SetHelp = c.SetHelp
 	c.State.ReadOnly = c.readOnly
@@ -87,7 +76,7 @@ func (c *Page) Init(props PageProps) tea.Cmd {
 		c.Limit = c.Choices.Len()
 	}
 
-	if !c.Props().ReadOnly {
+	if !c.readOnly {
 		c.AddKey(keys.Toggle().AddKeys(" "))
 	}
 
@@ -109,7 +98,7 @@ func (c *Page) Init(props PageProps) tea.Cmd {
 	return nil
 }
 
-func (c *Page) Update(msg tea.Msg) tea.Cmd {
+func (c *Pager) Update(msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -182,7 +171,7 @@ func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *Page) Render(w, h int) string {
+func (c *Pager) Render(w, h int) string {
 	var s strings.Builder
 	//h = h - 2
 	h = c.Height - 2
@@ -232,11 +221,11 @@ func (c *Page) Render(w, h int) string {
 	return s.String()
 }
 
-func (c Page) renderHeader(w, h int) string {
+func (c Pager) renderHeader(w, h int) string {
 	return c.Header.Render(w, h)
 }
 
-func (c Page) renderFooter(w, h int) string {
+func (c Pager) renderFooter(w, h int) string {
 	var footer string
 
 	//footer = fmt.Sprintf(
@@ -252,11 +241,11 @@ func (c Page) renderFooter(w, h int) string {
 	return footer
 }
 
-func (c Page) ToggleItem() {
+func (c Pager) ToggleItem() {
 	c.ToggleItems(c.Current())
 }
 
-func (c *Page) AddKey(k *keys.Binding) *Page {
+func (c *Pager) AddKey(k *keys.Binding) *Pager {
 	if !c.keyMap.Contains(k) {
 		c.keyMap.AddBinds(k)
 	} else {
@@ -265,7 +254,7 @@ func (c *Page) AddKey(k *keys.Binding) *Page {
 	return c
 }
 
-func (c *Page) ToggleItems(items ...int) {
+func (c *Pager) ToggleItems(items ...int) {
 	for _, idx := range items {
 		c.CurrentItem = idx
 		if _, ok := c.Selected[idx]; ok {
@@ -278,7 +267,7 @@ func (c *Page) ToggleItems(items ...int) {
 	}
 }
 
-func (m Page) Chosen() []map[string]string {
+func (m Pager) Chosen() []map[string]string {
 	var chosen []map[string]string
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
@@ -290,83 +279,83 @@ func (m Page) Chosen() []map[string]string {
 	return chosen
 }
 
-func (m *Page) SetCurrent(idx int) {
+func (m *Pager) SetCurrent(idx int) {
 	m.CurrentItem = idx
 }
 
-func (m *Page) Current() int {
+func (m *Pager) Current() int {
 	return m.CurrentItem
 }
 
-func (c *Page) SetWidth(n int) *Page {
+func (c *Pager) SetWidth(n int) *Pager {
 	c.Width = n
 	return c
 }
 
-func (c *Page) SetHelp(km keys.KeyMap) {
+func (c *Pager) SetHelp(km keys.KeyMap) {
 	c.help = km
 }
 
-func (c *Page) SetHeight(n int) *Page {
+func (c *Pager) SetHeight(n int) *Pager {
 	c.Height = n
 	return c
 }
 
-func (c *Page) SetSize(w, h int) *Page {
+func (c *Pager) SetSize(w, h int) *Pager {
 	c.Width = w
 	c.Height = h
 	return c
 }
 
-func (c *Page) SetHeader(h string) {
+func (c *Pager) SetHeader(h string) {
 	c.header = h
 }
 
-func (m Page) Cursor() int {
+func (m Pager) Cursor() int {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 	return m.cursor
 }
 
-func (m *Page) ResetCursor() {
+func (m *Pager) ResetCursor() {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 }
 
-func (m Page) Len() int {
+func (m Pager) Len() int {
 	return m.total
 }
 
-func (m Page) Start() int {
+func (m Pager) Start() int {
 	return m.start
 }
 
-func (m Page) End() int {
+func (m Pager) End() int {
 	return m.end
 }
 
-func (m *Page) SetCursor(n int) *Page {
+func (m *Pager) SetCursor(n int) *Pager {
 	m.cursor = n
 	return m
 }
 
-func (m *Page) SetKeyMap(km keys.KeyMap) {
+func (m *Pager) SetKeyMap(km keys.KeyMap) {
 	m.keyMap = km
 }
 
-func (m *Page) SetTotal(n int) *Page {
+func (m *Pager) SetTotal(n int) *Pager {
 	m.total = n
 	m.Model.SetTotalPages(n)
 	m.SliceBounds()
 	return m
 }
 
-func (m *Page) SetPerPage(n int) *Page {
+func (m *Pager) SetPerPage(n int) *Pager {
 	m.Model.PerPage = n
 	m.Model.SetTotalPages(m.total)
 	m.SliceBounds()
 	return m
 }
 
-func (m Page) Highlighted() int {
+func (m Pager) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.Model.PerPage {
 			return i
@@ -375,47 +364,47 @@ func (m Page) Highlighted() int {
 	return 0
 }
 
-func (m *Page) SliceBounds() (int, int) {
+func (m *Pager) SliceBounds() (int, int) {
 	m.start, m.end = m.Model.GetSliceBounds(m.total)
 	m.start = clamp(m.start, 0, m.total-1)
 	return m.start, m.end
 }
 
-func (m Page) OnLastItem() bool {
+func (m Pager) OnLastItem() bool {
 	return m.cursor == m.total-1
 }
 
-func (m Page) OnFirstItem() bool {
+func (m Pager) OnFirstItem() bool {
 	return m.cursor == 0
 }
 
-func (m *Page) NextItem() {
+func (m *Pager) NextItem() {
 	if !m.OnLastItem() {
 		m.cursor++
 	}
 }
 
-func (m *Page) PrevItem() {
+func (m *Pager) PrevItem() {
 	if !m.OnFirstItem() {
 		m.cursor--
 	}
 }
 
-func (m *Page) HalfDown() {
+func (m *Pager) HalfDown() {
 	if !m.OnLastItem() {
 		m.cursor = m.cursor + m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Page) HalfUp() {
+func (m *Pager) HalfUp() {
 	if !m.OnFirstItem() {
 		m.cursor = m.cursor - m.Model.PerPage/2 - 1
 		m.cursor = clamp(m.cursor, 0, m.total-1)
 	}
 }
 
-func (m *Page) DisableKeys() {
+func (m *Pager) DisableKeys() {
 	m.KeyMap = keys.NewKeyMap(keys.Quit())
 }
 
