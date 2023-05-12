@@ -58,55 +58,55 @@ func (c *Pager) Init(props PagerProps) tea.Cmd {
 	return nil
 }
 
-func (m *Pager) Update(msg tea.Msg) tea.Cmd {
-	reactea.AfterUpdate(m)
+func (c *Pager) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(c)
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case keys.PageUpMsg:
-		m.cursor = clamp(m.cursor-m.Model.PerPage, 0, m.total-1)
-		m.Model.PrevPage()
+		c.cursor = clamp(c.cursor-c.Model.PerPage, 0, c.total-1)
+		c.Model.PrevPage()
 	case keys.PageDownMsg:
-		m.cursor = clamp(m.cursor+m.Model.PerPage, 0, m.total-1)
-		m.Model.NextPage()
+		c.cursor = clamp(c.cursor+c.Model.PerPage, 0, c.total-1)
+		c.Model.NextPage()
 	case keys.HalfPageUpMsg:
-		m.HalfUp()
-		if m.cursor < m.start {
-			m.Model.PrevPage()
+		c.HalfUp()
+		if c.cursor < c.start {
+			c.Model.PrevPage()
 		}
 	case keys.HalfPageDownMsg:
-		m.HalfDown()
-		if m.cursor >= m.end {
-			m.Model.NextPage()
+		c.HalfDown()
+		if c.cursor >= c.end {
+			c.Model.NextPage()
 		}
 	case keys.LineDownMsg:
-		m.NextItem()
-		if m.cursor >= m.end {
-			m.Model.NextPage()
+		c.NextItem()
+		if c.cursor >= c.end {
+			c.Model.NextPage()
 		}
 	case keys.LineUpMsg:
-		m.PrevItem()
-		if m.cursor < m.start {
-			m.Model.PrevPage()
+		c.PrevItem()
+		if c.cursor < c.start {
+			c.Model.PrevPage()
 		}
 	case keys.TopMsg:
-		m.cursor = 0
-		m.Model.Page = 0
+		c.cursor = 0
+		c.Model.Page = 0
 	case keys.BottomMsg:
-		m.cursor = m.total - 1
-		m.Model.Page = m.Model.TotalPages - 1
+		c.cursor = c.total - 1
+		c.Model.Page = c.Model.TotalPages - 1
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return tea.Quit
 		}
-		for _, k := range m.KeyMap.Keys() {
+		for _, k := range c.KeyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
 			}
 		}
 	}
 
-	m.SliceBounds()
+	c.SliceBounds()
 
 	return tea.Batch(cmds...)
 }
@@ -159,6 +159,7 @@ func (c *Pager) Render(w, h int) string {
 
 	return s.String()
 }
+
 func (m Pager) Cursor() int {
 	m.cursor = clamp(m.cursor, 0, m.end-1)
 	return m.cursor

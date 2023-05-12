@@ -60,7 +60,7 @@ func Renderer(props State, w, h int) string {
 	h = h - 2
 
 	// get matched items
-	items := props.exactMatches(props.Search)
+	items := props.ExactMatches(props.Search)
 
 	props.SetPerPage(h)
 
@@ -81,8 +81,8 @@ func Renderer(props State, w, h int) string {
 		}
 
 		label := props.Items.Label(m.Index)
-		pre := props.prefixText(label, sel, cur)
-		style := props.prefixStyle(label, sel, cur)
+		pre := props.PrefixText(label, sel, cur)
+		style := props.PrefixStyle(label, sel, cur)
 
 		// only print the prefix if it's a list or there's a label
 		if !props.ReadOnly || label != "" {
@@ -119,7 +119,7 @@ func (p *State) SetName(name string) {
 	p.name = name
 }
 
-func (c State) prefixText(label string, selected, current bool) string {
+func (c State) PrefixText(label string, selected, current bool) string {
 	switch {
 	case label != "":
 		return label
@@ -132,7 +132,7 @@ func (c State) prefixText(label string, selected, current bool) string {
 	}
 }
 
-func (c State) prefixStyle(label string, selected, current bool) Prefix {
+func (c State) PrefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
 		return c.Style.Cursor
@@ -152,7 +152,7 @@ func (c *State) Filter(s string, w, h int) string {
 	return Renderer(p, w, h)
 }
 
-func (c *State) exactMatches(search string) fuzzy.Matches {
+func (c *State) ExactMatches(search string) fuzzy.Matches {
 	if search != "" {
 		if m := fuzzy.FindFrom(search, c.Items); len(m) > 0 {
 			return m
