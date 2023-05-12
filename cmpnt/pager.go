@@ -10,7 +10,6 @@ import (
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/state"
 )
 
 type Pager struct {
@@ -18,24 +17,21 @@ type Pager struct {
 	reactea.BasicPropfulComponent[PagerProps]
 	Model paginator.Model
 
-	cursor   int
-	total    int
-	start    int
-	end      int
-	ReadOnly bool
-	Index    int
-	KeyMap   keys.KeyMap
-	Style    Style
-	slug     string
+	cursor int
+	total  int
+	start  int
+	end    int
+	Index  int
+	KeyMap keys.KeyMap
+	Style  Style
+	slug   string
 }
 
 type PagerProps struct {
 	Items      teacozy.Items
-	Selected   map[int]struct{}
 	PerPage    int
 	Total      int
-	ReadOnly   bool
-	InputValue func() string
+	ReadOnly   func() bool
 	SetCurrent func(int)
 }
 
@@ -50,9 +46,8 @@ func NewPager() *Pager {
 
 func NewPagerProps(items teacozy.Items) PagerProps {
 	p := PagerProps{
-		Items:      items,
-		Selected:   make(map[int]struct{}),
-		InputValue: state.InputValue,
+		Items:    items,
+		Selected: make(map[int]struct{}),
 	}
 	return p
 }
@@ -134,8 +129,7 @@ func (c *Pager) Render(w, h int) string {
 	for i, m := range items[c.Start():c.End()] {
 		var cur bool
 		if i == c.Highlighted() {
-			c.SetCurrent(m.Index)
-			state.SetCurrentItem(m.Index)
+			c.Props().SetCurrent(m.Index)
 			cur = true
 		}
 
