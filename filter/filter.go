@@ -86,7 +86,7 @@ func (c *Component) Render(w, h int) string {
 	return ""
 }
 
-func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *Component) Initializer(props teacozy.State) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		p := Props{

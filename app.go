@@ -44,7 +44,7 @@ type App struct {
 
 	help keys.KeyMap
 
-	Props
+	State
 }
 
 type AppStyle struct {
@@ -71,10 +71,10 @@ func New(opts ...Option) *App {
 		opt(c)
 	}
 
-	c.Props = NewProps(c.choices)
-	c.Props.SetCurrent = c.SetCurrent
-	c.Props.SetHelp = c.SetHelp
-	c.Props.ReadOnly = c.readOnly
+	c.State = NewProps(c.choices)
+	c.State.SetCurrent = c.SetCurrent
+	c.State.SetHelp = c.SetHelp
+	c.State.ReadOnly = c.readOnly
 
 	return c
 }
@@ -198,7 +198,7 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
-func (c *App) ItemProps() Props {
+func (c *App) ItemProps() State {
 	props := NewProps(c.choices)
 	props.Paginator = c.Paginator
 	props.Selected = c.Selected
@@ -212,7 +212,7 @@ func (c *App) ItemProps() Props {
 func (c *App) InitRoutes() tea.Cmd {
 	routes := make(map[string]router.RouteInitializer, len(c.Routes))
 	for name, route := range c.Routes {
-		routes[name] = route.Initializer(c.Props)
+		routes[name] = route.Initializer(c.State)
 	}
 
 	p := RouterProps{

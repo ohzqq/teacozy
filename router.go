@@ -18,7 +18,7 @@ type Router struct {
 }
 
 type Route interface {
-	Initializer(Props) router.RouteInitializer
+	Initializer(State) router.RouteInitializer
 	Name() string
 }
 
