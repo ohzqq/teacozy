@@ -17,6 +17,7 @@ type App struct {
 	router    *router.Component
 	pages     map[string]*cmpnt.Pager
 	endpoints []string
+	prevRoute string
 
 	*cmpnt.Pager
 }
@@ -28,7 +29,8 @@ func New(opts ...cmpnt.Option) *App {
 			"main/:name",
 			"help/:name",
 		},
-		pages: make(map[string]*cmpnt.Pager),
+		pages:     make(map[string]*cmpnt.Pager),
+		prevRoute: "default",
 	}
 	c.Pager = cmpnt.New(opts...)
 	c.pages["default"] = c.Pager
@@ -43,11 +45,12 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		},
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 			if p, ok := c.pages[params["name"]]; ok {
-				opts := []cmpnt.Option{
-					cmpnt.WithMap(p.KeyMap().Map()),
-					cmpnt.ReadOnly(),
-				}
-				page := cmpnt.New(opts...)
+				//opts := []cmpnt.Option{
+				//cmpnt.WithMap(p.KeyMap().Map()),
+				//cmpnt.ReadOnly(),
+				//}
+				//page := cmpnt.New(opts...)
+				page := cmpnt.NewHelp(p.KeyMap())
 				return page, nil
 			}
 			return c.pages["default"], nil
@@ -56,20 +59,33 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
+	reactea.AfterUpdate(c)
+
 	if reactea.CurrentRoute() == "" {
 		reactea.SetCurrentRoute("default")
 	}
-	reactea.AfterUpdate(c)
+
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case keys.ChangeRouteMsg:
+		route := msg.Name
+		switch route {
+		case reactea.CurrentRoute():
+			return nil
+		case "prev":
+			route = c.prevRoute
+		default:
+			c.prevRoute = reactea.CurrentRoute()
+		}
+		reactea.SetCurrentRoute(route)
+	//cmds = append(cmds, keys.ChangeRoute("help"))
+
 	case keys.ShowHelpMsg:
-		cmds = append(cmds, keys.ChangeRoute("help"))
-		//help := NewProps(c.help)
-		//help.SetName("help")
-		//return ChangeRoute(&help)
+		page := filepath.Base(reactea.CurrentRoute())
+		return keys.ChangeRoute(filepath.Join("help", page))
 
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
@@ -84,8 +100,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			return reactea.Destroy
 		}
 		if msg.String() == "f1" {
-			page := filepath.Base(reactea.CurrentRoute())
-			reactea.SetCurrentRoute(filepath.Join("help", page))
+			return keys.ShowHelp
 		}
 
 		//for _, k := range c.KeyMap.Keys() {
