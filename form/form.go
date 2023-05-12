@@ -15,7 +15,7 @@ import (
 
 type Component struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[teacozy.Props]
+	reactea.BasicPropfulComponent[teacozy.State]
 
 	input textarea.Model
 
@@ -36,7 +36,7 @@ func New() *Component {
 	return c
 }
 
-func (c *Component) Init(props teacozy.Props) tea.Cmd {
+func (c *Component) Init(props teacozy.State) tea.Cmd {
 	c.UpdateProps(props)
 	c.KeyMap = DefaultKeyMap()
 	c.input.Prompt = c.Prompt
@@ -128,7 +128,7 @@ func (c *Component) Render(w, h int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, view, input)
 }
 
-func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *Component) Initializer(props teacozy.State) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		comp := New()
 		props.SetKeyMap(keys.VimKeyMap())

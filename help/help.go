@@ -16,9 +16,9 @@ func New(km keys.KeyMap) *Component {
 	return &Component{KeyMap: km}
 }
 
-func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *Component) Initializer(props teacozy.State) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		component := reactea.Componentify[teacozy.Props](c.Render)
+		component := reactea.Componentify[teacozy.State](c.Render)
 		props.Items = c.KeyMap
 		props.ReadOnly = true
 		props.KeyMap.AddBinds(
@@ -34,7 +34,7 @@ func (c Component) Name() string {
 	return "help"
 }
 
-func (m *Component) Render(props teacozy.Props, w, h int) string {
+func (m *Component) Render(props teacozy.State, w, h int) string {
 	m.view.SetWidth(w)
 	m.view.SetHeight(h)
 	return m.view.View()

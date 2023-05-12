@@ -1,4 +1,4 @@
-package teacozy
+package app
 
 type Option func(*Page)
 

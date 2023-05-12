@@ -13,7 +13,7 @@ import (
 	"github.com/ohzqq/teacozy/util"
 )
 
-type App struct {
+type Page struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
@@ -51,8 +51,8 @@ type AppStyle struct {
 	Footer lipgloss.Style
 }
 
-func New(opts ...Option) *App {
-	c := &App{
+func New(opts ...Option) *Page {
+	c := &Page{
 		router:       NewRouter(),
 		Routes:       make(map[string]Route),
 		defaultRoute: "default",
@@ -79,7 +79,7 @@ func New(opts ...Option) *App {
 	return c
 }
 
-func (c *App) Init(reactea.NoProps) tea.Cmd {
+func (c *Page) Init(reactea.NoProps) tea.Cmd {
 	c.Routes["default"] = c
 
 	if c.noLimit {
@@ -110,7 +110,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *App) Update(msg tea.Msg) tea.Cmd {
+func (c *Page) Update(msg tea.Msg) tea.Cmd {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -154,7 +154,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (c *App) Render(w, h int) string {
+func (c *Page) Render(w, h int) string {
 	height := c.height
 	var view []string
 
@@ -178,11 +178,11 @@ func (c *App) Render(w, h int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, view...)
 }
 
-func (c App) renderHeader(w, h int) string {
+func (c Page) renderHeader(w, h int) string {
 	return c.Header.Render(w, h)
 }
 
-func (c App) renderFooter(w, h int) string {
+func (c Page) renderFooter(w, h int) string {
 	var footer string
 
 	//footer = fmt.Sprintf(
@@ -198,7 +198,7 @@ func (c App) renderFooter(w, h int) string {
 	return footer
 }
 
-func (c *App) ItemProps() State {
+func (c *Page) ItemProps() State {
 	props := NewProps(c.choices)
 	props.Paginator = c.Paginator
 	props.Selected = c.Selected
@@ -209,7 +209,7 @@ func (c *App) ItemProps() State {
 	return props
 }
 
-func (c *App) InitRoutes() tea.Cmd {
+func (c *Page) InitRoutes() tea.Cmd {
 	routes := make(map[string]router.RouteInitializer, len(c.Routes))
 	for name, route := range c.Routes {
 		routes[name] = route.Initializer(c.State)
@@ -224,22 +224,22 @@ func (c *App) InitRoutes() tea.Cmd {
 	return c.router.Init(p)
 }
 
-func (c *App) UpdateRoute(r Route) tea.Cmd {
+func (c *Page) UpdateRoute(r Route) tea.Cmd {
 	c.Routes[c.Name()] = r
 	c.InitRoutes()
 	return keys.ChangeRoute(r.Name())
 }
 
-func (c *App) SetKeyMap(km keys.KeyMap) *App {
+func (c *Page) SetKeyMap(km keys.KeyMap) *Page {
 	c.Paginator.SetKeyMap(km)
 	return c
 }
 
-func (c App) ToggleItem() {
+func (c Page) ToggleItem() {
 	c.ToggleItems(c.Current())
 }
 
-func (c *App) AddKey(k *keys.Binding) *App {
+func (c *Page) AddKey(k *keys.Binding) *Page {
 	if !c.keyMap.Contains(k) {
 		c.keyMap.AddBinds(k)
 	} else {
@@ -248,7 +248,7 @@ func (c *App) AddKey(k *keys.Binding) *App {
 	return c
 }
 
-func (c *App) ToggleItems(items ...int) {
+func (c *Page) ToggleItems(items ...int) {
 	for _, idx := range items {
 		c.CurrentItem = idx
 		if _, ok := c.Selected[idx]; ok {
@@ -261,7 +261,7 @@ func (c *App) ToggleItems(items ...int) {
 	}
 }
 
-func (m App) Chosen() []map[string]string {
+func (m Page) Chosen() []map[string]string {
 	var chosen []map[string]string
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
@@ -273,34 +273,34 @@ func (m App) Chosen() []map[string]string {
 	return chosen
 }
 
-func (m *App) SetCurrent(idx int) {
+func (m *Page) SetCurrent(idx int) {
 	m.CurrentItem = idx
 }
 
-func (m *App) Current() int {
+func (m *Page) Current() int {
 	return m.CurrentItem
 }
 
-func (c *App) SetWidth(n int) *App {
+func (c *Page) SetWidth(n int) *Page {
 	c.width = n
 	return c
 }
 
-func (c *App) SetHelp(km keys.KeyMap) {
+func (c *Page) SetHelp(km keys.KeyMap) {
 	c.help = km
 }
 
-func (c *App) SetHeight(n int) *App {
+func (c *Page) SetHeight(n int) *Page {
 	c.height = n
 	return c
 }
 
-func (c *App) SetSize(w, h int) *App {
+func (c *Page) SetSize(w, h int) *Page {
 	c.width = w
 	c.height = h
 	return c
 }
 
-func (c *App) SetHeader(h string) {
+func (c *Page) SetHeader(h string) {
 	c.header = h
 }

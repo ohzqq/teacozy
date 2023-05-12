@@ -23,7 +23,7 @@ type Component struct {
 }
 
 type Props struct {
-	teacozy.Props
+	teacozy.State
 	Question string
 	Func     ConfirmFunc
 }
@@ -80,11 +80,11 @@ func (c *Component) KeyMap() keys.KeyMap {
 	return keys.NewKeyMap(km...)
 }
 
-func (c *Component) Initializer(props teacozy.Props) router.RouteInitializer {
+func (c *Component) Initializer(props teacozy.State) router.RouteInitializer {
 	return func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		props.DisableKeys()
 		p := Props{
-			Props:    props,
+			State:    props,
 			Question: c.question,
 			Func:     c.confirm,
 		}
@@ -101,7 +101,7 @@ func (c *Component) Render(w, h int) string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		view,
-		teacozy.Renderer(c.Props().Props, w, h-1),
+		teacozy.Renderer(c.Props().State, w, h-1),
 	)
 }
 
