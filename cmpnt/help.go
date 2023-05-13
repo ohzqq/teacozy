@@ -25,12 +25,10 @@ func (c *Help) Init(maps ...keys.KeyMap) tea.Cmd {
 	for _, m := range maps {
 		km.AddBinds(m.Keys()...)
 	}
-
 	c.Pager = New(
 		WithMap(km.Map()),
 		ReadOnly(),
 	)
-
 	return nil
 }
 

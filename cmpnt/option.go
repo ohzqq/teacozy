@@ -34,12 +34,6 @@ func WithLimit(l int) Option {
 	}
 }
 
-func WithTitle(t string) Option {
-	return func(a *Pager) {
-		a.Title = t
-	}
-}
-
 func WithWidth(w int) Option {
 	return func(a *Pager) {
 		a.Height = w

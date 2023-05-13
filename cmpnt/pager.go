@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/header"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -28,6 +27,7 @@ type Pager struct {
 	Limit       int
 	CurrentItem int
 	NoLimit     bool
+	ReadOnly    bool
 
 	cursor int
 	total  int
@@ -39,10 +39,6 @@ type Pager struct {
 	Choices teacozy.Items
 	keyMap  keys.KeyMap
 	Style   Style
-
-	Header *header.Component
-	Title  string
-	header string
 
 	help keys.KeyMap
 
@@ -81,13 +77,6 @@ func New(opts ...Option) *Pager {
 
 	c.SetKeyMap(keys.VimKeyMap())
 
-	c.Header = header.New()
-	c.Header.Init(
-		header.Props{
-			Title: c.Title,
-		},
-	)
-
 	c.AddKey(keys.Help())
 
 	return c
@@ -95,7 +84,6 @@ func New(opts ...Option) *Pager {
 
 func (c *Pager) Update(msg tea.Msg) tea.Cmd {
 	var (
-		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
@@ -160,9 +148,6 @@ func (c *Pager) Update(msg tea.Msg) tea.Cmd {
 
 	c.SliceBounds()
 
-	cmd = c.Header.Update(msg)
-	cmds = append(cmds, cmd)
-
 	return tea.Batch(cmds...)
 }
 
@@ -214,26 +199,6 @@ func (c *Pager) Render(w, h int) string {
 	}
 
 	return s.String()
-}
-
-func (c Pager) renderHeader(w, h int) string {
-	return c.Header.Render(w, h)
-}
-
-func (c Pager) renderFooter(w, h int) string {
-	var footer string
-
-	//footer = fmt.Sprintf(
-	//"cur route %v, per %v",
-	//reactea.CurrentRoute(),
-	//c.router.PrevRoute,
-	//)
-
-	//if c.footer != "" {
-	//  footer = c.Style.Footer.Render(c.footer)
-	//}
-
-	return footer
 }
 
 func (c Pager) ToggleItem() {
@@ -300,10 +265,6 @@ func (c *Pager) SetSize(w, h int) *Pager {
 	c.Width = w
 	c.Height = h
 	return c
-}
-
-func (c *Pager) SetHeader(h string) {
-	c.header = h
 }
 
 func (m Pager) Cursor() int {

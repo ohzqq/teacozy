@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/cmpnt"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -18,7 +19,12 @@ type App struct {
 	pages       map[string]*cmpnt.Pager
 	endpoints   []string
 	prevRoute   string
-	currentItem int
+	CurrentItem int
+	Selected    map[int]struct{}
+	Search      string
+	ReadOnly    bool
+
+	teacozy.State
 }
 
 func New(opts ...cmpnt.Option) *App {
@@ -32,6 +38,7 @@ func New(opts ...cmpnt.Option) *App {
 		prevRoute: "default",
 	}
 	c.pages["default"] = cmpnt.New(opts...)
+	c.pages["main/default"] = c.pages["default"]
 
 	return c
 }
@@ -39,6 +46,12 @@ func New(opts ...cmpnt.Option) *App {
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.router.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			return c.pages["default"], nil
+		},
+		"main/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
+			if p, ok := c.pages[params["name"]]; ok {
+				return p, nil
+			}
 			return c.pages["default"], nil
 		},
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
@@ -56,7 +69,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	if reactea.CurrentRoute() == "" {
-		reactea.SetCurrentRoute("default")
+		reactea.SetCurrentRoute("main/default")
 	}
 
 	var (
@@ -84,9 +97,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	case keys.UpdateItemMsg:
 		return msg.Cmd(c.Current())
 
-	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
-		//c.ToggleItems(c.Current())
-		cmds = append(cmds, keys.LineDown)
+	//case keys.ToggleItemsMsg, keys.ToggleItemMsg:
+	//c.ToggleItems(c.Current())
+	//cmds = append(cmds, keys.LineDown)
 
 	case tea.KeyMsg:
 		// ctrl+c support
@@ -116,7 +129,7 @@ func (c *App) Render(w, h int) string {
 }
 
 func (c App) Current() int {
-	return c.currentItem
+	return c.CurrentItem
 }
 
 var fields = []map[string]string{
