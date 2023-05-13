@@ -23,9 +23,6 @@ type App struct {
 	prevRoute   string
 	CurrentItem int
 	Selected    map[int]struct{}
-	Search      string
-	ReadOnly    bool
-	help        *Page
 
 	teacozy.State
 }
@@ -53,8 +50,6 @@ func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 		props.Items = data[0]
 	}
 	c.pages[endpoint] = NewPage(endpoint, data...)
-	c.pages[endpoint].SetCurrent = c.SetCurrent
-	//c.pages[endpoint].Current = c.Current
 	c.pages[endpoint].Init(props)
 }
 

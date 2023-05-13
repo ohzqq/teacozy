@@ -8,12 +8,12 @@ import (
 	"github.com/ohzqq/teacozy/cmpnt"
 )
 
-type Route func(*cmpnt.Pager) reactea.SomeComponent
+type PageInitializer func(*cmpnt.Pager) reactea.SomeComponent
 
 type Page struct {
 	Data        []teacozy.Items
 	Name        string
-	Initializer Route
+	Initializer PageInitializer
 	*cmpnt.Pager
 }
 
@@ -26,7 +26,7 @@ func NewPage(name string, data ...teacozy.Items) *Page {
 	return page
 }
 
-func (p *Page) InitFunc(fn Route) *Page {
+func (p *Page) InitFunc(fn PageInitializer) *Page {
 	p.Initializer = fn
 	return p
 }
@@ -45,8 +45,3 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 
 	return p.Pager
 }
-
-//func (p *Page) Initialize(id string, fn Route) reactea.SomeComponent {
-//  pager := p.UpdateProps(id)
-//  return fn(pager)
-//}
