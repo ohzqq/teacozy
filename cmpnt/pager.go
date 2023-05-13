@@ -6,7 +6,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
@@ -58,15 +57,6 @@ func New(choices teacozy.Items) *Pager {
 		Style:    DefaultStyle(),
 		Items:    choices,
 	}
-
-	//for _, opt := range opts {
-	//  opt(c)
-	//}
-
-	//c.State = teacozy.NewProps(c.Choices)
-	//c.State.SetCurrent = c.SetCurrent
-	//c.State.SetHelp = c.SetHelp
-	//c.State.ReadOnly = c.readOnly
 
 	if c.NoLimit {
 		c.Limit = c.Items.Len()
@@ -171,38 +161,17 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	for i, m := range items[c.Start():c.End()] {
-		var cur bool
-		if i == c.Highlighted() {
-			c.SetCurrent(m.Index)
-			cur = true
-		}
-
-		var sel bool
-		if _, ok := c.Selected[m.Index]; ok {
-			sel = true
-		}
-
-		label := c.Items.Label(m.Index)
-		pre := c.PrefixText(label, sel, cur)
-		style := c.PrefixStyle(label, sel, cur)
-
-		// only print the prefix if it's a list or there's a label
-		if !c.ReadOnly || label != "" {
-			s.WriteString(style.Render(pre))
-		}
-
-		// render the rest of the line
-		text := lipgloss.StyleRunes(
-			m.Str,
-			m.MatchedIndexes,
-			c.Style.Match,
-			c.Style.Normal.Style,
-		)
-
-		s.WriteString(lipgloss.NewStyle().Render(text))
-		s.WriteString("\n")
+	props := ItemProps{
+		ReadOnly:    true,
+		SetCurrent:  c.SetCurrent,
+		Items:       c.Items,
+		Matches:     items[c.Start():c.End()],
+		Selected:    c.Selected,
+		Style:       c.Style,
+		Highlighted: c.Highlighted(),
 	}
+	view := ItemRenderer(props)
+	s.WriteString(view)
 
 	return s.String()
 }
