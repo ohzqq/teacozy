@@ -57,7 +57,12 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 			if p, ok := c.pages[params["name"]]; ok {
 				page := cmpnt.NewHelp()
-				cmd := page.Init(p.KeyMap())
+				props := cmpnt.PagerProps{
+					SetCurrent: c.SetCurrent,
+					Current:    c.Current,
+					Items:      teacozy.MapToChoices(p.KeyMap().Map()),
+				}
+				cmd := page.Pager.Init(props)
 				return page, cmd
 			}
 			return c.pages["default"], nil

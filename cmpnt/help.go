@@ -17,6 +17,7 @@ type Help struct {
 func NewHelp() *Help {
 	help := &Help{
 		keyMap: keys.NewKeyMap(keys.Esc()),
+		Pager:  New(),
 	}
 	return help
 }

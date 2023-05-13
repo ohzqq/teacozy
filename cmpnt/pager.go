@@ -37,19 +37,21 @@ type Pager struct {
 type PagerProps struct {
 	SetCurrent func(int)
 	Current    func() int
+	Items      teacozy.Items
 }
 
-func New(choices teacozy.Items) *Pager {
+func New(choices ...teacozy.Items) *Pager {
 	c := &Pager{
 		Width:  util.TermWidth(),
 		Height: util.TermHeight() - 2,
 		Model:  paginator.New(),
-		Items:  choices,
 	}
-
-	c.SetPerPage(c.Height)
-	c.SetTotal(c.Items.Len())
-	c.SliceBounds()
+	if len(choices) > 0 {
+		c.Items = choices[0]
+		c.SetPerPage(c.Height)
+		c.SetTotal(c.Items.Len())
+		c.SliceBounds()
+	}
 
 	c.SetKeyMap(keys.VimKeyMap())
 
@@ -60,6 +62,10 @@ func New(choices teacozy.Items) *Pager {
 
 func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)
+	c.Items = c.Props().Items
+	c.SetPerPage(c.Height)
+	c.SetTotal(c.Props().Items.Len())
+	c.SliceBounds()
 	return nil
 }
 

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// Choices is a slice of string maps to satisfy the fuzzy.Source interface
+// Choices is a slice of choices to satisfy the fuzzy.Source interface
 type Choices []Choice
 
 // Choice is a map[string]string for a single choice
