@@ -47,18 +47,19 @@ type PagerProps struct {
 	SetCurrent func(int)
 }
 
-func New(opts ...Option) *Pager {
+func New(choices teacozy.Items) *Pager {
 	c := &Pager{
-		Width:  util.TermWidth(),
-		Height: util.TermHeight() - 2,
-		Limit:  10,
-		Model:  paginator.New(),
-		Style:  DefaultStyle(),
+		Width:   util.TermWidth(),
+		Height:  util.TermHeight() - 2,
+		Limit:   10,
+		Model:   paginator.New(),
+		Style:   DefaultStyle(),
+		Choices: choices,
 	}
 
-	for _, opt := range opts {
-		opt(c)
-	}
+	//for _, opt := range opts {
+	//  opt(c)
+	//}
 
 	c.State = teacozy.NewProps(c.Choices)
 	c.State.SetCurrent = c.SetCurrent

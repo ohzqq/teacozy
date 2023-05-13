@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -25,10 +26,7 @@ func (c *Help) Init(maps ...keys.KeyMap) tea.Cmd {
 	for _, m := range maps {
 		km.AddBinds(m.Keys()...)
 	}
-	c.Pager = New(
-		WithMap(km.Map()),
-		ReadOnly(),
-	)
+	c.Pager = New(teacozy.MapToChoices(km.Map()))
 	return nil
 }
 

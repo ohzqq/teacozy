@@ -27,7 +27,7 @@ type App struct {
 	teacozy.State
 }
 
-func New(opts ...cmpnt.Option) *App {
+func New(choices teacozy.Items) *App {
 	c := &App{
 		router: router.New(),
 		endpoints: []string{
@@ -37,7 +37,7 @@ func New(opts ...cmpnt.Option) *App {
 		pages:     make(map[string]*cmpnt.Pager),
 		prevRoute: "default",
 	}
-	c.pages["default"] = cmpnt.New(opts...)
+	c.pages["default"] = cmpnt.New(choices)
 	c.pages["main/default"] = c.pages["default"]
 
 	return c
