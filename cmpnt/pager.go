@@ -34,13 +34,14 @@ type Pager struct {
 	start  int
 	end    int
 
-	Choices teacozy.Items
-	keyMap  keys.KeyMap
-	Style   Style
+	Items  teacozy.Items
+	keyMap keys.KeyMap
+	Style  Style
 
 	help keys.KeyMap
 
-	teacozy.State
+	Selected map[int]struct{}
+	//teacozy.State
 }
 
 type PagerProps struct {
@@ -49,25 +50,26 @@ type PagerProps struct {
 
 func New(choices teacozy.Items) *Pager {
 	c := &Pager{
-		Width:   util.TermWidth(),
-		Height:  util.TermHeight() - 2,
-		Limit:   10,
-		Model:   paginator.New(),
-		Style:   DefaultStyle(),
-		Choices: choices,
+		Selected: make(map[int]struct{}),
+		Width:    util.TermWidth(),
+		Height:   util.TermHeight() - 2,
+		Limit:    10,
+		Model:    paginator.New(),
+		Style:    DefaultStyle(),
+		Items:    choices,
 	}
 
 	//for _, opt := range opts {
 	//  opt(c)
 	//}
 
-	c.State = teacozy.NewProps(c.Choices)
-	c.State.SetCurrent = c.SetCurrent
-	c.State.SetHelp = c.SetHelp
-	c.State.ReadOnly = c.readOnly
+	//c.State = teacozy.NewProps(c.Choices)
+	//c.State.SetCurrent = c.SetCurrent
+	//c.State.SetHelp = c.SetHelp
+	//c.State.ReadOnly = c.readOnly
 
 	if c.NoLimit {
-		c.Limit = c.Choices.Len()
+		c.Limit = c.Items.Len()
 	}
 
 	if !c.readOnly {
@@ -75,7 +77,7 @@ func New(choices teacozy.Items) *Pager {
 	}
 
 	c.SetPerPage(c.Height)
-	c.SetTotal(c.Choices.Len())
+	c.SetTotal(c.Items.Len())
 	c.SliceBounds()
 
 	c.SetKeyMap(keys.VimKeyMap())
@@ -160,7 +162,8 @@ func (c *Pager) Render(w, h int) string {
 	h = c.Height - 2
 
 	// get matched items
-	items := c.ExactMatches(c.Search)
+	//items := c.ExactMatches(c.Search)
+	items := teacozy.SourceToMatches(c.Items)
 
 	c.SetPerPage(h)
 
@@ -181,8 +184,8 @@ func (c *Pager) Render(w, h int) string {
 		}
 
 		label := c.Items.Label(m.Index)
-		pre := c.State.PrefixText(label, sel, cur)
-		style := c.State.PrefixStyle(label, sel, cur)
+		pre := c.PrefixText(label, sel, cur)
+		style := c.PrefixStyle(label, sel, cur)
 
 		// only print the prefix if it's a list or there's a label
 		if !c.ReadOnly || label != "" {
@@ -234,8 +237,8 @@ func (m Pager) Chosen() []map[string]string {
 	var chosen []map[string]string
 	if len(m.Selected) > 0 {
 		for k := range m.Selected {
-			l := m.Choices.Label(k)
-			v := m.Choices.String(k)
+			l := m.Items.Label(k)
+			v := m.Items.String(k)
 			chosen = append(chosen, map[string]string{l: v})
 		}
 	}

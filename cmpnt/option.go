@@ -6,13 +6,13 @@ type Option func(*Pager)
 
 func WithSlice[E any](c []E) Option {
 	return func(a *Pager) {
-		a.Choices = teacozy.SliceToChoices(c)
+		a.Items = teacozy.SliceToChoices(c)
 	}
 }
 
 func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 	return func(a *Pager) {
-		a.Choices = teacozy.MapToChoices(c)
+		a.Items = teacozy.MapToChoices(c)
 	}
 }
 
