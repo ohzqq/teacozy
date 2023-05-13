@@ -44,8 +44,6 @@ type Pager struct {
 }
 
 type PagerProps struct {
-	ReadOnly   bool
-	Selected   map[int]struct{}
 	SetCurrent func(int)
 }
 
