@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -14,21 +13,12 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp() *Help {
+func NewHelp(p *Pager) reactea.SomeComponent {
 	help := &Help{
 		keyMap: keys.NewKeyMap(keys.Esc()),
-		Pager:  New(),
+		Pager:  p,
 	}
 	return help
-}
-
-func (c *Help) Init(maps ...keys.KeyMap) tea.Cmd {
-	var km keys.KeyMap
-	for _, m := range maps {
-		km.AddBinds(m.Keys()...)
-	}
-	c.Pager = New(teacozy.MapToChoices(km.Map()))
-	return nil
 }
 
 func (c *Help) Update(msg tea.Msg) tea.Cmd {

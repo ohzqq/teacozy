@@ -2,6 +2,7 @@ package app
 
 import (
 	"path/filepath"
+	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
@@ -9,6 +10,7 @@ import (
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/cmpnt"
 	"github.com/ohzqq/teacozy/keys"
+	"golang.org/x/exp/slices"
 )
 
 type App struct {
@@ -16,56 +18,53 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	router      *router.Component
-	pages       map[string]*cmpnt.Pager
+	pages       map[string]*Page
 	endpoints   []string
 	prevRoute   string
 	CurrentItem int
 	Selected    map[int]struct{}
 	Search      string
 	ReadOnly    bool
+	help        *Page
 
 	teacozy.State
 }
 
 func New(choices teacozy.Items) *App {
 	c := &App{
-		router: router.New(),
-		endpoints: []string{
-			"main/:name",
-			"help/:name",
-		},
-		pages:     make(map[string]*cmpnt.Pager),
+		router:    router.New(),
+		pages:     make(map[string]*Page),
 		prevRoute: "default",
 	}
-	c.pages["default"] = cmpnt.New(choices)
-	c.pages["main/default"] = c.pages["default"]
+	c.NewPage("default", choices)
+	c.NewPage("help", teacozy.MapToChoices(c.pages["default"].KeyMap().Map()))
 
 	return c
+}
+
+func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
+	c.endpoints = append(c.endpoints, endpoint)
+	props := cmpnt.PagerProps{
+		SetCurrent: c.SetCurrent,
+		Current:    c.Current,
+	}
+	if len(data) > 0 {
+		props.Items = data[0]
+	}
+	c.pages[endpoint] = NewPage(endpoint, data...)
+	c.pages[endpoint].Init(props)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.router.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			return c.pages["default"], nil
-		},
-		"main/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
-			if p, ok := c.pages[params["name"]]; ok {
-				return p, nil
-			}
-			return c.pages["default"], nil
+			//return c.home.UpdateProps(""), nil
+			return c.pages["default"].UpdateProps(""), nil
 		},
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
-			if p, ok := c.pages[params["name"]]; ok {
-				page := cmpnt.NewHelp()
-				props := cmpnt.PagerProps{
-					SetCurrent: c.SetCurrent,
-					Current:    c.Current,
-					Items:      teacozy.MapToChoices(p.KeyMap().Map()),
-				}
-				cmd := page.Pager.Init(props)
-				return page, cmd
-			}
-			return c.pages["default"], nil
+			idx := slices.Index(c.endpoints, c.pages[params["name"]].Name)
+			page := c.pages["help"].Initialize(strconv.Itoa(idx), cmpnt.NewHelp)
+			return page, nil
 		},
 	})
 }
@@ -74,7 +73,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	if reactea.CurrentRoute() == "" {
-		reactea.SetCurrentRoute("main/default")
+		reactea.SetCurrentRoute("default")
 	}
 
 	var (

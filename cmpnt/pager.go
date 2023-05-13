@@ -21,6 +21,7 @@ type Pager struct {
 	Height int
 
 	CurrentItem int
+	SetCurrent  func(int)
 
 	cursor int
 	total  int
@@ -51,6 +52,7 @@ func New(choices ...teacozy.Items) *Pager {
 		c.SetPerPage(c.Height)
 		c.SetTotal(c.Items.Len())
 		c.SliceBounds()
+		c.SetCurrent = c.setCurrent
 	}
 
 	c.SetKeyMap(keys.VimKeyMap())
@@ -60,9 +62,18 @@ func New(choices ...teacozy.Items) *Pager {
 	return c
 }
 
+func (c Pager) NewProps(items teacozy.Items) PagerProps {
+	return PagerProps{
+		SetCurrent: c.SetCurrent,
+		Current:    c.Current,
+		Items:      items,
+	}
+}
+
 func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)
 	c.Items = c.Props().Items
+	c.SetCurrent = c.Props().SetCurrent
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items.Len())
 	c.SliceBounds()
@@ -161,12 +172,12 @@ func (c *Pager) AddKey(k *keys.Binding) *Pager {
 	return c
 }
 
-func (m *Pager) SetCurrent(idx int) {
-	m.CurrentItem = idx
-}
-
 func (m *Pager) Current() int {
 	return m.CurrentItem
+}
+
+func (m *Pager) setCurrent(idx int) {
+	m.CurrentItem = idx
 }
 
 func (c *Pager) SetWidth(n int) *Pager {
