@@ -28,7 +28,6 @@ type Pager struct {
 	start  int
 	end    int
 
-	Items  teacozy.Items
 	keyMap keys.KeyMap
 	Style  Style
 
@@ -41,18 +40,11 @@ type PagerProps struct {
 	Items      teacozy.Items
 }
 
-func New(choices ...teacozy.Items) *Pager {
+func New() *Pager {
 	c := &Pager{
 		Width:  util.TermWidth(),
 		Height: util.TermHeight() - 2,
 		Model:  paginator.New(),
-	}
-	if len(choices) > 0 {
-		c.Items = choices[0]
-		c.SetPerPage(c.Height)
-		c.SetTotal(c.Items.Len())
-		c.SliceBounds()
-		c.SetCurrent = c.setCurrent
 	}
 
 	c.SetKeyMap(keys.VimKeyMap())
@@ -64,16 +56,15 @@ func New(choices ...teacozy.Items) *Pager {
 
 func (c Pager) NewProps(items teacozy.Items) PagerProps {
 	return PagerProps{
-		SetCurrent: c.SetCurrent,
-		Current:    c.Current,
+		SetCurrent: c.Props().SetCurrent,
+		Current:    c.Props().Current,
 		Items:      items,
 	}
 }
 
 func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)
-	c.Items = c.Props().Items
-	c.SetCurrent = c.Props().SetCurrent
+	//c.SetCurrent = c.Props().SetCurrent
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items.Len())
 	c.SliceBounds()
@@ -143,7 +134,7 @@ func (c *Pager) Render(w, h int) string {
 
 	// get matched items
 	//items := c.ExactMatches(c.Search)
-	items := teacozy.SourceToMatches(c.Items)
+	items := teacozy.SourceToMatches(c.Props().Items)
 
 	c.SetPerPage(h)
 
@@ -151,12 +142,12 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := NewItems(c.Items)
+	props := NewItems(c.Props().Items)
 	props.ReadOnly = false
-	props.SetCurrent = c.SetCurrent
+	props.SetCurrent = c.Props().SetCurrent
 	props.Matches = items[c.Start():c.End()]
 	props.Highlighted = c.Highlighted()
-	props.Current = c.Current
+	props.Current = c.Props().Current
 	view := props.Render()
 	s.WriteString(view)
 

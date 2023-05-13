@@ -38,6 +38,7 @@ func New(choices teacozy.Items) *App {
 	}
 	c.NewPage("default", choices)
 	c.NewPage("help", teacozy.MapToChoices(c.pages["default"].KeyMap().Map()))
+	c.pages["help"].Initializer = cmpnt.NewHelp
 
 	return c
 }
@@ -52,18 +53,19 @@ func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 		props.Items = data[0]
 	}
 	c.pages[endpoint] = NewPage(endpoint, data...)
+	c.pages[endpoint].SetCurrent = c.SetCurrent
+	//c.pages[endpoint].Current = c.Current
 	c.pages[endpoint].Init(props)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.router.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			//return c.home.UpdateProps(""), nil
 			return c.pages["default"].UpdateProps(""), nil
 		},
 		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 			idx := slices.Index(c.endpoints, c.pages[params["name"]].Name)
-			page := c.pages["help"].Initialize(strconv.Itoa(idx), cmpnt.NewHelp)
+			page := c.pages["help"].UpdateProps(strconv.Itoa(idx))
 			return page, nil
 		},
 	})
