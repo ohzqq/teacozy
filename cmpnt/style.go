@@ -21,32 +21,6 @@ type Style struct {
 	Match    lipgloss.Style
 }
 
-func (c Pager) PrefixText(label string, selected, current bool) string {
-	switch {
-	case label != "":
-		return label
-	case current:
-		return c.Style.Cursor.Text
-	case selected && !c.ReadOnly:
-		return c.Style.Selected.Text
-	default:
-		return c.Style.Normal.Text
-	}
-}
-
-func (c Pager) PrefixStyle(label string, selected, current bool) Prefix {
-	switch {
-	case current:
-		return c.Style.Cursor
-	case selected && !c.ReadOnly:
-		return c.Style.Selected
-	case label != "":
-		return c.Style.Label
-	default:
-		return c.Style.Normal
-	}
-}
-
 func (p Prefix) Render(pre ...string) string {
 	text := p.Text
 	if len(pre) > 0 {

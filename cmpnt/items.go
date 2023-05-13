@@ -33,18 +33,19 @@ type ItemProps struct {
 	Items       teacozy.Items
 	Matches     fuzzy.Matches
 	SetCurrent  func(int)
+	Current     func() int
 }
 
 func NewItems(items teacozy.Items) ItemProps {
 	p := ItemProps{
 		Items:    items,
-		Selected: make(map[int]struct{}),
 		Style:    DefaultStyle(),
+		Selected: make(map[int]struct{}),
 	}
 	return p
 }
 
-func ItemRenderer(props ItemProps) string {
+func (props ItemProps) Render() string {
 	var s strings.Builder
 	for i, m := range props.Matches {
 		var cur bool

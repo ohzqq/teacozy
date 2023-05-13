@@ -16,24 +16,6 @@ func WithMap[K comparable, V any, M ~map[K]V](c []M) Option {
 	}
 }
 
-func NoLimit() Option {
-	return func(a *Pager) {
-		a.NoLimit = true
-	}
-}
-
-func ReadOnly() Option {
-	return func(a *Pager) {
-		a.readOnly = true
-	}
-}
-
-func WithLimit(l int) Option {
-	return func(a *Pager) {
-		a.Limit = l
-	}
-}
-
 func WithWidth(w int) Option {
 	return func(a *Pager) {
 		a.Height = w
@@ -50,11 +32,5 @@ func WithSize(w, h int) Option {
 	return func(a *Pager) {
 		a.Height = w
 		a.Height = h
-	}
-}
-
-func ConfirmChoices() Option {
-	return func(a *Pager) {
-		a.ConfirmChoices = true
 	}
 }

@@ -14,19 +14,13 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
+	reactea.BasicPropfulComponent[PagerProps]
 	Model paginator.Model
-
-	ConfirmChoices bool
-	readOnly       bool
 
 	Width  int
 	Height int
 
-	NumSelected int
-	Limit       int
 	CurrentItem int
-	NoLimit     bool
-	ReadOnly    bool
 
 	cursor int
 	total  int
@@ -38,32 +32,19 @@ type Pager struct {
 	Style  Style
 
 	help keys.KeyMap
-
-	Selected map[int]struct{}
-	//teacozy.State
 }
 
 type PagerProps struct {
 	SetCurrent func(int)
+	Current    func() int
 }
 
 func New(choices teacozy.Items) *Pager {
 	c := &Pager{
-		Selected: make(map[int]struct{}),
-		Width:    util.TermWidth(),
-		Height:   util.TermHeight() - 2,
-		Limit:    10,
-		Model:    paginator.New(),
-		Style:    DefaultStyle(),
-		Items:    choices,
-	}
-
-	if c.NoLimit {
-		c.Limit = c.Items.Len()
-	}
-
-	if !c.readOnly {
-		c.AddKey(keys.Toggle().AddKeys(" "))
+		Width:  util.TermWidth(),
+		Height: util.TermHeight() - 2,
+		Model:  paginator.New(),
+		Items:  choices,
 	}
 
 	c.SetPerPage(c.Height)
@@ -75,6 +56,11 @@ func New(choices teacozy.Items) *Pager {
 	c.AddKey(keys.Help())
 
 	return c
+}
+
+func (c *Pager) Init(props PagerProps) tea.Cmd {
+	c.UpdateProps(props)
+	return nil
 }
 
 func (c *Pager) Update(msg tea.Msg) tea.Cmd {
@@ -115,19 +101,6 @@ func (c *Pager) Update(msg tea.Msg) tea.Cmd {
 		c.cursor = c.total - 1
 		c.Model.Page = c.Model.TotalPages - 1
 
-	case keys.ShowHelpMsg:
-		cmds = append(cmds, keys.ChangeRoute("help"))
-		//help := NewProps(c.help)
-		//help.SetName("help")
-		//return ChangeRoute(&help)
-
-	case keys.UpdateItemMsg:
-		return msg.Cmd(c.Current())
-
-	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
-		c.ToggleItems(c.Current())
-		cmds = append(cmds, keys.LineDown)
-
 	case tea.KeyMsg:
 		// ctrl+c support
 		if msg.String() == "ctrl+c" {
@@ -161,23 +134,16 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := ItemProps{
-		ReadOnly:    true,
-		SetCurrent:  c.SetCurrent,
-		Items:       c.Items,
-		Matches:     items[c.Start():c.End()],
-		Selected:    c.Selected,
-		Style:       c.Style,
-		Highlighted: c.Highlighted(),
-	}
-	view := ItemRenderer(props)
+	props := NewItems(c.Items)
+	props.ReadOnly = false
+	props.SetCurrent = c.SetCurrent
+	props.Matches = items[c.Start():c.End()]
+	props.Highlighted = c.Highlighted()
+	props.Current = c.Current
+	view := props.Render()
 	s.WriteString(view)
 
 	return s.String()
-}
-
-func (c Pager) ToggleItem() {
-	c.ToggleItems(c.Current())
 }
 
 func (c *Pager) AddKey(k *keys.Binding) *Pager {
@@ -187,31 +153,6 @@ func (c *Pager) AddKey(k *keys.Binding) *Pager {
 		c.keyMap.Replace(k)
 	}
 	return c
-}
-
-func (c *Pager) ToggleItems(items ...int) {
-	for _, idx := range items {
-		c.CurrentItem = idx
-		if _, ok := c.Selected[idx]; ok {
-			delete(c.Selected, idx)
-			c.NumSelected--
-		} else if c.NumSelected < c.Limit {
-			c.Selected[idx] = struct{}{}
-			c.NumSelected++
-		}
-	}
-}
-
-func (m Pager) Chosen() []map[string]string {
-	var chosen []map[string]string
-	if len(m.Selected) > 0 {
-		for k := range m.Selected {
-			l := m.Items.Label(k)
-			v := m.Items.String(k)
-			chosen = append(chosen, map[string]string{l: v})
-		}
-	}
-	return chosen
 }
 
 func (m *Pager) SetCurrent(idx int) {

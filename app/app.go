@@ -132,6 +132,10 @@ func (c App) Current() int {
 	return c.CurrentItem
 }
 
+func (m *App) SetCurrent(idx int) {
+	m.CurrentItem = idx
+}
+
 var fields = []map[string]string{
 	map[string]string{"Artichoke": "Baking "},
 	map[string]string{"Bananas": "Flour"},
