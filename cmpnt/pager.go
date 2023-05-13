@@ -34,8 +34,6 @@ type Pager struct {
 	start  int
 	end    int
 
-	footer string
-
 	Choices teacozy.Items
 	keyMap  keys.KeyMap
 	Style   Style
@@ -43,6 +41,12 @@ type Pager struct {
 	help keys.KeyMap
 
 	teacozy.State
+}
+
+type PagerProps struct {
+	ReadOnly   bool
+	Selected   map[int]struct{}
+	SetCurrent func(int)
 }
 
 func New(opts ...Option) *Pager {
