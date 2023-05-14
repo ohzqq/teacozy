@@ -13,13 +13,13 @@ type PageProps interface {
 	Items() teacozy.Items
 }
 
-type Page interface {
+type PageComponent interface {
 	Mount() reactea.SomeComponent
 	KeyMap() keys.KeyMap
 }
 
-func NewPage() func(PageProps) Page {
-	return func(props PageProps) Page {
+func NewPageComponent() func(PageProps) PageComponent {
+	return func(props PageProps) PageComponent {
 		p := New()
 		p.Init(props)
 		return p

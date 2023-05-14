@@ -14,7 +14,7 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[PageProps]
+	reactea.BasicPropfulComponent[teacozy.PageProps]
 	Model paginator.Model
 
 	Width  int
@@ -40,16 +40,16 @@ func New() *Pager {
 	return c
 }
 
-func (c *Pager) Initializer(props PageProps) Page {
+func (c *Pager) Initializer(props teacozy.PageProps) teacozy.PageComponent {
 	c.Init(props)
 	return c
 }
 
-func (c *Pager) Component() reactea.SomeComponent {
+func (c *Pager) Mount() reactea.SomeComponent {
 	return c
 }
 
-func (c *Pager) Init(props PageProps) tea.Cmd {
+func (c *Pager) Init(props teacozy.PageProps) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items().Len())

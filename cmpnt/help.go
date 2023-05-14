@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -13,7 +14,7 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(props Props) Page {
+func NewHelp(props teacozy.PageProps) teacozy.PageComponent {
 	p := New()
 	p.Init(props)
 	help := &Help{
@@ -23,7 +24,7 @@ func NewHelp(props Props) Page {
 	return help
 }
 
-func (c *Help) Component() reactea.SomeComponent {
+func (c *Help) Mount() reactea.SomeComponent {
 	return c
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type PageInitializer func(cmpnt.PageProps) cmpnt.Page
+type PageInitializer func(cmpnt.PageProps) cmpnt.PageComponent
 
 type Page struct {
 	Data        []teacozy.Items
@@ -30,7 +30,7 @@ func NewPage(name string, data ...teacozy.Items) *Page {
 		keymap:   keys.DefaultKeyMap(),
 		selected: make(map[int]struct{}),
 	}
-	page.InitFunc(cmpnt.NewPage())
+	page.InitFunc(cmpnt.NewPageComponent())
 	return page
 }
 

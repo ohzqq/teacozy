@@ -18,7 +18,7 @@ type App struct {
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
 	router    *router.Component
-	pages     map[string]*Page
+	pages     map[string]*teacozy.Page
 	endpoints []string
 	prevRoute string
 	selected  map[int]struct{}
@@ -27,7 +27,7 @@ type App struct {
 func New(choices teacozy.Items) *App {
 	c := &App{
 		router:    router.New(),
-		pages:     make(map[string]*Page),
+		pages:     make(map[string]*teacozy.Page),
 		prevRoute: "default",
 		selected:  make(map[int]struct{}),
 	}
@@ -40,7 +40,7 @@ func New(choices teacozy.Items) *App {
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 	c.endpoints = append(c.endpoints, endpoint)
-	c.pages[endpoint] = NewPage(endpoint, data...)
+	c.pages[endpoint] = teacozy.NewPage(endpoint, data...)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
