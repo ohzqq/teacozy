@@ -8,7 +8,7 @@ import (
 	"github.com/ohzqq/teacozy/cmpnt"
 )
 
-type PageInitializer func(cmpnt.PagerProps) reactea.SomeComponent
+type PageInitializer func(cmpnt.Props) reactea.SomeComponent
 
 type Page struct {
 	Data        []teacozy.Items
@@ -39,8 +39,8 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 		idx = 0
 	}
 
-	props := cmpnt.PagerProps{
-		Items:      p.Data[idx],
+	props := cmpnt.Props{
+		Items:      cmpnt.NewItems(p.Data[idx]),
 		Current:    p.Current,
 		SetCurrent: p.SetCurrent,
 	}

@@ -38,7 +38,7 @@ type List struct {
 }
 
 type ListProps struct {
-	PagerProps
+	Props
 	Selected   func() map[int]struct{}
 	ToggleItem func(int)
 }

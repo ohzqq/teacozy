@@ -14,7 +14,7 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[PagerProps]
+	reactea.BasicPropfulComponent[Props]
 	Model paginator.Model
 
 	Width  int
@@ -31,10 +31,10 @@ type Pager struct {
 	help keys.KeyMap
 }
 
-type PagerProps struct {
+type Props struct {
 	SetCurrent func(int)
 	Current    func() int
-	Items      teacozy.Items
+	Items
 }
 
 func New() *Pager {
@@ -48,19 +48,25 @@ func New() *Pager {
 	return c
 }
 
-func (c Pager) NewProps(items teacozy.Items) PagerProps {
-	return PagerProps{
-		SetCurrent: c.Props().SetCurrent,
-		Current:    c.Props().Current,
-		Items:      items,
+func NewProps(items teacozy.Items) Props {
+	return Props{
+		Items: NewItems(items),
 	}
 }
-func (c *Pager) Initializer(props PagerProps) reactea.SomeComponent {
+
+func (c Pager) NewProps(items teacozy.Items) Props {
+	props := NewProps(items)
+	props.SetCurrent = c.Props().SetCurrent
+	props.Current = c.Props().Current
+	return props
+}
+
+func (c *Pager) Initializer(props Props) reactea.SomeComponent {
 	c.Init(props)
 	return c
 }
 
-func (c *Pager) Init(props PagerProps) tea.Cmd {
+func (c *Pager) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items.Len())
@@ -131,7 +137,7 @@ func (c *Pager) Render(w, h int) string {
 
 	// get matched items
 	//items := c.ExactMatches(c.Search)
-	items := teacozy.SourceToMatches(c.Props().Items)
+	items := teacozy.SourceToMatches(c.Props().Items.Items)
 
 	c.SetPerPage(h)
 
@@ -139,12 +145,12 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := NewItems(c.Props().Items)
+	props := NewItems(c.Props().Items.Items)
 	props.ReadOnly = false
-	props.SetCurrent = c.Props().SetCurrent
+	//props.SetCurrent = c.Props().SetCurrent
+	//props.Current = c.Props().Current
 	props.Matches = items[c.Start():c.End()]
-	props.Highlighted = c.Highlighted()
-	props.Current = c.Props().Current
+	props.Highlighted = c.Highlighted
 	view := props.Render()
 	s.WriteString(view)
 
@@ -227,6 +233,7 @@ func (m *Pager) SetPerPage(n int) *Pager {
 func (m Pager) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.Model.PerPage {
+			m.Props().SetCurrent(i)
 			return i
 		}
 	}

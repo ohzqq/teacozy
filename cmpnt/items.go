@@ -5,39 +5,20 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy"
-	"github.com/ohzqq/teacozy/keys"
 	"github.com/sahilm/fuzzy"
 )
 
 type Items struct {
-	name        string
-	Items       teacozy.Items
-	Selected    map[int]struct{}
-	Search      string
 	ReadOnly    bool
-	SetCurrent  func(int)
-	SetPerPage  func(int)
-	SetTotal    func(int)
-	SetHelp     func(keys.KeyMap)
-	Start       int
-	End         int
-	Highlighted int
-	Style       Style
-}
-
-type ItemProps struct {
-	ReadOnly    bool
-	Highlighted int
+	Highlighted func() int
 	Style       Style
 	Selected    map[int]struct{}
 	Items       teacozy.Items
 	Matches     fuzzy.Matches
-	SetCurrent  func(int)
-	Current     func() int
 }
 
-func NewItems(items teacozy.Items) ItemProps {
-	p := ItemProps{
+func NewItems(items teacozy.Items) Items {
+	p := Items{
 		Items:    items,
 		Style:    DefaultStyle(),
 		Selected: make(map[int]struct{}),
@@ -45,12 +26,11 @@ func NewItems(items teacozy.Items) ItemProps {
 	return p
 }
 
-func (props ItemProps) Render() string {
+func (props Items) Render() string {
 	var s strings.Builder
 	for i, m := range props.Matches {
 		var cur bool
-		if i == props.Highlighted {
-			props.SetCurrent(m.Index)
+		if i == props.Highlighted() {
 			cur = true
 		}
 
@@ -83,7 +63,7 @@ func (props ItemProps) Render() string {
 	return s.String()
 }
 
-func (c ItemProps) PrefixText(label string, selected, current bool) string {
+func (c Items) PrefixText(label string, selected, current bool) string {
 	switch {
 	case label != "":
 		return label
@@ -96,7 +76,7 @@ func (c ItemProps) PrefixText(label string, selected, current bool) string {
 	}
 }
 
-func (c ItemProps) PrefixStyle(label string, selected, current bool) Prefix {
+func (c Items) PrefixStyle(label string, selected, current bool) Prefix {
 	switch {
 	case current:
 		return c.Style.Cursor
@@ -109,11 +89,14 @@ func (c ItemProps) PrefixStyle(label string, selected, current bool) Prefix {
 	}
 }
 
-func (c *Items) ExactMatches(search string) fuzzy.Matches {
-	if search != "" {
-		if m := fuzzy.FindFrom(search, c.Items); len(m) > 0 {
-			return m
-		}
-	}
-	return teacozy.SourceToMatches(c.Items)
+func (c Items) Len() int {
+	return c.Items.Len()
+}
+
+func (c Items) String(idx int) string {
+	return c.Items.String(idx)
+}
+
+func (c Items) Label(idx int) string {
+	return c.Items.Label(idx)
 }

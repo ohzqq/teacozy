@@ -17,12 +17,11 @@ type App struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[reactea.NoProps]
 
-	router      *router.Component
-	pages       map[string]*Page
-	endpoints   []string
-	prevRoute   string
-	CurrentItem int
-	selected    map[int]struct{}
+	router    *router.Component
+	pages     map[string]*Page
+	endpoints []string
+	prevRoute string
+	selected  map[int]struct{}
 }
 
 func New(choices teacozy.Items) *App {
@@ -34,7 +33,7 @@ func New(choices teacozy.Items) *App {
 	}
 	c.NewPage("default", choices)
 	c.NewPage("help", teacozy.MapToChoices(c.pages["default"].KeyMap().Map()))
-	c.pages["help"].Initializer = cmpnt.NewHelp
+	c.pages["help"].InitFunc(cmpnt.NewHelp)
 
 	return c
 }
@@ -87,7 +86,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		return keys.ChangeRoute(filepath.Join("help", page))
 
 	case keys.UpdateItemMsg:
-		return msg.Cmd(c.Current())
+		//return msg.Cmd(c.Current())
 
 	//case keys.ToggleItemsMsg, keys.ToggleItemMsg:
 	//c.ToggleItems(c.Current())
@@ -118,14 +117,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 
 func (c *App) Render(w, h int) string {
 	return c.router.Render(w, h)
-}
-
-func (c App) Current() int {
-	return c.CurrentItem
-}
-
-func (m *App) SetCurrent(idx int) {
-	m.CurrentItem = idx
 }
 
 func (c *App) Selected() map[int]struct{} {
