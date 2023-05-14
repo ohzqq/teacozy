@@ -132,13 +132,10 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := NewItems(c.Props().Items)
+	props := c.Props().Copy()
 	props.ReadOnly = false
-	props.Matches = items[c.Start():c.End()]
+	props.SetMatches(items[c.Start():c.End()])
 	props.Highlighted = c.Highlighted
-	props.Current = c.Props().Current
-	props.SetCurrent = c.Props().SetCurrent
-	props.IsSelected = c.Props().IsSelected
 	view := props.Render()
 	s.WriteString(view)
 

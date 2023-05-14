@@ -27,21 +27,21 @@ func NewItems(items teacozy.Items) Items {
 	return p
 }
 
+func (props Items) Copy() Items {
+	items := NewItems(props.Items)
+	items.Current = props.Current
+	items.SetCurrent = props.SetCurrent
+	items.IsSelected = props.IsSelected
+	return items
+}
+
 func (props Items) Render() string {
 	var s strings.Builder
 	for i, m := range props.Matches {
-		var cur bool
-		if i == props.Highlighted() {
-			cur = true
-		}
-
-		var sel bool
-		//if _, ok := props.Selected()[m.Index]; ok {
-		if props.IsSelected(m.Index) {
-			sel = true
-		}
-
+		cur := i == props.Highlighted()
+		sel := props.IsSelected(m.Index)
 		label := props.Items.Label(m.Index)
+
 		pre := props.PrefixText(label, sel, cur)
 		style := props.PrefixStyle(label, sel, cur)
 
@@ -63,6 +63,10 @@ func (props Items) Render() string {
 	}
 
 	return s.String()
+}
+
+func (c *Items) SetMatches(matches fuzzy.Matches) {
+	c.Matches = matches
 }
 
 func (c Items) PrefixText(label string, selected, current bool) string {
