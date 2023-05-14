@@ -23,8 +23,6 @@ type App struct {
 	prevRoute   string
 	CurrentItem int
 	Selected    map[int]struct{}
-
-	teacozy.State
 }
 
 func New(choices teacozy.Items) *App {

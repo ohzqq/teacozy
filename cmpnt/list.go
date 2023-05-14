@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/londek/reactea"
@@ -14,8 +13,7 @@ import (
 )
 
 type List struct {
-	reactea.BasicComponent
-	Model paginator.Model
+	*Pager
 
 	ConfirmChoices bool
 	readOnly       bool
@@ -44,17 +42,15 @@ type List struct {
 }
 
 type ListProps struct {
-	ReadOnly   bool
-	Selected   map[int]struct{}
-	SetCurrent func(int)
+	PagerProps
+	Selected map[int]struct{}
 }
 
-func NewList(choices teacozy.Items) *List {
+func NewList(p *Pager, choices teacozy.Items) *List {
 	c := &List{
 		Width:   util.TermWidth(),
 		Height:  util.TermHeight() - 2,
 		Limit:   10,
-		Model:   paginator.New(),
 		Style:   DefaultStyle(),
 		Choices: choices,
 	}
