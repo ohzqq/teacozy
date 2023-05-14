@@ -29,13 +29,6 @@ type Pager struct {
 	Style  Style
 }
 
-type PagerProps struct {
-	SetCurrent func(int)
-	Current    func() int
-	IsSelected func(int) bool
-	Items      teacozy.Items
-}
-
 func New() *Pager {
 	c := &Pager{
 		Width:  util.TermWidth(),
@@ -47,8 +40,12 @@ func New() *Pager {
 	return c
 }
 
-func (c *Pager) Initializer(props Props) reactea.SomeComponent {
+func (c *Pager) Initializer(props Props) Page {
 	c.Init(props)
+	return c
+}
+
+func (c *Pager) Component() reactea.SomeComponent {
 	return c
 }
 

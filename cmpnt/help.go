@@ -13,7 +13,7 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(props Props) reactea.SomeComponent {
+func NewHelp(props Props) Page {
 	p := New()
 	p.Init(props)
 	help := &Help{
@@ -23,9 +23,13 @@ func NewHelp(props Props) reactea.SomeComponent {
 	return help
 }
 
-//func (c Help) KeyMap() keys.KeyMap {
-//  return c.keyMap
-//}
+func (c *Help) Component() reactea.SomeComponent {
+	return c
+}
+
+func (c Help) KeyMap() keys.KeyMap {
+	return c.keyMap
+}
 
 func (c *Help) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)

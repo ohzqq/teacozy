@@ -1,14 +1,16 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/cmpnt"
+	"github.com/ohzqq/teacozy/keys"
 )
 
-type PageInitializer func(cmpnt.Props) reactea.SomeComponent
+type PageInitializer func(cmpnt.Props) cmpnt.Page
 
 type Page struct {
 	Data        []teacozy.Items
@@ -19,6 +21,8 @@ type Page struct {
 	selected    map[int]struct{}
 
 	Initializer PageInitializer
+	keymap      keys.KeyMap
+
 	*cmpnt.Pager
 }
 
@@ -27,6 +31,7 @@ func NewPage(name string, data ...teacozy.Items) *Page {
 		Data:     data,
 		Name:     name,
 		Pager:    cmpnt.New(),
+		keymap:   keys.DefaultKeyMap(),
 		selected: make(map[int]struct{}),
 	}
 	page.InitFunc(page.Pager.Initializer)
@@ -38,18 +43,22 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 	return p
 }
 
+func (p Page) KeyMap() keys.KeyMap {
+	return p.keymap
+}
+
 func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	idx, err := strconv.Atoi(id)
 	if err != nil {
 		idx = 0
 	}
 	p.CurrentPage = idx
+	fmt.Println(p.Data[p.CurrentPage])
 
-	if p.Initializer != nil {
-		return p.Initializer(p)
-	}
+	page := p.Initializer(p)
+	p.keymap = page.KeyMap()
 
-	return p.Pager
+	return page.Component()
 }
 
 func (p Page) Items() teacozy.Items {
