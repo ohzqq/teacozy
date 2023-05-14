@@ -29,8 +29,6 @@ func NewItems(items teacozy.Items) Items {
 
 func (props Items) Copy() Items {
 	items := NewItems(props.Items)
-	items.Current = props.Current
-	items.SetCurrent = props.SetCurrent
 	items.IsSelected = props.IsSelected
 	return items
 }

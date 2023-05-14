@@ -24,7 +24,6 @@ type Page struct {
 
 func NewPage(name string, data ...teacozy.Items) *Page {
 	page := &Page{
-		Data:     data,
 		Name:     name,
 		Pager:    cmpnt.New(),
 		selected: make(map[int]struct{}),
@@ -51,11 +50,6 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 		idx = 0
 	}
 
-	//props := cmpnt.NewItems(p.Data[idx])
-	//props.Current = p.Current
-	//props.SetCurrent = p.SetCurrent
-	//props.Selected = p.SelectedItems
-
 	if p.Initializer != nil {
 		return p.Initializer(p.data[idx])
 	}
@@ -80,4 +74,12 @@ func (p Page) Current() int {
 
 func (p *Page) SetCurrent(idx int) {
 	p.CurrentItem = idx
+}
+
+func (c *Page) SelectItem(idx int) {
+	c.selected[idx] = struct{}{}
+}
+
+func (c *Page) DeselectItem(idx int) {
+	delete(c.selected, idx)
 }
