@@ -8,11 +8,12 @@ import (
 	"github.com/ohzqq/teacozy/cmpnt"
 )
 
-type PageInitializer func(cmpnt.PagerProps) reactea.SomeComponent
+type PageInitializer func(cmpnt.Props) reactea.SomeComponent
 
 type Page struct {
-	Data []teacozy.Items
-	Name string
+	Data        []teacozy.Items
+	Name        string
+	CurrentPage int
 
 	CurrentItem int
 	selected    map[int]struct{}
@@ -37,33 +38,29 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 	return p
 }
 
-func (p *Page) pagerProps(items teacozy.Items) cmpnt.PagerProps {
-	return cmpnt.PagerProps{
-		Items:      items,
-		SetCurrent: p.SetCurrent,
-		Current:    p.Current,
-		IsSelected: p.ItemIsSelected,
-	}
-}
-
 func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	idx, err := strconv.Atoi(id)
 	if err != nil {
 		idx = 0
 	}
+	p.CurrentPage = idx
 
 	if p.Initializer != nil {
-		return p.Initializer(p.pagerProps(p.Data[idx]))
+		return p.Initializer(p)
 	}
 
 	return p.Pager
+}
+
+func (p Page) Items() teacozy.Items {
+	return p.Data[p.CurrentPage]
 }
 
 func (p Page) SelectedItems() map[int]struct{} {
 	return p.selected
 }
 
-func (p Page) ItemIsSelected(idx int) bool {
+func (p Page) IsSelected(idx int) bool {
 	if _, ok := p.selected[idx]; ok {
 		return true
 	}

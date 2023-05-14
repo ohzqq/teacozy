@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -14,7 +13,6 @@ type Items struct {
 	IsSelected  func(int) bool
 	GetLabel    func(int) string
 	Style       Style
-	Items       teacozy.Items
 	Matches     fuzzy.Matches
 }
 
@@ -24,13 +22,6 @@ func NewItems(items fuzzy.Matches) Items {
 		Style:   DefaultStyle(),
 	}
 	return p
-}
-
-func (props Items) Copy() Items {
-	items := NewItems(props.Matches)
-	items.IsSelected = props.IsSelected
-	items.Highlighted = props.Highlighted
-	return items
 }
 
 func (props Items) Render() string {

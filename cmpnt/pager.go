@@ -14,7 +14,7 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[PagerProps]
+	reactea.BasicPropfulComponent[Props]
 	Model paginator.Model
 
 	Width  int
@@ -47,23 +47,15 @@ func New() *Pager {
 	return c
 }
 
-func (c Pager) NewProps(items teacozy.Items) Items {
-	matches := teacozy.SourceToMatches(items)
-	props := NewItems(matches)
-	props.IsSelected = c.Props().IsSelected
-	props.GetLabel = c.Props().Items.Label
-	return props
-}
-
-func (c *Pager) Initializer(props PagerProps) reactea.SomeComponent {
+func (c *Pager) Initializer(props Props) reactea.SomeComponent {
 	c.Init(props)
 	return c
 }
 
-func (c *Pager) Init(props PagerProps) tea.Cmd {
+func (c *Pager) Init(props Props) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetPerPage(c.Height)
-	c.SetTotal(c.Props().Items.Len())
+	c.SetTotal(c.Props().Items().Len())
 	c.SliceBounds()
 	return nil
 }
@@ -131,7 +123,7 @@ func (c *Pager) Render(w, h int) string {
 
 	// get matched items
 	//items := c.ExactMatches(c.Search)
-	items := teacozy.SourceToMatches(c.Props().Items)
+	items := teacozy.SourceToMatches(c.Props().Items())
 
 	c.SetPerPage(h)
 
@@ -143,7 +135,7 @@ func (c *Pager) Render(w, h int) string {
 	props.ReadOnly = false
 	props.Highlighted = c.Highlighted
 	props.IsSelected = c.Props().IsSelected
-	props.GetLabel = c.Props().Items.Label
+	props.GetLabel = c.Props().Items().Label
 	view := props.Render()
 	s.WriteString(view)
 
