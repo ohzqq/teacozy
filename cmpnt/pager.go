@@ -14,7 +14,7 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Props]
+	reactea.BasicPropfulComponent[Items]
 	Model paginator.Model
 
 	Width  int
@@ -27,14 +27,6 @@ type Pager struct {
 
 	keyMap keys.KeyMap
 	Style  Style
-
-	help keys.KeyMap
-}
-
-type Props struct {
-	SetCurrent func(int)
-	Current    func() int
-	Items
 }
 
 func New() *Pager {
@@ -48,25 +40,20 @@ func New() *Pager {
 	return c
 }
 
-func NewProps(items teacozy.Items) Props {
-	return Props{
-		Items: NewItems(items),
-	}
-}
-
-func (c Pager) NewProps(items teacozy.Items) Props {
-	props := NewProps(items)
+func (c Pager) NewProps(items teacozy.Items) Items {
+	props := NewItems(items)
 	props.SetCurrent = c.Props().SetCurrent
 	props.Current = c.Props().Current
+	props.IsSelected = c.Props().IsSelected
 	return props
 }
 
-func (c *Pager) Initializer(props Props) reactea.SomeComponent {
+func (c *Pager) Initializer(props Items) reactea.SomeComponent {
 	c.Init(props)
 	return c
 }
 
-func (c *Pager) Init(props Props) tea.Cmd {
+func (c *Pager) Init(props Items) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items.Len())
@@ -137,7 +124,7 @@ func (c *Pager) Render(w, h int) string {
 
 	// get matched items
 	//items := c.ExactMatches(c.Search)
-	items := teacozy.SourceToMatches(c.Props().Items.Items)
+	items := teacozy.SourceToMatches(c.Props().Items)
 
 	c.SetPerPage(h)
 
@@ -145,10 +132,13 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := NewItems(c.Props().Items.Items)
+	props := NewItems(c.Props().Items)
 	props.ReadOnly = false
 	props.Matches = items[c.Start():c.End()]
 	props.Highlighted = c.Highlighted
+	props.Current = c.Props().Current
+	props.SetCurrent = c.Props().SetCurrent
+	props.IsSelected = c.Props().IsSelected
 	view := props.Render()
 	s.WriteString(view)
 
@@ -167,10 +157,6 @@ func (c *Pager) AddKey(k *keys.Binding) *Pager {
 func (c *Pager) SetWidth(n int) *Pager {
 	c.Width = n
 	return c
-}
-
-func (c *Pager) SetHelp(km keys.KeyMap) {
-	c.help = km
 }
 
 func (c *Pager) SetHeight(n int) *Pager {

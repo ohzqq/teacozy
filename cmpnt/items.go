@@ -10,18 +10,19 @@ import (
 
 type Items struct {
 	ReadOnly    bool
+	SetCurrent  func(int)
+	Current     func() int
 	Highlighted func() int
+	IsSelected  func(int) bool
 	Style       Style
-	Selected    map[int]struct{}
 	Items       teacozy.Items
 	Matches     fuzzy.Matches
 }
 
 func NewItems(items teacozy.Items) Items {
 	p := Items{
-		Items:    items,
-		Style:    DefaultStyle(),
-		Selected: make(map[int]struct{}),
+		Items: items,
+		Style: DefaultStyle(),
 	}
 	return p
 }
@@ -35,7 +36,8 @@ func (props Items) Render() string {
 		}
 
 		var sel bool
-		if _, ok := props.Selected[m.Index]; ok {
+		//if _, ok := props.Selected()[m.Index]; ok {
+		if props.IsSelected(m.Index) {
 			sel = true
 		}
 
