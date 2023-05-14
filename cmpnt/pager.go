@@ -14,7 +14,7 @@ import (
 
 type Pager struct {
 	reactea.BasicComponent
-	reactea.BasicPropfulComponent[Items]
+	reactea.BasicPropfulComponent[PagerProps]
 	Model paginator.Model
 
 	Width  int
@@ -29,6 +29,13 @@ type Pager struct {
 	Style  Style
 }
 
+type PagerProps struct {
+	SetCurrent func(int)
+	Current    func() int
+	IsSelected func(int) bool
+	Items      teacozy.Items
+}
+
 func New() *Pager {
 	c := &Pager{
 		Width:  util.TermWidth(),
@@ -41,19 +48,19 @@ func New() *Pager {
 }
 
 func (c Pager) NewProps(items teacozy.Items) Items {
-	props := NewItems(items)
-	props.SetCurrent = c.Props().SetCurrent
-	props.Current = c.Props().Current
+	matches := teacozy.SourceToMatches(items)
+	props := NewItems(matches)
 	props.IsSelected = c.Props().IsSelected
+	props.GetLabel = c.Props().Items.Label
 	return props
 }
 
-func (c *Pager) Initializer(props Items) reactea.SomeComponent {
+func (c *Pager) Initializer(props PagerProps) reactea.SomeComponent {
 	c.Init(props)
 	return c
 }
 
-func (c *Pager) Init(props Items) tea.Cmd {
+func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Props().Items.Len())
@@ -132,10 +139,11 @@ func (c *Pager) Render(w, h int) string {
 	// going out of bounds
 	c.SetTotal(len(items))
 
-	props := c.Props().Copy()
+	props := NewItems(items[c.Start():c.End()])
 	props.ReadOnly = false
-	props.SetMatches(items[c.Start():c.End()])
 	props.Highlighted = c.Highlighted
+	props.IsSelected = c.Props().IsSelected
+	props.GetLabel = c.Props().Items.Label
 	view := props.Render()
 	s.WriteString(view)
 

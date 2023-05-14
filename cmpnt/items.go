@@ -10,26 +10,26 @@ import (
 
 type Items struct {
 	ReadOnly    bool
-	SetCurrent  func(int)
-	Current     func() int
 	Highlighted func() int
 	IsSelected  func(int) bool
+	GetLabel    func(int) string
 	Style       Style
 	Items       teacozy.Items
 	Matches     fuzzy.Matches
 }
 
-func NewItems(items teacozy.Items) Items {
+func NewItems(items fuzzy.Matches) Items {
 	p := Items{
-		Items: items,
-		Style: DefaultStyle(),
+		Matches: items,
+		Style:   DefaultStyle(),
 	}
 	return p
 }
 
 func (props Items) Copy() Items {
-	items := NewItems(props.Items)
+	items := NewItems(props.Matches)
 	items.IsSelected = props.IsSelected
+	items.Highlighted = props.Highlighted
 	return items
 }
 
@@ -38,7 +38,7 @@ func (props Items) Render() string {
 	for i, m := range props.Matches {
 		cur := i == props.Highlighted()
 		sel := props.IsSelected(m.Index)
-		label := props.Items.Label(m.Index)
+		label := props.GetLabel(m.Index)
 
 		pre := props.PrefixText(label, sel, cur)
 		style := props.PrefixStyle(label, sel, cur)
@@ -91,16 +91,4 @@ func (c Items) PrefixStyle(label string, selected, current bool) Prefix {
 	default:
 		return c.Style.Normal
 	}
-}
-
-func (c Items) Len() int {
-	return c.Items.Len()
-}
-
-func (c Items) String(idx int) string {
-	return c.Items.String(idx)
-}
-
-func (c Items) Label(idx int) string {
-	return c.Items.Label(idx)
 }

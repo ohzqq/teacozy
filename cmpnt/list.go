@@ -24,7 +24,6 @@ type List struct {
 }
 
 type ListProps struct {
-	Props
 	Selected   func() map[int]struct{}
 	ToggleItem func(int)
 }

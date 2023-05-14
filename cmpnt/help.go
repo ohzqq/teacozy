@@ -13,7 +13,7 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(props Items) reactea.SomeComponent {
+func NewHelp(props PagerProps) reactea.SomeComponent {
 	p := New()
 	p.Init(props)
 	help := &Help{

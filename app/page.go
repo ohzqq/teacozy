@@ -8,11 +8,10 @@ import (
 	"github.com/ohzqq/teacozy/cmpnt"
 )
 
-type PageInitializer func(cmpnt.Items) reactea.SomeComponent
+type PageInitializer func(cmpnt.PagerProps) reactea.SomeComponent
 
 type Page struct {
 	Data []teacozy.Items
-	data []cmpnt.Items
 	Name string
 
 	CurrentItem int
@@ -24,16 +23,10 @@ type Page struct {
 
 func NewPage(name string, data ...teacozy.Items) *Page {
 	page := &Page{
+		Data:     data,
 		Name:     name,
 		Pager:    cmpnt.New(),
 		selected: make(map[int]struct{}),
-	}
-	for _, d := range data {
-		items := cmpnt.NewItems(d)
-		items.Current = page.Current
-		items.SetCurrent = page.SetCurrent
-		items.IsSelected = page.ItemIsSelected
-		page.data = append(page.data, items)
 	}
 	page.InitFunc(page.Pager.Initializer)
 	return page
@@ -44,6 +37,15 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 	return p
 }
 
+func (p *Page) pagerProps(items teacozy.Items) cmpnt.PagerProps {
+	return cmpnt.PagerProps{
+		Items:      items,
+		SetCurrent: p.SetCurrent,
+		Current:    p.Current,
+		IsSelected: p.ItemIsSelected,
+	}
+}
+
 func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	idx, err := strconv.Atoi(id)
 	if err != nil {
@@ -51,7 +53,7 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	}
 
 	if p.Initializer != nil {
-		return p.Initializer(p.data[idx])
+		return p.Initializer(p.pagerProps(p.Data[idx]))
 	}
 
 	return p.Pager
