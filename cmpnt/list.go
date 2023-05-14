@@ -1,12 +1,8 @@
 package cmpnt
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 	"github.com/ohzqq/teacozy/util"
@@ -43,7 +39,8 @@ type List struct {
 
 type ListProps struct {
 	PagerProps
-	Selected map[int]struct{}
+	Selected   func() map[int]struct{}
+	ToggleItem func(int)
 }
 
 func NewList(p *Pager, choices teacozy.Items) *List {
@@ -59,9 +56,7 @@ func NewList(p *Pager, choices teacozy.Items) *List {
 		c.Limit = c.Choices.Len()
 	}
 
-	if !c.readOnly {
-		c.AddKey(keys.Toggle().AddKeys(" "))
-	}
+	c.AddKey(keys.Toggle().AddKeys(" "))
 
 	c.SetPerPage(c.Height)
 	c.SetTotal(c.Choices.Len())
@@ -78,59 +73,9 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 	var (
 		cmds []tea.Cmd
 	)
+
 	switch msg := msg.(type) {
-	case keys.PageUpMsg:
-		c.cursor = clamp(c.cursor-c.Model.PerPage, 0, c.total-1)
-		c.Model.PrevPage()
-	case keys.PageDownMsg:
-		c.cursor = clamp(c.cursor+c.Model.PerPage, 0, c.total-1)
-		c.Model.NextPage()
-	case keys.HalfPageUpMsg:
-		c.HalfUp()
-		if c.cursor < c.start {
-			c.Model.PrevPage()
-		}
-	case keys.HalfPageDownMsg:
-		c.HalfDown()
-		if c.cursor >= c.end {
-			c.Model.NextPage()
-		}
-	case keys.LineDownMsg:
-		c.NextItem()
-		if c.cursor >= c.end {
-			c.Model.NextPage()
-		}
-	case keys.LineUpMsg:
-		c.PrevItem()
-		if c.cursor < c.start {
-			c.Model.PrevPage()
-		}
-	case keys.TopMsg:
-		c.cursor = 0
-		c.Model.Page = 0
-	case keys.BottomMsg:
-		c.cursor = c.total - 1
-		c.Model.Page = c.Model.TotalPages - 1
-
-	case keys.ShowHelpMsg:
-		cmds = append(cmds, keys.ChangeRoute("help"))
-		//help := NewProps(c.help)
-		//help.SetName("help")
-		//return ChangeRoute(&help)
-
-	case keys.UpdateItemMsg:
-		return msg.Cmd(c.Current())
-
-	case keys.ToggleItemsMsg, keys.ToggleItemMsg:
-		c.ToggleItems(c.Current())
-		cmds = append(cmds, keys.LineDown)
-
 	case tea.KeyMsg:
-		// ctrl+c support
-		if msg.String() == "ctrl+c" {
-			return reactea.Destroy
-		}
-
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
 				cmds = append(cmds, k.TeaCmd)
@@ -138,59 +83,7 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	c.SliceBounds()
-
 	return tea.Batch(cmds...)
-}
-
-func (c *List) Render(w, h int) string {
-	var s strings.Builder
-	//h = h - 2
-	h = c.Height - 2
-
-	// get matched items
-	items := c.ExactMatches(c.Search)
-
-	c.SetPerPage(h)
-
-	// update the total items based on the filter results, this prevents from
-	// going out of bounds
-	c.SetTotal(len(items))
-
-	for i, m := range items[c.Start():c.End()] {
-		var cur bool
-		if i == c.Highlighted() {
-			c.SetCurrent(m.Index)
-			cur = true
-		}
-
-		var sel bool
-		if _, ok := c.Selected[m.Index]; ok {
-			sel = true
-		}
-
-		label := c.Items.Label(m.Index)
-		pre := c.State.PrefixText(label, sel, cur)
-		style := c.State.PrefixStyle(label, sel, cur)
-
-		// only print the prefix if it's a list or there's a label
-		if !c.ReadOnly || label != "" {
-			s.WriteString(style.Render(pre))
-		}
-
-		// render the rest of the line
-		text := lipgloss.StyleRunes(
-			m.Str,
-			m.MatchedIndexes,
-			c.Style.Match,
-			c.Style.Normal.Style,
-		)
-
-		s.WriteString(lipgloss.NewStyle().Render(text))
-		s.WriteString("\n")
-	}
-
-	return s.String()
 }
 
 func (c List) ToggleItem() {
@@ -208,7 +101,7 @@ func (c *List) AddKey(k *keys.Binding) *List {
 
 func (c *List) ToggleItems(items ...int) {
 	for _, idx := range items {
-		c.CurrentItem = idx
+		c.Props().SetCurrent(idx)
 		if _, ok := c.Selected[idx]; ok {
 			delete(c.Selected, idx)
 			c.NumSelected--

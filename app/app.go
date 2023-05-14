@@ -22,7 +22,7 @@ type App struct {
 	endpoints   []string
 	prevRoute   string
 	CurrentItem int
-	Selected    map[int]struct{}
+	selected    map[int]struct{}
 }
 
 func New(choices teacozy.Items) *App {
@@ -30,6 +30,7 @@ func New(choices teacozy.Items) *App {
 		router:    router.New(),
 		pages:     make(map[string]*Page),
 		prevRoute: "default",
+		selected:  make(map[int]struct{}),
 	}
 	c.NewPage("default", choices)
 	c.NewPage("help", teacozy.MapToChoices(c.pages["default"].KeyMap().Map()))
@@ -40,15 +41,7 @@ func New(choices teacozy.Items) *App {
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 	c.endpoints = append(c.endpoints, endpoint)
-	props := cmpnt.PagerProps{
-		SetCurrent: c.SetCurrent,
-		Current:    c.Current,
-	}
-	if len(data) > 0 {
-		props.Items = data[0]
-	}
 	c.pages[endpoint] = NewPage(endpoint, data...)
-	c.pages[endpoint].Init(props)
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
@@ -133,6 +126,18 @@ func (c App) Current() int {
 
 func (m *App) SetCurrent(idx int) {
 	m.CurrentItem = idx
+}
+
+func (c *App) Selected() map[int]struct{} {
+	return c.selected
+}
+
+func (c *App) SelectItem(idx int) {
+	c.selected[idx] = struct{}{}
+}
+
+func (c *App) DeselectItem(idx int) {
+	delete(c.selected, idx)
 }
 
 var fields = []map[string]string{

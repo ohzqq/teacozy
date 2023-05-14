@@ -55,6 +55,10 @@ func (c Pager) NewProps(items teacozy.Items) PagerProps {
 		Items:      items,
 	}
 }
+func (c *Pager) Initializer(props PagerProps) reactea.SomeComponent {
+	c.Init(props)
+	return c
+}
 
 func (c *Pager) Init(props PagerProps) tea.Cmd {
 	c.UpdateProps(props)

@@ -8,11 +8,12 @@ import (
 	"github.com/ohzqq/teacozy/cmpnt"
 )
 
-type PageInitializer func(*cmpnt.Pager, teacozy.Items) reactea.SomeComponent
+type PageInitializer func(cmpnt.PagerProps) reactea.SomeComponent
 
 type Page struct {
 	Data        []teacozy.Items
 	Name        string
+	CurrentItem int
 	Initializer PageInitializer
 	*cmpnt.Pager
 }
@@ -23,6 +24,7 @@ func NewPage(name string, data ...teacozy.Items) *Page {
 		Name:  name,
 		Pager: cmpnt.New(),
 	}
+	page.InitFunc(page.Pager.Initializer)
 	return page
 }
 
@@ -34,12 +36,26 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	idx, err := strconv.Atoi(id)
 	if err != nil {
-		return p.Pager
+		idx = 0
+	}
+
+	props := cmpnt.PagerProps{
+		Items:      p.Data[idx],
+		Current:    p.Current,
+		SetCurrent: p.SetCurrent,
 	}
 
 	if p.Initializer != nil {
-		return p.Initializer(p.Pager, p.Data[idx])
+		return p.Initializer(props)
 	}
 
 	return p.Pager
+}
+
+func (p Page) Current() int {
+	return p.CurrentItem
+}
+
+func (p *Page) SetCurrent(idx int) {
+	p.CurrentItem = idx
 }

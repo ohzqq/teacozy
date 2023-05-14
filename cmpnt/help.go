@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
-	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
 
@@ -14,8 +13,8 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(p *Pager, items teacozy.Items) reactea.SomeComponent {
-	props := p.NewProps(items)
+func NewHelp(props PagerProps) reactea.SomeComponent {
+	p := New()
 	p.Init(props)
 	help := &Help{
 		keyMap: keys.NewKeyMap(keys.Esc()),
@@ -23,6 +22,10 @@ func NewHelp(p *Pager, items teacozy.Items) reactea.SomeComponent {
 	}
 	return help
 }
+
+//func (c Help) KeyMap() keys.KeyMap {
+//  return c.keyMap
+//}
 
 func (c *Help) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
