@@ -6,7 +6,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type Props interface {
+type PageProps interface {
 	SetCurrent(int)
 	Current() int
 	IsSelected(int) bool
@@ -14,12 +14,12 @@ type Props interface {
 }
 
 type Page interface {
-	Component() reactea.SomeComponent
+	Mount() reactea.SomeComponent
 	KeyMap() keys.KeyMap
 }
 
-func NewPage() func(Props) Page {
-	return func(props Props) Page {
+func NewPage() func(PageProps) Page {
+	return func(props PageProps) Page {
 		p := New()
 		p.Init(props)
 		return p

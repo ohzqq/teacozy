@@ -9,7 +9,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type PageInitializer func(cmpnt.Props) cmpnt.Page
+type PageInitializer func(cmpnt.PageProps) cmpnt.Page
 
 type Page struct {
 	Data        []teacozy.Items
@@ -21,8 +21,6 @@ type Page struct {
 
 	Initializer PageInitializer
 	keymap      keys.KeyMap
-
-	*cmpnt.Pager
 }
 
 func NewPage(name string, data ...teacozy.Items) *Page {
@@ -55,7 +53,7 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	page := p.Initializer(p)
 	p.keymap = page.KeyMap()
 
-	return page.Component()
+	return page.Mount()
 }
 
 func (p Page) Items() teacozy.Items {
