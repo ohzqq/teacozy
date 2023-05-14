@@ -147,8 +147,6 @@ func (c *Pager) Render(w, h int) string {
 
 	props := NewItems(c.Props().Items.Items)
 	props.ReadOnly = false
-	//props.SetCurrent = c.Props().SetCurrent
-	//props.Current = c.Props().Current
 	props.Matches = items[c.Start():c.End()]
 	props.Highlighted = c.Highlighted
 	view := props.Render()

@@ -11,18 +11,22 @@ import (
 type PageInitializer func(cmpnt.Props) reactea.SomeComponent
 
 type Page struct {
-	Data        []teacozy.Items
-	Name        string
+	Data []teacozy.Items
+	Name string
+
 	CurrentItem int
+	selected    map[int]struct{}
+
 	Initializer PageInitializer
 	*cmpnt.Pager
 }
 
 func NewPage(name string, data ...teacozy.Items) *Page {
 	page := &Page{
-		Data:  data,
-		Name:  name,
-		Pager: cmpnt.New(),
+		Data:     data,
+		Name:     name,
+		Pager:    cmpnt.New(),
+		selected: make(map[int]struct{}),
 	}
 	page.InitFunc(page.Pager.Initializer)
 	return page
@@ -50,6 +54,10 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 	}
 
 	return p.Pager
+}
+
+func (p Page) SelectedItems() map[int]struct{} {
+	return p.selected
 }
 
 func (p Page) Current() int {
