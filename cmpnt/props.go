@@ -17,3 +17,11 @@ type Page interface {
 	Component() reactea.SomeComponent
 	KeyMap() keys.KeyMap
 }
+
+func NewPage() func(Props) Page {
+	return func(props Props) Page {
+		p := New()
+		p.Init(props)
+		return p
+	}
+}

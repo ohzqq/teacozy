@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/londek/reactea"
@@ -30,11 +29,10 @@ func NewPage(name string, data ...teacozy.Items) *Page {
 	page := &Page{
 		Data:     data,
 		Name:     name,
-		Pager:    cmpnt.New(),
 		keymap:   keys.DefaultKeyMap(),
 		selected: make(map[int]struct{}),
 	}
-	page.InitFunc(page.Pager.Initializer)
+	page.InitFunc(cmpnt.NewPage())
 	return page
 }
 
@@ -53,7 +51,6 @@ func (p *Page) UpdateProps(id string) reactea.SomeComponent {
 		idx = 0
 	}
 	p.CurrentPage = idx
-	fmt.Println(p.Data[p.CurrentPage])
 
 	page := p.Initializer(p)
 	p.keymap = page.KeyMap()
