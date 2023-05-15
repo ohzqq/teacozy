@@ -117,13 +117,13 @@ func (c *Pager) Update(msg tea.Msg) tea.Cmd {
 
 func (c *Pager) Render(w, h int) string {
 	var s strings.Builder
-	//h = h - 2
 	h = c.Height - 2
 
 	// get matched items
-	items := teacozy.ExactMatches(c.Props().InputValue(), c.Props().Items())
-	c.SliceBounds()
-	//items := teacozy.SourceToMatches(c.Props().Items())
+	items := teacozy.ExactMatches(
+		c.Props().InputValue(),
+		c.Props().Items(),
+	)
 
 	c.SetPerPage(h)
 
@@ -132,7 +132,7 @@ func (c *Pager) Render(w, h int) string {
 	c.SetTotal(len(items))
 
 	props := NewItems(items[c.Start():c.End()])
-	props.ReadOnly = false
+	props.ReadOnly = c.ReadOnly
 	props.Highlighted = c.Highlighted
 	props.IsSelected = c.Props().IsSelected
 	props.GetLabel = c.Props().Items().Label
@@ -215,7 +215,6 @@ func (m *Pager) SetPerPage(n int) *Pager {
 func (m Pager) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.Model.PerPage {
-			//m.Props().SetCurrent(i)
 			return i
 		}
 	}

@@ -37,7 +37,7 @@ func New(choices teacozy.Items) *App {
 	help.InitFunc(cmpnt.NewHelp)
 	c.pages["help"] = help
 
-	c.NewPage("default", choices)
+	c.NewPage("list", choices)
 	//c.pages["list"] = c.pages["default"]
 
 	return c
@@ -61,7 +61,7 @@ func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		return c.pages["default"].Update()
+		return c.pages["list"].Update()
 	}
 	c.routes["help/:id"] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 		idx := slices.Index(c.endpoints, c.pages[params["id"]].Endpoint)
@@ -88,7 +88,7 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	reactea.AfterUpdate(c)
 
 	if reactea.CurrentRoute() == "" {
-		reactea.SetCurrentRoute("default")
+		reactea.SetCurrentRoute("list/0")
 	}
 
 	var (
