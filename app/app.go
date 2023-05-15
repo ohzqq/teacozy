@@ -19,6 +19,7 @@ type App struct {
 
 	router    *router.Component
 	pages     map[string]*teacozy.Page
+	routes    map[string]router.RouteInitializer
 	endpoints []string
 	prevRoute string
 	selected  map[int]struct{}
@@ -28,36 +29,74 @@ func New(choices teacozy.Items) *App {
 	c := &App{
 		router:    router.New(),
 		pages:     make(map[string]*teacozy.Page),
+		routes:    make(map[string]router.RouteInitializer),
 		prevRoute: "default",
 		selected:  make(map[int]struct{}),
 	}
-	c.NewPage("default", choices)
-	c.NewPage("help", teacozy.MapToChoices(c.pages["default"].KeyMap().Map()))
-	c.pages["help"].InitFunc(cmpnt.NewHelp)
+	help := teacozy.NewPage("help")
+	help.InitFunc(cmpnt.NewHelp)
+	c.pages["help"] = help
 
+	c.NewPage("default", choices)
+	c.pages["list"] = c.pages["default"]
+	c.endpoints = append(c.endpoints, "help")
+
+	return c
+}
+
+func (c *App) NewEndpoint(end string) *App {
+	c.endpoints = append(c.endpoints, end)
 	return c
 }
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 	c.endpoints = append(c.endpoints, endpoint)
-	page := teacozy.NewPage(endpoint, data...)
+
+	page := newPage(endpoint, data...)
+
+	c.pages[endpoint] = page
+	c.pages["help"].AddItems(teacozy.MapToChoices(page.KeyMap().Map()))
+
+	if endpoint != "default" {
+		route := filepath.Join(endpoint, ":id")
+		c.routes[route] = c.initRoute(endpoint)
+	}
+
+}
+
+func newPage(name string, data ...teacozy.Items) *teacozy.Page {
+	page := teacozy.NewPage(name, data...)
 	p := cmpnt.New()
 	p.Init(page)
 	page.InitFunc(p.Initializer)
-	c.pages[endpoint] = page
+	page.Update()
+	return page
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
-	return c.router.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			return c.pages["default"].UpdateProps(""), nil
-		},
-		"help/:name": func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
-			idx := slices.Index(c.endpoints, c.pages[params["name"]].Name)
-			page := c.pages["help"].UpdateProps(strconv.Itoa(idx))
-			return page, nil
-		},
-	})
+	c.routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+		return c.pages["default"].Update(), nil
+	}
+	c.routes["help/:id"] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
+		idx := slices.Index(c.endpoints, c.pages[params["id"]].Endpoint)
+		if idx < 0 {
+			idx = 0
+		}
+		c.pages["help"].SetCurrentPage(idx)
+		return c.pages["help"].Update(), nil
+	}
+	return c.router.Init(c.routes)
+}
+
+func (c App) initRoute(endpoint string) router.RouteInitializer {
+	return func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
+		idx, err := strconv.Atoi(params["id"])
+		if err != nil {
+			idx = 0
+		}
+		c.pages[endpoint].SetCurrentPage(idx)
+		return c.pages[endpoint].Update(), nil
+	}
 }
 
 func (c *App) Update(msg tea.Msg) tea.Cmd {
@@ -83,7 +122,6 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 			c.prevRoute = reactea.CurrentRoute()
 		}
 		reactea.SetCurrentRoute(route)
-	//cmds = append(cmds, keys.ChangeRoute("help"))
 
 	case keys.ShowHelpMsg:
 		page := filepath.Base(reactea.CurrentRoute())

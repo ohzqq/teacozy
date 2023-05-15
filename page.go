@@ -1,8 +1,6 @@
 package teacozy
 
 import (
-	"strconv"
-
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -10,16 +8,16 @@ import (
 type PageInitializer func(PageProps) PageComponent
 
 type Page struct {
-	reactea.BasicComponent
 	Data        []Items
-	Name        string
+	Endpoint    string
 	CurrentPage int
 
 	CurrentItem int
 	selected    map[int]struct{}
+	SetCurPage  func() int
 
 	Initializer PageInitializer
-	keymap      keys.KeyMap
+	keyMap      keys.KeyMap
 }
 
 type PageProps interface {
@@ -34,20 +32,13 @@ type PageComponent interface {
 	KeyMap() keys.KeyMap
 }
 
-func NewPageComponent(title string, items ...Items) func(PageProps) PageComponent {
-	return func(props PageProps) PageComponent {
-		return NewPage(title, items...)
-	}
-}
-
 func NewPage(name string, data ...Items) *Page {
 	page := &Page{
 		Data:     data,
-		Name:     name,
-		keymap:   keys.DefaultKeyMap(),
+		Endpoint: name,
+		keyMap:   keys.DefaultKeyMap(),
 		selected: make(map[int]struct{}),
 	}
-	//page.InitFunc(NewPageComponent(name, data...))
 	return page
 }
 
@@ -57,32 +48,25 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 }
 
 func (p Page) KeyMap() keys.KeyMap {
-	return p.keymap
+	return p.keyMap
 }
 
-func (p *Page) Mount() reactea.SomeComponent {
-	return p
+func (p *Page) AddItems(data ...Items) {
+	p.Data = append(p.Data, data...)
 }
 
-func (p Page) Render(w, h int) string {
-	return p.Mount().Render(w, h)
-}
-
-func (p *Page) UpdateProps(id string) reactea.SomeComponent {
-	idx, err := strconv.Atoi(id)
-	if err != nil {
-		idx = 0
-	}
-	p.CurrentPage = idx
-
+func (p *Page) Update() reactea.SomeComponent {
 	page := p.Initializer(p)
-	p.keymap = page.KeyMap()
-
+	p.keyMap = page.KeyMap()
 	return page.Mount()
 }
 
 func (p Page) Items() Items {
 	return p.Data[p.CurrentPage]
+}
+
+func (p *Page) SetCurrentPage(idx int) {
+	p.CurrentPage = idx
 }
 
 func (p Page) SelectedItems() map[int]struct{} {
