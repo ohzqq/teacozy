@@ -17,6 +17,8 @@ type Pager struct {
 	reactea.BasicPropfulComponent[*teacozy.Page]
 	Model paginator.Model
 
+	ReadOnly bool
+
 	Width  int
 	Height int
 
@@ -45,8 +47,8 @@ func (c *Pager) Initializer(props *teacozy.Page) teacozy.PageComponent {
 	return c
 }
 
-func (c *Pager) Mount() reactea.SomeComponent {
-	return c
+func (c *Pager) Mount() (reactea.SomeComponent, tea.Cmd) {
+	return c, nil
 }
 
 func (c *Pager) Init(props *teacozy.Page) tea.Cmd {
@@ -119,8 +121,8 @@ func (c *Pager) Render(w, h int) string {
 	h = c.Height - 2
 
 	// get matched items
-	//items := c.ExactMatches(c.Search)
-	items := teacozy.SourceToMatches(c.Props().Items())
+	items := teacozy.ExactMatches(c.Props().InputValue(), c.Props().Items())
+	//items := teacozy.SourceToMatches(c.Props().Items())
 
 	c.SetPerPage(h)
 

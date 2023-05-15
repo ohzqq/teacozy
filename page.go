@@ -1,6 +1,7 @@
 package teacozy
 
 import (
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -31,7 +32,7 @@ type PageProps interface {
 }
 
 type PageComponent interface {
-	Mount() reactea.SomeComponent
+	Mount() (reactea.SomeComponent, tea.Cmd)
 	KeyMap() keys.KeyMap
 }
 
@@ -63,7 +64,7 @@ func (p *Page) AddItems(data ...Items) {
 	p.Data = append(p.Data, data...)
 }
 
-func (p *Page) Update() reactea.SomeComponent {
+func (p *Page) Update() (reactea.SomeComponent, tea.Cmd) {
 	page := p.Initializer(p)
 	p.keyMap = page.KeyMap()
 	return page.Mount()

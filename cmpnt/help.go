@@ -26,10 +26,6 @@ func NewHelp(props *teacozy.Page) teacozy.PageComponent {
 	return help
 }
 
-func (c *Help) Mount() reactea.SomeComponent {
-	return c
-}
-
 func (c Help) KeyMap() keys.KeyMap {
 	return c.keyMap
 }

@@ -61,7 +61,7 @@ func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-		return c.pages["default"].Update(), nil
+		return c.pages["default"].Update()
 	}
 	c.routes["help/:id"] = func(params router.Params) (reactea.SomeComponent, tea.Cmd) {
 		idx := slices.Index(c.endpoints, c.pages[params["id"]].Endpoint)
@@ -69,7 +69,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 			idx = 0
 		}
 		c.pages["help"].SetCurrentPage(idx)
-		return c.pages["help"].Update(), nil
+		return c.pages["help"].Update()
 	}
 	return c.router.Init(c.routes)
 }
@@ -80,7 +80,7 @@ func (c App) initRoute(endpoint string) router.RouteInitializer {
 		if err != nil {
 			idx = 0
 		}
-		return c.pages[endpoint].SetCurrentPage(idx).Update(), nil
+		return c.pages[endpoint].SetCurrentPage(idx).Update()
 	}
 }
 

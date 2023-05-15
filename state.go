@@ -171,6 +171,15 @@ func (p Prefix) Render(pre ...string) string {
 	return fmt.Sprintf(p.Fmt, p.Style.Render(text))
 }
 
+func ExactMatches(search string, items Items) fuzzy.Matches {
+	if search != "" {
+		if m := fuzzy.FindFrom(search, items); len(m) > 0 {
+			return m
+		}
+	}
+	return SourceToMatches(items)
+}
+
 func SourceToMatches(src Items) fuzzy.Matches {
 	items := make(fuzzy.Matches, src.Len())
 	for i := 0; i < src.Len(); i++ {

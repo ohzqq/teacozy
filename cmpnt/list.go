@@ -15,7 +15,6 @@ type List struct {
 	NumSelected    int
 	Limit          int
 	NoLimit        bool
-	ReadOnly       bool
 
 	keyMap keys.KeyMap
 	Style  Style
@@ -36,6 +35,7 @@ func NewList(props *teacozy.Page) teacozy.PageComponent {
 		Style: DefaultStyle(),
 		Pager: p,
 	}
+	c.Pager.ReadOnly = false
 
 	if c.NoLimit {
 		c.Limit = props.Items().Len()
@@ -104,6 +104,6 @@ func (m List) KeyMap() keys.KeyMap {
 	return m.keyMap
 }
 
-func (c *List) Mount() reactea.SomeComponent {
-	return c
+func (c *List) Mount() (reactea.SomeComponent, tea.Cmd) {
+	return c, nil
 }
