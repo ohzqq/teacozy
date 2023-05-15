@@ -26,9 +26,9 @@ func NewFilter(props *teacozy.Page) teacozy.PageComponent {
 		Prefix: "> ",
 		Style:  lipgloss.NewStyle().Foreground(color.Cyan()),
 	}
+	c.Pager.SetKeyMap(keys.DefaultKeyMap())
 
-	c.keyMap = keys.NewKeyMap(keys.Toggle(), keys.Help())
-	c.input.Focus()
+	c.List.SetKeyMap(keys.NewKeyMap(keys.Toggle(), keys.Help()))
 
 	return c
 }
@@ -56,9 +56,9 @@ func (c *Filter) Update(msg tea.Msg) tea.Cmd {
 		c.input, cmd = c.input.Update(msg)
 		c.Props().SetInputValue(c.input.Value())
 		cmds = append(cmds, cmd)
-	} else {
-		cmds = append(cmds, c.List.Update(msg))
+		//} else {
 	}
+	cmds = append(cmds, c.List.Update(msg))
 
 	return tea.Batch(cmds...)
 }

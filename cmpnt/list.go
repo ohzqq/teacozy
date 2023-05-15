@@ -18,8 +18,6 @@ type List struct {
 
 	keyMap keys.KeyMap
 	Style  Style
-
-	help keys.KeyMap
 }
 
 type ListProps struct {
@@ -102,6 +100,10 @@ func (c *List) ToggleItems(items ...int) {
 
 func (m List) KeyMap() keys.KeyMap {
 	return m.keyMap
+}
+
+func (m *List) SetKeyMap(km keys.KeyMap) {
+	m.keyMap = km
 }
 
 func (c *List) Mount() (reactea.SomeComponent, tea.Cmd) {
