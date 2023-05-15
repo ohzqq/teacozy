@@ -1,6 +1,8 @@
 package cmpnt
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
@@ -14,11 +16,11 @@ type Help struct {
 	keyMap keys.KeyMap
 }
 
-func NewHelp(props teacozy.PageProps) teacozy.PageComponent {
+func NewHelp(props *teacozy.Page) teacozy.PageComponent {
 	p := New()
 	p.Init(props)
 	help := &Help{
-		keyMap: keys.NewKeyMap(keys.Esc()),
+		keyMap: keys.NewKeyMap(keys.Esc(), keys.Toggle()),
 		Pager:  p,
 	}
 	return help
@@ -37,6 +39,8 @@ func (c *Help) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case keys.ToggleItemsMsg:
+		fmt.Println("toggle")
 	case tea.KeyMsg:
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {

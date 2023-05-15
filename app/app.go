@@ -38,7 +38,7 @@ func New(choices teacozy.Items) *App {
 	c.pages["help"] = help
 
 	c.NewPage("default", choices)
-	c.pages["list"] = c.pages["default"]
+	//c.pages["list"] = c.pages["default"]
 
 	return c
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/ohzqq/teacozy/keys"
 )
 
-type PageInitializer func(PageProps) PageComponent
+type PageInitializer func(*Page) PageComponent
 
 type Page struct {
 	Data        []Items

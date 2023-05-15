@@ -3,6 +3,7 @@ package cmpnt
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/keys"
 )
@@ -16,9 +17,8 @@ type List struct {
 	NoLimit        bool
 	ReadOnly       bool
 
-	Choices teacozy.Items
-	keyMap  keys.KeyMap
-	Style   Style
+	keyMap keys.KeyMap
+	Style  Style
 
 	help keys.KeyMap
 }
@@ -28,22 +28,20 @@ type ListProps struct {
 	ToggleItem func(int)
 }
 
-func NewList(p *Pager, choices teacozy.Items) *List {
+func NewList(props *teacozy.Page) teacozy.PageComponent {
+	p := New()
+	p.Init(props)
 	c := &List{
-		Limit:   10,
-		Style:   DefaultStyle(),
-		Choices: choices,
+		Limit: 10,
+		Style: DefaultStyle(),
+		Pager: p,
 	}
 
 	if c.NoLimit {
-		c.Limit = c.Choices.Len()
+		c.Limit = props.Items().Len()
 	}
 
-	c.AddKey(keys.Toggle().AddKeys(" "))
-
-	c.SetKeyMap(keys.VimKeyMap())
-
-	c.AddKey(keys.Help())
+	c.keyMap = keys.NewKeyMap(keys.Toggle().AddKeys(" "), keys.Help())
 
 	return c
 }
@@ -54,6 +52,11 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 	)
 
 	switch msg := msg.(type) {
+	case keys.ToggleItemMsg:
+		//fmt.Println("toggle")
+		c.ToggleItem()
+		//cmds = append(cmds, keys.LineDown)
+		return keys.LineDown
 	case tea.KeyMsg:
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
@@ -62,25 +65,27 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
+	cmds = append(cmds, c.Pager.Update(msg))
+
 	return tea.Batch(cmds...)
 }
 
 func (c List) ToggleItem() {
-	//c.ToggleItems(c.Current())
+	c.ToggleItems(c.Props().Current())
 }
 
-//func (c *List) ToggleItems(items ...int) {
-//  for _, idx := range items {
-//    c.Props().SetCurrent(idx)
-//    if _, ok := c.Selected[idx]; ok {
-//      delete(c.Selected, idx)
-//      c.NumSelected--
-//    } else if c.NumSelected < c.Limit {
-//      c.Selected[idx] = struct{}{}
-//      c.NumSelected++
-//    }
-//  }
-//}
+func (c *List) ToggleItems(items ...int) {
+	for _, idx := range items {
+		c.Props().SetCurrent(idx)
+		if _, ok := c.Props().SelectedItems()[idx]; ok {
+			delete(c.Props().SelectedItems(), idx)
+			c.NumSelected--
+		} else if c.NumSelected < c.Limit {
+			c.Props().SelectedItems()[idx] = struct{}{}
+			c.NumSelected++
+		}
+	}
+}
 
 //func (m List) Chosen() []map[string]string {
 //  var chosen []map[string]string
@@ -96,4 +101,8 @@ func (c List) ToggleItem() {
 
 func (m List) KeyMap() keys.KeyMap {
 	return m.keyMap
+}
+
+func (c *List) Mount() reactea.SomeComponent {
+	return c
 }

@@ -133,7 +133,8 @@ func Prev() *Binding {
 func Toggle() *Binding {
 	return New("tab").
 		WithHelp("select item").
-		Cmd(UpdateItem(ToggleItems))
+		Cmd(ToggleItem)
+	//Cmd(UpdateItem(ToggleItems))
 }
 
 func Quit() *Binding {
