@@ -55,7 +55,7 @@ func (c *App) AddPage(page *teacozy.Page) *App {
 }
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
-	page := NewCozyPage(endpoint, data...)
+	page := cmpnt.NewPage(endpoint, data...)
 	c.AddPage(page)
 }
 
