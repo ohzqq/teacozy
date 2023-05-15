@@ -56,7 +56,6 @@ func (c *Filter) Update(msg tea.Msg) tea.Cmd {
 		c.input, cmd = c.input.Update(msg)
 		c.Props().SetInputValue(c.input.Value())
 		cmds = append(cmds, cmd)
-		//} else {
 	}
 	cmds = append(cmds, c.List.Update(msg))
 

@@ -122,6 +122,7 @@ func (c *Pager) Render(w, h int) string {
 
 	// get matched items
 	items := teacozy.ExactMatches(c.Props().InputValue(), c.Props().Items())
+	c.SliceBounds()
 	//items := teacozy.SourceToMatches(c.Props().Items())
 
 	c.SetPerPage(h)
@@ -135,6 +136,7 @@ func (c *Pager) Render(w, h int) string {
 	props.Highlighted = c.Highlighted
 	props.IsSelected = c.Props().IsSelected
 	props.GetLabel = c.Props().Items().Label
+	props.SetCurrent = c.Props().SetCurrent
 	view := props.Render()
 	s.WriteString(view)
 
@@ -213,7 +215,7 @@ func (m *Pager) SetPerPage(n int) *Pager {
 func (m Pager) Highlighted() int {
 	for i := 0; i < m.end; i++ {
 		if i == m.cursor%m.Model.PerPage {
-			m.Props().SetCurrent(m.cursor)
+			//m.Props().SetCurrent(i)
 			return i
 		}
 	}

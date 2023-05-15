@@ -12,6 +12,7 @@ type Items struct {
 	Highlighted func() int
 	IsSelected  func(int) bool
 	GetLabel    func(int) string
+	SetCurrent  func(int)
 	Style       Style
 	Matches     fuzzy.Matches
 }
@@ -28,6 +29,9 @@ func (props Items) Render() string {
 	var s strings.Builder
 	for i, m := range props.Matches {
 		cur := i == props.Highlighted()
+		if cur {
+			props.SetCurrent(m.Index)
+		}
 		sel := props.IsSelected(m.Index)
 		label := props.GetLabel(m.Index)
 
