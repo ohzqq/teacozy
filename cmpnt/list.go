@@ -53,10 +53,11 @@ func (c *List) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case keys.ToggleItemMsg:
-		//fmt.Println("toggle")
+		//fmt.Println(c.Limit)
 		c.ToggleItem()
-		//cmds = append(cmds, keys.LineDown)
-		return keys.LineDown
+		//fmt.Println(c.NumSelected)
+		cmds = append(cmds, keys.LineDown)
+		//return keys.LineDown
 	case tea.KeyMsg:
 		for _, k := range c.keyMap.Keys() {
 			if key.Matches(msg, k.Binding) {
@@ -77,11 +78,11 @@ func (c List) ToggleItem() {
 func (c *List) ToggleItems(items ...int) {
 	for _, idx := range items {
 		c.Props().SetCurrent(idx)
-		if _, ok := c.Props().SelectedItems()[idx]; ok {
-			delete(c.Props().SelectedItems(), idx)
+		if c.Props().IsSelected(idx) {
+			c.Props().DeselectItem(idx)
 			c.NumSelected--
 		} else if c.NumSelected < c.Limit {
-			c.Props().SelectedItems()[idx] = struct{}{}
+			c.Props().SelectItem(idx)
 			c.NumSelected++
 		}
 	}
