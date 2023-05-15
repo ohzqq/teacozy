@@ -59,14 +59,6 @@ func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 	c.AddPage(page)
 }
 
-func NewCozyPage(name string, data ...teacozy.Items) *teacozy.Page {
-	page := teacozy.NewPage(name, data...)
-	p := cmpnt.New()
-	p.Init(page)
-	page.InitFunc(p.Initializer).Update()
-	return page
-}
-
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	c.routes["default"] = func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 		return c.pages["default"].Update(), nil

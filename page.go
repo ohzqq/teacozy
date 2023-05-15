@@ -12,9 +12,10 @@ type Page struct {
 	Endpoint    string
 	CurrentPage int
 
+	inputValue string
+
 	CurrentItem int
 	selected    map[int]struct{}
-	SetCurPage  func() int
 
 	Initializer PageInitializer
 	keyMap      keys.KeyMap
@@ -25,6 +26,8 @@ type PageProps interface {
 	Current() int
 	IsSelected(int) bool
 	Items() Items
+	SetInputValue(string)
+	InputValue() string
 }
 
 type PageComponent interface {
@@ -100,4 +103,12 @@ func (c *Page) SelectItem(idx int) {
 
 func (c *Page) DeselectItem(idx int) {
 	delete(c.selected, idx)
+}
+
+func (c Page) InputValue() string {
+	return c.inputValue
+}
+
+func (c *Page) SetInputValue(input string) {
+	c.inputValue = input
 }
