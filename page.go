@@ -51,6 +51,11 @@ func (p Page) KeyMap() keys.KeyMap {
 	return p.keyMap
 }
 
+func (p *Page) SetKeyMap(km keys.KeyMap) *Page {
+	p.keyMap = km
+	return p
+}
+
 func (p *Page) AddItems(data ...Items) {
 	p.Data = append(p.Data, data...)
 }
@@ -65,8 +70,9 @@ func (p Page) Items() Items {
 	return p.Data[p.CurrentPage]
 }
 
-func (p *Page) SetCurrentPage(idx int) {
+func (p *Page) SetCurrentPage(idx int) *Page {
 	p.CurrentPage = idx
+	return p
 }
 
 func (p Page) SelectedItems() map[int]struct{} {

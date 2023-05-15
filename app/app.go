@@ -39,37 +39,31 @@ func New(choices teacozy.Items) *App {
 
 	c.NewPage("default", choices)
 	c.pages["list"] = c.pages["default"]
-	c.endpoints = append(c.endpoints, "help")
 
 	return c
 }
 
-func (c *App) NewEndpoint(end string) *App {
-	c.endpoints = append(c.endpoints, end)
+func (c *App) AddPage(page *teacozy.Page) *App {
+	c.endpoints = append(c.endpoints, page.Endpoint)
+	c.pages[page.Endpoint] = page
+	if page.Endpoint != "default" {
+		route := filepath.Join(page.Endpoint, ":id")
+		c.routes[route] = c.initRoute(page.Endpoint)
+	}
+	c.pages["help"].AddItems(teacozy.MapToChoices(page.KeyMap().Map()))
 	return c
 }
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
-	c.endpoints = append(c.endpoints, endpoint)
-
-	page := newPage(endpoint, data...)
-
-	c.pages[endpoint] = page
-	c.pages["help"].AddItems(teacozy.MapToChoices(page.KeyMap().Map()))
-
-	if endpoint != "default" {
-		route := filepath.Join(endpoint, ":id")
-		c.routes[route] = c.initRoute(endpoint)
-	}
-
+	page := NewCozyPage(endpoint, data...)
+	c.AddPage(page)
 }
 
-func newPage(name string, data ...teacozy.Items) *teacozy.Page {
+func NewCozyPage(name string, data ...teacozy.Items) *teacozy.Page {
 	page := teacozy.NewPage(name, data...)
 	p := cmpnt.New()
 	p.Init(page)
-	page.InitFunc(p.Initializer)
-	page.Update()
+	page.InitFunc(p.Initializer).Update()
 	return page
 }
 
@@ -94,8 +88,7 @@ func (c App) initRoute(endpoint string) router.RouteInitializer {
 		if err != nil {
 			idx = 0
 		}
-		c.pages[endpoint].SetCurrentPage(idx)
-		return c.pages[endpoint].Update(), nil
+		return c.pages[endpoint].SetCurrentPage(idx).Update(), nil
 	}
 }
 
@@ -124,7 +117,8 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		reactea.SetCurrentRoute(route)
 
 	case keys.ShowHelpMsg:
-		page := filepath.Base(reactea.CurrentRoute())
+		//page := filepath.Dir(reactea.CurrentRoute())
+		page := c.CurrentEndpoint()
 		return keys.ChangeRoute(filepath.Join("help", page))
 
 	case keys.UpdateItemMsg:
@@ -142,6 +136,9 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 		if msg.String() == "f1" {
 			return keys.ShowHelp
 		}
+		if msg.String() == "o" {
+			return keys.ChangeRoute("list/0")
+		}
 
 		//for _, k := range c.KeyMap.Keys() {
 		//  if key.Matches(msg, k.Binding) {
@@ -155,6 +152,16 @@ func (c *App) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (c App) CurrentEndpoint() string {
+	if dir := filepath.Dir(reactea.CurrentRoute()); dir != "." {
+		return dir
+	}
+	if base := filepath.Base(reactea.CurrentRoute()); slices.Contains(c.endpoints, base) {
+		return base
+	}
+	return "default"
 }
 
 func (c *App) Render(w, h int) string {
