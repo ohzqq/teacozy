@@ -40,7 +40,11 @@ func New(choices teacozy.Items) *App {
 
 func (c *App) NewPage(endpoint string, data ...teacozy.Items) {
 	c.endpoints = append(c.endpoints, endpoint)
-	c.pages[endpoint] = teacozy.NewPage(endpoint, data...)
+	page := teacozy.NewPage(endpoint, data...)
+	p := cmpnt.New()
+	p.Init(page)
+	page.InitFunc(p.Initializer)
+	c.pages[endpoint] = page
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {

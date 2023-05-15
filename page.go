@@ -10,6 +10,7 @@ import (
 type PageInitializer func(PageProps) PageComponent
 
 type Page struct {
+	reactea.BasicComponent
 	Data        []Items
 	Name        string
 	CurrentPage int
@@ -33,12 +34,9 @@ type PageComponent interface {
 	KeyMap() keys.KeyMap
 }
 
-func NewPageComponent() func(PageProps) PageComponent {
+func NewPageComponent(title string, items ...Items) func(PageProps) PageComponent {
 	return func(props PageProps) PageComponent {
-		//p := New()
-		//p.Init(props)
-		//return p
-		return nil
+		return NewPage(title, items...)
 	}
 }
 
@@ -49,7 +47,7 @@ func NewPage(name string, data ...Items) *Page {
 		keymap:   keys.DefaultKeyMap(),
 		selected: make(map[int]struct{}),
 	}
-	page.InitFunc(NewPageComponent())
+	//page.InitFunc(NewPageComponent(name, data...))
 	return page
 }
 
@@ -60,6 +58,14 @@ func (p *Page) InitFunc(fn PageInitializer) *Page {
 
 func (p Page) KeyMap() keys.KeyMap {
 	return p.keymap
+}
+
+func (p *Page) Mount() reactea.SomeComponent {
+	return p
+}
+
+func (p Page) Render(w, h int) string {
+	return p.Mount().Render(w, h)
 }
 
 func (p *Page) UpdateProps(id string) reactea.SomeComponent {
