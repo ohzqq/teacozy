@@ -3,71 +3,8 @@ package list
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/color"
 	"golang.org/x/exp/maps"
 )
-
-func (m Model) Chosen() []int {
-	var chosen []int
-	if m.quitting {
-		return chosen
-	} else if len(m.selected) > 0 {
-		for k := range m.selected {
-			chosen = append(chosen, k)
-		}
-	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
-		chosen = append(chosen, m.cursor)
-	}
-	return chosen
-}
-
-func (m *Model) Header(text string) *Model {
-	m.header = text
-	return m
-}
-
-func (m *Model) SetStyle(s Style) *Model {
-	m.Style = s
-	return m
-}
-
-func (m *Model) Limit(l int) *Model {
-	m.limit = l
-	return m
-}
-
-func (m *Model) NoLimit() *Model {
-	return m.Limit(len(m.Choices))
-}
-
-func (m *Model) Height(h int) *Model {
-	m.height = h
-	return m
-}
-
-func (m *Model) Width(w int) *Model {
-	m.width = w
-	return m
-}
-
-func (m *Model) SetSize(w, h int) *Model {
-	m.Width(w)
-	m.Height(h)
-	return m
-}
-
-func DefaultStyle() Style {
-	var s Style
-	s.Cursor = Cursor
-	s.SelectedPrefix = Selected
-	s.UnselectedPrefix = Unselected
-	s.Text = Foreground
-	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
-	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
-	s.Prompt = Prompt
-	return s
-}
 
 type ReturnSelectionsMsg struct{}
 

@@ -51,7 +51,7 @@ type Model struct {
 	Style            Style
 }
 
-func New(choices []string) *Model {
+func New(choices []string, opts ...Option) *Model {
 	tm := Model{
 		Choices:          choices,
 		selected:         make(map[int]struct{}),
@@ -59,7 +59,7 @@ func New(choices []string) *Model {
 		ListKeys:         ListKeyMap,
 		filterState:      Unfiltered,
 		Style:            DefaultStyle(),
-		limit:            10,
+		limit:            1,
 		promptPrefix:     PromptPrefix,
 		cursorPrefix:     CursorPrefix,
 		selectedPrefix:   SelectedPrefix,
@@ -75,34 +75,38 @@ func New(choices []string) *Model {
 		tm.width = w
 	}
 
+	for _, opt := range opts {
+		opt(&tm)
+	}
+
 	tm.items = filterItems("", tm.Choices)
 	tm.matches = tm.items
+
+	tm.textinput = textinput.New()
+	tm.textinput.Prompt = tm.promptPrefix
+	tm.textinput.PromptStyle = tm.Style.Prompt
+	tm.textinput.Placeholder = tm.Placeholder
+	tm.textinput.Width = tm.width
+
+	v := viewport.New(tm.width, tm.height)
+	tm.viewport = &v
+
+	tm.paginator = paginator.New()
+	tm.paginator.SetTotalPages((len(tm.items) + tm.height - 1) / tm.height)
+	tm.paginator.PerPage = tm.height
+	tm.paginator.Type = paginator.Dots
+	tm.paginator.ActiveDot = Subdued.Render(Bullet)
+	tm.paginator.InactiveDot = VerySubdued.Render(Bullet)
 
 	return &tm
 }
 
-func (m *Model) Run() []int {
-	m.textinput = textinput.New()
-	m.textinput.Prompt = m.promptPrefix
-	m.textinput.PromptStyle = m.Style.Prompt
-	m.textinput.Placeholder = m.Placeholder
-	m.textinput.Width = m.width
-
-	v := viewport.New(m.width, m.height)
-	m.viewport = &v
-
-	m.paginator = paginator.New()
-	m.paginator.SetTotalPages((len(m.items) + m.height - 1) / m.height)
-	m.paginator.PerPage = m.height
-	m.paginator.Type = paginator.Dots
-	m.paginator.ActiveDot = Subdued.Render(Bullet)
-	m.paginator.InactiveDot = VerySubdued.Render(Bullet)
-
-	p := tea.NewProgram(m)
+func (tm *Model) Choose() []int {
+	p := tea.NewProgram(tm)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
-	return m.Chosen()
+	return tm.Chosen()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -156,6 +160,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case Filtering:
 		m.cursor = clamp(0, len(m.matches)-1, m.cursor)
 	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -218,6 +223,20 @@ func (m *Model) ToggleSelection() {
 	}
 }
 
+func (m Model) Chosen() []int {
+	var chosen []int
+	if m.quitting {
+		return chosen
+	} else if len(m.selected) > 0 {
+		for k := range m.selected {
+			chosen = append(chosen, k)
+		}
+	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+		chosen = append(chosen, m.cursor)
+	}
+	return chosen
+}
+
 func (m Model) ItemIndex(c string) int {
 	return slices.Index(m.Choices, c)
 }
@@ -274,6 +293,7 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 	for i, match := range matches {
 		var isCur bool
 
+		// Determine if item is current
 		switch {
 		case m.filterState == Unfiltered && i == m.cursor%m.height:
 			fallthrough
@@ -281,6 +301,7 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 			isCur = true
 		}
 
+		// Write prefix
 		switch {
 		case m.limit > 1:
 			s.WriteString("[")
@@ -290,6 +311,7 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 			}
 		}
 
+		// Style prefix
 		if isCur {
 			s.WriteString(m.Style.Cursor.Render(curPre))
 		} else {
@@ -299,10 +321,12 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 				s.WriteString(m.Style.UnselectedPrefix.Render(m.unselectedPrefix))
 			}
 		}
+
 		if m.limit > 1 {
 			s.WriteString("]")
 		}
 
+		// Style item
 		text := lipgloss.StyleRunes(
 			match.Str,
 			match.MatchedIndexes,

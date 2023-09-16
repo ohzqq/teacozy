@@ -37,3 +37,15 @@ type Style struct {
 	Header           lipgloss.Style
 	Prompt           lipgloss.Style
 }
+
+func DefaultStyle() Style {
+	var s Style
+	s.Cursor = Cursor
+	s.SelectedPrefix = Selected
+	s.UnselectedPrefix = Unselected
+	s.Text = Foreground
+	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
+	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
+	s.Prompt = Prompt
+	return s
+}
