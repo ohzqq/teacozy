@@ -6,6 +6,7 @@ import (
 )
 
 type KeyMap []Binding
+
 type Binding struct {
 	key.Binding
 	opts []key.BindingOpt

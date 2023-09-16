@@ -5,7 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/color"
-	"github.com/ohzqq/teacozy/style"
 	"golang.org/x/exp/maps"
 )
 
@@ -28,7 +27,7 @@ func (m *Model) Header(text string) *Model {
 	return m
 }
 
-func (m *Model) SetStyle(s style.List) *Model {
+func (m *Model) SetStyle(s Style) *Model {
 	m.Style = s
 	return m
 }
@@ -58,15 +57,15 @@ func (m *Model) SetSize(w, h int) *Model {
 	return m
 }
 
-func DefaultStyle() style.List {
-	var s style.List
-	s.Cursor = style.Cursor
-	s.SelectedPrefix = style.Selected
-	s.UnselectedPrefix = style.Unselected
-	s.Text = style.Foreground
+func DefaultStyle() Style {
+	var s Style
+	s.Cursor = Cursor
+	s.SelectedPrefix = Selected
+	s.UnselectedPrefix = Unselected
+	s.Text = Foreground
 	s.Match = lipgloss.NewStyle().Foreground(color.Cyan())
 	s.Header = lipgloss.NewStyle().Foreground(color.Purple())
-	s.Prompt = style.Prompt
+	s.Prompt = Prompt
 	return s
 }
 

@@ -10,7 +10,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/keys"
-	"github.com/ohzqq/teacozy/style"
 	"github.com/ohzqq/teacozy/util"
 	"github.com/sahilm/fuzzy"
 	"golang.org/x/exp/slices"
@@ -44,12 +43,12 @@ type Model struct {
 	cursorPrefix     string
 	selectedPrefix   string
 	unselectedPrefix string
+	promptPrefix     string
 	header           string
 	Placeholder      string
-	Prompt           string
 	width            int
 	height           int
-	Style            style.List
+	Style            Style
 }
 
 func New(choices []string) *Model {
@@ -61,10 +60,10 @@ func New(choices []string) *Model {
 		filterState:      Unfiltered,
 		Style:            DefaultStyle(),
 		limit:            10,
-		Prompt:           style.PromptPrefix,
-		cursorPrefix:     style.CursorPrefix,
-		selectedPrefix:   style.SelectedPrefix,
-		unselectedPrefix: style.UnselectedPrefix,
+		promptPrefix:     PromptPrefix,
+		cursorPrefix:     CursorPrefix,
+		selectedPrefix:   SelectedPrefix,
+		unselectedPrefix: UnselectedPrefix,
 		height:           10,
 	}
 
@@ -75,6 +74,7 @@ func New(choices []string) *Model {
 	if tm.width == 0 {
 		tm.width = w
 	}
+
 	tm.items = filterItems("", tm.Choices)
 	tm.matches = tm.items
 
@@ -83,7 +83,7 @@ func New(choices []string) *Model {
 
 func (m *Model) Run() []int {
 	m.textinput = textinput.New()
-	m.textinput.Prompt = m.Prompt
+	m.textinput.Prompt = m.promptPrefix
 	m.textinput.PromptStyle = m.Style.Prompt
 	m.textinput.Placeholder = m.Placeholder
 	m.textinput.Width = m.width
@@ -95,8 +95,8 @@ func (m *Model) Run() []int {
 	m.paginator.SetTotalPages((len(m.items) + m.height - 1) / m.height)
 	m.paginator.PerPage = m.height
 	m.paginator.Type = paginator.Dots
-	m.paginator.ActiveDot = style.Subdued.Render(style.Bullet)
-	m.paginator.InactiveDot = style.VerySubdued.Render(style.Bullet)
+	m.paginator.ActiveDot = Subdued.Render(Bullet)
+	m.paginator.InactiveDot = VerySubdued.Render(Bullet)
 
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
@@ -114,7 +114,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.Height = msg.Height - lipgloss.Height(m.textinput.View())
 		}
 
-		// Make place in the view port if header is set
+		// Make place in the viewport if header is set
 		if m.header != "" {
 			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
 		}
@@ -147,10 +147,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.textinput, cmd = m.textinput.Update(msg)
 		m.matches = filterItems(m.textinput.Value(), m.Choices)
-		// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
-		if m.textinput.Value() == "" {
-			m.matches = m.items
-		}
+
 		cmds = append(cmds, cmd)
 	}
 
@@ -226,9 +223,6 @@ func (m Model) ItemIndex(c string) int {
 }
 
 func (m Model) View() string {
-	//if m.quitting {
-	//  return ""
-	//}
 	switch m.filterState {
 	case Filtering:
 		return m.FilteringView()
@@ -250,9 +244,8 @@ func (m Model) UnfilteredView() string {
 	} else if m.paginator.TotalPages > 1 {
 		s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
 		s.WriteString("  " + m.paginator.View())
+		view = s.String()
 	}
-
-	view = s.String()
 
 	if m.header != "" {
 		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.width))
@@ -262,23 +255,20 @@ func (m Model) UnfilteredView() string {
 }
 
 func (m Model) FilteringView() string {
-	var s strings.Builder
-
-	items := m.renderItems(m.matches)
-	s.WriteString(items)
-
-	m.viewport.SetContent(s.String())
-
-	view := m.textinput.View() + "\n" + m.viewport.View()
-	return view
+	m.viewport.SetContent(m.renderItems(m.matches))
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		m.textinput.View(),
+		m.viewport.View(),
+	)
 }
 
 func (m Model) renderItems(matches fuzzy.Matches) string {
 	var s strings.Builder
 
-	curPre := style.CursorPrefix
+	curPre := m.cursorPrefix
 	if m.limit == 1 {
-		curPre = style.PromptPrefix
+		curPre = m.promptPrefix
 	}
 
 	for i, match := range matches {

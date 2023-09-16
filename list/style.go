@@ -1,4 +1,4 @@
-package style
+package list
 
 import (
 	"github.com/charmbracelet/lipgloss"
@@ -28,7 +28,7 @@ var (
 	Foreground  = lipgloss.NewStyle().Foreground(color.Fg())
 )
 
-type List struct {
+type Style struct {
 	SelectedPrefix   lipgloss.Style
 	Text             lipgloss.Style
 	Match            lipgloss.Style
