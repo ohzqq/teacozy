@@ -12,19 +12,15 @@ type Choices []Choice
 // Choice is a map[string]string for a single choice
 type Choice map[string]string
 
-func NewChoices(c any) (Choices, error) {
-	return SliceToChoices(c)
-	// var choices []map[string]string
-}
-
-func SliceToChoices[S ~[]E, E any](c S) (Choices, error) {
+func NewChoices[S ~[]E, E any](c S) (Choices, error) {
 	choices := make([]Choice, len(c))
 	for i, val := range c {
-		m, err := cast.ToStringMapStringE(val)
-		if err != nil {
-			return choices, err
+		if m, err := cast.ToStringMapStringE(val); err == nil {
+			choices[i] = m
+		} else {
+			choice := map[string]string{"": cast.ToString(val)}
+			choices[i] = choice
 		}
-		choices[i] = m
 	}
 	return choices, nil
 }
@@ -41,18 +37,18 @@ func (c Choices) Len() int {
 
 // Filter fuzzy matches items in the list
 func (c Choices) Filter(s string) fuzzy.Matches {
-	var matches fuzzy.Matches
-
 	m := fuzzy.FindFrom(s, c)
 	if len(m) == 0 {
-		//return ChoicesToItems(c)
-		return matches
+		return c.toMatches()
 	}
-	//for _, match := range m {
-	//item := New()
-	//item.SetMatch(match).SetLabel(c[match.Index].Key())
-	//matches = append(matches, item)
-	//}
+	return m
+}
+
+func (c Choices) toMatches() fuzzy.Matches {
+	matches := make(fuzzy.Matches, len(c))
+	for i, ch := range c {
+		matches[i] = fuzzy.Match{Str: ch.Value(), Index: i}
+	}
 	return matches
 }
 

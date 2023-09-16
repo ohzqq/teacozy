@@ -26,6 +26,7 @@ const (
 
 type Model struct {
 	Choices          []string
+	choices          Choices
 	textinput        textinput.Model
 	viewport         *viewport.Model
 	paginator        paginator.Model
@@ -54,6 +55,7 @@ type Model struct {
 func New(choices []string, opts ...Option) *Model {
 	tm := Model{
 		Choices:          choices,
+		choices:          NewChoices(choices),
 		selected:         make(map[int]struct{}),
 		FilterKeys:       FilterKeyMap,
 		ListKeys:         ListKeyMap,
