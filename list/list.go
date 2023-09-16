@@ -1,249 +1,377 @@
 package list
 
 import (
-	"fmt"
+	"log"
+	"strings"
 
-	bubblekey "github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/teacozy/key"
-	"github.com/ohzqq/teacozy/style"
+	"github.com/ohzqq/teacozy/keys"
+	"github.com/ohzqq/teacozy/util"
+	"github.com/sahilm/fuzzy"
+	"golang.org/x/exp/slices"
 )
 
-type ActionFunc func(items ...*Item) tea.Cmd
+// FilterState describes the current filtering state on the model.
+type FilterState int
 
-type List struct {
-	Model         list.Model
-	Title         string
-	SelectionList bool
-	ActionFunc    ActionFunc
-	Hash          map[string]string
-	Style         list.Styles
-	id            int
-	style.Frame
-	*Items
+// Possible filter states.
+const (
+	Unfiltered FilterState = iota // no filter set
+	Filtering                     // user is actively setting a filter
+)
+
+type Model struct {
+	Choices          []string
+	textinput        textinput.Model
+	viewport         *viewport.Model
+	paginator        paginator.Model
+	matches          fuzzy.Matches
+	items            fuzzy.Matches
+	FilterKeys       func(m *Model) keys.KeyMap
+	ListKeys         func(m *Model) keys.KeyMap
+	selected         map[int]struct{}
+	numSelected      int
+	cursor           int
+	limit            int
+	filterState      FilterState
+	aborted          bool
+	quitting         bool
+	cursorPrefix     string
+	selectedPrefix   string
+	unselectedPrefix string
+	promptPrefix     string
+	header           string
+	Placeholder      string
+	width            int
+	height           int
+	Style            Style
 }
 
-func NewList(title string) *List {
-	m := List{
-		Frame: style.DefaultFrameStyle(),
-		Items: NewItems(),
-		Title: title,
+func New(choices []string, opts ...Option) *Model {
+	tm := Model{
+		Choices:          choices,
+		selected:         make(map[int]struct{}),
+		FilterKeys:       FilterKeyMap,
+		ListKeys:         ListKeyMap,
+		filterState:      Unfiltered,
+		Style:            DefaultStyle(),
+		limit:            1,
+		promptPrefix:     PromptPrefix,
+		cursorPrefix:     CursorPrefix,
+		selectedPrefix:   SelectedPrefix,
+		unselectedPrefix: UnselectedPrefix,
+		height:           10,
 	}
-	m.SetAction(PrintItems)
-	m.Frame.MinHeight = 10
-	return &m
+
+	w, h := util.TermSize()
+	if tm.height == 0 {
+		tm.height = h - 4
+	}
+	if tm.width == 0 {
+		tm.width = w
+	}
+
+	for _, opt := range opts {
+		opt(&tm)
+	}
+
+	tm.items = filterItems("", tm.Choices)
+	tm.matches = tm.items
+
+	tm.textinput = textinput.New()
+	tm.textinput.Prompt = tm.promptPrefix
+	tm.textinput.PromptStyle = tm.Style.Prompt
+	tm.textinput.Placeholder = tm.Placeholder
+	tm.textinput.Width = tm.width
+
+	v := viewport.New(tm.width, tm.height)
+	tm.viewport = &v
+
+	tm.paginator = paginator.New()
+	tm.paginator.SetTotalPages((len(tm.items) + tm.height - 1) / tm.height)
+	tm.paginator.PerPage = tm.height
+	tm.paginator.Type = paginator.Dots
+	tm.paginator.ActiveDot = Subdued.Render(Bullet)
+	tm.paginator.InactiveDot = VerySubdued.Render(Bullet)
+
+	return &tm
 }
 
-func NewListModel(w, h int, items *Items) list.Model {
-	l := list.New(items.Visible(), items, w, h)
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.KeyMap = ListKeyMap()
-	l.Styles = style.ListStyles()
-	return l
+func (tm *Model) Choose() []int {
+	p := tea.NewProgram(tm)
+	if err := p.Start(); err != nil {
+		log.Fatal(err)
+	}
+	return tm.Chosen()
 }
 
-func (m *List) ChooseOne() *List {
-	m.SetModel()
-	return m
-}
-
-func (m *List) ChooseMany() *List {
-	m.SetMultiSelect()
-	m.SetModel()
-	return m
-}
-
-func (m *List) Edit() *List {
-	m.SetShowKeys()
-	m.SetModel()
-	return m
-}
-
-func (m *List) SetModel() *List {
-	m.Items.Process()
-	m.Model = NewListModel(m.Width(), m.Height(), m.Items)
-	m.Model.Title = m.Title
-	return m
-}
-
-func (m *List) SetAction(fn ActionFunc) *List {
-	m.ActionFunc = fn
-	return m
-}
-
-func (m *List) SetItems(items *Items) *List {
-	m.Items = items
-	return m
-}
-
-func (m *List) SetTitle(title string) *List {
-	m.Model.Title = title
-	return m
-}
-
-func (m *List) SetSize(w, h int) *List {
-	m.Frame.SetSize(w, h)
-	m.Model.SetSize(m.Width(), m.Height())
-	return m
-}
-
-func (m List) Height() int {
-	return m.Frame.Height()
-}
-
-func (m List) Width() int {
-	return m.Frame.Width()
-}
-
-func (m *List) SetMultiSelect() *List {
-	m.Items.SetMultiSelect()
-	return m
-}
-
-func (m *List) MultiSelect() bool {
-	return m.Items.MultiSelect
-}
-
-func (m *List) ShowKeys() bool {
-	return m.Items.ShowKeys
-}
-
-func (m *List) SetShowKeys() *List {
-	m.Items.SetShowKeys()
-	return m
-}
-
-func (m *List) SelectedItem() *Item {
-	sel := m.Model.SelectedItem()
-	cur := m.Items.Get(sel)
-	return cur
-}
-
-//func (m *List) Update(msg tea.Msg) (*List, tea.Cmd) {
-func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == tea.KeyCtrlC.String() {
-			cmds = append(cmds, tea.Quit)
-		}
-		switch {
-		case m.SelectionList:
-			switch {
-			case key.Matches(msg, key.PrevScreen):
-				m.SelectionList = false
-				cmds = append(cmds, m.ShowVisibleItemsCmd())
-			case key.Matches(msg, key.Enter):
-				cmds = append(cmds, ReturnSelectionsCmd())
-			}
-		case m.MultiSelect():
-			switch {
-			case key.Matches(msg, key.Enter):
-				if m.SelectionList {
-					cmds = append(cmds, ReturnSelectionsCmd())
-				}
-				m.SelectionList = true
-				cmds = append(cmds, UpdateVisibleItemsCmd("selected"))
-			case key.Matches(msg, key.UnToggleAllItems):
-				m.Items.DeselectAllItems()
-				cmds = append(cmds, m.ShowVisibleItemsCmd())
-			case key.Matches(msg, key.ToggleAllItems):
-				m.Items.ToggleAllSelectedItems()
-				cmds = append(cmds, m.ShowVisibleItemsCmd())
-			}
-		default:
-			switch {
-			case key.Matches(msg, key.Enter):
-				cur := m.Model.SelectedItem().(*Item)
-				m.Items.ToggleSelectedItem(cur.Index())
-				cmds = append(cmds, ReturnSelectionsCmd())
-			}
-		}
-	case UpdateStatusMsg:
-		cmds = append(cmds, m.Model.NewStatusMessage(msg.Msg))
 	case tea.WindowSizeMsg:
-		m.Model.SetSize(msg.Width-1, msg.Height-2)
-	case UpdateVisibleItemsMsg:
-		var items []list.Item
-		switch string(msg) {
-		case "selected":
-			items = m.Selections()
-		case "all":
-			items = m.AllItems()
-		default:
-			items = m.Visible()
+		if m.height == 0 || m.height > msg.Height {
+			m.viewport.Height = msg.Height - lipgloss.Height(m.textinput.View())
 		}
-		cmds = append(cmds, SetItemsCmd(items))
-	case ToggleSelectedItemMsg:
-		m.Items.ToggleSelectedItem(msg.Index())
+
+		// Make place in the viewport if header is set
+		if m.header != "" {
+			m.viewport.Height = m.viewport.Height - lipgloss.Height(m.Style.Header.Render(m.header))
+		}
+		m.viewport.Width = msg.Width
 	case ReturnSelectionsMsg:
-		var items []*Item
-		for _, sel := range m.Selections() {
-			items = append(items, m.Get(sel))
+		cmd = tea.Quit
+		cmds = append(cmds, cmd)
+	case tea.KeyMsg:
+		for _, k := range GlobalKeyMap(m) {
+			if k.Matches(msg) {
+				cmd = k.Cmd
+				cmds = append(cmds, cmd)
+			}
 		}
-		cmds = append(cmds, m.ActionFunc(items...))
-	case SortItemsMsg:
-		m.Items.SetItems(msg.Items...)
-		m.Items.Process()
-		cmds = append(cmds, m.ShowVisibleItemsCmd())
-	case SetItemsMsg:
-		m.Model.SetItems(msg.Items)
-	case ToggleItemChildrenMsg:
-		switch msg.ShowChildren {
-		case true:
-			m.Model.Select(msg.Index())
-			m.Items.CloseItemList(msg.Index())
-		default:
-			m.Model.CursorDown()
-			m.Items.OpenItemList(msg.Index())
+		switch m.filterState {
+		case Unfiltered:
+			for _, k := range m.ListKeys(m) {
+				if k.Matches(msg) {
+					cmd = k.Cmd
+					cmds = append(cmds, cmd)
+				}
+			}
+		case Filtering:
+			for _, k := range m.FilterKeys(m) {
+				if k.Matches(msg) {
+					cmd = k.Cmd
+					cmds = append(cmds, cmd)
+				}
+			}
 		}
-		cmds = append(cmds, m.ShowVisibleItemsCmd())
+		m.textinput, cmd = m.textinput.Update(msg)
+		m.matches = filterItems(m.textinput.Value(), m.Choices)
+
+		cmds = append(cmds, cmd)
 	}
 
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
+	// It's possible that filtering items have caused fewer matches. So, ensure that the selected index is within the bounds of the number of matches.
+	switch m.filterState {
+	case Filtering:
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
-func (m *List) Init() tea.Cmd {
-	return nil
-}
-
-func (m List) View() string {
-	var (
-		sections    []string
-		availHeight = m.Height()
-	)
-
-	m.SetSize(m.Width(), availHeight)
-	content := m.Model.View()
-	sections = append(sections, content)
-
-	return lipgloss.NewStyle().Height(availHeight).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))
-}
-
-func ListKeyMap() list.KeyMap {
-	km := list.DefaultKeyMap()
-	km.NextPage = bubblekey.NewBinding(
-		bubblekey.WithKeys("right", "l", "pgdown"),
-		bubblekey.WithHelp("l/pgdn", "next page"),
-	)
-	km.Quit = bubblekey.NewBinding(
-		bubblekey.WithKeys("ctrl+c", "esc"),
-		bubblekey.WithHelp("ctrl+c", "quit"),
-	)
-	return km
-}
-
-func PrintItems(items ...*Item) tea.Cmd {
-	for _, i := range items {
-		fmt.Println(i.Value())
+func (m *Model) CursorUp() {
+	start, _ := m.paginator.GetSliceBounds(len(m.items))
+	switch m.filterState {
+	case Unfiltered:
+		m.cursor--
+		if m.cursor < 0 {
+			m.cursor = len(m.items) - 1
+			m.paginator.Page = m.paginator.TotalPages - 1
+		}
+		if m.cursor < start {
+			m.paginator.PrevPage()
+		}
+	case Filtering:
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor-1)
+		if m.cursor < m.viewport.YOffset {
+			m.viewport.SetYOffset(m.cursor)
+		}
 	}
-	return tea.Quit
 }
+
+func (m *Model) CursorDown() {
+	_, end := m.paginator.GetSliceBounds(len(m.items))
+	switch m.filterState {
+	case Unfiltered:
+		m.cursor++
+		if m.cursor >= len(m.items) {
+			m.cursor = 0
+			m.paginator.Page = 0
+		}
+		if m.cursor >= end {
+			m.paginator.NextPage()
+		}
+	case Filtering:
+		m.cursor = clamp(0, len(m.matches)-1, m.cursor+1)
+		if m.cursor >= m.viewport.YOffset+m.viewport.Height {
+			m.viewport.LineDown(1)
+		}
+	}
+}
+
+func (m *Model) ToggleSelection() {
+	var idx int
+	switch m.filterState {
+	case Unfiltered:
+		idx = m.items[m.cursor].Index
+	case Filtering:
+		idx = m.matches[m.cursor].Index
+	}
+	if _, ok := m.selected[idx]; ok {
+		delete(m.selected, idx)
+		m.numSelected--
+		m.CursorDown()
+	} else if m.numSelected < m.limit {
+		m.selected[idx] = struct{}{}
+		m.numSelected++
+		m.CursorDown()
+	}
+}
+
+func (m Model) Chosen() []int {
+	var chosen []int
+	if m.quitting {
+		return chosen
+	} else if len(m.selected) > 0 {
+		for k := range m.selected {
+			chosen = append(chosen, k)
+		}
+	} else if len(m.matches) > m.cursor && m.cursor >= 0 {
+		chosen = append(chosen, m.cursor)
+	}
+	return chosen
+}
+
+func (m Model) ItemIndex(c string) int {
+	return slices.Index(m.Choices, c)
+}
+
+func (m Model) View() string {
+	switch m.filterState {
+	case Filtering:
+		return m.FilteringView()
+	default:
+		return m.UnfilteredView()
+	}
+}
+
+func (m Model) UnfilteredView() string {
+	var s strings.Builder
+
+	start, end := m.paginator.GetSliceBounds(len(m.items))
+	items := m.renderItems(m.items[start:end])
+	s.WriteString(items)
+
+	var view string
+	if m.paginator.TotalPages <= 1 {
+		view = s.String()
+	} else if m.paginator.TotalPages > 1 {
+		s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
+		s.WriteString("  " + m.paginator.View())
+		view = s.String()
+	}
+
+	if m.header != "" {
+		header := m.Style.Header.Render(m.header + strings.Repeat(" ", m.width))
+		return lipgloss.JoinVertical(lipgloss.Left, header, view)
+	}
+	return view
+}
+
+func (m Model) FilteringView() string {
+	m.viewport.SetContent(m.renderItems(m.matches))
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		m.textinput.View(),
+		m.viewport.View(),
+	)
+}
+
+func (m Model) renderItems(matches fuzzy.Matches) string {
+	var s strings.Builder
+
+	curPre := m.cursorPrefix
+	if m.limit == 1 {
+		curPre = m.promptPrefix
+	}
+
+	for i, match := range matches {
+		var isCur bool
+
+		// Determine if item is current
+		switch {
+		case m.filterState == Unfiltered && i == m.cursor%m.height:
+			fallthrough
+		case m.filterState == Filtering && i == m.cursor:
+			isCur = true
+		}
+
+		// Write prefix
+		switch {
+		case m.limit > 1:
+			s.WriteString("[")
+		case m.limit == 1:
+			if !isCur {
+				s.WriteString(strings.Repeat(" ", lipgloss.Width(curPre)))
+			}
+		}
+
+		// Style prefix
+		if isCur {
+			s.WriteString(m.Style.Cursor.Render(curPre))
+		} else {
+			if _, ok := m.selected[match.Index]; ok {
+				s.WriteString(m.Style.SelectedPrefix.Render(m.selectedPrefix))
+			} else if m.limit > 1 && !isCur {
+				s.WriteString(m.Style.UnselectedPrefix.Render(m.unselectedPrefix))
+			}
+		}
+
+		if m.limit > 1 {
+			s.WriteString("]")
+		}
+
+		// Style item
+		text := lipgloss.StyleRunes(
+			match.Str,
+			match.MatchedIndexes,
+			m.Style.Match,
+			m.Style.Text,
+		)
+		s.WriteString(text)
+
+		s.WriteRune('\n')
+	}
+
+	return s.String()
+}
+
+func choicesToMatch(options []string) fuzzy.Matches {
+	matches := make(fuzzy.Matches, len(options))
+	for i, option := range options {
+		matches[i] = fuzzy.Match{Str: option, Index: i}
+	}
+	return matches
+}
+
+func filterItems(search string, items []string) fuzzy.Matches {
+	if search == "" {
+		return choicesToMatch(items)
+	}
+	return fuzzy.Find(search, items)
+}
+
+//nolint:unparam
+func clamp(min, max, val int) int {
+	if val < min {
+		return min
+	}
+	if val > max {
+		return max
+	}
+	return val
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func (m Model) Init() tea.Cmd { return nil }
