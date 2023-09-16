@@ -60,7 +60,7 @@ func New(choices []string) *Model {
 		ListKeys:         ListKeyMap,
 		filterState:      Unfiltered,
 		Style:            DefaultStyle(),
-		limit:            1,
+		limit:            10,
 		Prompt:           style.PromptPrefix,
 		cursorPrefix:     style.CursorPrefix,
 		selectedPrefix:   style.SelectedPrefix,
@@ -75,7 +75,7 @@ func New(choices []string) *Model {
 	if tm.width == 0 {
 		tm.width = w
 	}
-	tm.items = choicesToMatch(tm.Choices)
+	tm.items = filterItems("", tm.Choices)
 	tm.matches = tm.items
 
 	return &tm
@@ -146,7 +146,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.textinput, cmd = m.textinput.Update(msg)
-		m.matches = exactMatches(m.textinput.Value(), m.items)
+		m.matches = filterItems(m.textinput.Value(), m.Choices)
 		// If the search field is empty, let's not display the matches (none), but rather display all possible choices.
 		if m.textinput.Value() == "" {
 			m.matches = m.items
@@ -275,12 +275,15 @@ func (m Model) FilteringView() string {
 
 func (m Model) renderItems(matches fuzzy.Matches) string {
 	var s strings.Builder
+
 	curPre := style.CursorPrefix
 	if m.limit == 1 {
 		curPre = style.PromptPrefix
 	}
+
 	for i, match := range matches {
 		var isCur bool
+
 		switch {
 		case m.filterState == Unfiltered && i == m.cursor%m.height:
 			fallthrough
@@ -310,27 +313,14 @@ func (m Model) renderItems(matches fuzzy.Matches) string {
 			s.WriteString("]")
 		}
 
-		mi := 0
-		var buf strings.Builder
-		for ci, c := range match.Str {
-			// Check if the current character index matches the current matched index. If so, color the character to indicate a match.
-			if mi < len(match.MatchedIndexes) && ci == match.MatchedIndexes[mi] {
-				// Flush text buffer.
-				s.WriteString(m.Style.Text.Render(buf.String()))
-				buf.Reset()
+		text := lipgloss.StyleRunes(
+			match.Str,
+			match.MatchedIndexes,
+			m.Style.Match,
+			m.Style.Text,
+		)
+		s.WriteString(text)
 
-				s.WriteString(m.Style.Match.Render(string(c)))
-				// We have matched this character, so we never have to check it again. Move on to the next match.
-				mi++
-			} else {
-				// Not a match, buffer a regular character.
-				buf.WriteRune(c)
-			}
-		}
-		// Flush text buffer.
-		s.WriteString(m.Style.Text.Render(buf.String()))
-
-		// We have finished displaying the match with all of it's matched characters highlighted and the rest filled in. Move on to the next match.
 		s.WriteRune('\n')
 	}
 
@@ -345,22 +335,11 @@ func choicesToMatch(options []string) fuzzy.Matches {
 	return matches
 }
 
-func exactMatches(search string, choices fuzzy.Matches) fuzzy.Matches {
-	matches := fuzzy.Matches{}
-	for _, choice := range choices {
-		search = strings.ToLower(search)
-		matchedString := strings.ToLower(choice.Str)
-
-		index := strings.Index(matchedString, search)
-		if index >= 0 {
-			for s := range search {
-				choice.MatchedIndexes = append(choice.MatchedIndexes, index+s)
-			}
-			matches = append(matches, choice)
-		}
+func filterItems(search string, items []string) fuzzy.Matches {
+	if search == "" {
+		return choicesToMatch(items)
 	}
-
-	return matches
+	return fuzzy.Find(search, items)
 }
 
 //nolint:unparam
