@@ -1,8 +1,49 @@
 package list
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/ohzqq/teacozy/keys"
 )
+
+type sharedKeyMap struct {
+	Up     key.Binding
+	Down   key.Binding
+	Quit   key.Binding
+	Select key.Binding
+}
+
+type FilterKeys struct {
+	sharedKeyMap
+	Filter key.Binding
+}
+
+type ListKeys struct {
+	sharedKeyMap
+	NextPage  key.Binding
+	PrevPage  key.Binding
+	Choose    key.Binding
+	FirstItem key.Binding
+	LastItem  key.Binding
+}
+
+var sharedKeys = sharedKeyMap{
+	Down: key.NewBinding(
+		key.WithKeys("down"),
+		key.WithHelp("down", "move cursor down"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up"),
+		key.WithHelp("up", "move cursor up"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "select item"),
+	),
+}
 
 func FilterKeyMap(m *Model) keys.KeyMap {
 	km := keys.KeyMap{

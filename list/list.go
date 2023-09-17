@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -127,12 +128,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd = tea.Quit
 		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
-		for _, k := range GlobalKeyMap(m) {
-			if k.Matches(msg) {
-				cmd = k.Cmd
-				cmds = append(cmds, cmd)
+		switch {
+		case key.Matches(msg, sharedKeys.Up):
+			m.CursorUp()
+		case key.Matches(msg, sharedKeys.Down):
+			m.CursorDown()
+		case key.Matches(msg, sharedKeys.Quit):
+			m.quitting = true
+			return m, nil
+		case key.Matches(msg, sharedKeys.Select):
+			if m.limit == 1 {
+				return m, nil
 			}
+			m.ToggleSelection()
 		}
+
 		switch m.filterState {
 		case Unfiltered:
 			for _, k := range m.ListKeys(m) {

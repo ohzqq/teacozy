@@ -1,14 +1,43 @@
 package list
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
+
+	"github.com/ohzqq/cdb"
 )
 
 func TestNewList(t *testing.T) {
 	var opts []Option
 	opts = append(opts, NoLimit())
 	cs := New(choiceSlice, opts...).Choose()
+	fmt.Printf("%#v\n", cs)
+
+}
+
+func TestNewBookList(t *testing.T) {
+	d, err := os.ReadFile("../testdata/search-results.json")
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
+
+	var books []cdb.Book
+	err = json.Unmarshal(d, &books)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
+
+	var choices []string
+	for _, book := range books {
+		choices = append(choices, book.Title)
+	}
+
+	var opts []Option
+	opts = append(opts, NoLimit())
+	cs := New(choices, opts...).Choose()
+
 	fmt.Printf("%#v\n", cs)
 
 }
