@@ -14,7 +14,7 @@ func TestNewList(t *testing.T) {
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
 
-	m := New(choiceSlice)
+	m := New(ItemsMap(choiceMap))
 
 	p := tea.NewProgram(m)
 
@@ -124,7 +124,39 @@ var choiceSlice = []string{
 	"Yuzu",
 }
 
-var choiceMap = []map[string]string{
+var choiceMap = map[string]string{
+	"Artichoke": "Baking ",
+	"Bananas":   "Flour",
+	"Sprouts":   "Barley",
+	"Bean":      "four",
+	"Bitter":    "Melon",
+	"Cod":       "Orange",
+	"Sugar":     "Apple",
+	"Cashews":   "Cucumber",
+	"Curry":     "Currywurst",
+	"Dill":      "Dragonfruit",
+	"Eggs":      "Furikake",
+	"Garlic":    "Gherkinhree",
+	"Ginger":    "Grapefruit",
+	"Hazelnuts": "Horseradish",
+	"Jicama":    "Kohlrabi",
+	"Leeks":     "four",
+	"Milk":      "Molasses",
+	"Muesli":    "six",
+	"Nopal":     "Nectarine",
+	"Nutella":   "Milk",
+	"Oatmeal":   "Olives",
+	"Papaya":    "Gherkin",
+	"Peppers":   "Pickle",
+	"Pineapple": "Plantains",
+	"Pocky":     "Quince",
+	"Radish":    "Ramps",
+	"Tamarind":  "Watermelon",
+	"Weißwurst": "Yams",
+	"Yeast":     "Yuzu",
+}
+
+var choiceSliceMap = []map[string]string{
 	map[string]string{"Artichoke": "Baking "},
 	map[string]string{"Bananas": "Flour"},
 	map[string]string{"Sprouts": "Barley"},

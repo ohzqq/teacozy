@@ -10,20 +10,19 @@ type Model struct {
 	list.Model
 }
 
-type Item struct {
-	Value string
-}
+type Items func() []*Item
 
-func New(in []string) *Model {
-	var items []list.Item
-	for _, i := range in {
-		items = append(items, Item{Value: i})
+func New(items Items) *Model {
+	var li []list.Item
+	for _, i := range items() {
+		li = append(li, i)
 	}
-
 	w, h := util.TermSize()
 
-	m := list.New(items, list.NewDefaultDelegate(), w, h)
-	m.SetNoLimit()
+	del := list.NewDefaultDelegate()
+	//del.ShowDescription = true
+
+	m := list.New(li, del, w, h)
 
 	return &Model{
 		Model: m,
@@ -38,6 +37,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if !m.Model.SettingFilter() {
+			switch msg.Type {
+			case tea.KeyEnter:
+				if !m.Model.MultiSelect() {
+					m.Model.ToggleItem()
+				}
+				return m, tea.Quit
+			}
+		}
+	}
+
 	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -47,7 +59,3 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() string {
 	return m.Model.View()
 }
-
-func (i Item) FilterValue() string { return i.Value }
-func (i Item) Title() string       { return i.Value }
-func (i Item) Description() string { return i.Value }
