@@ -1,9 +1,9 @@
 package list
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/bubbles/textinput"
 )
@@ -40,6 +40,9 @@ func NewEditableList(items Items) *Edit {
 	edit.input.Prompt = "New Item: "
 
 	edit.Model.SetDelegate(edit.ItemDelegate())
+	edit.Model.SetLimit(0)
+	edit.Model.SetFilteringEnabled(false)
+	edit.selectable = false
 
 	return edit
 }
@@ -52,7 +55,6 @@ func (e *Edit) ItemDelegate() list.DefaultDelegate {
 			switch {
 			case key.Matches(msg, keymap.Insert):
 				m.SetHeight(m.Height() - 1)
-				e.UpdateKeys(Input)
 				return e.input.Focus()
 			case key.Matches(msg, keymap.Delete):
 				m.RemoveItem(m.Index())
@@ -71,6 +73,10 @@ func (m *Edit) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.Type {
+			case tea.KeyEsc:
+				m.state = Browsing
+				m.input.Reset()
+				m.input.Blur()
 			case tea.KeyEnter:
 				item := NewItem(m.input.Value())
 				cmd = m.InsertItem(m.Index()+1, item)

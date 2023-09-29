@@ -1,6 +1,7 @@
 package list
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/bubbles/textinput"
@@ -35,17 +36,14 @@ func New(items Items) *Model {
 
 	del := list.NewDefaultDelegate()
 	m := list.New(li, del, w, h)
-	m.SetLimit(0)
-	m.SetFilteringEnabled(false)
 
 	return &Model{
-		Model:      m,
-		width:      w,
-		height:     h,
-		items:      items,
-		li:         li,
-		state:      Browsing,
-		selectable: m.Limit() != 0,
+		Model:  m,
+		width:  w,
+		height: h,
+		items:  items,
+		li:     li,
+		state:  Browsing,
 	}
 }
 
@@ -54,6 +52,14 @@ func (m Model) NewTextinputModel() textinput.Model {
 	input.PromptStyle = m.Styles.FilterPrompt
 	input.Cursor.Style = m.Styles.FilterCursor
 	return input
+}
+
+func (m Model) Selectable() bool {
+	return m.Limit() != 0
+}
+
+func (m Model) Input() bool {
+	return m.Model.SettingFilter() || m.state == Input
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -66,7 +72,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if !m.Model.SettingFilter() && m.selectable {
+		switch {
+		case key.Matches(msg, m.KeyMap.Filter):
+			m.state = Input
+		}
+		if !m.Input() && m.Selectable() {
 			switch msg.Type {
 			case tea.KeyEnter:
 				if !m.Model.MultiSelect() {
@@ -85,49 +95,4 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	return m.Model.View()
-}
-
-func (m *Model) UpdateKeys(state State) {
-	switch state {
-	case Input:
-		m.KeyMap.CursorUp.SetEnabled(false)
-		m.KeyMap.CursorDown.SetEnabled(false)
-		m.KeyMap.NextPage.SetEnabled(false)
-		m.KeyMap.PrevPage.SetEnabled(false)
-		m.KeyMap.GoToStart.SetEnabled(false)
-		m.KeyMap.GoToEnd.SetEnabled(false)
-		m.KeyMap.Filter.SetEnabled(false)
-		m.KeyMap.ClearFilter.SetEnabled(false)
-		m.KeyMap.CancelWhileFiltering.SetEnabled(true)
-		m.KeyMap.AcceptWhileFiltering.SetEnabled(m.FilterValue() != "")
-		m.KeyMap.Quit.SetEnabled(false)
-		m.KeyMap.ShowFullHelp.SetEnabled(false)
-		m.KeyMap.CloseFullHelp.SetEnabled(false)
-
-	default:
-		hasItems := len(m.Items()) != 0
-		m.KeyMap.CursorUp.SetEnabled(hasItems)
-		m.KeyMap.CursorDown.SetEnabled(hasItems)
-
-		hasPages := m.Paginator.TotalPages > 1
-		m.KeyMap.NextPage.SetEnabled(hasPages)
-		m.KeyMap.PrevPage.SetEnabled(hasPages)
-		m.KeyMap.GoToStart.SetEnabled(hasItems)
-		m.KeyMap.GoToEnd.SetEnabled(hasItems)
-		m.KeyMap.Filter.SetEnabled(m.FilteringEnabled() && hasItems)
-		m.KeyMap.ClearFilter.SetEnabled(m.IsFiltered())
-		m.KeyMap.CancelWhileFiltering.SetEnabled(false)
-		m.KeyMap.AcceptWhileFiltering.SetEnabled(false)
-		m.KeyMap.ToggleItem.SetEnabled(true)
-		//m.KeyMap.Quit.SetEnabled(!m.disableQuitKeybindings)
-
-		if m.Help.ShowAll {
-			m.KeyMap.ShowFullHelp.SetEnabled(true)
-			m.KeyMap.CloseFullHelp.SetEnabled(true)
-		} else {
-			//minHelp := countEnabledBindings(m.FullHelp()) > 1
-			//m.KeyMap.ShowFullHelp.SetEnabled(minHelp)
-			//m.KeyMap.CloseFullHelp.SetEnabled(minHelp)
-		}
-	}
 }
