@@ -8,6 +8,7 @@ import (
 
 type Model struct {
 	list.Model
+	items      Items
 	selectable bool
 }
 
@@ -23,9 +24,12 @@ func New(items Items) *Model {
 	del := list.NewDefaultDelegate()
 
 	m := list.New(li, del, w, h)
+	m.SetLimit(0)
+	m.SetFilteringEnabled(false)
 
 	return &Model{
 		Model:      m,
+		items:      items,
 		selectable: m.Limit() != 0,
 	}
 }
@@ -34,13 +38,13 @@ func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if !m.Model.SettingFilter() {
+		if !m.Model.SettingFilter() && m.selectable {
 			switch msg.Type {
 			case tea.KeyEnter:
 				if !m.Model.MultiSelect() {

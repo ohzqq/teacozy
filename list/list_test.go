@@ -14,7 +14,10 @@ func TestNewList(t *testing.T) {
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
 
-	m := New(ItemsMap(choiceMap))
+	//m := New(ItemsMap(choiceMap))
+
+	m := NewEditableList(ItemsMap(choiceMap))
+	//m := NewEditableList(noItems)
 
 	p := tea.NewProgram(m)
 
@@ -27,6 +30,8 @@ func TestNewList(t *testing.T) {
 	fmt.Printf("%#v\n", sel)
 
 }
+
+var noItems = func() []*Item { return []*Item{} }
 
 //func TestNewBookList(t *testing.T) {
 //  d, err := os.ReadFile("../testdata/search-results.json")
