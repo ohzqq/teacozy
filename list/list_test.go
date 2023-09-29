@@ -1,46 +1,57 @@
 package list
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
+	"log"
 	"testing"
 
-	"github.com/ohzqq/cdb"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestNewList(t *testing.T) {
-	var opts []Option
-	opts = append(opts, NoLimit())
-	cs := New(choiceSlice, opts...).Choose()
-	fmt.Printf("%#v\n", cs)
+	//var opts []Option
+	//opts = append(opts, NoLimit())
+	//cs := New(choiceSlice, opts...).Choose()
+	//fmt.Printf("%#v\n", cs)
+
+	m := New(choiceSlice)
+
+	p := tea.NewProgram(m)
+
+	_, err := p.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sel := m.ToggledItems()
+	fmt.Printf("%#v\n", sel)
 
 }
 
-func TestNewBookList(t *testing.T) {
-	d, err := os.ReadFile("../testdata/search-results.json")
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
+//func TestNewBookList(t *testing.T) {
+//  d, err := os.ReadFile("../testdata/search-results.json")
+//  if err != nil {
+//    fmt.Printf("%v\n", err)
+//  }
 
-	var books []cdb.Book
-	err = json.Unmarshal(d, &books)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
+//  var books []cdb.Book
+//  err = json.Unmarshal(d, &books)
+//  if err != nil {
+//    fmt.Printf("%v\n", err)
+//  }
 
-	var choices []string
-	for _, book := range books {
-		choices = append(choices, book.Title)
-	}
+//  var choices []string
+//  for _, book := range books {
+//    choices = append(choices, book.Title)
+//  }
 
-	var opts []Option
-	opts = append(opts, NoLimit())
-	cs := New(choices, opts...).Choose()
+//  var opts []Option
+//  opts = append(opts, NoLimit())
+//  cs := New(choices, opts...).Choose()
 
-	fmt.Printf("%#v\n", cs)
+//  fmt.Printf("%#v\n", cs)
 
-}
+//}
 
 var choiceSlice = []string{
 	"Artichoke",
