@@ -8,9 +8,10 @@ import (
 
 type Model struct {
 	list.Model
+	selectable bool
 }
 
-type Items func() []*Item
+type ListOpt func(*list.Model)
 
 func New(items Items) *Model {
 	var li []list.Item
@@ -20,12 +21,12 @@ func New(items Items) *Model {
 	w, h := util.TermSize()
 
 	del := list.NewDefaultDelegate()
-	//del.ShowDescription = true
 
 	m := list.New(li, del, w, h)
 
 	return &Model{
-		Model: m,
+		Model:      m,
+		selectable: m.Limit() != 0,
 	}
 }
 

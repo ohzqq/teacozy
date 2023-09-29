@@ -1,5 +1,7 @@
 package list
 
+type Items func() []*Item
+
 type Item struct {
 	title       string
 	desc        string
