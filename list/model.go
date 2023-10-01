@@ -5,7 +5,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
-	"github.com/ohzqq/bubbles/textinput"
+	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -18,20 +18,23 @@ const (
 
 type Model struct {
 	*list.Model
-	itemDelegate list.DefaultDelegate
-	items        Items
-	width        int
-	height       int
-	state        State
-	input        textinput.Model
-	hasInput     bool
-	editable     bool
+	width    int
+	height   int
+	editable bool
+
+	items Items
+	state State
+
+	// input
+	input    *input.Model
+	hasInput bool
 }
 
-type ListOpt func(*Model)
-type ListConfig func(*Model) list.Model
+// Option configures a Model.
+type Option func(*Model)
 
-func New(items Items, opts ...ListOpt) *Model {
+// New initializes a Model.
+func New(items Items, opts ...Option) *Model {
 	w, h := util.TermSize()
 	m := &Model{
 		width:  w,
@@ -49,7 +52,9 @@ func New(items Items, opts ...ListOpt) *Model {
 	return m
 }
 
-func EditableList() ListOpt {
+// EditableList configures an editable list: items are not selectable but can be
+// removed from the list or new items entered with a prompt.
+func EditableList() Option {
 	return func(m *Model) {
 		m.editable = true
 		m.Model.SetLimit(0)
@@ -66,36 +71,38 @@ func EditableList() ListOpt {
 		m.Model.AdditionalFullHelpKeys = help
 
 		WithInput("Insert Item: ")(m)
+		m.input.Enter = InsertItem
 	}
 }
 
-func WithInput(prompt string) ListOpt {
+// WithInput sets an input.Model with prompt.
+func WithInput(prompt string) Option {
 	return func(m *Model) {
 		m.hasInput = true
-		m.input = m.NewTextinputModel()
+		m.input = m.NewInputModel()
 		m.input.Prompt = prompt
 	}
 }
 
-// State returns the current filter state.
+// State returns the current list state.
 func (m Model) State() State {
 	return m.state
 }
 
-// NewTextinputModel returns a textinput.Model with the default styles.
-func (m Model) NewTextinputModel() textinput.Model {
-	input := textinput.New()
+// NewInputModel returns a textinput.Model with the default styles.
+func (m Model) NewInputModel() *input.Model {
+	input := input.New()
 	input.PromptStyle = m.Styles.FilterPrompt
 	input.Cursor.Style = m.Styles.FilterCursor
 	return input
 }
 
+// NewListModel returns a *list.Model.
 func (m Model) NewListModel(items Items) *list.Model {
 	var li []list.Item
 	for _, i := range items.ParseFunc() {
 		li = append(li, i)
 	}
-
 	l := list.New(li, items.NewDelegate(), m.width, m.height)
 	return &l
 }
@@ -110,52 +117,42 @@ func (m Model) Browsing() bool {
 	return !m.Model.SettingFilter() || m.state == Browsing
 }
 
+// Update is the tea.Model update loop.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
-	if m.input.Focused() {
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+	switch msg := msg.(type) {
+	case input.ResetInputMsg:
+		m.ResetInput()
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.KeyMap.Filter):
+			m.state = Input
+		}
+		if m.Browsing() && m.Selectable() {
 			switch msg.Type {
-			case tea.KeyEsc:
-				m.resetInput()
 			case tea.KeyEnter:
-				val := m.input.Value()
-				if m.editable {
-					cmd = InsertItem(val)
-					cmds = append(cmds, cmd)
+				if !m.Model.MultiSelectable() {
+					m.Model.ToggleItem()
 				}
-				m.resetInput()
-			}
-			m.input, cmd = m.input.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	} else {
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch {
-			case key.Matches(msg, m.KeyMap.Filter):
-				m.state = Input
-			}
-			if m.Browsing() && m.Selectable() {
-				switch msg.Type {
-				case tea.KeyEnter:
-					if !m.Model.MultiSelectable() {
-						m.Model.ToggleItem()
-					}
-					return m, tea.Quit
-				}
+				return m, tea.Quit
 			}
 		}
+	}
 
-		if m.editable {
-			cmd = m.handleEditing(msg)
-			cmds = append(cmds, cmd)
-		}
-
+	switch m.State() {
+	case Input:
+		m.input, cmd = m.input.Update(msg)
+		cmds = append(cmds, cmd)
+	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
+		cmds = append(cmds, cmd)
+	}
+
+	if m.editable {
+		cmd = m.handleEditing(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -168,16 +165,17 @@ func (m *Model) handleEditing(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case InsertItemMsg:
-		item := NewItem(msg.Value)
-		cmd = m.InsertItem(m.Index()+1, item)
-		cmds = append(cmds, cmd)
+		if msg.Value != "" {
+			item := NewItem(msg.Value)
+			cmd = m.InsertItem(m.Index()+1, item)
+			cmds = append(cmds, cmd)
+		}
+		cmds = append(cmds, m.input.Reset)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.InsertItem):
 			if m.hasInput {
-				m.SetShowTitle(false)
-				m.SetHeight(m.Height() - 1)
-				m.state = Input
+				m.SetShowInput(true)
 				cmds = append(cmds, m.input.Focus())
 			}
 		case key.Matches(msg, m.KeyMap.RemoveItem):
@@ -187,10 +185,12 @@ func (m *Model) handleEditing(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// InsertItemMsg holds the title of the item to be inserted.
 type InsertItemMsg struct {
 	Value string
 }
 
+// InsertItem returns a tea.Cmd to insert an item into a list.
 func InsertItem(val string) tea.Cmd {
 	return func() tea.Msg {
 		return InsertItemMsg{
@@ -199,7 +199,19 @@ func InsertItem(val string) tea.Cmd {
 	}
 }
 
-// ResetInput resets the current filtering state.
+// SetShowInput shows or hides the input model.
+func (m *Model) SetShowInput(show bool) {
+	m.SetShowTitle(!show)
+	if show {
+		m.SetHeight(m.Height() - 1)
+		m.state = Input
+		return
+	}
+	m.SetHeight(m.Height() + 1)
+	m.SetBrowsing()
+}
+
+// ResetInput resets the current input state.
 func (m *Model) ResetInput() {
 	m.resetInput()
 }
@@ -208,13 +220,10 @@ func (m *Model) resetInput() {
 	if m.state == Browsing {
 		return
 	}
-
-	m.state = Browsing
-	m.SetShowTitle(true)
-	m.input.Reset()
-	m.input.Blur()
+	m.SetShowInput(false)
 }
 
+// View satisfies the tea.Model view method.
 func (m *Model) View() string {
 	var views []string
 
