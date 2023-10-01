@@ -13,10 +13,13 @@ func TestNewList(t *testing.T) {
 	//opts = append(opts, NoLimit())
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
+	items := NewItems(ItemsMap(choiceMap), OrderedList())
 
+	m := New(items, EditableList())
 	//m := New(ItemsMap(choiceMap))
+	//m.Editable()
 
-	m := NewEditableList(ItemsMap(choiceMap))
+	//m := NewEditableList(ItemsMap(choiceMap))
 	//m := NewEditableList(noItems)
 
 	p := tea.NewProgram(m)
