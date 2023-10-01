@@ -52,6 +52,27 @@ func New(items Items, opts ...Option) *Model {
 	return m
 }
 
+// ChooseOne configures a list to return a single choice.
+func ChooseOne(items Items, opts ...Option) *Model {
+	m := New(items, opts...)
+	m.Model.SetLimit(1)
+	return m
+}
+
+// ChooseAny configures a list for multiple selections.
+func ChooseAny(items Items, opts ...Option) *Model {
+	m := New(items, opts...)
+	m.Model.SetNoLimit()
+	return m
+}
+
+// ChooseSome configures a list for limited multiple selections.
+func ChooseSome(items Items, limit int, opts ...Option) *Model {
+	m := New(items, opts...)
+	m.Model.SetLimit(limit)
+	return m
+}
+
 // EditableList configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
 func EditableList() Option {
@@ -227,9 +248,11 @@ func (m *Model) resetInput() {
 func (m *Model) View() string {
 	var views []string
 
-	if m.input.Focused() {
-		in := m.input.View()
-		views = append(views, in)
+	if m.hasInput {
+		if m.input.Focused() {
+			in := m.input.View()
+			views = append(views, in)
+		}
 	}
 
 	li := m.Model.View()

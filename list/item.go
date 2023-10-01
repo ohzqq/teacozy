@@ -4,23 +4,27 @@ import (
 	"github.com/ohzqq/bubbles/list"
 )
 
+// Items holds the values to configure list.DefaultDelegate.
 type Items struct {
 	ParseFunc func() []*Item
 	ListType  list.ListType
 }
 
+// ParseItems is a func to return a slice of Item.
 type ParseItems func() []*Item
 
+// Item is a struct to satisfy list.DefaultItem.
 type Item struct {
 	title       string
 	desc        string
 	filterValue string
 }
 
-type ItemOpt func(*Item)
-type ItemsOpt func(*Items)
+// ItemOption sets options for Items.
+type ItemOption func(*Items)
 
-func NewItems(fn ParseItems, opts ...ItemsOpt) Items {
+// NewItems initializes an Items.
+func NewItems(fn ParseItems, opts ...ItemOption) Items {
 	items := Items{
 		ParseFunc: fn,
 	}
@@ -30,41 +34,46 @@ func NewItems(fn ParseItems, opts ...ItemsOpt) Items {
 	return items
 }
 
+// NewDelegate returns a list.DefaultDelegate.
 func (items Items) NewDelegate() list.DefaultDelegate {
 	del := list.NewDefaultDelegate()
 	del.SetListType(items.ListType)
 	return del
 }
 
-func OrderedList() ItemsOpt {
+// OrderedList sets the list.DefaultDelegate ListType.
+func OrderedList() ItemOption {
 	return func(items *Items) {
 		items.ListType = list.Ol
 	}
 }
 
-func UnorderedList() ItemsOpt {
+// UnrderedList sets the list.DefaultDelegate ListType.
+func UnorderedList() ItemOption {
 	return func(items *Items) {
 		items.ListType = list.Ul
 	}
 }
 
+// ItemsStringSlice returns a ParseItems for a slice of strings.
 func ItemsStringSlice(items []string) ParseItems {
 	fn := func() []*Item {
-		var li []*Item
-		for _, item := range items {
-			li = append(li, NewItem(item))
+		li := make([]*Item, len(items))
+		for i, item := range items {
+			li[i] = NewItem(item)
 		}
 		return li
 	}
 	return fn
 }
 
+// ItemsMapSlice returns a ParseItems for a slice of map[string]string.
 func ItemsMapSlice(items []map[string]string) ParseItems {
 	fn := func() []*Item {
-		var li []*Item
-		for _, item := range items {
+		li := make([]*Item, len(items))
+		for i, item := range items {
 			for k, v := range item {
-				li = append(li, NewItem(k, Description(v)))
+				li[i] = NewItem(k).SetDescription(v)
 			}
 		}
 		return li
@@ -72,41 +81,37 @@ func ItemsMapSlice(items []map[string]string) ParseItems {
 	return fn
 }
 
+// ItemsMap returns a ParseItems for a map[string]string.
 func ItemsMap(items map[string]string) ParseItems {
 	fn := func() []*Item {
 		var li []*Item
 		for k, v := range items {
-			li = append(li, NewItem(k, Description(v)))
+			li = append(li, NewItem(k).SetDescription(v))
 		}
 		return li
 	}
 	return fn
 }
 
-func NewItem(title string, opts ...ItemOpt) *Item {
-	item := &Item{
+// NewItem returns an Item struct.
+func NewItem(title string) *Item {
+	return &Item{
 		title:       title,
 		desc:        title,
 		filterValue: title,
 	}
-
-	for _, opt := range opts {
-		opt(item)
-	}
-
-	return item
 }
 
-func Description(desc string) ItemOpt {
-	return func(i *Item) {
-		i.desc = desc
-	}
+// SetDescription sets the Item description.
+func (i *Item) SetDescription(desc string) *Item {
+	i.desc = desc
+	return i
 }
 
-func FilterValue(val string) ItemOpt {
-	return func(i *Item) {
-		i.filterValue = val
-	}
+// SetFilterValue sets the Item filter value.
+func (i *Item) SetFilterValue(val string) *Item {
+	i.filterValue = val
+	return i
 }
 
 func (i Item) FilterValue() string { return i.filterValue }

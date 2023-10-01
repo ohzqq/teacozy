@@ -13,9 +13,11 @@ func TestNewList(t *testing.T) {
 	//opts = append(opts, NoLimit())
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
-	items := NewItems(ItemsMap(choiceMap), OrderedList())
+	//items := NewItems(ItemsMap(choiceMap), OrderedList())
+	items := NewItems(ItemsStringSlice(choiceSlice))
 
-	m := New(items, EditableList())
+	//m := New(items)
+	m := ChooseSome(items, 2)
 	//m := New(ItemsMap(choiceMap))
 	//m.Editable()
 
