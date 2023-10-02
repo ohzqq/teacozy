@@ -16,6 +16,7 @@ type Items struct {
 	ListType  list.ListType
 	width     int
 	height    int
+	editable  bool
 }
 
 // ParseItems is a func to return a slice of Item.
@@ -33,31 +34,37 @@ func (items Items) Render(w io.Writer, m list.Model, index int, item list.Item) 
 	items.DefaultDelegate.Render(w, m, index, item)
 }
 
-func (items Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+func EditItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case RemoveItemMsg:
+		m.RemoveItem(m.Index())
+
 	case InsertItemMsg:
 		if msg.Value != "" {
 			item := NewItem(msg.Value)
 			cmd = m.InsertItem(m.Index()+1, item)
 			cmds = append(cmds, cmd)
 		}
-		//cmds = append(cmds, m.input.Reset)
+		cmds = append(cmds, input.Reset)
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.InsertItem):
-			cmds = append(cmds, input.Focus)
-			//if m.hasInput {
-			//  m.SetShowInput(true)
-			//  cmds = append(cmds, m.input.Focus())
-			//}
+			cmd = input.Focus
+			cmds = append(cmds, cmd)
 		case key.Matches(msg, m.KeyMap.RemoveItem):
-			m.RemoveItem(m.Index())
+			cmd = RemoveItem(m.Index())
+			cmds = append(cmds, cmd)
 		}
 	}
 	return tea.Batch(cmds...)
+}
+
+func (items Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+	return EditItems(msg, m)
 }
 
 // ItemOption sets options for Items.
@@ -74,13 +81,12 @@ func NewItems(fn ParseItems, opts ...ItemOption) Items {
 	return items
 }
 
-// NewDelegate returns a list.DefaultDelegate.
-// func (items Items) NewDelegate() list.DefaultDelegate {
-func (items Items) NewDelegate() list.ItemDelegate {
+// NewDelegate returns a list.ItemDelegate.
+func (items Items) NewDelegate() list.DefaultDelegate {
 	del := list.NewDefaultDelegate()
 	del.SetListType(items.ListType)
 	items.DefaultDelegate = del
-	return items
+	return del
 }
 
 // OrderedList sets the list.DefaultDelegate ListType.

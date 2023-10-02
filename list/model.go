@@ -33,6 +33,9 @@ type Model struct {
 // Option configures a Model.
 type Option func(*Model)
 
+// ListOption configures list.Model.
+type ListOption func(*list.Model)
+
 // New initializes a Model.
 func New(items Items, opts ...Option) *Model {
 	w, h := util.TermSize()
@@ -43,13 +46,23 @@ func New(items Items, opts ...Option) *Model {
 		state:  Browsing,
 	}
 
-	m.Model = m.NewListModel(items)
-
 	for _, opt := range opts {
 		opt(m)
 	}
 
+	m.Model = m.NewListModel(items)
+
+	if m.hasInput {
+		m.StyleInput()
+	}
+
 	return m
+}
+
+func (m *Model) ListConfig(opts ...ListOption) {
+	for _, opt := range opts {
+		opt(m.Model)
+	}
 }
 
 // ChooseOne configures a list to return a single choice.
@@ -73,35 +86,52 @@ func ChooseSome(items Items, limit int, opts ...Option) *Model {
 	return m
 }
 
-// EditableList configures an editable list: items are not selectable but can be
+// Edit configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
-func EditableList() Option {
+func Edit(items Items, opts ...Option) *Model {
+	opts = append(opts, Editable(), WithInput("Insert Item: ", InsertItem))
+	m := New(items, opts...)
+
+	m.ListConfig(EditableList())
+
+	return m
+}
+
+// Editable marks a list as editable
+func Editable() Option {
 	return func(m *Model) {
 		m.editable = true
-		m.Model.SetLimit(0)
-		m.Model.SetFilteringEnabled(false)
+	}
+}
 
+func ChoiceLimit(n int) ListOption {
+	return func(m *list.Model) {
+		m.SetLimit(n)
+	}
+}
+
+func EditableList() ListOption {
+	return func(m *list.Model) {
+		m.SetLimit(0)
+		m.SetFilteringEnabled(false)
 		help := func() []key.Binding {
 			return []key.Binding{
-				m.Model.KeyMap.InsertItem,
-				m.Model.KeyMap.RemoveItem,
+				m.KeyMap.InsertItem,
+				m.KeyMap.RemoveItem,
 			}
 		}
-
-		m.Model.AdditionalShortHelpKeys = help
-		m.Model.AdditionalFullHelpKeys = help
-
-		WithInput("Insert Item: ")(m)
-		m.input.Enter = InsertItem
+		m.AdditionalShortHelpKeys = help
+		m.AdditionalFullHelpKeys = help
 	}
 }
 
 // WithInput sets an input.Model with prompt.
-func WithInput(prompt string) Option {
+func WithInput(prompt string, ent input.EnterInput) Option {
 	return func(m *Model) {
 		m.hasInput = true
-		m.input = m.NewInputModel()
+		m.input = input.New()
 		m.input.Prompt = prompt
+		m.input.Enter = ent
 	}
 }
 
@@ -110,12 +140,10 @@ func (m Model) State() State {
 	return m.state
 }
 
-// NewInputModel returns a textinput.Model with the default styles.
-func (m Model) NewInputModel() *input.Model {
-	input := input.New()
-	input.PromptStyle = m.Styles.FilterPrompt
-	input.Cursor.Style = m.Styles.FilterCursor
-	return input
+// StyleInput returns a textinput.Model with the default styles.
+func (m *Model) StyleInput() {
+	m.input.PromptStyle = m.Styles.FilterPrompt
+	m.input.Cursor.Style = m.Styles.FilterCursor
 }
 
 // NewListModel returns a *list.Model.
@@ -124,7 +152,11 @@ func (m Model) NewListModel(items Items) *list.Model {
 	for _, i := range items.ParseFunc() {
 		li = append(li, i)
 	}
-	l := list.New(li, items.NewDelegate(), m.width, m.height)
+	del := items.NewDelegate()
+	if m.editable {
+		del.UpdateFunc = EditItems
+	}
+	l := list.New(li, del, m.width, m.height)
 	return &l
 }
 
@@ -178,37 +210,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.editable {
-		//cmd = m.handleEditing(msg)
+		//cmd = EditItems(msg, m.Model)
 		//cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
-}
-
-func (m *Model) handleEditing(msg tea.Msg) tea.Cmd {
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case InsertItemMsg:
-		if msg.Value != "" {
-			item := NewItem(msg.Value)
-			cmd = m.InsertItem(m.Index()+1, item)
-			cmds = append(cmds, cmd)
-		}
-		cmds = append(cmds, m.input.Reset)
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.KeyMap.InsertItem):
-			if m.hasInput {
-				m.SetShowInput(true)
-				cmds = append(cmds, m.input.Focus())
-			}
-		case key.Matches(msg, m.KeyMap.RemoveItem):
-			m.RemoveItem(m.Index())
-		}
-	}
-	return tea.Batch(cmds...)
 }
 
 // InsertItemMsg holds the title of the item to be inserted.
@@ -222,6 +228,18 @@ func InsertItem(val string) tea.Cmd {
 		return InsertItemMsg{
 			Value: val,
 		}
+	}
+}
+
+// RemoveItemMsg is a struct for the index to be removed.
+type RemoveItemMsg struct {
+	Index int
+}
+
+// RemoveItem returns a tea.Cmd for removing the item at index n.
+func RemoveItem(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return RemoveItemMsg{Index: idx}
 	}
 }
 
