@@ -2,6 +2,7 @@ package pager
 
 import (
 	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/ohzqq/bubbles/viewport"
@@ -28,6 +29,7 @@ func New(text string, fn Render) *Model {
 		height: h,
 		view:   viewport.New(w, h),
 	}
+	m.view.KeyMap = DefaultKeyMap()
 
 	return m
 }
@@ -110,4 +112,33 @@ func (m *Model) SetSize(w, h int) *Model {
 
 func (m Model) Init() tea.Cmd {
 	return nil
+}
+
+func DefaultKeyMap() viewport.KeyMap {
+	return viewport.KeyMap{
+		PageDown: key.NewBinding(
+			key.WithKeys("pgdown"),
+			key.WithHelp("pgdn", "page down"),
+		),
+		PageUp: key.NewBinding(
+			key.WithKeys("pgup"),
+			key.WithHelp("pgup", "page up"),
+		),
+		HalfPageUp: key.NewBinding(
+			key.WithKeys("ctrl+u"),
+			key.WithHelp("ctrl+u", "½ page up"),
+		),
+		HalfPageDown: key.NewBinding(
+			key.WithKeys("ctrl+d"),
+			key.WithHelp("ctrl+d", "½ page down"),
+		),
+		Up: key.NewBinding(
+			key.WithKeys("up"),
+			key.WithHelp("↑", "up"),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("down"),
+			key.WithHelp("↓", "down"),
+		),
+	}
 }
