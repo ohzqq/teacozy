@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"testing"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestNewList(t *testing.T) {
@@ -25,9 +23,7 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	p := tea.NewProgram(m)
-
-	_, err := p.Run()
+	_, err := m.Run()
 	if err != nil {
 		log.Fatal(err)
 	}

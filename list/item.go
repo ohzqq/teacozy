@@ -1,12 +1,15 @@
 package list
 
 import (
+	"fmt"
 	"io"
+	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/teacozy/input"
+	"golang.org/x/exp/slices"
 )
 
 // Items holds the values to configure list.DefaultDelegate.
@@ -29,9 +32,89 @@ type Item struct {
 	filterValue string
 }
 
+// NewItems initializes an Items.
+func NewItems(fn ParseItems, opts ...ItemOption) Items {
+	items := Items{
+		ParseFunc: fn,
+		editable:  true,
+		ListType:  list.Ol,
+	}
+	for _, opt := range opts {
+		opt(&items)
+	}
+	return items
+}
+
+// NewDelegate returns a list.ItemDelegate.
+func (items Items) NewDelegate() list.DefaultDelegate {
+	del := list.NewDefaultDelegate()
+	del.SetListType(items.ListType)
+	return del
+}
+
+func (items Items) ItemDelegate() list.ItemDelegate {
+	del := items.NewDelegate()
+
+	//if items.editable {
+	//  del.UpdateFunc = EditItems
+	//  km := list.DefaultKeyMap()
+	//  del.ShortHelpFunc = func() []key.Binding {
+	//    return []key.Binding{
+	//      km.InsertItem,
+	//      km.RemoveItem,
+	//    }
+	//  }
+	//}
+
+	items.DefaultDelegate = del
+	return items
+}
+
 // Render satisfies list.ItemDelegate.
-func (items Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
-	items.DefaultDelegate.Render(w, m, index, item)
+func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
+
+	var (
+		prefix     string
+		padding    = len(strconv.Itoa(len(m.Items())))
+		isSelected = index == m.Index()
+	)
+
+	// style prefix
+	switch d.ListType {
+	case list.Ol:
+		p := "%" + strconv.Itoa(padding) + "d."
+		prefix = fmt.Sprintf(p, index+1)
+	default:
+		prefix = " "
+	}
+
+	if m.MultiSelectable() {
+		if slices.Contains(m.ToggledItems(), index) {
+			prefix = fmt.Sprint("[x]" + prefix)
+		} else {
+			prefix = fmt.Sprint("[ ]" + prefix)
+		}
+	}
+
+	if isSelected {
+		if d.ListType == list.Ul && !m.MultiSelectable() {
+			//prefix = m.prefix
+			prefix = "> "
+		}
+		//prefix = s.Prefix.Render(prefix)
+		prefix = prefix
+	}
+
+	fmt.Fprintf(w, "%s", prefix)
+	d.DefaultDelegate.Render(w, m, index, item)
+}
+
+func EditItemz(m *Model) func(tea.Msg, *list.Model) tea.Cmd {
+	m.hasInput = true
+	m.editable = true
+	m.SetInput("Insert Item: ", InsertItem)
+	//m.ConfigureList(WithFiltering(false), WithLimit(0))
+	return EditItems
 }
 
 func EditItems(msg tea.Msg, m *list.Model) tea.Cmd {
@@ -69,25 +152,6 @@ func (items Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 
 // ItemOption sets options for Items.
 type ItemOption func(*Items)
-
-// NewItems initializes an Items.
-func NewItems(fn ParseItems, opts ...ItemOption) Items {
-	items := Items{
-		ParseFunc: fn,
-	}
-	for _, opt := range opts {
-		opt(&items)
-	}
-	return items
-}
-
-// NewDelegate returns a list.ItemDelegate.
-func (items Items) NewDelegate() list.DefaultDelegate {
-	del := list.NewDefaultDelegate()
-	del.SetListType(items.ListType)
-	items.DefaultDelegate = del
-	return del
-}
 
 // OrderedList sets the list.DefaultDelegate ListType.
 func OrderedList() ItemOption {

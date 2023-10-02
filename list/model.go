@@ -16,11 +16,20 @@ const (
 	Input
 )
 
+type Layout int
+
+const (
+	Horizontal Layout = iota
+	Vertical
+)
+
 type Model struct {
 	*list.Model
-	width    int
-	height   int
-	editable bool
+	width         int
+	height        int
+	editable      bool
+	shortHelpKeys []key.Binding
+	fullHelpKeys  []key.Binding
 
 	items Items
 	state State
@@ -52,14 +61,30 @@ func New(items Items, opts ...Option) *Model {
 
 	m.Model = m.NewListModel(items)
 
-	if m.hasInput {
-		m.StyleInput()
+	if m.editable {
+		m.AddShortHelpKeys(m.KeyMap.InsertItem, m.KeyMap.RemoveItem)
+		m.AddFullHelpKeys(m.KeyMap.InsertItem, m.KeyMap.RemoveItem)
 	}
+
+	m.AdditionalShortHelpKeys = m.shortHelp
+	m.AdditionalFullHelpKeys = m.fullHelp
 
 	return m
 }
 
-func (m *Model) ListConfig(opts ...ListOption) {
+func (m *Model) Run() (*Model, error) {
+	p := tea.NewProgram(m)
+
+	mod, err := p.Run()
+	if err != nil {
+		return m, err
+	}
+	rm := mod.(*Model)
+
+	return rm, nil
+}
+
+func (m *Model) ConfigureList(opts ...ListOption) {
 	for _, opt := range opts {
 		opt(m.Model)
 	}
@@ -68,31 +93,32 @@ func (m *Model) ListConfig(opts ...ListOption) {
 // ChooseOne configures a list to return a single choice.
 func ChooseOne(items Items, opts ...Option) *Model {
 	m := New(items, opts...)
-	m.Model.SetLimit(1)
+	m.ConfigureList(WithLimit(1))
 	return m
 }
 
 // ChooseAny configures a list for multiple selections.
 func ChooseAny(items Items, opts ...Option) *Model {
 	m := New(items, opts...)
-	m.Model.SetNoLimit()
+	m.ConfigureList(WithLimit(-1))
 	return m
 }
 
 // ChooseSome configures a list for limited multiple selections.
 func ChooseSome(items Items, limit int, opts ...Option) *Model {
 	m := New(items, opts...)
-	m.Model.SetLimit(limit)
+	m.ConfigureList(WithLimit(limit))
 	return m
 }
 
 // Edit configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
 func Edit(items Items, opts ...Option) *Model {
-	opts = append(opts, Editable(), WithInput("Insert Item: ", InsertItem))
+	opts = append(opts, Editable())
 	m := New(items, opts...)
+	m.SetInput("Insert Item: ", InsertItem)
 
-	m.ListConfig(EditableList())
+	m.ConfigureList(WithFiltering(false), WithLimit(0))
 
 	return m
 }
@@ -104,35 +130,50 @@ func Editable() Option {
 	}
 }
 
-func ChoiceLimit(n int) ListOption {
+// WithFiltering sets filtering on list.Model.
+func WithFiltering(f bool) ListOption {
+	return func(m *list.Model) {
+		m.SetFilteringEnabled(f)
+	}
+}
+
+// WithLimit sets the limit of choices for a selectable list.
+func WithLimit(n int) ListOption {
 	return func(m *list.Model) {
 		m.SetLimit(n)
 	}
 }
 
-func EditableList() ListOption {
-	return func(m *list.Model) {
-		m.SetLimit(0)
-		m.SetFilteringEnabled(false)
-		help := func() []key.Binding {
-			return []key.Binding{
-				m.KeyMap.InsertItem,
-				m.KeyMap.RemoveItem,
-			}
-		}
-		m.AdditionalShortHelpKeys = help
-		m.AdditionalFullHelpKeys = help
+// AddShortHelpKeys adds key.Binding to list.Model's short help.
+func (m *Model) AddShortHelpKeys(keys ...key.Binding) {
+	m.shortHelpKeys = append(m.shortHelpKeys, keys...)
+}
+
+// AddFullHelpKeys adds key.Binding to list.Model's full help.
+func (m *Model) AddFullHelpKeys(keys ...key.Binding) {
+	m.fullHelpKeys = append(m.fullHelpKeys, keys...)
+}
+
+// AdditionalShortHelpKeys adds key.Binding to list.Model's short help.
+func AdditionalShortHelpKeys(keys ...key.Binding) Option {
+	return func(m *Model) {
+		m.AddShortHelpKeys(keys...)
 	}
 }
 
-// WithInput sets an input.Model with prompt.
-func WithInput(prompt string, ent input.EnterInput) Option {
+// AdditionalFullHelpKeys adds key.Binding to list.Model's full help.
+func AdditionalFullHelpKeys(keys ...key.Binding) Option {
 	return func(m *Model) {
-		m.hasInput = true
-		m.input = input.New()
-		m.input.Prompt = prompt
-		m.input.Enter = ent
+		m.AddFullHelpKeys(keys...)
 	}
+}
+
+func (m Model) fullHelp() []key.Binding {
+	return m.fullHelpKeys
+}
+
+func (m Model) shortHelp() []key.Binding {
+	return m.shortHelpKeys
 }
 
 // State returns the current list state.
@@ -140,10 +181,14 @@ func (m Model) State() State {
 	return m.state
 }
 
-// StyleInput returns a textinput.Model with the default styles.
-func (m *Model) StyleInput() {
-	m.input.PromptStyle = m.Styles.FilterPrompt
-	m.input.Cursor.Style = m.Styles.FilterCursor
+// SetInput configures an input.Model with the default list.Model styles.
+func (m *Model) SetInput(prompt string, enter input.EnterInput) {
+	m.hasInput = true
+	m.input = input.New()
+	m.input.Prompt = prompt
+	m.input.Enter = enter
+	//m.input.PromptStyle = m.Styles.FilterPrompt
+	//m.input.Cursor.Style = m.Styles.FilterCursor
 }
 
 // NewListModel returns a *list.Model.
@@ -154,8 +199,19 @@ func (m Model) NewListModel(items Items) *list.Model {
 	}
 	del := items.NewDelegate()
 	if m.editable {
-		del.UpdateFunc = EditItems
+		//del.UpdateFunc = EditItems
+		del.UpdateFunc = EditItemz(&m)
+		km := list.DefaultKeyMap()
+		del.ShortHelpFunc = func() []key.Binding {
+			return []key.Binding{
+				km.InsertItem,
+				km.RemoveItem,
+			}
+		}
 	}
+	//del := items.ItemDelegate()
+
+	//del.UpdateFunc = EditItemz(&m)
 	l := list.New(li, del, m.width, m.height)
 	return &l
 }
@@ -186,7 +242,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.Filter):
-			m.state = Input
+			//m.state = Input
 		}
 		if m.Browsing() && m.Selectable() {
 			switch msg.Type {
@@ -207,11 +263,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
-	}
-
-	if m.editable {
-		//cmd = EditItems(msg, m.Model)
-		//cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
