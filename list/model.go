@@ -144,6 +144,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case input.FocusInputMsg:
+		if m.hasInput {
+			m.SetShowInput(true)
+			cmds = append(cmds, m.input.Focus())
+		}
 	case input.ResetInputMsg:
 		m.ResetInput()
 	case tea.KeyMsg:
@@ -173,8 +178,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.editable {
-		cmd = m.handleEditing(msg)
-		cmds = append(cmds, cmd)
+		//cmd = m.handleEditing(msg)
+		//cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -241,6 +246,8 @@ func (m *Model) resetInput() {
 	if m.state == Browsing {
 		return
 	}
+	m.input.Reset()
+	m.input.Blur()
 	m.SetShowInput(false)
 }
 

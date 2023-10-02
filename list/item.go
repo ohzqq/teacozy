@@ -1,13 +1,21 @@
 package list
 
 import (
+	"io"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
+	"github.com/ohzqq/teacozy/input"
 )
 
 // Items holds the values to configure list.DefaultDelegate.
 type Items struct {
+	list.DefaultDelegate
 	ParseFunc func() []*Item
 	ListType  list.ListType
+	width     int
+	height    int
 }
 
 // ParseItems is a func to return a slice of Item.
@@ -18,6 +26,38 @@ type Item struct {
 	title       string
 	desc        string
 	filterValue string
+}
+
+// Render satisfies list.ItemDelegate.
+func (items Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
+	items.DefaultDelegate.Render(w, m, index, item)
+}
+
+func (items Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case InsertItemMsg:
+		if msg.Value != "" {
+			item := NewItem(msg.Value)
+			cmd = m.InsertItem(m.Index()+1, item)
+			cmds = append(cmds, cmd)
+		}
+		//cmds = append(cmds, m.input.Reset)
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.KeyMap.InsertItem):
+			cmds = append(cmds, input.Focus)
+			//if m.hasInput {
+			//  m.SetShowInput(true)
+			//  cmds = append(cmds, m.input.Focus())
+			//}
+		case key.Matches(msg, m.KeyMap.RemoveItem):
+			m.RemoveItem(m.Index())
+		}
+	}
+	return tea.Batch(cmds...)
 }
 
 // ItemOption sets options for Items.
@@ -35,10 +75,12 @@ func NewItems(fn ParseItems, opts ...ItemOption) Items {
 }
 
 // NewDelegate returns a list.DefaultDelegate.
-func (items Items) NewDelegate() list.DefaultDelegate {
+// func (items Items) NewDelegate() list.DefaultDelegate {
+func (items Items) NewDelegate() list.ItemDelegate {
 	del := list.NewDefaultDelegate()
 	del.SetListType(items.ListType)
-	return del
+	items.DefaultDelegate = del
+	return items
 }
 
 // OrderedList sets the list.DefaultDelegate ListType.
