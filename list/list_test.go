@@ -14,9 +14,9 @@ func TestNewList(t *testing.T) {
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
 	items := NewItems(ItemsStringSlice(choiceSlice))
 
-	//m := New(items, Editable(), WithFiltering(true))
+	m := New(items, Editable(), WithFiltering(true), WithLimit(10), OrderedList())
 	//m := Edit(items)
-	m := New(items, WithLimit(2))
+	//m := New(items, WithLimit(1))
 	//m := ChooseSome(items, 2)
 	//m := New(ItemsMap(choiceMap))
 	//m.Editable()
@@ -29,8 +29,10 @@ func TestNewList(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sel := m.ToggledItems()
-	fmt.Printf("%#v\n", sel)
+	sel := m.Items.Chosen()
+	for _, s := range sel {
+		fmt.Printf("%#v\n", s)
+	}
 
 }
 

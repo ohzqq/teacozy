@@ -36,7 +36,7 @@ type Model struct {
 	toggledItems map[int]struct{}
 	limit        int
 
-	items *Items
+	Items *Items
 	state State
 
 	DelegateUpdateFuncs []func(tea.Msg, *list.Model) tea.Cmd
@@ -58,7 +58,7 @@ func New(items *Items, opts ...Option) *Model {
 	m := &Model{
 		width:        w,
 		height:       h,
-		items:        items,
+		Items:        items,
 		state:        Browsing,
 		limit:        0,
 		KeyMap:       DefaultKeyMap(),
@@ -72,7 +72,7 @@ func New(items *Items, opts ...Option) *Model {
 	for _, opt := range opts {
 		opt(m)
 	}
-	println(m.items.limit)
+	println(m.Items.limit)
 
 	m.AdditionalShortHelpKeys = m.shortHelp
 	m.AdditionalFullHelpKeys = m.fullHelp
@@ -104,7 +104,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	for _, i := range items.ParseFunc() {
 		li = append(li, i)
 	}
-	l := list.New(li, m.items, m.width, m.height)
+	l := list.New(li, m.Items, m.width, m.height)
 	l.KeyMap = m.KeyMap.KeyMap
 	return &l
 }
@@ -143,11 +143,11 @@ func Edit(items *Items, opts ...Option) *Model {
 // Editable marks a list as editable
 func Editable() Option {
 	return func(m *Model) {
-		m.items.editable = true
-		m.items.SetSelectNone()
+		m.Items.editable = true
+		m.Items.SetSelectNone()
 		m.SetInput("Insert Item: ", InsertItem)
 		m.SetFilteringEnabled(false)
-		m.items.ShortHelpFunc = func() []key.Binding {
+		m.Items.ShortHelpFunc = func() []key.Binding {
 			return []key.Binding{
 				keyMap.InsertItem,
 				keyMap.RemoveItem,
@@ -166,21 +166,21 @@ func WithFiltering(f bool) Option {
 // WithLimit sets the limit of choices for a selectable list.
 func WithLimit(n int) Option {
 	return func(m *Model) {
-		m.items.SetLimit(n)
+		m.Items.SetLimit(n)
 	}
 }
 
 // OrderedList sets the list.DefaultDelegate ListType.
 func OrderedList() Option {
 	return func(m *Model) {
-		m.items.ListType = Ol
+		m.Items.ListType = Ol
 	}
 }
 
 // UnrderedList sets the list.DefaultDelegate ListType.
 func UnorderedList() Option {
 	return func(m *Model) {
-		m.items.ListType = Ul
+		m.Items.ListType = Ul
 	}
 }
 
@@ -245,7 +245,7 @@ func (m *Model) SetBrowsing() {
 }
 
 func (m Model) ToggledItems() []int {
-	return m.items.ToggledItems()
+	return m.Items.ToggledItems()
 }
 
 // IsBrowsing returns whether or not the list state is Browsing.

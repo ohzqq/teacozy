@@ -1,10 +1,15 @@
 package list
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/teacozy/input"
+	"golang.org/x/exp/slices"
 )
 
 type ListType int
@@ -17,6 +22,7 @@ const (
 // Items holds the values to configure list.DefaultDelegate.
 type Items struct {
 	list.DefaultDelegate
+	li              []list.Item
 	ParseFunc       func() []*Item
 	ListType        ListType
 	width           int
@@ -39,37 +45,53 @@ type Item struct {
 	filterValue string
 }
 
+// NewItem returns an Item struct.
+func NewItem(title string) *Item {
+	return &Item{
+		title:       title,
+		desc:        title,
+		filterValue: title,
+	}
+}
+
+// SetDescription sets the Item description.
+func (i *Item) SetDescription(desc string) *Item {
+	i.desc = desc
+	return i
+}
+
+// SetFilterValue sets the Item filter value.
+func (i *Item) SetFilterValue(val string) *Item {
+	i.filterValue = val
+	return i
+}
+
+// Satisfy list.DefaultItem interface
+func (i Item) FilterValue() string { return i.filterValue }
+func (i Item) Title() string       { return i.title }
+func (i Item) Description() string { return i.desc }
+
 // NewItems initializes an Items.
-func NewItems(fn ParseItems, opts ...ItemOption) *Items {
+func NewItems(fn ParseItems) *Items {
+	var li []list.Item
+	for _, i := range fn() {
+		li = append(li, i)
+	}
 	items := Items{
+		li:              li,
 		ParseFunc:       fn,
-		ListType:        Ol,
+		ListType:        Ul,
 		width:           0,
 		height:          0,
 		editable:        true,
 		limit:           0,
 		toggledItems:    make(map[int]struct{}),
 		prefix:          ">",
-		toggledPrefix:   "◉",
-		untoggledPrefix: "○",
+		toggledPrefix:   "x",
+		untoggledPrefix: " ",
 		DefaultDelegate: list.NewDefaultDelegate(),
 	}
-
-	for _, opt := range opts {
-		opt(&items)
-	}
-
 	return &items
-}
-
-type ToggleItemMsg struct {
-	Index int
-}
-
-func ToggleItem(idx int) tea.Cmd {
-	return func() tea.Msg {
-		return ToggleItemMsg{Index: idx}
-	}
 }
 
 // Selectable returns if a list's items can be toggled.
@@ -89,6 +111,14 @@ func (m *Items) SetSelectNone() {
 
 func (m *Items) SetLimit(n int) {
 	m.limit = n
+}
+
+func (m Items) Chosen() []*Item {
+	var ch []*Item
+	for _, c := range m.ToggledItems() {
+		ch = append(ch, m.li[c].(*Item))
+	}
+	return ch
 }
 
 // ToggledItems returns the slice of item indices.
@@ -117,36 +147,41 @@ func (m Items) Limit() int {
 	return m.limit
 }
 
-func (items *Items) ToggleItems(msg tea.Msg, m *list.Model) tea.Cmd {
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case ToggleItemMsg:
-		idx := msg.Index
+func (items *Items) ToggleItem(idx int) tea.Cmd {
+	return func() tea.Msg {
 		if _, ok := items.toggledItems[idx]; ok {
 			delete(items.toggledItems, idx)
 		} else {
 			no := items.limit
 			if items.limit == -1 {
-				no = len(m.Items())
+				no = len(items.li)
 			}
 			if len(items.toggledItems) < no {
 				items.toggledItems[idx] = struct{}{}
 			}
 		}
+		return ToggleItemMsg{}
+	}
+}
+
+func (items *Items) UpdateItemToggle(msg tea.Msg, m *list.Model) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case ToggleItemMsg:
 		m.CursorDown()
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, toggleItem):
-			cmd = ToggleItem(m.Index())
+			cmd = items.ToggleItem(m.Index())
 			cmds = append(cmds, cmd)
 		}
 		switch msg.Type {
 		case tea.KeyEnter:
 			if !items.MultiSelectable() {
-				cmd = ToggleItem(m.Index())
+				cmd = items.ToggleItem(m.Index())
 				cmds = append(cmds, cmd)
 			}
 			cmds = append(cmds, ChooseItems)
@@ -155,7 +190,7 @@ func (items *Items) ToggleItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
+func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -184,8 +219,62 @@ func InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// ItemOption sets options for Items.
-type ItemOption func(*Items)
+func (items *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	if items.editable {
+		cmd = items.InsertOrRemoveItems(msg, m)
+		cmds = append(cmds, cmd)
+	}
+
+	if items.Selectable() {
+		cmd = items.UpdateItemToggle(msg, m)
+		cmds = append(cmds, cmd)
+	}
+
+	items.li = m.Items()
+
+	return tea.Batch(cmds...)
+}
+
+// Render satisfies list.ItemDelegate.
+func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
+
+	var (
+		prefix     string
+		padding    = len(strconv.Itoa(len(m.Items())))
+		isSelected = index == m.Index()
+	)
+
+	// style prefix
+	switch d.ListType {
+	case Ol:
+		p := fmt.Sprint("%", padding, "d.")
+		prefix = fmt.Sprintf(p, index+1)
+	default:
+		prefix = " "
+	}
+
+	if d.MultiSelectable() {
+		if slices.Contains(d.ToggledItems(), index) {
+			prefix = fmt.Sprint("[", d.toggledPrefix, "]")
+		} else {
+			prefix = fmt.Sprint("[", d.untoggledPrefix, "]")
+		}
+	}
+
+	if isSelected {
+		if d.ListType == Ul && !d.MultiSelectable() {
+			prefix = d.prefix
+		}
+		//prefix = s.Prefix.Render(prefix)
+		prefix = prefix
+	}
+
+	fmt.Fprintf(w, "%s", prefix)
+	d.DefaultDelegate.Render(w, m, index, item)
+}
 
 // ItemsStringSlice returns a ParseItems for a slice of strings.
 func ItemsStringSlice(items []string) ParseItems {
@@ -225,27 +314,44 @@ func ItemsMap(items map[string]string) ParseItems {
 	return fn
 }
 
-// NewItem returns an Item struct.
-func NewItem(title string) *Item {
-	return &Item{
-		title:       title,
-		desc:        title,
-		filterValue: title,
+type ToggleItemMsg struct {
+	Index int
+}
+
+func ToggleItem(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return ToggleItemMsg{Index: idx}
 	}
 }
 
-// SetDescription sets the Item description.
-func (i *Item) SetDescription(desc string) *Item {
-	i.desc = desc
-	return i
+type ItemsChosenMsg struct{}
+
+func ChooseItems() tea.Msg {
+	return ItemsChosenMsg{}
 }
 
-// SetFilterValue sets the Item filter value.
-func (i *Item) SetFilterValue(val string) *Item {
-	i.filterValue = val
-	return i
+// InsertItemMsg holds the title of the item to be inserted.
+type InsertItemMsg struct {
+	Value string
 }
 
-func (i Item) FilterValue() string { return i.filterValue }
-func (i Item) Title() string       { return i.title }
-func (i Item) Description() string { return i.desc }
+// InsertItem returns a tea.Cmd to insert an item into a list.
+func InsertItem(val string) tea.Cmd {
+	return func() tea.Msg {
+		return InsertItemMsg{
+			Value: val,
+		}
+	}
+}
+
+// RemoveItemMsg is a struct for the index to be removed.
+type RemoveItemMsg struct {
+	Index int
+}
+
+// RemoveItem returns a tea.Cmd for removing the item at index n.
+func RemoveItem(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return RemoveItemMsg{Index: idx}
+	}
+}
