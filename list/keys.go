@@ -1,8 +1,8 @@
 package list
 
 import (
-	"github.com/ohzqq/bubbles/key"
-	"github.com/ohzqq/bubbles/list"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 )
 
 var (

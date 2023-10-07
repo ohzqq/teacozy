@@ -1,10 +1,10 @@
 package list
 
 import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohzqq/bubbles/key"
-	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/util"
 )
@@ -64,15 +64,13 @@ func New(items *Items, opts ...Option) *Model {
 		KeyMap:       DefaultKeyMap(),
 		toggledItems: make(map[int]struct{}),
 	}
+	m.height = 10
 
 	m.Model = m.NewListModel(items)
-
-	m.Model.SetSelectNone() //remove later
 
 	for _, opt := range opts {
 		opt(m)
 	}
-	println(m.Items.limit)
 
 	m.AdditionalShortHelpKeys = m.shortHelp
 	m.AdditionalFullHelpKeys = m.fullHelp
@@ -100,12 +98,12 @@ func (m *Model) ConfigureList(opts ...ListOption) {
 
 // NewListModel returns a *list.Model.
 func (m *Model) NewListModel(items *Items) *list.Model {
-	var li []list.Item
-	for _, i := range items.ParseFunc() {
-		li = append(li, i)
-	}
-	l := list.New(li, m.Items, m.width, m.height)
+	l := list.New(m.Items.li, m.Items, m.width, m.height)
 	l.KeyMap = m.KeyMap.KeyMap
+	l.Title = ""
+	l.Styles = DefaultStyles().Styles
+	l.SetShowTitle(false)
+	l.SetShowStatusBar(false)
 	return &l
 }
 
@@ -259,6 +257,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.SetSize(msg.Width, msg.Height)
+
 	case input.FocusInputMsg:
 		if m.hasInput {
 			m.SetShowInput(true)

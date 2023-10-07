@@ -5,9 +5,9 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/bubbles/key"
-	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/teacozy/input"
 	"golang.org/x/exp/slices"
 )
@@ -18,6 +18,14 @@ const (
 	Ul ListType = iota
 	Ol
 )
+
+// String returns a human-readable string of the list type.
+func (f ListType) String() string {
+	return [...]string{
+		"unordered list",
+		"ordered list",
+	}[f]
+}
 
 // Items holds the values to configure list.DefaultDelegate.
 type Items struct {
@@ -33,6 +41,7 @@ type Items struct {
 	prefix          string
 	toggledPrefix   string
 	untoggledPrefix string
+	styles          DefaultItemStyles
 }
 
 // ParseItems is a func to return a slice of Item.
@@ -75,22 +84,30 @@ func (i Item) Description() string { return i.desc }
 func NewItems(fn ParseItems) *Items {
 	var li []list.Item
 	for _, i := range fn() {
-		li = append(li, i)
+		di := list.DefaultItem(i)
+		li = append(li, di)
 	}
 	items := Items{
 		li:              li,
 		ParseFunc:       fn,
 		ListType:        Ul,
-		width:           0,
-		height:          0,
+		width:           10,
+		height:          10,
 		editable:        true,
 		limit:           0,
 		toggledItems:    make(map[int]struct{}),
 		prefix:          ">",
 		toggledPrefix:   "x",
 		untoggledPrefix: " ",
-		DefaultDelegate: list.NewDefaultDelegate(),
+		styles:          NewDefaultItemStyles(),
 	}
+	del := list.NewDefaultDelegate()
+	del.Styles = items.styles.DefaultItemStyles
+	del.ShowDescription = false
+	del.SetHeight(1)
+	items.DefaultDelegate = del
+	//items.DefaultDelegate = list.NewDefaultDelegate()
+	//items.Styles = items.styles.DefaultItemStyles
 	return &items
 }
 
@@ -238,41 +255,52 @@ func (items *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// func (items Items) Height() int  { return 1 }
+func (items Items) Spacing() int { return 0 }
+
 // Render satisfies list.ItemDelegate.
 func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
 
 	var (
-		prefix     string
+		prefix     = " "
 		padding    = len(strconv.Itoa(len(m.Items())))
 		isSelected = index == m.Index()
+		isToggled  = slices.Contains(d.ToggledItems(), index)
 	)
 
-	// style prefix
-	switch d.ListType {
-	case Ol:
-		p := fmt.Sprint("%", padding, "d.")
-		prefix = fmt.Sprintf(p, index+1)
-	default:
-		prefix = " "
+	//style prefix
+	if d.MultiSelectable() {
+		if isToggled {
+			prefix = d.toggledPrefix
+		}
 	}
 
-	if d.MultiSelectable() {
-		if slices.Contains(d.ToggledItems(), index) {
-			prefix = fmt.Sprint("[", d.toggledPrefix, "]")
-		} else {
-			prefix = fmt.Sprint("[", d.untoggledPrefix, "]")
-		}
+	if d.ListType == Ol {
+		p := fmt.Sprint("%", padding, "d")
+		prefix = fmt.Sprintf(p, index+1)
+	}
+
+	if isToggled {
+		prefix = d.styles.Toggled.Render(prefix)
 	}
 
 	if isSelected {
-		if d.ListType == Ul && !d.MultiSelectable() {
-			prefix = d.prefix
+		switch d.MultiSelectable() {
+		case true:
+			if d.ListType == Ul {
+				prefix = d.toggledPrefix
+			}
+		default:
+			if d.ListType == Ul {
+				prefix = d.prefix
+			}
 		}
-		//prefix = s.Prefix.Render(prefix)
-		prefix = prefix
+		prefix = d.styles.Prefix.Render(prefix)
+		//prefix = prefix
 	}
 
-	fmt.Fprintf(w, "%s", prefix)
+	fmt.Fprintf(w, "[%s]", prefix)
+	// fmt.Fprintf(w, "%s", item.(list.DefaultItem).Title())
 	d.DefaultDelegate.Render(w, m, index, item)
 }
 
