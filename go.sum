@@ -124,6 +124,8 @@ github.com/ohzqq/bubbles v0.16.414 h1:SJSiaDuGD8OTvwZNirp+1EjyRZ7oYQRvTRjsidld6G
 github.com/ohzqq/bubbles v0.16.414/go.mod h1:QF3rYreJlK1z9mZXXtsfQnVBntNQLj/V41G3JlUBETI=
 github.com/ohzqq/bubbles v0.16.421 h1:CzR58QoRLiD5ujngqNle/zz35kcQPERQBPgBHT36+E8=
 github.com/ohzqq/bubbles v0.16.421/go.mod h1:QF3rYreJlK1z9mZXXtsfQnVBntNQLj/V41G3JlUBETI=
+github.com/ohzqq/bubbles v0.16.422 h1:QtnvcTGxsQFZsvncCweOmrhhZ7PeuQRv2sv5Ej2+8zk=
+github.com/ohzqq/bubbles v0.16.422/go.mod h1:QF3rYreJlK1z9mZXXtsfQnVBntNQLj/V41G3JlUBETI=
 github.com/ohzqq/cdb v0.0.91 h1:V0BYvK3aiuizERAw67jV5mP5fnHVGz9O9aYpyDQvUrg=
 github.com/ohzqq/cdb v0.0.91/go.mod h1:8LCD/9UfryqSIodUOtMLQ7mXC/vAgovg0DxijxUJHIM=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

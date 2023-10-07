@@ -23,6 +23,10 @@ const (
 	Vertical
 )
 
+var (
+	defaultListKeyMap = list.DefaultKeyMap()
+)
+
 type Model struct {
 	*list.Model
 	width         int
@@ -31,8 +35,13 @@ type Model struct {
 	shortHelpKeys []key.Binding
 	fullHelpKeys  []key.Binding
 
+	toggledItems map[int]struct{}
+	limit        int
+
 	items Items
 	state State
+
+	DelegateUpdateFuncs []func(tea.Msg, *list.Model) tea.Cmd
 
 	// input
 	input    *input.Model
@@ -49,10 +58,12 @@ type ListOption func(*list.Model)
 func New(items Items, opts ...Option) *Model {
 	w, h := util.TermSize()
 	m := &Model{
-		width:  w,
-		height: h,
-		items:  items,
-		state:  Browsing,
+		width:        w,
+		height:       h,
+		items:        items,
+		state:        Browsing,
+		limit:        0,
+		toggledItems: make(map[int]struct{}),
 	}
 
 	for _, opt := range opts {
@@ -88,6 +99,16 @@ func (m *Model) ConfigureList(opts ...ListOption) {
 	for _, opt := range opts {
 		opt(m.Model)
 	}
+}
+
+// NewListModel returns a *list.Model.
+func (m Model) NewListModel(items Items) *list.Model {
+	var li []list.Item
+	for _, i := range items.ParseFunc() {
+		li = append(li, i)
+	}
+	l := list.New(li, m.items, m.width, m.height)
+	return &l
 }
 
 // ChooseOne configures a list to return a single choice.
@@ -191,34 +212,21 @@ func (m *Model) SetInput(prompt string, enter input.EnterInput) {
 	//m.input.Cursor.Style = m.Styles.FilterCursor
 }
 
-// NewListModel returns a *list.Model.
-func (m Model) NewListModel(items Items) *list.Model {
-	var li []list.Item
-	for _, i := range items.ParseFunc() {
-		li = append(li, i)
+func (m Model) UpdateItems(msg tea.Msg, li *list.Model) tea.Cmd {
+	var cmds []tea.Cmd
+	for _, update := range m.DelegateUpdateFuncs {
+		cmds = append(cmds, update(msg, li))
 	}
-	del := items.NewDelegate()
-	if m.editable {
-		//del.UpdateFunc = EditItems
-		del.UpdateFunc = EditItemz(&m)
-		km := list.DefaultKeyMap()
-		del.ShortHelpFunc = func() []key.Binding {
-			return []key.Binding{
-				km.InsertItem,
-				km.RemoveItem,
-			}
-		}
-	}
-	//del := items.ItemDelegate()
-
-	//del.UpdateFunc = EditItemz(&m)
-	l := list.New(li, del, m.width, m.height)
-	return &l
+	return tea.Batch(cmds...)
 }
 
 // SetBrowsing sets the state to Browsing
 func (m *Model) SetBrowsing() {
 	m.state = Browsing
+}
+
+func (m Model) ToggledItems() []int {
+	return m.items.ToggledItems()
 }
 
 // IsBrowsing returns whether or not the list state is Browsing.
