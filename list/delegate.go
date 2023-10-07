@@ -18,6 +18,38 @@ type ItemDelegate struct {
 	untoggledPrefix string
 }
 
+type ItemsChosenMsg struct{}
+
+func ChooseItems() tea.Msg {
+	return ItemsChosenMsg{}
+}
+
+// InsertItemMsg holds the title of the item to be inserted.
+type InsertItemMsg struct {
+	Value string
+}
+
+// InsertItem returns a tea.Cmd to insert an item into a list.
+func InsertItem(val string) tea.Cmd {
+	return func() tea.Msg {
+		return InsertItemMsg{
+			Value: val,
+		}
+	}
+}
+
+// RemoveItemMsg is a struct for the index to be removed.
+type RemoveItemMsg struct {
+	Index int
+}
+
+// RemoveItem returns a tea.Cmd for removing the item at index n.
+func RemoveItem(idx int) tea.Cmd {
+	return func() tea.Msg {
+		return RemoveItemMsg{Index: idx}
+	}
+}
+
 func (items Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd

@@ -36,7 +36,7 @@ type Model struct {
 	toggledItems map[int]struct{}
 	limit        int
 
-	items Items
+	items *Items
 	state State
 
 	DelegateUpdateFuncs []func(tea.Msg, *list.Model) tea.Cmd
@@ -53,7 +53,7 @@ type Option func(*Model)
 type ListOption func(*list.Model)
 
 // New initializes a Model.
-func New(items Items, opts ...Option) *Model {
+func New(items *Items, opts ...Option) *Model {
 	w, h := util.TermSize()
 	m := &Model{
 		width:        w,
@@ -65,11 +65,14 @@ func New(items Items, opts ...Option) *Model {
 		toggledItems: make(map[int]struct{}),
 	}
 
+	m.Model = m.NewListModel(items)
+
+	m.Model.SetSelectNone() //remove later
+
 	for _, opt := range opts {
 		opt(m)
 	}
-
-	m.Model = m.NewListModel(items)
+	println(m.items.limit)
 
 	m.AdditionalShortHelpKeys = m.shortHelp
 	m.AdditionalFullHelpKeys = m.fullHelp
@@ -96,14 +99,10 @@ func (m *Model) ConfigureList(opts ...ListOption) {
 }
 
 // NewListModel returns a *list.Model.
-func (m *Model) NewListModel(items Items) *list.Model {
+func (m *Model) NewListModel(items *Items) *list.Model {
 	var li []list.Item
 	for _, i := range items.ParseFunc() {
 		li = append(li, i)
-	}
-	if m.items.editable {
-		m.SetInput("Insert Item: ", InsertItem)
-		//m.ConfigureList(WithFiltering(false), WithLimit(0))
 	}
 	l := list.New(li, m.items, m.width, m.height)
 	l.KeyMap = m.KeyMap.KeyMap
@@ -111,21 +110,21 @@ func (m *Model) NewListModel(items Items) *list.Model {
 }
 
 // ChooseOne configures a list to return a single choice.
-func ChooseOne(items Items, opts ...Option) *Model {
+func ChooseOne(items *Items, opts ...Option) *Model {
 	opts = append(opts, WithLimit(1))
 	m := New(items, opts...)
 	return m
 }
 
 // ChooseAny configures a list for multiple selections.
-func ChooseAny(items Items, opts ...Option) *Model {
+func ChooseAny(items *Items, opts ...Option) *Model {
 	opts = append(opts, WithLimit(-1))
 	m := New(items, opts...)
 	return m
 }
 
 // ChooseSome configures a list for limited multiple selections.
-func ChooseSome(items Items, limit int, opts ...Option) *Model {
+func ChooseSome(items *Items, limit int, opts ...Option) *Model {
 	opts = append(opts, WithLimit(limit))
 	m := New(items, opts...)
 	return m
@@ -133,13 +132,11 @@ func ChooseSome(items Items, limit int, opts ...Option) *Model {
 
 // Edit configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
-func Edit(items Items, opts ...Option) *Model {
-	opts = append(opts, Editable(), WithLimit(0))
-	m := New(items, opts...)
-	m.SetInput("Insert Item: ", InsertItem)
-
-	m.ConfigureList(WithFiltering(false))
-
+func Edit(items *Items, opts ...Option) *Model {
+	o := []Option{Editable()}
+	o = append(o, opts...)
+	m := New(items, o...)
+	//m.ConfigureList(WithFiltering(false))
 	return m
 }
 
@@ -147,6 +144,9 @@ func Edit(items Items, opts ...Option) *Model {
 func Editable() Option {
 	return func(m *Model) {
 		m.items.editable = true
+		m.items.SetSelectNone()
+		m.SetInput("Insert Item: ", InsertItem)
+		m.SetFilteringEnabled(false)
 		m.items.ShortHelpFunc = func() []key.Binding {
 			return []key.Binding{
 				keyMap.InsertItem,
@@ -157,8 +157,8 @@ func Editable() Option {
 }
 
 // WithFiltering sets filtering on list.Model.
-func WithFiltering(f bool) ListOption {
-	return func(m *list.Model) {
+func WithFiltering(f bool) Option {
+	return func(m *Model) {
 		m.SetFilteringEnabled(f)
 	}
 }
@@ -266,19 +266,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case input.ResetInputMsg:
 		m.ResetInput()
+
+	case ItemsChosenMsg:
+		return m, tea.Quit
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
-		}
-		if m.Browsing() && m.items.Selectable() {
-			switch msg.Type {
-			case tea.KeyEnter:
-				if !m.Model.MultiSelectable() {
-					m.Model.ToggleItem()
-				}
-				return m, tea.Quit
-			}
 		}
 	}
 
@@ -293,32 +288,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
-}
-
-// InsertItemMsg holds the title of the item to be inserted.
-type InsertItemMsg struct {
-	Value string
-}
-
-// InsertItem returns a tea.Cmd to insert an item into a list.
-func InsertItem(val string) tea.Cmd {
-	return func() tea.Msg {
-		return InsertItemMsg{
-			Value: val,
-		}
-	}
-}
-
-// RemoveItemMsg is a struct for the index to be removed.
-type RemoveItemMsg struct {
-	Index int
-}
-
-// RemoveItem returns a tea.Cmd for removing the item at index n.
-func RemoveItem(idx int) tea.Cmd {
-	return func() tea.Msg {
-		return RemoveItemMsg{Index: idx}
-	}
 }
 
 // SetShowInput shows or hides the input model.
@@ -352,7 +321,9 @@ func (m *Model) View() string {
 	var views []string
 
 	if m.hasInput {
+		m.SetShowFilter(true)
 		if m.input.Focused() {
+			m.SetShowFilter(false)
 			in := m.input.View()
 			views = append(views, in)
 		}

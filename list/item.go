@@ -40,7 +40,7 @@ type Item struct {
 }
 
 // NewItems initializes an Items.
-func NewItems(fn ParseItems, opts ...ItemOption) Items {
+func NewItems(fn ParseItems, opts ...ItemOption) *Items {
 	items := Items{
 		ParseFunc:       fn,
 		ListType:        Ol,
@@ -59,7 +59,7 @@ func NewItems(fn ParseItems, opts ...ItemOption) Items {
 		opt(&items)
 	}
 
-	return items
+	return &items
 }
 
 type ToggleItemMsg struct {
@@ -136,11 +136,20 @@ func (items *Items) ToggleItems(msg tea.Msg, m *list.Model) tea.Cmd {
 			}
 		}
 		m.CursorDown()
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, toggleItem):
 			cmd = ToggleItem(m.Index())
 			cmds = append(cmds, cmd)
+		}
+		switch msg.Type {
+		case tea.KeyEnter:
+			if !items.MultiSelectable() {
+				cmd = ToggleItem(m.Index())
+				cmds = append(cmds, cmd)
+			}
+			cmds = append(cmds, ChooseItems)
 		}
 	}
 	return tea.Batch(cmds...)
