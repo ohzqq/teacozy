@@ -7,11 +7,18 @@ import (
 	"github.com/ohzqq/teacozy/input"
 )
 
+type ListType int
+
+const (
+	Ul ListType = iota
+	Ol
+)
+
 // Items holds the values to configure list.DefaultDelegate.
 type Items struct {
 	list.DefaultDelegate
 	ParseFunc       func() []*Item
-	ListType        list.ListType
+	ListType        ListType
 	width           int
 	height          int
 	editable        bool
@@ -36,11 +43,11 @@ type Item struct {
 func NewItems(fn ParseItems, opts ...ItemOption) Items {
 	items := Items{
 		ParseFunc:       fn,
-		ListType:        list.Ol,
+		ListType:        Ol,
 		width:           0,
 		height:          0,
 		editable:        true,
-		limit:           10,
+		limit:           0,
 		toggledItems:    make(map[int]struct{}),
 		prefix:          ">",
 		toggledPrefix:   "◉",
@@ -52,47 +59,7 @@ func NewItems(fn ParseItems, opts ...ItemOption) Items {
 		opt(&items)
 	}
 
-	if items.editable {
-		km := list.DefaultKeyMap()
-		items.ShortHelpFunc = func() []key.Binding {
-			return []key.Binding{
-				km.InsertItem,
-				km.RemoveItem,
-			}
-		}
-	}
-
 	return items
-}
-
-// NewDelegate returns a list.ItemDelegate.
-func (items Items) NewDelegate() list.DefaultDelegate {
-	del := list.NewDefaultDelegate()
-	//del.SetListType(items.ListType)
-	return del
-}
-
-func (items Items) ItemDelegate() list.ItemDelegate {
-	del := items.NewDelegate()
-	if items.editable {
-		km := list.DefaultKeyMap()
-		del.ShortHelpFunc = func() []key.Binding {
-			return []key.Binding{
-				km.InsertItem,
-				km.RemoveItem,
-			}
-		}
-	}
-	items.DefaultDelegate = del
-	return items
-}
-
-func EditItemz(m *Model) func(tea.Msg, *list.Model) tea.Cmd {
-	m.hasInput = true
-	m.editable = true
-	m.SetInput("Insert Item: ", InsertItem)
-	//m.ConfigureList(WithFiltering(false), WithLimit(0))
-	return InsertOrRemoveItems
 }
 
 type ToggleItemMsg struct {
@@ -171,7 +138,7 @@ func (items *Items) ToggleItems(msg tea.Msg, m *list.Model) tea.Cmd {
 		m.CursorDown()
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.KeyMap.ToggleItem):
+		case key.Matches(msg, toggleItem):
 			cmd = ToggleItem(m.Index())
 			cmds = append(cmds, cmd)
 		}
@@ -197,10 +164,10 @@ func InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.KeyMap.InsertItem):
+		case key.Matches(msg, insertItem):
 			cmd = input.Focus
 			cmds = append(cmds, cmd)
-		case key.Matches(msg, m.KeyMap.RemoveItem):
+		case key.Matches(msg, removeItem):
 			cmd = RemoveItem(m.Index())
 			cmds = append(cmds, cmd)
 		}
@@ -210,34 +177,6 @@ func InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 
 // ItemOption sets options for Items.
 type ItemOption func(*Items)
-
-// EditableItems sets the list to insert or remove items.
-func EditableItems() ItemOption {
-	return func(items *Items) {
-		items.editable = true
-		km := list.DefaultKeyMap()
-		items.ShortHelpFunc = func() []key.Binding {
-			return []key.Binding{
-				km.InsertItem,
-				km.RemoveItem,
-			}
-		}
-	}
-}
-
-// OrderedList sets the list.DefaultDelegate ListType.
-func OrderedList() ItemOption {
-	return func(items *Items) {
-		items.ListType = list.Ol
-	}
-}
-
-// UnrderedList sets the list.DefaultDelegate ListType.
-func UnorderedList() ItemOption {
-	return func(items *Items) {
-		items.ListType = list.Ul
-	}
-}
 
 // ItemsStringSlice returns a ParseItems for a slice of strings.
 func ItemsStringSlice(items []string) ParseItems {

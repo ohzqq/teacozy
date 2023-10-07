@@ -23,10 +23,6 @@ const (
 	Vertical
 )
 
-var (
-	defaultListKeyMap = list.DefaultKeyMap()
-)
-
 type Model struct {
 	*list.Model
 	width         int
@@ -34,6 +30,8 @@ type Model struct {
 	editable      bool
 	shortHelpKeys []key.Binding
 	fullHelpKeys  []key.Binding
+
+	KeyMap KeyMap
 
 	toggledItems map[int]struct{}
 	limit        int
@@ -63,6 +61,7 @@ func New(items Items, opts ...Option) *Model {
 		items:        items,
 		state:        Browsing,
 		limit:        0,
+		KeyMap:       DefaultKeyMap(),
 		toggledItems: make(map[int]struct{}),
 	}
 
@@ -71,11 +70,6 @@ func New(items Items, opts ...Option) *Model {
 	}
 
 	m.Model = m.NewListModel(items)
-
-	if m.editable {
-		m.AddShortHelpKeys(m.KeyMap.InsertItem, m.KeyMap.RemoveItem)
-		m.AddFullHelpKeys(m.KeyMap.InsertItem, m.KeyMap.RemoveItem)
-	}
 
 	m.AdditionalShortHelpKeys = m.shortHelp
 	m.AdditionalFullHelpKeys = m.fullHelp
@@ -102,44 +96,49 @@ func (m *Model) ConfigureList(opts ...ListOption) {
 }
 
 // NewListModel returns a *list.Model.
-func (m Model) NewListModel(items Items) *list.Model {
+func (m *Model) NewListModel(items Items) *list.Model {
 	var li []list.Item
 	for _, i := range items.ParseFunc() {
 		li = append(li, i)
 	}
+	if m.items.editable {
+		m.SetInput("Insert Item: ", InsertItem)
+		//m.ConfigureList(WithFiltering(false), WithLimit(0))
+	}
 	l := list.New(li, m.items, m.width, m.height)
+	l.KeyMap = m.KeyMap.KeyMap
 	return &l
 }
 
 // ChooseOne configures a list to return a single choice.
 func ChooseOne(items Items, opts ...Option) *Model {
+	opts = append(opts, WithLimit(1))
 	m := New(items, opts...)
-	m.ConfigureList(WithLimit(1))
 	return m
 }
 
 // ChooseAny configures a list for multiple selections.
 func ChooseAny(items Items, opts ...Option) *Model {
+	opts = append(opts, WithLimit(-1))
 	m := New(items, opts...)
-	m.ConfigureList(WithLimit(-1))
 	return m
 }
 
 // ChooseSome configures a list for limited multiple selections.
 func ChooseSome(items Items, limit int, opts ...Option) *Model {
+	opts = append(opts, WithLimit(limit))
 	m := New(items, opts...)
-	m.ConfigureList(WithLimit(limit))
 	return m
 }
 
 // Edit configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
 func Edit(items Items, opts ...Option) *Model {
-	opts = append(opts, Editable())
+	opts = append(opts, Editable(), WithLimit(0))
 	m := New(items, opts...)
 	m.SetInput("Insert Item: ", InsertItem)
 
-	m.ConfigureList(WithFiltering(false), WithLimit(0))
+	m.ConfigureList(WithFiltering(false))
 
 	return m
 }
@@ -147,7 +146,13 @@ func Edit(items Items, opts ...Option) *Model {
 // Editable marks a list as editable
 func Editable() Option {
 	return func(m *Model) {
-		m.editable = true
+		m.items.editable = true
+		m.items.ShortHelpFunc = func() []key.Binding {
+			return []key.Binding{
+				keyMap.InsertItem,
+				keyMap.RemoveItem,
+			}
+		}
 	}
 }
 
@@ -159,9 +164,23 @@ func WithFiltering(f bool) ListOption {
 }
 
 // WithLimit sets the limit of choices for a selectable list.
-func WithLimit(n int) ListOption {
-	return func(m *list.Model) {
-		m.SetLimit(n)
+func WithLimit(n int) Option {
+	return func(m *Model) {
+		m.items.SetLimit(n)
+	}
+}
+
+// OrderedList sets the list.DefaultDelegate ListType.
+func OrderedList() Option {
+	return func(m *Model) {
+		m.items.ListType = Ol
+	}
+}
+
+// UnrderedList sets the list.DefaultDelegate ListType.
+func UnorderedList() Option {
+	return func(m *Model) {
+		m.items.ListType = Ul
 	}
 }
 
@@ -252,7 +271,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
 		}
-		if m.Browsing() && m.Selectable() {
+		if m.Browsing() && m.items.Selectable() {
 			switch msg.Type {
 			case tea.KeyEnter:
 				if !m.Model.MultiSelectable() {

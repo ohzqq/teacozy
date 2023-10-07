@@ -14,8 +14,9 @@ func TestNewList(t *testing.T) {
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
 	items := NewItems(ItemsStringSlice(choiceSlice))
 
-	//m := New(items, EditableList())
-	m := Edit(items)
+	m := New(items, Editable())
+	//m := Edit(items)
+	//m := New(items)
 	//m := ChooseSome(items, 2)
 	//m := New(ItemsMap(choiceMap))
 	//m.Editable()

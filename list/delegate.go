@@ -12,7 +12,7 @@ import (
 
 type ItemDelegate struct {
 	list.DefaultDelegate
-	ListType        list.ListType
+	ListType        ListType
 	prefix          string
 	toggledPrefix   string
 	untoggledPrefix string
@@ -46,7 +46,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
 
 	// style prefix
 	switch d.ListType {
-	case list.Ol:
+	case Ol:
 		p := "%" + strconv.Itoa(padding) + "d."
 		prefix = fmt.Sprintf(p, index+1)
 	default:
@@ -62,7 +62,7 @@ func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	}
 
 	if isSelected {
-		if d.ListType == list.Ul && !d.MultiSelectable() {
+		if d.ListType == Ul && !d.MultiSelectable() {
 			prefix = d.prefix
 		}
 		//prefix = s.Prefix.Render(prefix)
