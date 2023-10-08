@@ -87,6 +87,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 
 	w, h := util.TermSize()
 	l := list.New(m.Items.li, m.Items, w, h)
+
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles()
@@ -124,19 +125,19 @@ func ChooseSome(items *Items, limit int, opts ...Option) *Model {
 // Edit configures an editable list: items are not selectable but can be
 // removed from the list or new items entered with a prompt.
 func Edit(items *Items, opts ...Option) *Model {
-	o := []Option{Editable()}
+	o := []Option{Editable(true)}
 	o = append(o, opts...)
 	m := New(items, o...)
 	return m
 }
 
 // Editable marks a list as editable
-func Editable() Option {
+func Editable(edit bool) Option {
 	return func(m *Model) {
-		m.Items.editable = true
+		m.Items.SetEditable(edit)
 		m.SetInput("Insert Item: ", InsertItem)
-		m.AddFullHelpKeys(insertItem, removeItem)
-		m.AddShortHelpKeys(insertItem, removeItem)
+		m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+		m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
 	}
 }
 
@@ -163,9 +164,11 @@ func WithDescription(desc bool) Option {
 // WithLimit sets the limit of choices for a selectable list.
 func WithLimit(n int) Option {
 	return func(m *Model) {
-		m.Items.SetLimit(n)
-		m.AddFullHelpKeys(toggleItem)
-		m.AddShortHelpKeys(toggleItem)
+		if n != SelectNone {
+			m.Items.SetLimit(n)
+			m.AddFullHelpKeys(m.Items.KeyMap.ToggleItem)
+			m.AddShortHelpKeys(m.Items.KeyMap.ToggleItem)
+		}
 	}
 }
 

@@ -47,6 +47,7 @@ type Items struct {
 	toggledPrefix   string
 	untoggledPrefix string
 	styles          DefaultItemStyles
+	KeyMap          DelegateKeyMap
 }
 
 // ParseItems is a func to return a slice of Item.
@@ -94,16 +95,15 @@ func NewItems(fn ParseItems) *Items {
 	items := Items{
 		li:              li,
 		ListType:        Ul,
-		width:           0,
-		height:          0,
-		editable:        true,
-		limit:           SelectNone,
 		toggledItems:    make(map[int]struct{}),
 		prefix:          ">",
 		toggledPrefix:   "x",
 		untoggledPrefix: " ",
 		styles:          NewDefaultItemStyles(),
+		KeyMap:          DefaultDelegateKeyMap(),
 	}
+	items.KeyMap.ToggleItem.SetEnabled(false)
+	items.SetEditable(items.Editable())
 	return &items
 }
 
@@ -119,6 +119,12 @@ func (items Items) Editable() bool {
 	return items.editable
 }
 
+func (items *Items) SetEditable(edit bool) {
+	items.editable = edit
+	items.KeyMap.InsertItem.SetEnabled(edit)
+	items.KeyMap.RemoveItem.SetEnabled(edit)
+}
+
 // Selectable returns if a list's items can be toggled.
 func (items Items) Selectable() bool {
 	return items.limit != SelectNone
@@ -126,6 +132,9 @@ func (items Items) Selectable() bool {
 
 // SetLimit sets the number of choices for a selectable list.
 func (items *Items) SetLimit(n int) {
+	if n != SelectNone {
+		items.KeyMap.ToggleItem.SetEnabled(true)
+	}
 	items.limit = n
 }
 
@@ -193,7 +202,7 @@ func (items *Items) UpdateItemToggle(msg tea.Msg, m *list.Model) tea.Cmd {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, toggleItem):
+		case key.Matches(msg, items.KeyMap.ToggleItem):
 			cmd = items.ToggleItem(m.Index())
 			cmds = append(cmds, cmd)
 		}
@@ -228,10 +237,10 @@ func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, insertItem):
+		case key.Matches(msg, items.KeyMap.InsertItem):
 			cmd = input.Focus
 			cmds = append(cmds, cmd)
-		case key.Matches(msg, removeItem):
+		case key.Matches(msg, items.KeyMap.RemoveItem):
 			cmd = RemoveItem(m.Index())
 			cmds = append(cmds, cmd)
 		}

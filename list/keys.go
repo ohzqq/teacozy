@@ -21,19 +21,27 @@ var (
 	)
 )
 
-type KeyMap struct {
-	list.KeyMap
+type DelegateKeyMap struct {
 	ToggleItem key.Binding
 	InsertItem key.Binding
 	RemoveItem key.Binding
 }
 
-func DefaultKeyMap() KeyMap {
-	return KeyMap{
-		KeyMap:     listKeyMap(),
+type KeyMap struct {
+	list.KeyMap
+}
+
+func DefaultDelegateKeyMap() DelegateKeyMap {
+	return DelegateKeyMap{
 		ToggleItem: toggleItem,
 		InsertItem: insertItem,
 		RemoveItem: removeItem,
+	}
+}
+
+func DefaultKeyMap() KeyMap {
+	return KeyMap{
+		KeyMap: listKeyMap(),
 	}
 }
 
