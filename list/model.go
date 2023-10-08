@@ -60,11 +60,10 @@ func New(items *Items, opts ...Option) *Model {
 		height:       h,
 		Items:        items,
 		state:        Browsing,
-		limit:        0,
+		limit:        SelectNone,
 		KeyMap:       DefaultKeyMap(),
 		toggledItems: make(map[int]struct{}),
 	}
-	m.height = 10
 
 	m.Model = m.NewListModel(items)
 
@@ -90,12 +89,6 @@ func (m *Model) Run() (*Model, error) {
 	return rm, nil
 }
 
-func (m *Model) ConfigureList(opts ...ListOption) {
-	for _, opt := range opts {
-		opt(m.Model)
-	}
-}
-
 // NewListModel returns a *list.Model.
 func (m *Model) NewListModel(items *Items) *list.Model {
 	del := items.NewDelegate()
@@ -113,14 +106,14 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 
 // ChooseOne configures a list to return a single choice.
 func ChooseOne(items *Items, opts ...Option) *Model {
-	opts = append(opts, WithLimit(1))
+	opts = append(opts, WithLimit(SelectOne))
 	m := New(items, opts...)
 	return m
 }
 
 // ChooseAny configures a list for multiple selections.
 func ChooseAny(items *Items, opts ...Option) *Model {
-	opts = append(opts, WithLimit(-1))
+	opts = append(opts, WithLimit(SelectAll))
 	m := New(items, opts...)
 	return m
 }
@@ -138,7 +131,6 @@ func Edit(items *Items, opts ...Option) *Model {
 	o := []Option{Editable()}
 	o = append(o, opts...)
 	m := New(items, o...)
-	//m.ConfigureList(WithFiltering(false))
 	return m
 }
 
@@ -148,13 +140,8 @@ func Editable() Option {
 		m.Items.editable = true
 		m.Items.SetLimit(SelectNone)
 		m.SetInput("Insert Item: ", InsertItem)
-		m.SetFilteringEnabled(false)
-		m.Items.ShortHelpFunc = func() []key.Binding {
-			return []key.Binding{
-				keyMap.InsertItem,
-				keyMap.RemoveItem,
-			}
-		}
+		m.AddFullHelpKeys(insertItem, removeItem)
+		m.AddShortHelpKeys(insertItem, removeItem)
 	}
 }
 
@@ -182,6 +169,8 @@ func WithDescription(desc bool) Option {
 func WithLimit(n int) Option {
 	return func(m *Model) {
 		m.Items.SetLimit(n)
+		m.AddFullHelpKeys(toggleItem)
+		m.AddShortHelpKeys(toggleItem)
 	}
 }
 

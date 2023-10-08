@@ -94,10 +94,10 @@ func NewItems(fn ParseItems) *Items {
 	items := Items{
 		li:              li,
 		ListType:        Ul,
-		width:           10,
-		height:          10,
+		width:           0,
+		height:          0,
 		editable:        true,
-		limit:           0,
+		limit:           SelectNone,
 		toggledItems:    make(map[int]struct{}),
 		prefix:          ">",
 		toggledPrefix:   "x",

@@ -41,10 +41,6 @@ func TestNewList(t *testing.T) {
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}
-	println(SelectAll)
-	println(SelectNone)
-	println(SelectOne)
-
 }
 
 var noItems = func() []*Item { return []*Item{} }
