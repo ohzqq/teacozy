@@ -19,6 +19,12 @@ const (
 	Ol
 )
 
+const (
+	SelectAll = iota - 1
+	SelectNone
+	SelectOne
+)
+
 // String returns a human-readable string of the list type.
 func (f ListType) String() string {
 	return [...]string{
@@ -31,7 +37,6 @@ func (f ListType) String() string {
 type Items struct {
 	list.DefaultDelegate
 	li              []list.Item
-	ParseFunc       func() []*Item
 	ListType        ListType
 	width           int
 	height          int
@@ -84,12 +89,10 @@ func (i Item) Description() string { return i.desc }
 func NewItems(fn ParseItems) *Items {
 	var li []list.Item
 	for _, i := range fn() {
-		di := list.DefaultItem(i)
-		li = append(li, di)
+		li = append(li, list.DefaultItem(i))
 	}
 	items := Items{
 		li:              li,
-		ParseFunc:       fn,
 		ListType:        Ul,
 		width:           10,
 		height:          10,
@@ -101,35 +104,27 @@ func NewItems(fn ParseItems) *Items {
 		untoggledPrefix: " ",
 		styles:          NewDefaultItemStyles(),
 	}
-	del := list.NewDefaultDelegate()
-	del.Styles = items.styles.DefaultItemStyles
-	del.ShowDescription = false
-	del.SetHeight(1)
-	items.DefaultDelegate = del
-	//items.DefaultDelegate = list.NewDefaultDelegate()
-	//items.Styles = items.styles.DefaultItemStyles
 	return &items
+}
+
+// NewDelegate returns a list.DefaultDelegate with the default style.
+func (m *Items) NewDelegate() list.DefaultDelegate {
+	del := list.NewDefaultDelegate()
+	del.Styles = m.styles.DefaultItemStyles
+	return del
 }
 
 // Selectable returns if a list's items can be toggled.
 func (m Items) Selectable() bool {
-	return m.limit != 0
+	return m.limit != SelectNone
 }
 
-// SetNoLimit allows all items in a list to be toggled.
-func (m *Items) SetNoLimit() {
-	m.limit = -1
-}
-
-// SetSelectNone renders a non-selectable list.
-func (m *Items) SetSelectNone() {
-	m.limit = 0
-}
-
+// SetLimit sets the number of choices for a selectable list.
 func (m *Items) SetLimit(n int) {
 	m.limit = n
 }
 
+// Chosen returns the toggled items.
 func (m Items) Chosen() []*Item {
 	var ch []*Item
 	for _, c := range m.ToggledItems() {
@@ -150,10 +145,10 @@ func (m Items) ToggledItems() []int {
 // MultiSelectable is a convenience method to check if more than one item can be
 // toggled.
 func (m Items) MultiSelectable() bool {
-	if m.limit > 1 {
+	if m.limit > SelectOne {
 		return true
 	}
-	if m.limit == -1 {
+	if m.limit == SelectAll {
 		return true
 	}
 	return false
@@ -164,13 +159,14 @@ func (m Items) Limit() int {
 	return m.limit
 }
 
+// ToggleItem toggles the item at index and returns a tea.Cmd.
 func (items *Items) ToggleItem(idx int) tea.Cmd {
 	return func() tea.Msg {
 		if _, ok := items.toggledItems[idx]; ok {
 			delete(items.toggledItems, idx)
 		} else {
 			no := items.limit
-			if items.limit == -1 {
+			if items.limit == SelectAll {
 				no = len(items.li)
 			}
 			if len(items.toggledItems) < no {
@@ -181,6 +177,7 @@ func (items *Items) ToggleItem(idx int) tea.Cmd {
 	}
 }
 
+// UpdateItemToggle provides the updates for a selectable list.
 func (items *Items) UpdateItemToggle(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -207,6 +204,7 @@ func (items *Items) UpdateItemToggle(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// InsertOrRemoveItems provides the updates for an editable list.
 func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -236,6 +234,7 @@ func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// Update is the update loop for list.ItemDelegate.
 func (items *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -255,7 +254,7 @@ func (items *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// func (items Items) Height() int  { return 1 }
+// Spacing sets the list.DefaultDelegate default spacing to 0.
 func (items Items) Spacing() int { return 0 }
 
 // Render satisfies list.ItemDelegate.
@@ -296,11 +295,9 @@ func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
 			}
 		}
 		prefix = d.styles.Prefix.Render(prefix)
-		//prefix = prefix
 	}
 
 	fmt.Fprintf(w, "[%s]", prefix)
-	// fmt.Fprintf(w, "%s", item.(list.DefaultItem).Title())
 	d.DefaultDelegate.Render(w, m, index, item)
 }
 

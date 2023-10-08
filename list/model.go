@@ -98,6 +98,10 @@ func (m *Model) ConfigureList(opts ...ListOption) {
 
 // NewListModel returns a *list.Model.
 func (m *Model) NewListModel(items *Items) *list.Model {
+	del := items.NewDelegate()
+	del.ShowDescription = false
+	m.Items.DefaultDelegate = del
+
 	l := list.New(m.Items.li, m.Items, m.width, m.height)
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
@@ -142,7 +146,7 @@ func Edit(items *Items, opts ...Option) *Model {
 func Editable() Option {
 	return func(m *Model) {
 		m.Items.editable = true
-		m.Items.SetSelectNone()
+		m.Items.SetLimit(SelectNone)
 		m.SetInput("Insert Item: ", InsertItem)
 		m.SetFilteringEnabled(false)
 		m.Items.ShortHelpFunc = func() []key.Binding {
@@ -158,6 +162,19 @@ func Editable() Option {
 func WithFiltering(f bool) Option {
 	return func(m *Model) {
 		m.SetFilteringEnabled(f)
+	}
+}
+
+// WithDescription sets the list to show an item's description.
+func WithDescription(desc bool) Option {
+	return func(m *Model) {
+		del := m.Items.NewDelegate()
+		del.ShowDescription = desc
+		if desc {
+			del.SetHeight(2)
+		}
+		m.Items.DefaultDelegate = del
+		m.SetDelegate(m.Items)
 	}
 }
 

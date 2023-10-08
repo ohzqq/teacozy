@@ -19,6 +19,7 @@ func TestNewList(t *testing.T) {
 		WithFiltering(true),
 		WithLimit(10),
 		OrderedList(),
+		WithDescription(true),
 	}
 
 	m := New(items, opts...)
@@ -40,6 +41,9 @@ func TestNewList(t *testing.T) {
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}
+	println(SelectAll)
+	println(SelectNone)
+	println(SelectOne)
 
 }
 
