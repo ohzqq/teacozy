@@ -51,15 +51,18 @@ func New(items *Items, opts ...Option) *Model {
 		state:  Browsing,
 		KeyMap: DefaultKeyMap(),
 	}
-
 	m.Model = m.NewListModel(items)
 
 	for _, opt := range opts {
 		opt(m)
 	}
 
-	m.AdditionalShortHelpKeys = m.shortHelp
-	m.AdditionalFullHelpKeys = m.fullHelp
+	m.AdditionalShortHelpKeys = func() []key.Binding {
+		return m.shortHelpKeys
+	}
+	m.AdditionalFullHelpKeys = func() []key.Binding {
+		return m.fullHelpKeys
+	}
 
 	return m
 }
@@ -183,28 +186,6 @@ func (m *Model) AddShortHelpKeys(keys ...key.Binding) {
 // AddFullHelpKeys adds key.Binding to list.Model's full help.
 func (m *Model) AddFullHelpKeys(keys ...key.Binding) {
 	m.fullHelpKeys = append(m.fullHelpKeys, keys...)
-}
-
-// AdditionalShortHelpKeys adds key.Binding to list.Model's short help.
-func AdditionalShortHelpKeys(keys ...key.Binding) Option {
-	return func(m *Model) {
-		m.AddShortHelpKeys(keys...)
-	}
-}
-
-// AdditionalFullHelpKeys adds key.Binding to list.Model's full help.
-func AdditionalFullHelpKeys(keys ...key.Binding) Option {
-	return func(m *Model) {
-		m.AddFullHelpKeys(keys...)
-	}
-}
-
-func (m Model) fullHelp() []key.Binding {
-	return m.fullHelpKeys
-}
-
-func (m Model) shortHelp() []key.Binding {
-	return m.shortHelpKeys
 }
 
 // State returns the current list state.
