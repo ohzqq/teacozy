@@ -106,6 +106,8 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	return &l
 }
 
+//func (m Model) Items()
+
 // ChooseOne configures a list to return a single choice.
 func ChooseOne(items *Items, opts ...Option) *Model {
 	opts = append(opts, WithLimit(SelectOne))

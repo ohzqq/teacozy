@@ -14,6 +14,7 @@ type Model struct {
 	router reactea.Component[router.Props]
 	items  *list.Items
 	opts   []list.Option
+	List   *list.Model
 }
 
 type List struct {
@@ -24,8 +25,7 @@ type List struct {
 }
 
 type Props struct {
-	Items *list.Items
-	Opts  []list.Option
+	SetItems func(*list.Items)
 }
 
 func New(items *list.Items, opts ...list.Option) *Model {
@@ -36,30 +36,35 @@ func New(items *list.Items, opts ...list.Option) *Model {
 	}
 }
 
-func NewList() *List {
-	return &List{}
+func NewList(items *list.Items, opts []list.Option) *List {
+	return &List{
+		list: list.New(items, opts...),
+	}
 }
 
 func (l *List) Init(props Props) tea.Cmd {
-	l.list = list.New(props.Items, props.Opts...)
+	println(l.list.Len())
 	l.UpdateProps(props)
+	return nil
 }
 
 func (l *List) Update(msg tea.Msg) tea.Cmd {
-	var cmd tea.Cmd
-	l.list, cmd = l.list.Update(msg)
+	m, cmd := l.list.Update(msg)
+	l.list = m.(*list.Model)
+	//l.Props().SetItems(l.list.Items)
 	return cmd
 }
 
 func (l *List) Render(w, h int) string {
+	l.list.SetSize(w, h)
 	return l.list.View()
 }
 
 func (m *Model) Init(reactea.NoProps) tea.Cmd {
 	return m.router.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			c := NewList()
-			return c, c.Init(Props{Items: m.items, Opts: m.opts})
+			c := NewList(m.items, m.opts)
+			return c, c.Init(Props{SetItems: m.SetItems})
 		},
 	})
 }
@@ -73,9 +78,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	return c.router.Update(msg)
+	return m.router.Update(msg)
 }
 
 func (m *Model) Render(w, h int) string {
-	return c.router.Render(w, h)
+	return m.router.Render(w, h)
+}
+
+func (m *Model) SetItems(items *list.Items) {
+	m.items = items
 }
