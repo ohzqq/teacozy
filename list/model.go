@@ -25,21 +25,13 @@ const (
 
 type Model struct {
 	*list.Model
-	width         int
-	height        int
-	editable      bool
+	*Items
+
+	KeyMap        KeyMap
 	shortHelpKeys []key.Binding
 	fullHelpKeys  []key.Binding
 
-	KeyMap KeyMap
-
-	toggledItems map[int]struct{}
-	limit        int
-
-	Items *Items
 	state State
-
-	DelegateUpdateFuncs []func(tea.Msg, *list.Model) tea.Cmd
 
 	// input
 	input    *input.Model
@@ -54,15 +46,10 @@ type ListOption func(*list.Model)
 
 // New initializes a Model.
 func New(items *Items, opts ...Option) *Model {
-	w, h := util.TermSize()
 	m := &Model{
-		width:        w,
-		height:       h,
-		Items:        items,
-		state:        Browsing,
-		limit:        SelectNone,
-		KeyMap:       DefaultKeyMap(),
-		toggledItems: make(map[int]struct{}),
+		Items:  items,
+		state:  Browsing,
+		KeyMap: DefaultKeyMap(),
 	}
 
 	m.Model = m.NewListModel(items)
@@ -95,7 +82,8 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	del.ShowDescription = false
 	m.Items.DefaultDelegate = del
 
-	l := list.New(m.Items.li, m.Items, m.width, m.height)
+	w, h := util.TermSize()
+	l := list.New(m.Items.li, m.Items, w, h)
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles().Styles
@@ -138,7 +126,6 @@ func Edit(items *Items, opts ...Option) *Model {
 func Editable() Option {
 	return func(m *Model) {
 		m.Items.editable = true
-		m.Items.SetLimit(SelectNone)
 		m.SetInput("Insert Item: ", InsertItem)
 		m.AddFullHelpKeys(insertItem, removeItem)
 		m.AddShortHelpKeys(insertItem, removeItem)
@@ -225,31 +212,19 @@ func (m Model) State() State {
 	return m.state
 }
 
-// SetInput configures an input.Model with the default list.Model styles.
+// SetInput configures an input.Model with the list.Model styles.
 func (m *Model) SetInput(prompt string, enter input.EnterInput) {
 	m.hasInput = true
 	m.input = input.New()
 	m.input.Prompt = prompt
 	m.input.Enter = enter
-	//m.input.PromptStyle = m.Styles.FilterPrompt
-	//m.input.Cursor.Style = m.Styles.FilterCursor
-}
-
-func (m Model) UpdateItems(msg tea.Msg, li *list.Model) tea.Cmd {
-	var cmds []tea.Cmd
-	for _, update := range m.DelegateUpdateFuncs {
-		cmds = append(cmds, update(msg, li))
-	}
-	return tea.Batch(cmds...)
+	m.input.PromptStyle = m.Styles.FilterPrompt
+	m.input.Cursor.Style = m.Styles.FilterCursor
 }
 
 // SetBrowsing sets the state to Browsing
 func (m *Model) SetBrowsing() {
 	m.state = Browsing
-}
-
-func (m Model) ToggledItems() []int {
-	return m.Items.ToggledItems()
 }
 
 // IsBrowsing returns whether or not the list state is Browsing.

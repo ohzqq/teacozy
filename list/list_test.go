@@ -15,11 +15,11 @@ func TestNewList(t *testing.T) {
 	items := NewItems(ItemsStringSlice(choiceSlice))
 
 	opts := []Option{
-		Editable(),
 		WithFiltering(true),
-		WithLimit(10),
 		OrderedList(),
-		WithDescription(true),
+		Editable(),
+		WithLimit(10),
+		//WithDescription(true),
 	}
 
 	m := New(items, opts...)
@@ -37,7 +37,7 @@ func TestNewList(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	sel := m.Items.Chosen()
+	sel := m.Chosen()
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}

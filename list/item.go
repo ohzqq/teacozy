@@ -108,35 +108,40 @@ func NewItems(fn ParseItems) *Items {
 }
 
 // NewDelegate returns a list.DefaultDelegate with the default style.
-func (m *Items) NewDelegate() list.DefaultDelegate {
+func (items *Items) NewDelegate() list.DefaultDelegate {
 	del := list.NewDefaultDelegate()
-	del.Styles = m.styles.DefaultItemStyles
+	del.Styles = items.styles.DefaultItemStyles
 	return del
 }
 
+// Editable returns if a list is editable.
+func (items Items) Editable() bool {
+	return items.editable
+}
+
 // Selectable returns if a list's items can be toggled.
-func (m Items) Selectable() bool {
-	return m.limit != SelectNone
+func (items Items) Selectable() bool {
+	return items.limit != SelectNone
 }
 
 // SetLimit sets the number of choices for a selectable list.
-func (m *Items) SetLimit(n int) {
-	m.limit = n
+func (items *Items) SetLimit(n int) {
+	items.limit = n
 }
 
 // Chosen returns the toggled items.
-func (m Items) Chosen() []*Item {
+func (items Items) Chosen() []*Item {
 	var ch []*Item
-	for _, c := range m.ToggledItems() {
-		ch = append(ch, m.li[c].(*Item))
+	for _, c := range items.ToggledItems() {
+		ch = append(ch, items.li[c].(*Item))
 	}
 	return ch
 }
 
 // ToggledItems returns the slice of item indices.
-func (m Items) ToggledItems() []int {
+func (i Items) ToggledItems() []int {
 	var items []int
-	for k, _ := range m.toggledItems {
+	for k, _ := range i.toggledItems {
 		items = append(items, k)
 	}
 	return items
@@ -144,19 +149,19 @@ func (m Items) ToggledItems() []int {
 
 // MultiSelectable is a convenience method to check if more than one item can be
 // toggled.
-func (m Items) MultiSelectable() bool {
-	if m.limit > SelectOne {
+func (items Items) MultiSelectable() bool {
+	if items.limit > SelectOne {
 		return true
 	}
-	if m.limit == SelectAll {
+	if items.limit == SelectAll {
 		return true
 	}
 	return false
 }
 
 // Limit returns the max number of items that can be toggled.
-func (m Items) Limit() int {
-	return m.limit
+func (items Items) Limit() int {
+	return items.limit
 }
 
 // ToggleItem toggles the item at index and returns a tea.Cmd.
@@ -258,47 +263,47 @@ func (items *Items) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 func (items Items) Spacing() int { return 0 }
 
 // Render satisfies list.ItemDelegate.
-func (d Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
+func (items Items) Render(w io.Writer, m list.Model, index int, item list.Item) {
 
 	var (
 		prefix     = " "
 		padding    = len(strconv.Itoa(len(m.Items())))
 		isSelected = index == m.Index()
-		isToggled  = slices.Contains(d.ToggledItems(), index)
+		isToggled  = slices.Contains(items.ToggledItems(), index)
 	)
 
 	//style prefix
-	if d.MultiSelectable() {
+	if items.MultiSelectable() {
 		if isToggled {
-			prefix = d.toggledPrefix
+			prefix = items.toggledPrefix
 		}
 	}
 
-	if d.ListType == Ol {
+	if items.ListType == Ol {
 		p := fmt.Sprint("%", padding, "d")
 		prefix = fmt.Sprintf(p, index+1)
 	}
 
 	if isToggled {
-		prefix = d.styles.Toggled.Render(prefix)
+		prefix = items.styles.Toggled.Render(prefix)
 	}
 
 	if isSelected {
-		switch d.MultiSelectable() {
+		switch items.MultiSelectable() {
 		case true:
-			if d.ListType == Ul {
-				prefix = d.toggledPrefix
+			if items.ListType == Ul {
+				prefix = items.toggledPrefix
 			}
 		default:
-			if d.ListType == Ul {
-				prefix = d.prefix
+			if items.ListType == Ul {
+				prefix = items.prefix
 			}
 		}
-		prefix = d.styles.Prefix.Render(prefix)
+		prefix = items.styles.Prefix.Render(prefix)
 	}
 
 	fmt.Fprintf(w, "[%s]", prefix)
-	d.DefaultDelegate.Render(w, m, index, item)
+	items.DefaultDelegate.Render(w, m, index, item)
 }
 
 // ItemsStringSlice returns a ParseItems for a slice of strings.

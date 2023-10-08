@@ -96,6 +96,8 @@ func NewDefaultItemStyles() (s DefaultItemStyles) {
 		Foreground(lipgloss.AdaptiveColor{Light: "#AFFF87", Dark: "#AFFFAF"}).
 		Padding(0, 0, 0, 1)
 
+	s.Prefix = s.SelectedTitle.Copy().Padding(0)
+
 	s.SelectedDesc = s.SelectedTitle.Copy().
 		Foreground(lipgloss.AdaptiveColor{Light: "#AF87FF", Dark: "#AFAFFF"})
 
@@ -106,11 +108,7 @@ func NewDefaultItemStyles() (s DefaultItemStyles) {
 	s.DimmedDesc = s.DimmedTitle.Copy().
 		Foreground(lipgloss.AdaptiveColor{Light: "#C2B8C2", Dark: "#4D4D4D"})
 
-	s.FilterMatch = lipgloss.NewStyle(). //Underline(true)
-						Foreground(lipgloss.AdaptiveColor{Light: "#5FAFFF", Dark: "#AFFFFF"})
-
-	s.Prefix = lipgloss.NewStyle().
-		Foreground(lipgloss.AdaptiveColor{Light: "#FF87FF", Dark: "#FFAFFF"})
+	s.FilterMatch = lipgloss.NewStyle().Underline(true)
 
 	s.Toggled = lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#646464", Dark: "#646464"})
