@@ -89,9 +89,14 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l := list.New(m.Items.li, m.Items, w, h)
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
-	l.Styles = DefaultStyles().Styles
+	l.Styles = DefaultStyles()
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
+
+	// Update paginator style
+	l.Paginator.ActiveDot = l.Styles.ActivePaginationDot.String()
+	l.Paginator.InactiveDot = l.Styles.InactivePaginationDot.String()
+
 	return &l
 }
 
