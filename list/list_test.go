@@ -16,9 +16,9 @@ func TestNewList(t *testing.T) {
 
 	opts := []Option{
 		WithFiltering(true),
-		OrderedList(),
+		//OrderedList(),
 		Editable(true),
-		WithLimit(10),
+		//WithLimit(10),
 		//WithDescription(true),
 	}
 

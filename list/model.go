@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/input"
+	"github.com/ohzqq/teacozy/pager"
 	"github.com/ohzqq/teacozy/util"
 )
 
@@ -36,6 +37,10 @@ type Model struct {
 	// input
 	input    *input.Model
 	hasInput bool
+
+	// view
+	pager    *pager.Model
+	hasPager bool
 }
 
 // Option configures a Model.
