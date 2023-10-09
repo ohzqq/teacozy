@@ -18,7 +18,11 @@ func TestNewList(t *testing.T) {
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
-	text := strings.Join(choiceSlice, "\n- ")
+	txt := []string{
+		"AArtichokeArtichokeArtichokeArtichokeArtichokeArtichokeArtichokertichoke",
+	}
+	txt = append(txt, choiceSlice...)
+	text := strings.Join(txt, "\n- ")
 	p := pager.New(pager.RenderText).SetText(text)
 	//p.SetSize(0, 10)
 

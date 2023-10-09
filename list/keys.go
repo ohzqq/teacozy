@@ -29,6 +29,7 @@ type DelegateKeyMap struct {
 
 type KeyMap struct {
 	list.KeyMap
+	SwitchPane key.Binding
 }
 
 func DefaultDelegateKeyMap() DelegateKeyMap {
@@ -42,6 +43,10 @@ func DefaultDelegateKeyMap() DelegateKeyMap {
 func DefaultKeyMap() KeyMap {
 	return KeyMap{
 		KeyMap: listKeyMap(),
+		SwitchPane: key.NewBinding(
+			key.WithKeys("tab"),
+			key.WithHelp("tab", "switch panes"),
+		),
 	}
 }
 

@@ -11,12 +11,14 @@ import (
 )
 
 type Model struct {
-	view     viewport.Model
+	viewport.Model
 	render   Renderer
 	text     string
 	rendered string
 	width    int
 	height   int
+	focused  bool
+	KeyMap   KeyMap
 }
 
 type Renderer func(text string, width int) string
@@ -27,9 +29,10 @@ func New(fn Renderer) *Model {
 		render: fn,
 		width:  w,
 		height: h,
-		view:   viewport.New(w, h),
+		Model:  viewport.New(w, h),
+		KeyMap: DefaultKeyMap(),
 	}
-	m.view.KeyMap = DefaultKeyMap()
+	m.Model.KeyMap = m.KeyMap.KeyMap
 
 	return m
 }
@@ -71,6 +74,34 @@ func RenderMarkdown(mark string, width int) string {
 	return r
 }
 
+type FocusPagerMsg struct{}
+
+func (m *Model) Focus() tea.Msg {
+	m.focused = true
+	m.KeyMap.PageDown.SetEnabled(true)
+	m.KeyMap.PageUp.SetEnabled(true)
+	m.KeyMap.HalfPageDown.SetEnabled(true)
+	m.KeyMap.HalfPageUp.SetEnabled(true)
+	m.KeyMap.Down.SetEnabled(true)
+	m.KeyMap.Up.SetEnabled(true)
+	return FocusPagerMsg{}
+}
+
+func (m *Model) Blur() tea.Msg {
+	m.focused = false
+	m.KeyMap.PageDown.SetEnabled(false)
+	m.KeyMap.PageUp.SetEnabled(false)
+	m.KeyMap.HalfPageDown.SetEnabled(false)
+	m.KeyMap.HalfPageUp.SetEnabled(false)
+	m.KeyMap.Down.SetEnabled(false)
+	m.KeyMap.Up.SetEnabled(false)
+	return FocusPagerMsg{}
+}
+
+func (m Model) Focused() bool {
+	return m.focused
+}
+
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -84,43 +115,48 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.height = msg.Height
 		}
 		if msg.Width < m.width {
-			m.view.Width = msg.Width
+			m.Model.Width = msg.Width
 		}
 		if msg.Height < m.height {
-			m.view.Height = msg.Height
+			m.Model.Height = msg.Height
 		}
 		if msg.Width > m.width {
-			m.view.Width = m.width
+			m.Model.Width = m.width
 		}
 		if msg.Height > m.height {
-			m.view.Height = m.height
+			m.Model.Height = m.height
 		}
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			cmds = append(cmds, tea.Quit)
 		}
+		switch {
+		case key.Matches(msg, m.KeyMap.Quit):
+			return m, tea.Quit
+		}
 	}
 
-	m.view, cmd = m.view.Update(msg)
+	m.Model, cmd = m.Model.Update(msg)
 	cmds = append(cmds, cmd)
-
-	m.view.SetContent(m.Render())
+	m.Model.SetContent(m.Render())
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m Model) Render() string {
-	return m.render(m.text, m.view.Width)
+	return m.render(m.text, m.Model.Width)
 }
 
 func (m Model) View() string {
-	return m.view.View()
+	m.Model.SetContent(m.Render())
+	return m.Model.View()
 }
 
 func (m *Model) SetSize(w, h int) *Model {
 	m.width = w
 	m.height = h
+	m.Model = viewport.New(w, h)
 	return m
 }
 
@@ -128,7 +164,22 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func DefaultKeyMap() viewport.KeyMap {
+type KeyMap struct {
+	viewport.KeyMap
+	Quit key.Binding
+}
+
+func DefaultKeyMap() KeyMap {
+	return KeyMap{
+		KeyMap: defaultKeyMap(),
+		Quit: key.NewBinding(
+			key.WithKeys("q", "esc"),
+			key.WithHelp("q", "quit"),
+		),
+	}
+}
+
+func defaultKeyMap() viewport.KeyMap {
 	return viewport.KeyMap{
 		PageDown: key.NewBinding(
 			key.WithKeys("pgdown"),

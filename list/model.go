@@ -15,6 +15,7 @@ type State int
 const (
 	Browsing State = iota
 	Input
+	Paging
 )
 
 type Layout int
@@ -58,7 +59,7 @@ func New(items *Items, opts ...Option) *Model {
 		Items:  items,
 		state:  Browsing,
 		KeyMap: DefaultKeyMap(),
-		//layout: Horizontal,
+		layout: Horizontal,
 	}
 	m.Model = m.NewListModel(items)
 
@@ -168,6 +169,7 @@ func WithPager(p *pager.Model) Option {
 			m.height = m.height / 2
 			p.SetSize(m.width, m.height/2)
 		}
+		//p.Blur()
 		m.pager = p
 	}
 }
@@ -279,8 +281,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case Horizontal:
 				w = w / 2
 			}
+			m.pager.SetSize(w, h)
 		}
-		m.pager.SetSize(w, h)
 		m.SetSize(w, h)
 
 	case input.FocusInputMsg:
@@ -296,6 +298,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.KeyMap.SwitchPane):
+			switch m.State() {
+			case Paging:
+				m.state = Browsing
+			case Browsing:
+				m.state = Paging
+			}
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
 		}
@@ -305,18 +314,37 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case Input:
 		m.input, cmd = m.input.Update(msg)
 		cmds = append(cmds, cmd)
+	case Paging:
+		m.pager, cmd = m.pager.Update(msg)
+		cmds = append(cmds, cmd)
 	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
 	}
 
-	if m.hasPager {
-		m.pager, cmd = m.pager.Update(msg)
-		cmds = append(cmds, cmd)
-	}
-
 	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) updateBindings() {
+	switch m.state {
+	case Paging:
+		m.KeyMap.CursorUp.SetEnabled(false)
+		m.KeyMap.CursorDown.SetEnabled(false)
+		m.KeyMap.PrevPage.SetEnabled(false)
+		m.KeyMap.NextPage.SetEnabled(false)
+		m.KeyMap.GoToStart.SetEnabled(false)
+		m.KeyMap.GoToEnd.SetEnabled(false)
+		m.KeyMap.Filter.SetEnabled(false)
+	case Browsing:
+		m.KeyMap.CursorUp.SetEnabled(true)
+		m.KeyMap.CursorDown.SetEnabled(true)
+		m.KeyMap.PrevPage.SetEnabled(true)
+		m.KeyMap.NextPage.SetEnabled(true)
+		m.KeyMap.GoToStart.SetEnabled(true)
+		m.KeyMap.GoToEnd.SetEnabled(true)
+		m.KeyMap.Filter.SetEnabled(true)
+	}
 }
 
 // SetShowInput shows or hides the input model.
@@ -363,13 +391,14 @@ func (m *Model) View() string {
 
 	view := lipgloss.JoinVertical(lipgloss.Left, views...)
 
+	var p string
 	if m.hasPager {
-		p := m.pager.View()
+		p = m.pager.View()
 		switch m.layout {
 		case Vertical:
-			view = lipgloss.JoinVertical(lipgloss.Left, view, p)
+			view = lipgloss.JoinVertical(lipgloss.Right, view, p)
 		case Horizontal:
-			view = lipgloss.JoinHorizontal(lipgloss.Bottom, view, p)
+			view = lipgloss.JoinHorizontal(lipgloss.Center, p, view)
 		}
 	}
 	return view
