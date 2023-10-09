@@ -157,6 +157,15 @@ func (items Items) Get(idx int) *Item {
 	return items.li[idx].(*Item)
 }
 
+// Items returns the items.
+func (i Items) Items() []*Item {
+	items := make([]*Item, i.Len())
+	for idx, li := range i.li {
+		items[idx] = li.(*Item)
+	}
+	return items
+}
+
 // ToggledItems returns the slice of item indices.
 func (i Items) ToggledItems() []int {
 	var items []int

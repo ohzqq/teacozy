@@ -12,17 +12,17 @@ func ClearScreen() {
 }
 
 func TermSize() (int, int) {
-	w, h, _ := term.GetSize(int(os.Stdin.Fd()))
+	w, h, _ := term.GetSize(int(os.Stdout.Fd()))
 	return w, h
 }
 
 func TermWidth() int {
-	w, _, _ := term.GetSize(int(os.Stdin.Fd()))
+	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	return w
 }
 
 func TermHeight() int {
-	_, h, _ := term.GetSize(int(os.Stdin.Fd()))
+	_, h, _ := term.GetSize(int(os.Stdout.Fd()))
 	return h
 }
 

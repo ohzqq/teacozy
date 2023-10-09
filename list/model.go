@@ -20,8 +20,8 @@ const (
 type Layout int
 
 const (
-	Horizontal Layout = iota
-	Vertical
+	Vertical Layout = iota
+	Horizontal
 )
 
 type Model struct {
@@ -32,7 +32,8 @@ type Model struct {
 	shortHelpKeys []key.Binding
 	fullHelpKeys  []key.Binding
 
-	state State
+	state  State
+	layout Layout
 
 	editable bool
 
@@ -57,6 +58,7 @@ func New(items *Items, opts ...Option) *Model {
 		Items:  items,
 		state:  Browsing,
 		KeyMap: DefaultKeyMap(),
+		//layout: Horizontal,
 	}
 	m.Model = m.NewListModel(items)
 
@@ -151,6 +153,22 @@ func Editable(edit bool) Option {
 func WithFiltering(f bool) Option {
 	return func(m *Model) {
 		m.SetFilteringEnabled(f)
+	}
+}
+
+// WithPager enables the pager bubble.
+func WithPager(p *pager.Model) Option {
+	return func(m *Model) {
+		m.hasPager = true
+		switch m.layout {
+		case Horizontal:
+			m.width = m.width / 2
+			p.SetSize(m.width/2, m.height)
+		case Vertical:
+			m.height = m.height / 2
+			p.SetSize(m.width, m.height/2)
+		}
+		m.pager = p
 	}
 }
 
@@ -252,7 +270,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.SetSize(msg.Width, msg.Height)
+		w := msg.Width
+		h := msg.Height
+		if m.hasPager {
+			switch m.layout {
+			case Vertical:
+				h = h / 2
+			case Horizontal:
+				w = w / 2
+			}
+		}
+		m.pager.SetSize(w, h)
+		m.SetSize(w, h)
 
 	case input.FocusInputMsg:
 		if m.hasInput {
@@ -279,6 +308,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
+		cmds = append(cmds, cmd)
+	}
+
+	if m.hasPager {
+		m.pager, cmd = m.pager.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -327,7 +361,18 @@ func (m *Model) View() string {
 	li := m.Model.View()
 	views = append(views, li)
 
-	return lipgloss.JoinVertical(lipgloss.Left, views...)
+	view := lipgloss.JoinVertical(lipgloss.Left, views...)
+
+	if m.hasPager {
+		p := m.pager.View()
+		switch m.layout {
+		case Vertical:
+			view = lipgloss.JoinVertical(lipgloss.Left, view, p)
+		case Horizontal:
+			view = lipgloss.JoinHorizontal(lipgloss.Bottom, view, p)
+		}
+	}
+	return view
 }
 
 func (m *Model) Init() tea.Cmd {

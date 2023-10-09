@@ -3,7 +3,13 @@ package list
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"testing"
+
+	"github.com/ohzqq/teacozy/pager"
+	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/term"
 )
 
 func TestNewList(t *testing.T) {
@@ -12,12 +18,17 @@ func TestNewList(t *testing.T) {
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
+	text := strings.Join(choiceSlice, "\n- ")
+	p := pager.New(pager.RenderText).SetText(text)
+	//p.SetSize(0, 10)
+
 	items := NewItems(ItemsStringSlice(choiceSlice))
 
 	opts := []Option{
 		WithFiltering(true),
 		//OrderedList(),
 		Editable(true),
+		WithPager(p),
 		//WithLimit(10),
 		//WithDescription(true),
 	}
@@ -41,6 +52,31 @@ func TestNewList(t *testing.T) {
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}
+
+	w, h := util.TermSize()
+	println(w)
+	println(h)
+}
+
+func testTermSize(t *testing.T) {
+	oldState, err := term.MakeRaw(int(os.Stdout.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdout.Fd()), oldState)
+	//if term.IsTerminal(oldState) {
+	//  println("in a term")
+	//} else {
+	//  println("not in a term")
+	//}
+
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		//return
+		log.Fatal(err)
+	}
+	println("width:", width, "height:", height)
+
 }
 
 var noItems = func() []*Item { return []*Item{} }

@@ -10,7 +10,7 @@ import (
 
 func TestNewModel(t *testing.T) {
 	text := strings.Join(choiceSlice, "\n- ")
-	m := New(text, RenderMarkdown)
+	m := New(RenderText).SetText(text)
 	m.SetSize(0, 10)
 
 	p := tea.NewProgram(m)
