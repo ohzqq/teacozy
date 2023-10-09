@@ -34,6 +34,8 @@ type Model struct {
 
 	state State
 
+	editable bool
+
 	// input
 	input    *input.Model
 	hasInput bool
@@ -96,7 +98,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles()
-	l.SetShowTitle(false)
+	l.SetShowTitle(true)
 	l.SetShowStatusBar(false)
 
 	// Update paginator style
@@ -141,10 +143,7 @@ func Edit(items *Items, opts ...Option) *Model {
 // Editable marks a list as editable
 func Editable(edit bool) Option {
 	return func(m *Model) {
-		m.Items.SetEditable(edit)
-		m.SetInput("Insert Item: ", InsertItem)
-		m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
-		m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+		m.SetEditable(edit)
 	}
 }
 
@@ -203,6 +202,13 @@ func (m *Model) AddFullHelpKeys(keys ...key.Binding) {
 	m.fullHelpKeys = append(m.fullHelpKeys, keys...)
 }
 
+func (m *Model) SetEditable(edit bool) {
+	m.Items.SetEditable(edit)
+	m.SetInput("Insert Item: ", InsertItem)
+	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+}
+
 // State returns the current list state.
 func (m Model) State() State {
 	return m.state
@@ -226,6 +232,17 @@ func (m *Model) SetBrowsing() {
 // IsBrowsing returns whether or not the list state is Browsing.
 func (m Model) Browsing() bool {
 	return !m.Model.SettingFilter() || m.state == Browsing
+}
+
+// HasInput returns whether or not the model has input.
+func (m Model) HasInput() bool {
+	return m.hasInput
+}
+
+// CurrentItem returns the selected item.
+func (m Model) CurrentItem() *Item {
+	li := m.Model.SelectedItem()
+	return li.(*Item)
 }
 
 // Update is the tea.Model update loop.

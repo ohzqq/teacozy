@@ -14,7 +14,7 @@ func TestModel(t *testing.T) {
 	opts := []list.Option{
 		list.WithFiltering(true),
 		//OrderedList(),
-		list.Editable(true),
+		//list.Editable(true),
 		list.WithLimit(10),
 		//WithDescription(true),
 	}

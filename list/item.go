@@ -147,8 +147,14 @@ func (items Items) Chosen() []*Item {
 	return ch
 }
 
+// Len returns len(items.li)
 func (items Items) Len() int {
 	return len(items.li)
+}
+
+// Get returns the *Item at index.
+func (items Items) Get(idx int) *Item {
+	return items.li[idx].(*Item)
 }
 
 // ToggledItems returns the slice of item indices.
