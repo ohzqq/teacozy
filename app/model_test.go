@@ -10,7 +10,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
-	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/term"
 )
 
@@ -28,7 +27,7 @@ func TestNewList(t *testing.T) {
 		list.WithFiltering(true),
 		//OrderedList(),
 		list.Editable(true),
-		//WithPager(testPager()),
+		list.WithPager(testPager()),
 		//WithLimit(10),
 		//WithDescription(true),
 	}
@@ -59,9 +58,9 @@ func TestNewList(t *testing.T) {
 		fmt.Printf("%#v\n", s)
 	}
 
-	w, h := util.TermSize()
-	println(w)
-	println(h)
+	//w, h := util.TermSize()
+	//println(w)
+	//println(h)
 }
 
 func testPager() *pager.Model {

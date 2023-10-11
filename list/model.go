@@ -18,6 +18,18 @@ const (
 	Paging
 )
 
+func (s State) String() string {
+	switch s {
+	case Browsing:
+		return "browsing"
+	case Input:
+		return "input"
+	case Paging:
+		return "paging"
+	}
+	return ""
+}
+
 type Layout int
 
 const (
@@ -59,20 +71,20 @@ type ListOption func(*list.Model)
 // New initializes a Model.
 func New(items *Items, opts ...Option) *Model {
 	m := &Model{
-		Items:           items,
-		state:           Browsing,
-		KeyMap:          DefaultKeyMap(),
-		showDescription: true,
+		Items:  items,
+		state:  Browsing,
+		KeyMap: DefaultKeyMap(),
+		//showDescription: true,
 	}
 	m.Model = m.NewListModel(items)
 
 	for _, opt := range opts {
 		opt(m)
 	}
-	if m.showDescription {
-		m.hasPager = true
-		m.Pager = pager.New(pager.RenderText)
-	}
+	//if m.showDescription {
+	//  m.hasPager = true
+	//  m.Pager = pager.New(pager.RenderText)
+	//}
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {
 		return m.shortHelpKeys
@@ -109,7 +121,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.Title = ""
 	l.Styles = DefaultStyles()
 	l.SetShowTitle(true)
-	l.SetShowStatusBar(false)
+	l.SetShowStatusBar(true)
 
 	// Update paginator style
 	l.Paginator.ActiveDot = l.Styles.ActivePaginationDot.String()
@@ -301,7 +313,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		w := msg.Width
-		h := msg.Height
+		h := msg.Height - 2
 		if m.hasPager {
 			switch m.layout {
 			case Vertical:
@@ -326,13 +338,14 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.KeyMap.SwitchPane):
-			switch m.State() {
-			case Paging:
-				m.state = Browsing
-			case Browsing:
-				m.state = Paging
-			}
+		//case key.Matches(msg, m.KeyMap.SwitchPane):
+		//cmds = append(cmds, m.Model.NewStatusMessage(m.state.String()))
+		//switch m.State() {
+		//case Paging:
+		//m.state = Browsing
+		//case Browsing:
+		//m.state = Paging
+		//}
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
 		}
