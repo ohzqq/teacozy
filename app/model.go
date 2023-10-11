@@ -12,9 +12,9 @@ import (
 type State int
 
 const (
-	Browsing State = iota
+	List State = iota + 1
 	Input
-	Paging
+	Pager
 )
 
 type Layout int
@@ -28,29 +28,38 @@ type Model struct {
 	state  State
 	layout Layout
 
-	list *list.Model
+	List *list.Model
 
 	// input
-	Input    *input.Model
-	hasInput bool
+	Input *input.Model
 
 	// view
-	Pager    *pager.Model
-	hasPager bool
+	Pager *pager.Model
 }
 
 func New(l *list.Model) *Model {
 	m := &Model{}
-	m.list = l
+	m.state = List
+	m.List = l
 	m.Input = l.Input
-	m.hasInput = true
-	m.hasPager = true
 	m.Pager = l.Pager
+
 	return m
 }
 
 func (m *Model) Init() tea.Cmd {
-	return m.list.Focus()
+	switch {
+	case m.HasList():
+		m.state = List
+		return m.List.Focus()
+	case m.HasPager():
+		m.state = Pager
+		return m.Pager.Focus()
+	case m.HasInput():
+		m.state = Input
+		return m.Input.Focus()
+	}
+	return nil
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -61,7 +70,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		w := msg.Width
 		h := msg.Height
-		if m.hasPager {
+		if m.HasPager() {
 			switch m.layout {
 			case Vertical:
 				h = h / 2
@@ -70,98 +79,200 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.Pager.SetSize(w, h)
 		}
-		m.list.SetSize(w, h)
-
-	case input.FocusInputMsg:
-		if m.hasInput {
-			m.list.SetShowInput(true)
-			cmds = append(cmds, m.Input.Focus())
+		if m.HasList() {
+			m.List.SetSize(w, h)
 		}
-	case input.ResetInputMsg:
-		m.list.ResetInput()
-		m.Input.Unfocus()
 
-	case pager.UnfocusPagerMsg:
-		//m.Pager.Unfocus()
-		cmds = append(cmds, m.list.NewStatusMessage(m.CurrentFocus()))
-		//return m, m.list.Focus()
+	case input.FocusMsg:
+		if m.HasInput() {
+			m.SetShowInput(true)
+			cmds = append(cmds, m.SetFocus(Input))
+		}
+	case input.UnfocusMsg:
+		m.Input.Reset()
+		m.Input.Blur()
+		m.SetShowInput(false)
+		cmds = append(cmds, m.SetFocus(List))
+
+	case pager.UnfocusMsg:
+	case pager.FocusMsg:
+	case list.FocusMsg:
 
 	case list.ItemsChosenMsg:
 		return m, tea.Quit
 
 	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlC:
+			cmds = append(cmds, tea.Quit)
+		}
 		switch {
-		case key.Matches(msg, m.list.KeyMap.SwitchPane):
-			switch {
-			case m.Pager.Focused():
-				m.list.Focus()
-				cmds = append(cmds, m.SetFocus("list"))
-			case m.list.Focused():
-				cmds = append(cmds, m.SetFocus("pager"))
+		case key.Matches(msg, m.List.KeyMap.SwitchPane):
+			if m.HasPager() {
+				switch {
+				case m.Pager.Focused():
+					cmds = append(cmds, m.SetFocus(List))
+				case m.List.Focused():
+					cmds = append(cmds, m.SetFocus(Pager))
+				}
 			}
-		case key.Matches(msg, m.list.KeyMap.Filter):
-			//m.state = Input
 		}
 	}
 
-	switch {
-	case m.Input.Focused():
-		m.Input, cmd = m.Input.Update(msg)
-		cmds = append(cmds, cmd)
-	case m.Pager.Focused():
-		m.Pager, cmd = m.Pager.Update(msg)
-		cmds = append(cmds, cmd)
-	case m.list.Focused():
-		m.list, cmd = m.list.Update(msg)
-		cmds = append(cmds, cmd)
+	switch m.State() {
+	case Input:
+		if m.HasInput() {
+			m.Input, cmd = m.Input.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	case Pager:
+		if m.HasPager() {
+			m.Pager, cmd = m.Pager.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	case List:
+		if m.HasList() {
+			m.List, cmd = m.List.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) SetFocus(focus string) tea.Cmd {
+func (m *Model) SetFocus(focus State) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch {
-	case m.Pager.Focused():
-		cmds = append(cmds, m.Pager.Unfocus())
-	case m.list.Focused():
-		cmds = append(cmds, m.list.Unfocus())
-	case m.Input.Focused():
-		cmds = append(cmds, m.Input.Unfocus())
+	case m.HasPager():
+		if m.Pager.Focused() {
+			cmds = append(cmds, m.Pager.Unfocus())
+		}
+	case m.HasList():
+		if m.List.Focused() {
+			cmds = append(cmds, m.List.Unfocus())
+		}
+	case m.HasInput():
+		if m.Input.Focused() {
+			cmds = append(cmds, m.Input.Unfocus())
+		}
 	}
 
 	switch focus {
-	case "input":
-		m.Pager.Unfocus()
-		m.list.Unfocus()
+	case Input:
+		m.state = Input
+		if m.HasPager() {
+			m.Pager.Unfocus()
+		}
+		m.List.Unfocus()
+		if m.HasList() {
+		}
 		cmds = append(cmds, m.Input.Focus())
-	case "pager":
-		m.Input.Unfocus()
-		m.list.Unfocus()
+	case Pager:
+		m.state = Pager
+		if m.HasInput() {
+			m.Input.Unfocus()
+		}
+		if m.HasList() {
+			m.List.Unfocus()
+		}
 		cmds = append(cmds, m.Pager.Focus())
-	case "list":
-		m.Pager.Unfocus()
-		m.Input.Unfocus()
-		cmds = append(cmds, m.list.Focus())
+	case List:
+		m.state = List
+		if m.HasPager() {
+			m.Pager.Unfocus()
+		}
+		if m.HasInput() {
+			m.Input.Unfocus()
+		}
+		cmds = append(cmds, m.List.Focus())
 	}
 
 	return tea.Batch(cmds...)
 }
 
-func (m Model) CurrentFocus() string {
-	switch {
-	case m.Input.Focused():
-		return "input"
-	case m.Pager.Focused():
-		return "pager"
-	case m.list.Focused():
-		return "list"
-	}
-	return ""
+func (m Model) State() State {
+	return m.state
+}
+
+func (m Model) HasPager() bool {
+	return m.Pager != nil
+}
+
+func (m Model) HasInput() bool {
+	return m.Input != nil
+}
+
+func (m Model) HasList() bool {
+	return m.List != nil
 }
 
 func (m *Model) View() string {
-	view := m.list.View()
-	return lipgloss.JoinVertical(lipgloss.Left, view, m.CurrentFocus())
+	var views []string
+
+	if m.HasInput() {
+		m.List.SetShowFilter(true)
+		if m.Input.Focused() {
+			m.List.SetShowFilter(false)
+			in := m.Input.View()
+			views = append(views, in)
+		}
+	}
+
+	if m.HasList() {
+		li := m.List.View()
+		views = append(views, li)
+	}
+
+	view := lipgloss.JoinVertical(lipgloss.Left, views...)
+
+	var p string
+	if m.HasPager() {
+		p = m.Pager.View()
+		switch m.layout {
+		case Vertical:
+			view = lipgloss.JoinVertical(lipgloss.Right, view, p)
+		case Horizontal:
+			view = lipgloss.JoinHorizontal(lipgloss.Center, p, view)
+		}
+	}
+	return view
+}
+
+// SetShowInput shows or hides the input model.
+func (m *Model) SetShowInput(show bool) {
+	m.List.SetShowTitle(!show)
+	if show {
+		m.List.SetHeight(m.List.Height() - 1)
+		m.SetFocus(Input)
+		return
+	}
+	m.List.SetHeight(m.List.Height() + 1)
+	m.SetFocus(List)
+}
+
+// ResetInput resets the current input state.
+func (m *Model) ResetInput() {
+	m.resetInput()
+}
+
+func (m *Model) resetInput() {
+	if m.state == List {
+		return
+	}
+	m.Input.Reset()
+	m.Input.Blur()
+	m.SetShowInput(false)
+}
+
+func (s State) String() string {
+	switch s {
+	case List:
+		return "list"
+	case Input:
+		return "input"
+	case Pager:
+		return "pager"
+	}
+	return ""
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/pager"
 	"github.com/ohzqq/teacozy/util"
@@ -121,7 +120,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.Title = ""
 	l.Styles = DefaultStyles()
 	l.SetShowTitle(true)
-	l.SetShowStatusBar(true)
+	l.SetShowStatusBar(false)
 
 	// Update paginator style
 	l.Paginator.ActiveDot = l.Styles.ActivePaginationDot.String()
@@ -252,20 +251,20 @@ func (m Model) Focused() bool {
 	return m.focused
 }
 
-type FocusListMsg struct{}
-type UnfocusListMsg struct{}
+type FocusMsg struct{}
+type UnfocusMsg struct{}
 
 func (m *Model) Focus() tea.Cmd {
 	return func() tea.Msg {
 		m.focused = true
-		return FocusListMsg{}
+		return FocusMsg{}
 	}
 }
 
 func (m *Model) Unfocus() tea.Cmd {
 	return func() tea.Msg {
 		m.focused = false
-		return UnfocusListMsg{}
+		return UnfocusMsg{}
 	}
 }
 
@@ -308,7 +307,7 @@ func (m Model) CurrentItem() *Item {
 // Update is the tea.Model update loop.
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	var cmd tea.Cmd
+	//var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -353,18 +352,19 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch m.State() {
 	case Input:
-		m.Input, cmd = m.Input.Update(msg)
-		cmds = append(cmds, cmd)
+		//m.Input, cmd = m.Input.Update(msg)
+		//cmds = append(cmds, cmd)
 	case Paging:
-		m.Pager, cmd = m.Pager.Update(msg)
-		cmds = append(cmds, cmd)
+		//m.Pager, cmd = m.Pager.Update(msg)
+		//cmds = append(cmds, cmd)
 	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
-		if m.showDescription {
-			m.Pager.SetText(m.CurrentItem().Description())
-		}
+		//if m.showDescription {
+		//  m.Pager.SetText(m.CurrentItem().Description())
+		//}
+
 	}
 
 	return m, tea.Batch(cmds...)
@@ -391,60 +391,9 @@ func (m *Model) updateBindings() {
 	}
 }
 
-// SetShowInput shows or hides the input model.
-func (m *Model) SetShowInput(show bool) {
-	m.SetShowTitle(!show)
-	if show {
-		m.SetHeight(m.Height() - 1)
-		m.state = Input
-		return
-	}
-	m.SetHeight(m.Height() + 1)
-	m.SetBrowsing()
-}
-
-// ResetInput resets the current input state.
-func (m *Model) ResetInput() {
-	m.resetInput()
-}
-
-func (m *Model) resetInput() {
-	if m.state == Browsing {
-		return
-	}
-	m.Input.Reset()
-	m.Input.Blur()
-	m.SetShowInput(false)
-}
-
 // View satisfies the tea.Model view method.
 func (m *Model) View() string {
-	var views []string
-
-	if m.hasInput {
-		m.SetShowFilter(true)
-		if m.Input.Focused() {
-			m.SetShowFilter(false)
-			in := m.Input.View()
-			views = append(views, in)
-		}
-	}
-
-	li := m.Model.View()
-	views = append(views, li)
-
-	view := lipgloss.JoinVertical(lipgloss.Left, views...)
-
-	var p string
-	if m.hasPager {
-		p = m.Pager.View()
-		switch m.layout {
-		case Vertical:
-			view = lipgloss.JoinVertical(lipgloss.Right, view, p)
-		case Horizontal:
-			view = lipgloss.JoinHorizontal(lipgloss.Center, p, view)
-		}
-	}
+	view := m.Model.View()
 	return view
 }
 

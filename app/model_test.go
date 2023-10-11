@@ -42,7 +42,8 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	p := tea.NewProgram(New(m))
+	a := New(m)
+	p := tea.NewProgram(a)
 
 	//mod, err := p.Run()
 	//if err != nil {
@@ -57,6 +58,7 @@ func TestNewList(t *testing.T) {
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}
+	fmt.Printf("%#v\n", a.HasInput())
 
 	//w, h := util.TermSize()
 	//println(w)

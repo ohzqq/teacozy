@@ -74,8 +74,8 @@ func RenderMarkdown(mark string, width int) string {
 	return r
 }
 
-type FocusPagerMsg struct{}
-type UnfocusPagerMsg struct{}
+type FocusMsg struct{}
+type UnfocusMsg struct{}
 
 func (m *Model) Focus() tea.Cmd {
 	return func() tea.Msg {
@@ -86,7 +86,7 @@ func (m *Model) Focus() tea.Cmd {
 		m.KeyMap.HalfPageUp.SetEnabled(true)
 		m.KeyMap.Down.SetEnabled(true)
 		m.KeyMap.Up.SetEnabled(true)
-		return FocusPagerMsg{}
+		return FocusMsg{}
 	}
 }
 
@@ -99,7 +99,7 @@ func (m *Model) Unfocus() tea.Cmd {
 		m.KeyMap.HalfPageUp.SetEnabled(false)
 		m.KeyMap.Down.SetEnabled(false)
 		m.KeyMap.Up.SetEnabled(false)
-		return UnfocusPagerMsg{}
+		return UnfocusMsg{}
 	}
 }
 

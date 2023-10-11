@@ -13,8 +13,8 @@ type Model struct {
 type EnterInput func(string) tea.Cmd
 
 type ResetInputMsg struct{}
-type FocusInputMsg struct{}
-type UnfocusInputMsg struct{}
+type FocusMsg struct{}
+type UnfocusMsg struct{}
 
 func New() *Model {
 	m := &Model{
@@ -29,17 +29,19 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlC:
+			cmds = append(cmds, tea.Quit)
+		}
 		if m.Focused() {
 			switch msg.Type {
-			case tea.KeyCtrlC:
-				cmds = append(cmds, tea.Quit)
 			case tea.KeyEsc:
 				cmds = append(cmds, m.Reset)
 			case tea.KeyEnter:
 				val := m.Value()
 				cmd := m.Enter(val)
 				cmds = append(cmds, cmd)
-				cmds = append(cmds, m.Reset)
+				cmds = append(cmds, m.Unfocus())
 			}
 		}
 	}
@@ -63,16 +65,16 @@ func (m *Model) Unfocus() tea.Cmd {
 	return func() tea.Msg {
 		m.Model.Reset()
 		m.Model.Blur()
-		return UnfocusInputMsg{}
+		return UnfocusMsg{}
 	}
 }
 
 func Focus() tea.Msg {
-	return FocusInputMsg{}
+	return FocusMsg{}
 }
 
 func Unfocus() tea.Msg {
-	return UnfocusInputMsg{}
+	return UnfocusMsg{}
 }
 
 func Reset() tea.Msg {
