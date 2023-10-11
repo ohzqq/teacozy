@@ -18,12 +18,6 @@ func TestNewList(t *testing.T) {
 	//cs := New(choiceSlice, opts...).Choose()
 	//fmt.Printf("%#v\n", cs)
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
-	txt := []string{
-		"AArtichokeArtichokeArtichokeArtichokeArtichokeArtichokeArtichokertichoke",
-	}
-	txt = append(txt, choiceSlice...)
-	text := strings.Join(txt, "\n- ")
-	p := pager.New(pager.RenderText).SetText(text)
 	//p.SetSize(0, 10)
 
 	items := NewItems(ItemsStringSlice(choiceSlice))
@@ -32,7 +26,7 @@ func TestNewList(t *testing.T) {
 		WithFiltering(true),
 		//OrderedList(),
 		Editable(true),
-		WithPager(p),
+		//WithPager(testPager()),
 		//WithLimit(10),
 		//WithDescription(true),
 	}
@@ -60,6 +54,16 @@ func TestNewList(t *testing.T) {
 	w, h := util.TermSize()
 	println(w)
 	println(h)
+}
+
+func testPager() *pager.Model {
+	txt := []string{
+		"AArtichokeArtichokeArtichokeArtichokeArtichokeArtichokeArtichokertichoke",
+	}
+	txt = append(txt, choiceSlice...)
+	text := strings.Join(txt, "\n- ")
+	p := pager.New(pager.RenderText).SetText(text)
+	return p
 }
 
 func testTermSize(t *testing.T) {

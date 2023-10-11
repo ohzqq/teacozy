@@ -38,6 +38,8 @@ type Model struct {
 
 	editable bool
 
+	showDescription bool
+
 	// input
 	input    *input.Model
 	hasInput bool
@@ -56,15 +58,19 @@ type ListOption func(*list.Model)
 // New initializes a Model.
 func New(items *Items, opts ...Option) *Model {
 	m := &Model{
-		Items:  items,
-		state:  Browsing,
-		KeyMap: DefaultKeyMap(),
-		layout: Horizontal,
+		Items:           items,
+		state:           Browsing,
+		KeyMap:          DefaultKeyMap(),
+		showDescription: true,
 	}
 	m.Model = m.NewListModel(items)
 
 	for _, opt := range opts {
 		opt(m)
+	}
+	if m.showDescription {
+		m.hasPager = true
+		m.pager = pager.New(pager.RenderText)
 	}
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {
@@ -321,6 +327,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
+		if m.showDescription {
+			m.pager.SetText(m.CurrentItem().Description())
+		}
 	}
 
 	return m, tea.Batch(cmds...)
