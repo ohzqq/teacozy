@@ -37,15 +37,16 @@ type Model struct {
 	layout Layout
 
 	editable bool
+	focused  bool
 
 	showDescription bool
 
-	// input
-	input    *input.Model
+	// Input
+	Input    *input.Model
 	hasInput bool
 
 	// view
-	pager    *pager.Model
+	Pager    *pager.Model
 	hasPager bool
 }
 
@@ -70,7 +71,7 @@ func New(items *Items, opts ...Option) *Model {
 	}
 	if m.showDescription {
 		m.hasPager = true
-		m.pager = pager.New(pager.RenderText)
+		m.Pager = pager.New(pager.RenderText)
 	}
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {
@@ -83,17 +84,17 @@ func New(items *Items, opts ...Option) *Model {
 	return m
 }
 
-func (m *Model) Run() (*Model, error) {
-	p := tea.NewProgram(m)
+//func (m *Model) Run() (*Model, error) {
+//  p := tea.NewProgram(m)
 
-	mod, err := p.Run()
-	if err != nil {
-		return m, err
-	}
-	rm := mod.(*Model)
+//  mod, err := p.Run()
+//  if err != nil {
+//    return m, err
+//  }
+//  rm := mod.(*Model)
 
-	return rm, nil
-}
+//  return rm, nil
+//}
 
 // NewListModel returns a *list.Model.
 func (m *Model) NewListModel(items *Items) *list.Model {
@@ -176,7 +177,7 @@ func WithPager(p *pager.Model) Option {
 			p.SetSize(m.width, m.height/2)
 		}
 		//p.Blur()
-		m.pager = p
+		m.Pager = p
 	}
 }
 
@@ -235,6 +236,27 @@ func (m *Model) SetEditable(edit bool) {
 	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
 }
 
+func (m Model) Focused() bool {
+	return m.focused
+}
+
+type FocusListMsg struct{}
+type UnfocusListMsg struct{}
+
+func (m *Model) Focus() tea.Cmd {
+	return func() tea.Msg {
+		m.focused = true
+		return FocusListMsg{}
+	}
+}
+
+func (m *Model) Unfocus() tea.Cmd {
+	return func() tea.Msg {
+		m.focused = false
+		return UnfocusListMsg{}
+	}
+}
+
 // State returns the current list state.
 func (m Model) State() State {
 	return m.state
@@ -243,11 +265,11 @@ func (m Model) State() State {
 // SetInput configures an input.Model with the list.Model styles.
 func (m *Model) SetInput(prompt string, enter input.EnterInput) {
 	m.hasInput = true
-	m.input = input.New()
-	m.input.Prompt = prompt
-	m.input.Enter = enter
-	m.input.PromptStyle = m.Styles.FilterPrompt
-	m.input.Cursor.Style = m.Styles.FilterCursor
+	m.Input = input.New()
+	m.Input.Prompt = prompt
+	m.Input.Enter = enter
+	m.Input.PromptStyle = m.Styles.FilterPrompt
+	m.Input.Cursor.Style = m.Styles.FilterCursor
 }
 
 // SetBrowsing sets the state to Browsing
@@ -272,7 +294,7 @@ func (m Model) CurrentItem() *Item {
 }
 
 // Update is the tea.Model update loop.
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -287,17 +309,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case Horizontal:
 				w = w / 2
 			}
-			m.pager.SetSize(w, h)
+			m.Pager.SetSize(w, h)
 		}
 		m.SetSize(w, h)
 
-	case input.FocusInputMsg:
-		if m.hasInput {
-			m.SetShowInput(true)
-			cmds = append(cmds, m.input.Focus())
-		}
-	case input.ResetInputMsg:
-		m.ResetInput()
+	//case input.FocusInputMsg:
+	//if m.hasInput {
+	//m.SetShowInput(true)
+	//cmds = append(cmds, m.Input.Focus())
+	//}
+	//case input.ResetInputMsg:
+	//m.ResetInput()
 
 	case ItemsChosenMsg:
 		return m, tea.Quit
@@ -318,17 +340,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch m.State() {
 	case Input:
-		m.input, cmd = m.input.Update(msg)
+		m.Input, cmd = m.Input.Update(msg)
 		cmds = append(cmds, cmd)
 	case Paging:
-		m.pager, cmd = m.pager.Update(msg)
+		m.Pager, cmd = m.Pager.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
 		if m.showDescription {
-			m.pager.SetText(m.CurrentItem().Description())
+			m.Pager.SetText(m.CurrentItem().Description())
 		}
 	}
 
@@ -377,8 +399,8 @@ func (m *Model) resetInput() {
 	if m.state == Browsing {
 		return
 	}
-	m.input.Reset()
-	m.input.Blur()
+	m.Input.Reset()
+	m.Input.Blur()
 	m.SetShowInput(false)
 }
 
@@ -388,9 +410,9 @@ func (m *Model) View() string {
 
 	if m.hasInput {
 		m.SetShowFilter(true)
-		if m.input.Focused() {
+		if m.Input.Focused() {
 			m.SetShowFilter(false)
-			in := m.input.View()
+			in := m.Input.View()
 			views = append(views, in)
 		}
 	}
@@ -402,7 +424,7 @@ func (m *Model) View() string {
 
 	var p string
 	if m.hasPager {
-		p = m.pager.View()
+		p = m.Pager.View()
 		switch m.layout {
 		case Vertical:
 			view = lipgloss.JoinVertical(lipgloss.Right, view, p)

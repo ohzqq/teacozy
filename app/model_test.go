@@ -1,4 +1,4 @@
-package list
+package app
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
 	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/term"
@@ -20,18 +22,18 @@ func TestNewList(t *testing.T) {
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
 	//p.SetSize(0, 10)
 
-	items := NewItems(ItemsStringSlice(choiceSlice))
+	items := list.NewItems(list.ItemsStringSlice(choiceSlice))
 
-	opts := []Option{
-		WithFiltering(true),
+	opts := []list.Option{
+		list.WithFiltering(true),
 		//OrderedList(),
-		Editable(true),
+		list.Editable(true),
 		//WithPager(testPager()),
 		//WithLimit(10),
 		//WithDescription(true),
 	}
 
-	m := New(items, opts...)
+	m := list.New(items, opts...)
 	//m := Edit(items)
 	//m := New(items, WithLimit(1))
 	//m := ChooseSome(items, 2)
@@ -41,7 +43,13 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	_, err := m.Run()
+	p := tea.NewProgram(New(m))
+
+	//mod, err := p.Run()
+	//if err != nil {
+	//return m, err
+	//}
+	_, err := p.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,7 +95,7 @@ func testTermSize(t *testing.T) {
 
 }
 
-var noItems = func() []*Item { return []*Item{} }
+var noItems = func() []*list.Item { return []*list.Item{} }
 
 //func TestNewBookList(t *testing.T) {
 //  d, err := os.ReadFile("../testdata/search-results.json")

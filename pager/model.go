@@ -75,27 +75,32 @@ func RenderMarkdown(mark string, width int) string {
 }
 
 type FocusPagerMsg struct{}
+type UnfocusPagerMsg struct{}
 
-func (m *Model) Focus() tea.Msg {
-	m.focused = true
-	m.KeyMap.PageDown.SetEnabled(true)
-	m.KeyMap.PageUp.SetEnabled(true)
-	m.KeyMap.HalfPageDown.SetEnabled(true)
-	m.KeyMap.HalfPageUp.SetEnabled(true)
-	m.KeyMap.Down.SetEnabled(true)
-	m.KeyMap.Up.SetEnabled(true)
-	return FocusPagerMsg{}
+func (m *Model) Focus() tea.Cmd {
+	return func() tea.Msg {
+		m.focused = true
+		m.KeyMap.PageDown.SetEnabled(true)
+		m.KeyMap.PageUp.SetEnabled(true)
+		m.KeyMap.HalfPageDown.SetEnabled(true)
+		m.KeyMap.HalfPageUp.SetEnabled(true)
+		m.KeyMap.Down.SetEnabled(true)
+		m.KeyMap.Up.SetEnabled(true)
+		return FocusPagerMsg{}
+	}
 }
 
-func (m *Model) Blur() tea.Msg {
-	m.focused = false
-	m.KeyMap.PageDown.SetEnabled(false)
-	m.KeyMap.PageUp.SetEnabled(false)
-	m.KeyMap.HalfPageDown.SetEnabled(false)
-	m.KeyMap.HalfPageUp.SetEnabled(false)
-	m.KeyMap.Down.SetEnabled(false)
-	m.KeyMap.Up.SetEnabled(false)
-	return FocusPagerMsg{}
+func (m *Model) Unfocus() tea.Cmd {
+	return func() tea.Msg {
+		m.focused = false
+		m.KeyMap.PageDown.SetEnabled(false)
+		m.KeyMap.PageUp.SetEnabled(false)
+		m.KeyMap.HalfPageDown.SetEnabled(false)
+		m.KeyMap.HalfPageUp.SetEnabled(false)
+		m.KeyMap.Down.SetEnabled(false)
+		m.KeyMap.Up.SetEnabled(false)
+		return UnfocusPagerMsg{}
+	}
 }
 
 func (m Model) Focused() bool {

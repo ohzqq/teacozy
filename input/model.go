@@ -14,6 +14,7 @@ type EnterInput func(string) tea.Cmd
 
 type ResetInputMsg struct{}
 type FocusInputMsg struct{}
+type UnfocusInputMsg struct{}
 
 func New() *Model {
 	m := &Model{
@@ -54,8 +55,24 @@ func (m *Model) Reset() tea.Msg {
 	return ResetInputMsg{}
 }
 
+func (m *Model) Focus() tea.Cmd {
+	return m.Model.Focus()
+}
+
+func (m *Model) Unfocus() tea.Cmd {
+	return func() tea.Msg {
+		m.Model.Reset()
+		m.Model.Blur()
+		return UnfocusInputMsg{}
+	}
+}
+
 func Focus() tea.Msg {
 	return FocusInputMsg{}
+}
+
+func Unfocus() tea.Msg {
+	return UnfocusInputMsg{}
 }
 
 func Reset() tea.Msg {
