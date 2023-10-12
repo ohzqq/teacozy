@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/ohzqq/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
 )

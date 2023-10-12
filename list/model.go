@@ -303,13 +303,13 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Model.SetSize(msg.Width, msg.Height)
+		//m.Model.SetSize(msg.Width, msg.Height-2)
 
 	case InputItemMsg:
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
 	case ResetInputMsg, input.UnfocusMsg:
-		m.SetShowFilter(true)
+		//m.SetShowFilter(true)
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:
@@ -377,9 +377,9 @@ func (m *Model) updateBindings() {
 func (m *Model) View() string {
 	var views []string
 
-	m.SetShowFilter(true)
+	//m.SetShowFilter(true)
 	if m.Input.Focused() {
-		m.SetShowFilter(false)
+		//m.SetShowFilter(false)
 		in := m.Input.View()
 		views = append(views, in)
 	}

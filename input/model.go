@@ -1,13 +1,15 @@
 package input
 
 import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/bubbles/textinput"
 )
 
 type Model struct {
 	textinput.Model
-	Enter EnterInput
+	Enter    EnterInput
+	FocusKey key.Binding
 }
 
 type EnterInput func(string) tea.Cmd
@@ -21,6 +23,11 @@ func New() *Model {
 		Model: textinput.New(),
 		Enter: InputValue,
 	}
+	return m
+}
+
+func (m *Model) WithKey(k key.Binding) *Model {
+	m.FocusKey = k
 	return m
 }
 

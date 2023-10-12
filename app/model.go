@@ -7,6 +7,7 @@ import (
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
+	"github.com/ohzqq/teacozy/util"
 )
 
 type State int
@@ -27,6 +28,8 @@ const (
 type Model struct {
 	state  State
 	layout Layout
+	width  int
+	height int
 	KeyMap KeyMap
 
 	List *list.Model
@@ -40,23 +43,62 @@ type Model struct {
 }
 
 func New() *Model {
+	w, h := util.TermSize()
 	m := &Model{
+		width:  w,
+		height: h,
 		KeyMap: DefaultKeyMap(),
 	}
-	m.state = List
 	return m
 }
 
+func (m Model) Height() int {
+	return m.height
+}
+
+func (m Model) Width() int {
+	return m.width
+}
+
+func (m *Model) SetSize(w, h int) {
+	m.width = w
+	m.height = h
+
+	nw := m.width
+	nh := m.height - 2
+	if m.HasPager() && m.HasList() {
+		switch m.layout {
+		case Vertical:
+			nh = m.height / 2
+		case Horizontal:
+			nw = m.width / 2
+		}
+	}
+
+	if m.HasPager() {
+		m.Pager.SetSize(nw, nh)
+	}
+	if m.HasList() {
+		m.List.SetSize(nw, nh)
+	}
+	if m.HasInput() {
+		m.Input.Width = m.width
+	}
+}
+
 func (m *Model) SetList(l *list.Model) *Model {
+	m.state = List
+	l.SetHeight(m.Height() - 2)
 	m.List = l
 	m.KeyMap.List = l.KeyMap
 	return m
 }
 
-func (m *Model) SetInput(prompt string) *Model {
+func (m *Model) SetInput(prompt string, k key.Binding) *Model {
 	m.Input = input.New()
 	m.Input.Prompt = prompt
 	m.KeyMap.Input = m.Input.KeyMap
+	m.Input.FocusKey = k
 	return m
 }
 
@@ -87,31 +129,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		w := msg.Width
-		h := msg.Height
-		if m.HasPager() {
-			switch m.layout {
-			case Vertical:
-				h = h / 2
-			case Horizontal:
-				w = w / 2
-			}
-			m.Pager.SetSize(w, h)
-		}
-		if m.HasList() {
-			m.List.SetSize(w, h)
-		}
+		m.SetSize(msg.Width, msg.Height)
 
 	case input.FocusMsg:
 		if m.HasInput() {
-			m.SetShowInput(true)
 			cmds = append(cmds, m.SetFocus(Input))
 		}
 	case input.UnfocusMsg:
 		if m.HasInput() {
-			//m.Input.Reset()
-			//m.Input.Blur()
-			m.SetShowInput(false)
 			cmds = append(cmds, m.SetFocus(List))
 		}
 	case input.InputValueMsg:
@@ -130,6 +155,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
+		case key.Matches(msg, m.Input.FocusKey):
+			if m.HasInput() {
+				cmds = append(cmds, m.SetFocus(Input))
+			}
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasPager() {
 				switch {
@@ -233,64 +262,65 @@ func (m Model) HasList() bool {
 func (m *Model) View() string {
 	var views []string
 
+	var li string
+	if m.HasList() {
+		li = m.List.View()
+	}
+
+	var page string
+	if m.HasPager() {
+		page = m.Pager.View()
+	}
+
+	switch m.layout {
+	case Vertical:
+		views = append(views, lipgloss.JoinVertical(lipgloss.Right, li, page))
+	case Horizontal:
+		views = append(views, lipgloss.JoinHorizontal(lipgloss.Center, page, li))
+	}
+
 	if m.HasInput() {
-		m.List.SetShowFilter(true)
 		if m.Input.Focused() {
-			m.List.SetShowFilter(false)
 			in := m.Input.View()
 			views = append(views, in)
 		}
 	}
+	//if m.inputValue != "" {
+	//  view += "\n"
+	//  view += m.inputValue
+	//}
 
-	if m.HasList() {
-		li := m.List.View()
-		views = append(views, li)
-	}
-
-	view := lipgloss.JoinVertical(lipgloss.Left, views...)
-
-	var p string
-	if m.HasPager() {
-		p = m.Pager.View()
-		switch m.layout {
-		case Vertical:
-			view = lipgloss.JoinVertical(lipgloss.Right, view, p)
-		case Horizontal:
-			view = lipgloss.JoinHorizontal(lipgloss.Center, p, view)
-		}
-	}
-	if m.inputValue != "" {
-		view += "\n"
-		view += m.inputValue
-	}
-	return view
+	//if m.inputValue != "" {
+	//view += "\n"
+	//view += m.state.String()
+	//}
+	return lipgloss.JoinVertical(lipgloss.Left, views...)
 }
 
 // SetShowInput shows or hides the input model.
 func (m *Model) SetShowInput(show bool) {
-	m.List.SetShowTitle(!show)
 	if show {
-		m.List.SetHeight(m.List.Height() - 1)
 		m.SetFocus(Input)
+		m.SetSize(m.Width(), m.Height()-1)
 		return
 	}
-	m.List.SetHeight(m.List.Height() + 1)
 	m.SetFocus(List)
+	m.SetSize(m.Width(), m.Height()+1)
 }
 
 // ResetInput resets the current input state.
-func (m *Model) ResetInput() {
-	m.resetInput()
-}
+//func (m *Model) ResetInput() {
+//m.resetInput()
+//}
 
-func (m *Model) resetInput() {
-	if m.state == List {
-		return
-	}
-	m.Input.Reset()
-	m.Input.Blur()
-	m.SetShowInput(false)
-}
+//func (m *Model) resetInput() {
+//if m.state == List {
+//return
+//}
+//m.Input.Reset()
+//m.Input.Blur()
+//m.SetShowInput(false)
+//}
 
 func (s State) String() string {
 	switch s {

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
@@ -28,7 +29,7 @@ func TestNewList(t *testing.T) {
 		//OrderedList(),
 		list.Editable(true),
 		//list.WithPager(testPager()),
-		//WithLimit(10),
+		list.WithLimit(10),
 		//WithDescription(true),
 	}
 
@@ -42,8 +43,8 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	a := New().SetList(m)
-	//SetInput("poot")
+	a := New().SetList(m).
+		SetInput("poot", inKey)
 	//SetPager(testPager())
 	//SetPager(m.Pager)
 	p := tea.NewProgram(a)
@@ -67,6 +68,10 @@ func TestNewList(t *testing.T) {
 	//println(w)
 	//println(h)
 }
+
+var inKey = key.NewBinding(
+	key.WithKeys("a"),
+)
 
 func testPager() *pager.Model {
 	txt := []string{
