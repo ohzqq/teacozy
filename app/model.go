@@ -109,8 +109,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case input.UnfocusMsg:
 		if m.HasInput() {
-			m.Input.Reset()
-			m.Input.Blur()
+			//m.Input.Reset()
+			//m.Input.Blur()
 			m.SetShowInput(false)
 			cmds = append(cmds, m.SetFocus(List))
 		}

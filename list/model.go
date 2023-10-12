@@ -303,12 +303,14 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.Model.SetSize(msg.Width, msg.Height)
 
 	case InputItemMsg:
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
-	case ResetInputMsg:
-		m.ResetInput()
+	case ResetInputMsg, input.UnfocusMsg:
+		m.SetShowFilter(true)
+		m.SetShowInput(false)
 
 	case ItemsChosenMsg:
 		return m, tea.Quit
@@ -328,10 +330,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
 		cmds = append(cmds, cmd)
-		//if m.showDescription {
-		//  m.Pager.SetText(m.CurrentItem().Description())
-		//}
-
 	}
 
 	return m, tea.Batch(cmds...)
@@ -359,34 +357,11 @@ func (m *Model) SetShowInput(show bool) {
 		m.state = Input
 		return
 	}
-	m.SetHeight(m.Height() + 1)
 	m.state = Browsing
-}
-
-// ResetInput resets the current input state.
-func (m *Model) ResetInput() {
-	m.resetInput()
-}
-
-func (m *Model) resetInput() {
-	if m.state == Browsing {
-		return
-	}
-	m.Input.Reset()
-	m.Input.Blur()
-	m.SetShowInput(false)
 }
 
 func (m *Model) updateBindings() {
 	switch m.state {
-	case Paging:
-		m.KeyMap.CursorUp.SetEnabled(false)
-		m.KeyMap.CursorDown.SetEnabled(false)
-		m.KeyMap.PrevPage.SetEnabled(false)
-		m.KeyMap.NextPage.SetEnabled(false)
-		m.KeyMap.GoToStart.SetEnabled(false)
-		m.KeyMap.GoToEnd.SetEnabled(false)
-		m.KeyMap.Filter.SetEnabled(false)
 	case Browsing:
 		m.KeyMap.CursorUp.SetEnabled(true)
 		m.KeyMap.CursorDown.SetEnabled(true)
@@ -401,16 +376,17 @@ func (m *Model) updateBindings() {
 // View satisfies the tea.Model view method.
 func (m *Model) View() string {
 	var views []string
-	if m.HasInput() {
-		m.SetShowFilter(true)
-		if m.Input.Focused() {
-			m.SetShowFilter(false)
-			in := m.Input.View()
-			views = append(views, in)
-		}
+
+	m.SetShowFilter(true)
+	if m.Input.Focused() {
+		m.SetShowFilter(false)
+		in := m.Input.View()
+		views = append(views, in)
 	}
+
 	li := m.Model.View()
 	views = append(views, li)
+	//views = append(views, fmt.Sprintf("%v\n", m.State()))
 	view := lipgloss.JoinVertical(lipgloss.Left, views...)
 	return view
 }
