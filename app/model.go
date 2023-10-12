@@ -164,8 +164,8 @@ func (m *Model) SetFocus(focus State) tea.Cmd {
 		if m.HasPager() {
 			m.Pager.Unfocus()
 		}
-		m.List.Unfocus()
 		if m.HasList() {
+			m.List.Unfocus()
 		}
 		cmds = append(cmds, m.Input.Focus())
 	case Pager:
