@@ -10,6 +10,7 @@ import (
 type KeyMap struct {
 	ToggleFocus key.Binding
 	Quit        key.Binding
+	Command     key.Binding
 	List        list.KeyMap
 	Pager       pager.KeyMap
 	Input       textinput.KeyMap
@@ -24,6 +25,10 @@ func DefaultKeyMap() KeyMap {
 		Quit: key.NewBinding(
 			key.WithKeys("q", "esc"),
 			key.WithHelp("q", "quit"),
+		),
+		Command: key.NewBinding(
+			key.WithKeys(":", ";"),
+			key.WithHelp(":/;", "enter command"),
 		),
 	}
 }

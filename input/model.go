@@ -52,9 +52,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				cmds = append(cmds, m.Unfocus())
 			}
 		}
+		m.Model, cmd = m.Model.Update(msg)
+		cmds = append(cmds, cmd)
 	}
-	m.Model, cmd = m.Model.Update(msg)
-	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
@@ -66,7 +66,10 @@ func (m *Model) Reset() tea.Msg {
 }
 
 func (m *Model) Focus() tea.Cmd {
-	return m.Model.Focus()
+	return func() tea.Msg {
+		m.Model.Focus()
+		return FocusMsg{}
+	}
 }
 
 func (m *Model) Unfocus() tea.Cmd {
