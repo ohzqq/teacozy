@@ -43,10 +43,6 @@ func DefaultDelegateKeyMap() DelegateKeyMap {
 func DefaultKeyMap() KeyMap {
 	return KeyMap{
 		KeyMap: listKeyMap(),
-		SwitchPane: key.NewBinding(
-			key.WithKeys("tab"),
-			key.WithHelp("tab", "switch panes"),
-		),
 	}
 }
 

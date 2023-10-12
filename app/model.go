@@ -27,6 +27,7 @@ const (
 type Model struct {
 	state  State
 	layout Layout
+	KeyMap KeyMap
 
 	List *list.Model
 
@@ -37,13 +38,29 @@ type Model struct {
 	Pager *pager.Model
 }
 
-func New(l *list.Model) *Model {
-	m := &Model{}
+func New() *Model {
+	m := &Model{
+		KeyMap: DefaultKeyMap(),
+	}
 	m.state = List
-	m.List = l
-	m.Input = l.Input
-	m.Pager = l.Pager
+	return m
+}
 
+func (m *Model) SetList(l *list.Model) *Model {
+	m.List = l
+	m.KeyMap.List = l.KeyMap
+	return m
+}
+
+func (m *Model) SetInput(l *input.Model) *Model {
+	m.Input = l
+	m.KeyMap.Input = l.KeyMap
+	return m
+}
+
+func (m *Model) SetPager(l *pager.Model) *Model {
+	m.Pager = l
+	m.KeyMap.Pager = l.KeyMap
 	return m
 }
 
@@ -107,7 +124,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		switch {
-		case key.Matches(msg, m.List.KeyMap.SwitchPane):
+		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasPager() {
 				switch {
 				case m.Pager.Focused():

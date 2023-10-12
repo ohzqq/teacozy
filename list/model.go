@@ -311,18 +311,18 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		w := msg.Width
-		h := msg.Height - 2
-		if m.hasPager {
-			switch m.layout {
-			case Vertical:
-				h = h / 2
-			case Horizontal:
-				w = w / 2
-			}
-			m.Pager.SetSize(w, h)
-		}
-		m.SetSize(w, h)
+		//w := msg.Width
+		//h := msg.Height - 2
+		//if m.hasPager {
+		//switch m.layout {
+		//case Vertical:
+		//h = h / 2
+		//case Horizontal:
+		//w = w / 2
+		//}
+		//m.Pager.SetSize(w, h)
+		//}
+		//m.SetSize(w, h)
 
 	//case input.FocusInputMsg:
 	//if m.hasInput {
