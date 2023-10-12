@@ -12,8 +12,8 @@ import (
 
 type Model struct {
 	viewport.Model
-	render   Renderer
-	text     string
+	Renderer Renderer
+	Text     string
 	rendered string
 	width    int
 	height   int
@@ -26,11 +26,11 @@ type Renderer func(text string, width int) string
 func New(fn Renderer) *Model {
 	w, h := util.TermSize()
 	m := &Model{
-		render: fn,
-		width:  w,
-		height: h,
-		Model:  viewport.New(w, h),
-		KeyMap: DefaultKeyMap(),
+		Renderer: fn,
+		width:    w,
+		height:   h,
+		Model:    viewport.New(w, h),
+		KeyMap:   DefaultKeyMap(),
 	}
 	m.Model.KeyMap = m.KeyMap.KeyMap
 
@@ -38,7 +38,7 @@ func New(fn Renderer) *Model {
 }
 
 func (m *Model) SetText(text string) *Model {
-	m.text = text
+	m.Text = text
 	return m
 }
 
@@ -150,7 +150,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m Model) Render() string {
-	return m.render(m.text, m.Model.Width)
+	return m.Renderer(m.Text, m.Model.Width)
 }
 
 func (m Model) View() string {

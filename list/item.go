@@ -251,7 +251,6 @@ func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 			cmd = m.InsertItem(m.Index()+1, item)
 			cmds = append(cmds, cmd)
 		}
-		m.SetHeight(m.Height() + 1)
 		cmds = append(cmds, ResetInput)
 
 	case tea.KeyMsg:

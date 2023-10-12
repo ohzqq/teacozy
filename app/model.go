@@ -37,18 +37,18 @@ type Model struct {
 	// input
 	Input      *input.Model
 	inputValue string
+	showInput  bool
 
 	// view
 	Pager *pager.Model
 }
 
 func New() *Model {
-	w, h := util.TermSize()
 	m := &Model{
-		width:  w,
-		height: h,
 		KeyMap: DefaultKeyMap(),
+		layout: Vertical,
 	}
+	m.SetSize(util.TermSize())
 	return m
 }
 
@@ -62,16 +62,16 @@ func (m Model) Width() int {
 
 func (m *Model) SetSize(w, h int) {
 	m.width = w
-	m.height = h
+	m.height = h - 1
 
-	nw := m.width
-	nh := m.height - 2
+	nw := m.Width()
+	nh := m.Height()
 	if m.HasPager() && m.HasList() {
 		switch m.layout {
 		case Vertical:
-			nh = m.height / 2
+			nh = m.Height() / 2
 		case Horizontal:
-			nw = m.width / 2
+			nw = m.Width() / 2
 		}
 	}
 
@@ -82,13 +82,16 @@ func (m *Model) SetSize(w, h int) {
 		m.List.SetSize(nw, nh)
 	}
 	if m.HasInput() {
-		m.Input.Width = m.width
+		m.Input.Width = m.Width()
 	}
 }
 
 func (m *Model) SetList(l *list.Model) *Model {
 	m.state = List
-	l.SetHeight(m.Height() - 2)
+	l.SetHeight(m.Height())
+	l.SetShowFilter(false)
+	l.SetShowInput(false)
+	l.SetShowHelp(false)
 	m.List = l
 	m.KeyMap.List = l.KeyMap
 	return m
@@ -108,7 +111,15 @@ func (m *Model) SetPager(l *pager.Model) *Model {
 	return m
 }
 
+func (m Model) showFilter() bool {
+	if m.HasList() {
+		return m.List.SettingFilter()
+	}
+	return false
+}
+
 func (m *Model) Init() tea.Cmd {
+	m.SetSize(m.Width(), m.Height())
 	switch {
 	case m.HasList():
 		m.state = List
@@ -156,7 +167,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, m.Input.FocusKey):
-			if m.HasInput() {
+			if m.HasInput() && !m.showFilter() {
 				cmds = append(cmds, m.SetFocus(Input))
 			}
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
@@ -168,6 +179,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, m.SetFocus(Pager))
 				}
 			}
+		}
+		switch {
+		case key.Matches(msg, m.List.KeyMap.CancelWhileFiltering, m.List.KeyMap.ClearFilter, m.List.KeyMap.AcceptWhileFiltering):
+		case key.Matches(msg, m.List.KeyMap.Filter):
 		}
 	}
 
@@ -260,7 +275,7 @@ func (m Model) HasList() bool {
 }
 
 func (m *Model) View() string {
-	var views []string
+	var sections []string
 
 	var li string
 	if m.HasList() {
@@ -272,29 +287,34 @@ func (m *Model) View() string {
 		page = m.Pager.View()
 	}
 
+	var main string
 	switch m.layout {
 	case Vertical:
-		views = append(views, lipgloss.JoinVertical(lipgloss.Right, li, page))
+		main = lipgloss.JoinVertical(lipgloss.Left, li, page)
 	case Horizontal:
-		views = append(views, lipgloss.JoinHorizontal(lipgloss.Center, page, li))
+		main = lipgloss.JoinHorizontal(lipgloss.Center, page, li)
 	}
+	sections = append(sections, main)
 
-	if m.HasInput() {
-		if m.Input.Focused() {
-			in := m.Input.View()
-			views = append(views, in)
+	switch m.State() {
+	case Input:
+		in := m.Input.View()
+		sections = append(sections, in)
+	case List:
+		switch {
+		case m.showFilter():
+			sections = append(sections, m.List.FilterInput.View())
+		case m.List.State() == list.Input:
+			sections = append(sections, m.List.Input.View())
+		default:
+			sections = append(sections, "")
 		}
+	default:
+		sections = append(sections, "")
 	}
-	//if m.inputValue != "" {
-	//  view += "\n"
-	//  view += m.inputValue
-	//}
 
-	//if m.inputValue != "" {
-	//view += "\n"
-	//view += m.state.String()
-	//}
-	return lipgloss.JoinVertical(lipgloss.Left, views...)
+	//views = append(views, fmt.Sprintf("filter is applied %v\n", m.List.IsFiltered()))
+	return lipgloss.JoinVertical(lipgloss.Left, sections...)
 }
 
 // SetShowInput shows or hides the input model.

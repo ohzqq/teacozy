@@ -54,8 +54,8 @@ type Model struct {
 	showDescription bool
 
 	// Input
-	Input    *input.Model
-	hasInput bool
+	Input     *input.Model
+	showInput bool
 
 	// view
 	Pager    *pager.Model
@@ -81,7 +81,6 @@ func New(items *Items, opts ...Option) *Model {
 		opt(m)
 	}
 
-	m.hasInput = true
 	m.Input = input.New()
 	m.Input.Prompt = "Insert Item: "
 	m.Input.Enter = InsertItem
@@ -89,6 +88,7 @@ func New(items *Items, opts ...Option) *Model {
 	m.Input.Cursor.Style = m.Styles.FilterCursor
 	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
 	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+	m.SetShowInput(false)
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {
 		return m.shortHelpKeys
@@ -124,8 +124,9 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles()
-	l.SetShowTitle(true)
+	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
+	l.SetShowFilter(true)
 
 	// Update paginator style
 	l.Paginator.ActiveDot = l.Styles.ActivePaginationDot.String()
@@ -285,11 +286,6 @@ func (m Model) Browsing() bool {
 	return !m.Model.SettingFilter() || m.state == Browsing
 }
 
-// HasInput returns whether or not the model has input.
-func (m Model) HasInput() bool {
-	return m.hasInput
-}
-
 // CurrentItem returns the selected item.
 func (m Model) CurrentItem() *Item {
 	li := m.Model.SelectedItem()
@@ -302,9 +298,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		//m.Model.SetSize(msg.Width, msg.Height-2)
-
 	case InputItemMsg:
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
@@ -316,6 +309,10 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlC:
+			cmds = append(cmds, tea.Quit)
+		}
 		switch {
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
@@ -349,11 +346,18 @@ func ResetInput() tea.Msg {
 	return ResetInputMsg{}
 }
 
+type ClearFilterMsg struct{}
+
+func ClearFilter() tea.Msg {
+	return ClearFilterMsg{}
+}
+
 // SetShowInput shows or hides the input model.
 func (m *Model) SetShowInput(show bool) {
-	m.SetShowTitle(!show)
+	//m.SetShowTitle(!show)
+	m.showInput = !show
 	if show {
-		m.SetHeight(m.Height() - 1)
+		//m.SetHeight(m.Height() - 1)
 		m.state = Input
 		return
 	}
@@ -377,9 +381,7 @@ func (m *Model) updateBindings() {
 func (m *Model) View() string {
 	var views []string
 
-	//m.SetShowFilter(true)
-	if m.Input.Focused() {
-		//m.SetShowFilter(false)
+	if m.Input.Focused() && m.showInput {
 		in := m.Input.View()
 		views = append(views, in)
 	}
