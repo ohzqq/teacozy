@@ -302,7 +302,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
 	case ResetInputMsg, input.UnfocusMsg:
-		//m.SetShowFilter(true)
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:
@@ -312,10 +311,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			cmds = append(cmds, tea.Quit)
-		}
-		switch {
-		case key.Matches(msg, m.KeyMap.Filter):
-			//m.state = Input
 		}
 	}
 

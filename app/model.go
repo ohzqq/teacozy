@@ -106,6 +106,7 @@ func (m *Model) SetInput(prompt string, k key.Binding) *Model {
 }
 
 func (m *Model) SetPager(l *pager.Model) *Model {
+	m.state = Pager
 	m.Pager = l
 	m.KeyMap.Pager = l.KeyMap
 	return m
@@ -142,34 +143,69 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.SetSize(msg.Width, msg.Height)
 
-	case input.FocusMsg:
-		if m.HasInput() {
-			cmds = append(cmds, m.SetFocus(Input))
-		}
-	case input.UnfocusMsg:
-		if m.HasInput() {
-			cmds = append(cmds, m.SetFocus(List))
-		}
-	case input.InputValueMsg:
-		m.inputValue = msg.Value
-
-	case pager.UnfocusMsg:
-	case pager.FocusMsg:
-	case list.FocusMsg:
-
-	case list.ItemsChosenMsg:
-		return m, tea.Quit
-
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			cmds = append(cmds, tea.Quit)
 		}
+	}
+
+	switch m.State() {
+	case Input:
+		if m.HasInput() {
+			cmd = m.updateInput(msg)
+			cmds = append(cmds, cmd)
+		}
+	case Pager:
+		if m.HasPager() {
+			cmd = m.updatePager(msg)
+			cmds = append(cmds, cmd)
+		}
+	case List:
+		if m.HasList() {
+			cmd = m.updateList(msg)
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) updatePager(msg tea.Msg) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.Input.FocusKey):
-			if m.HasInput() && !m.showFilter() {
-				cmds = append(cmds, m.SetFocus(Input))
+		case key.Matches(msg, m.KeyMap.ToggleFocus):
+			if m.HasList() {
+				switch {
+				case m.Pager.Focused():
+					cmds = append(cmds, m.SetFocus(List))
+				case m.List.Focused():
+					cmds = append(cmds, m.SetFocus(Pager))
+				}
 			}
+		}
+	}
+
+	m.Pager, cmd = m.Pager.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
+}
+
+func (m *Model) updateList(msg tea.Msg) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case list.ItemsChosenMsg:
+		return tea.Quit
+
+	case tea.KeyMsg:
+		switch {
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasPager() {
 				switch {
@@ -180,31 +216,39 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+	}
+
+	m.List, cmd = m.List.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
+}
+
+func (m *Model) updateInput(msg tea.Msg) tea.Cmd {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case input.FocusMsg:
+		cmds = append(cmds, m.SetFocus(Input))
+	case input.UnfocusMsg:
+		cmds = append(cmds, m.SetFocus(List))
+	case input.InputValueMsg:
+		m.inputValue = msg.Value
+
+	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.List.KeyMap.CancelWhileFiltering, m.List.KeyMap.ClearFilter, m.List.KeyMap.AcceptWhileFiltering):
-		case key.Matches(msg, m.List.KeyMap.Filter):
+		case key.Matches(msg, m.Input.FocusKey):
+			if !m.showFilter() {
+				cmds = append(cmds, m.SetFocus(Input))
+			}
 		}
 	}
 
-	switch m.State() {
-	case Input:
-		if m.HasInput() {
-			m.Input, cmd = m.Input.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	case Pager:
-		if m.HasPager() {
-			m.Pager, cmd = m.Pager.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	case List:
-		if m.HasList() {
-			m.List, cmd = m.List.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	}
+	m.Input, cmd = m.Input.Update(msg)
+	cmds = append(cmds, cmd)
 
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (m *Model) SetFocus(focus State) tea.Cmd {
