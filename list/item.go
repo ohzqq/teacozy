@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/input"
 	"golang.org/x/exp/slices"
 )
 
@@ -252,12 +251,12 @@ func (items *Items) InsertOrRemoveItems(msg tea.Msg, m *list.Model) tea.Cmd {
 			cmd = m.InsertItem(m.Index()+1, item)
 			cmds = append(cmds, cmd)
 		}
-		cmds = append(cmds, input.Reset)
+		cmds = append(cmds, ResetInput)
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, items.KeyMap.InsertItem):
-			cmd = input.Focus
+			cmd = InputItem
 			cmds = append(cmds, cmd)
 		case key.Matches(msg, items.KeyMap.RemoveItem):
 			cmd = RemoveItem(m.Index())
@@ -382,8 +381,10 @@ func ToggleItem(idx int) tea.Cmd {
 	}
 }
 
+// ItemsChosenMsg is a tea.Msg for toggled items.
 type ItemsChosenMsg struct{}
 
+// ChooseItems is a tea.Cmd to return all toggled items.
 func ChooseItems() tea.Msg {
 	return ItemsChosenMsg{}
 }

@@ -32,7 +32,8 @@ type Model struct {
 	List *list.Model
 
 	// input
-	Input *input.Model
+	Input      *input.Model
+	inputValue string
 
 	// view
 	Pager *pager.Model
@@ -52,9 +53,10 @@ func (m *Model) SetList(l *list.Model) *Model {
 	return m
 }
 
-func (m *Model) SetInput(l *input.Model) *Model {
-	m.Input = l
-	m.KeyMap.Input = l.KeyMap
+func (m *Model) SetInput(prompt string) *Model {
+	m.Input = input.New()
+	m.Input.Prompt = prompt
+	m.KeyMap.Input = m.Input.KeyMap
 	return m
 }
 
@@ -106,10 +108,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.SetFocus(Input))
 		}
 	case input.UnfocusMsg:
-		m.Input.Reset()
-		m.Input.Blur()
-		m.SetShowInput(false)
-		cmds = append(cmds, m.SetFocus(List))
+		if m.HasInput() {
+			m.Input.Reset()
+			m.Input.Blur()
+			m.SetShowInput(false)
+			cmds = append(cmds, m.SetFocus(List))
+		}
+	case input.InputValueMsg:
+		m.inputValue = msg.Value
 
 	case pager.UnfocusMsg:
 	case pager.FocusMsg:
@@ -252,6 +258,10 @@ func (m *Model) View() string {
 		case Horizontal:
 			view = lipgloss.JoinHorizontal(lipgloss.Center, p, view)
 		}
+	}
+	if m.inputValue != "" {
+		view += "\n"
+		view += m.inputValue
 	}
 	return view
 }

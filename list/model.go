@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/pager"
 	"github.com/ohzqq/teacozy/util"
@@ -73,17 +74,21 @@ func New(items *Items, opts ...Option) *Model {
 		Items:  items,
 		state:  Browsing,
 		KeyMap: DefaultKeyMap(),
-		//showDescription: true,
 	}
 	m.Model = m.NewListModel(items)
 
 	for _, opt := range opts {
 		opt(m)
 	}
-	//if m.showDescription {
-	//  m.hasPager = true
-	//  m.Pager = pager.New(pager.RenderText)
-	//}
+
+	m.hasInput = true
+	m.Input = input.New()
+	m.Input.Prompt = "Insert Item: "
+	m.Input.Enter = InsertItem
+	m.Input.PromptStyle = m.Styles.FilterPrompt
+	m.Input.Cursor.Style = m.Styles.FilterCursor
+	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {
 		return m.shortHelpKeys
@@ -242,9 +247,6 @@ func (m *Model) AddFullHelpKeys(keys ...key.Binding) {
 
 func (m *Model) SetEditable(edit bool) {
 	m.Items.SetEditable(edit)
-	m.SetInput("Insert Item: ", InsertItem)
-	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
-	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
 }
 
 func (m Model) Focused() bool {
@@ -273,16 +275,6 @@ func (m Model) State() State {
 	return m.state
 }
 
-// SetInput configures an input.Model with the list.Model styles.
-func (m *Model) SetInput(prompt string, enter input.EnterInput) {
-	m.hasInput = true
-	m.Input = input.New()
-	m.Input.Prompt = prompt
-	m.Input.Enter = enter
-	m.Input.PromptStyle = m.Styles.FilterPrompt
-	m.Input.Cursor.Style = m.Styles.FilterCursor
-}
-
 // SetBrowsing sets the state to Browsing
 func (m *Model) SetBrowsing() {
 	m.state = Browsing
@@ -307,44 +299,22 @@ func (m Model) CurrentItem() *Item {
 // Update is the tea.Model update loop.
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	//var cmd tea.Cmd
+	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		//w := msg.Width
-		//h := msg.Height - 2
-		//if m.hasPager {
-		//switch m.layout {
-		//case Vertical:
-		//h = h / 2
-		//case Horizontal:
-		//w = w / 2
-		//}
-		//m.Pager.SetSize(w, h)
-		//}
-		//m.SetSize(w, h)
 
-	//case input.FocusInputMsg:
-	//if m.hasInput {
-	//m.SetShowInput(true)
-	//cmds = append(cmds, m.Input.Focus())
-	//}
-	//case input.ResetInputMsg:
-	//m.ResetInput()
+	case InputItemMsg:
+		m.SetShowInput(true)
+		cmds = append(cmds, m.Input.Focus())
+	case ResetInputMsg:
+		m.ResetInput()
 
 	case ItemsChosenMsg:
 		return m, tea.Quit
 
 	case tea.KeyMsg:
 		switch {
-		//case key.Matches(msg, m.KeyMap.SwitchPane):
-		//cmds = append(cmds, m.Model.NewStatusMessage(m.state.String()))
-		//switch m.State() {
-		//case Paging:
-		//m.state = Browsing
-		//case Browsing:
-		//m.state = Paging
-		//}
 		case key.Matches(msg, m.KeyMap.Filter):
 			//m.state = Input
 		}
@@ -352,11 +322,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch m.State() {
 	case Input:
-		//m.Input, cmd = m.Input.Update(msg)
-		//cmds = append(cmds, cmd)
-	case Paging:
-		//m.Pager, cmd = m.Pager.Update(msg)
-		//cmds = append(cmds, cmd)
+		m.Input, cmd = m.Input.Update(msg)
+		cmds = append(cmds, cmd)
 	default:
 		li, cmd := m.Model.Update(msg)
 		m.Model = &li
@@ -368,6 +335,46 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+// InputItemMsg is a tea.Msg to focus the item input.Model.
+type InputItemMsg struct{}
+
+// InputItem is a tea.Cmd to input an item.
+func InputItem() tea.Msg {
+	return InputItemMsg{}
+}
+
+type ResetInputMsg struct{}
+
+func ResetInput() tea.Msg {
+	return ResetInputMsg{}
+}
+
+// SetShowInput shows or hides the input model.
+func (m *Model) SetShowInput(show bool) {
+	m.SetShowTitle(!show)
+	if show {
+		m.SetHeight(m.Height() - 1)
+		m.state = Input
+		return
+	}
+	m.SetHeight(m.Height() + 1)
+	m.state = Browsing
+}
+
+// ResetInput resets the current input state.
+func (m *Model) ResetInput() {
+	m.resetInput()
+}
+
+func (m *Model) resetInput() {
+	if m.state == Browsing {
+		return
+	}
+	m.Input.Reset()
+	m.Input.Blur()
+	m.SetShowInput(false)
 }
 
 func (m *Model) updateBindings() {
@@ -393,7 +400,18 @@ func (m *Model) updateBindings() {
 
 // View satisfies the tea.Model view method.
 func (m *Model) View() string {
-	view := m.Model.View()
+	var views []string
+	if m.HasInput() {
+		m.SetShowFilter(true)
+		if m.Input.Focused() {
+			m.SetShowFilter(false)
+			in := m.Input.View()
+			views = append(views, in)
+		}
+	}
+	li := m.Model.View()
+	views = append(views, li)
+	view := lipgloss.JoinVertical(lipgloss.Left, views...)
 	return view
 }
 

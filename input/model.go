@@ -19,6 +19,7 @@ type UnfocusMsg struct{}
 func New() *Model {
 	m := &Model{
 		Model: textinput.New(),
+		Enter: InputValue,
 	}
 	return m
 }
@@ -66,6 +67,18 @@ func (m *Model) Unfocus() tea.Cmd {
 		m.Model.Reset()
 		m.Model.Blur()
 		return UnfocusMsg{}
+	}
+}
+
+type InputValueMsg struct {
+	Value string
+}
+
+func InputValue(val string) tea.Cmd {
+	return func() tea.Msg {
+		return InputValueMsg{
+			Value: val,
+		}
 	}
 }
 

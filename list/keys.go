@@ -29,7 +29,6 @@ type DelegateKeyMap struct {
 
 type KeyMap struct {
 	list.KeyMap
-	SwitchPane key.Binding
 }
 
 func DefaultDelegateKeyMap() DelegateKeyMap {

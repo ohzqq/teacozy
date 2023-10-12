@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
 	"golang.org/x/term"
@@ -43,10 +42,10 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	a := New().SetList(m).
-		SetInput(m.Input).
-		SetPager(testPager())
-		//SetPager(m.Pager)
+	a := New().SetList(m)
+	//SetInput("poot")
+	//SetPager(testPager())
+	//SetPager(m.Pager)
 	p := tea.NewProgram(a)
 
 	//mod, err := p.Run()
@@ -98,9 +97,6 @@ func testTermSize(t *testing.T) {
 	}
 	println("width:", width, "height:", height)
 
-}
-
-func editInput() *input.Model {
 }
 
 var noItems = func() []*list.Item { return []*list.Item{} }
