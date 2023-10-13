@@ -154,6 +154,7 @@ func (m Model) Render() string {
 }
 
 func (m Model) View() string {
+	m.Model.SetContent(m.Render())
 	return m.Model.View()
 }
 

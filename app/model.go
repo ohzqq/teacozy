@@ -43,10 +43,13 @@ type Model struct {
 	layout Layout
 	width  int
 	height int
+	cols   int
+	rows   int
 	KeyMap KeyMap
 
-	List     *list.Model
-	showList bool
+	List         *list.Model
+	showList     bool
+	showItemDesc bool
 
 	// input
 	Command     *input.Model
@@ -60,10 +63,12 @@ type Model struct {
 	StatusMsg
 }
 
-func New() *Model {
+func New(opts ...Option) *Model {
 	m := &Model{
 		KeyMap: DefaultKeyMap(),
 		layout: Vertical,
+		cols:   2,
+		rows:   2,
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
@@ -74,6 +79,9 @@ func New() *Model {
 			},
 		},
 	}
+	for _, opt := range opts {
+		opt(m)
+	}
 
 	m.Command = input.New()
 	m.Command.Prompt = ":"
@@ -81,6 +89,15 @@ func New() *Model {
 
 	m.SetSize(TermSize())
 	return m
+}
+
+func (m *Model) Run() error {
+	p := tea.NewProgram(m)
+	_, err := p.Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m Model) Height() int {
@@ -100,9 +117,9 @@ func (m *Model) SetSize(w, h int) {
 	if m.HasPager() && m.HasList() {
 		switch m.layout {
 		case Vertical:
-			nh = m.Height() / 2
+			nh = m.Height() / m.rows
 		case Horizontal:
-			nw = m.Width() / 2
+			nw = m.Width() / m.cols
 		}
 	}
 
@@ -134,11 +151,12 @@ func (m *Model) SetList(l *list.Model) *Model {
 	return m
 }
 
-func (m *Model) SetPager(l *pager.Model) *Model {
+func (m *Model) SetPager(p *pager.Model) *Model {
 	m.showPager = true
 	m.state = Pager
-	m.Pager = l
-	m.KeyMap.Pager = l.KeyMap
+	p.SetContent(p.Render())
+	m.Pager = p
+	m.KeyMap.Pager = p.KeyMap
 	return m
 }
 
@@ -275,6 +293,11 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 
 	m.List, cmd = m.List.Update(msg)
 	cmds = append(cmds, cmd)
+
+	if m.showItemDesc && m.HasPager() {
+		item := m.List.CurrentItem()
+		m.Pager.SetText(item.Description())
+	}
 
 	return tea.Batch(cmds...)
 }

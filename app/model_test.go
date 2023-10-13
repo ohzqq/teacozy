@@ -1,14 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
 	"golang.org/x/term"
@@ -22,46 +20,31 @@ func TestNewList(t *testing.T) {
 	//items := NewItems(ItemsMap(choiceMap), OrderedList())
 	//p.SetSize(0, 10)
 
-	items := list.NewItems(list.ItemsStringSlice(choiceSlice))
+	//items := list.NewItems(list.ItemsStringSlice(choiceSlice))
 
-	opts := []list.Option{
-		list.WithFiltering(true),
-		//OrderedList(),
-		list.Editable(true),
-		//list.WithPager(testPager()),
-		list.WithLimit(10),
-		//WithDescription(true),
+	opts := []Option{
+		WithList(testItemParser(), testListOpts()...),
+		WithDescription(),
 	}
 
-	m := list.New(items, opts...)
-	//m := Edit(items)
-	//m := New(items, WithLimit(1))
-	//m := ChooseSome(items, 2)
-	//m := New(ItemsMap(choiceMap))
-	//m.Editable()
+	//m := list.New(items, opts...)
 
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	a := New().
-		//SetList(m).
-		SetPager(testPager())
+	a := New(opts...)
+	//SetList(m).
+	//SetPager(testPager())
 	a.AddCommands(testCommand())
-	p := tea.NewProgram(a)
 
-	//mod, err := p.Run()
-	//if err != nil {
-	//return m, err
-	//}
-	_, err := p.Run()
+	err := a.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sel := m.Chosen()
-	for _, s := range sel {
-		fmt.Printf("%#v\n", s)
-	}
+	//sel := m.Chosen()
+	//for _, s := range sel {
+	//fmt.Printf("%#v\n", s)
+	//}
 	//fmt.Printf("%#v\n", a.ShowCommand())
 
 	//w, h := util.TermSize()
@@ -80,6 +63,21 @@ func testCommand() Command {
 var inKey = key.NewBinding(
 	key.WithKeys("a"),
 )
+
+func testItemParser() list.ParseItems {
+	return list.ItemsStringSlice(choiceSlice)
+}
+
+func testListOpts() []list.Option {
+	opts := []list.Option{
+		list.WithFiltering(true),
+		//OrderedList(),
+		list.Editable(true),
+		list.WithLimit(10),
+		//WithDescription(true),
+	}
+	return opts
+}
 
 func testPager() *pager.Model {
 	txt := []string{

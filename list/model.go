@@ -181,23 +181,6 @@ func WithFiltering(f bool) Option {
 	}
 }
 
-// WithPager enables the pager bubble.
-func WithPager(p *pager.Model) Option {
-	return func(m *Model) {
-		m.hasPager = true
-		switch m.layout {
-		case Horizontal:
-			m.width = m.width / 2
-			p.SetSize(m.width/2, m.height)
-		case Vertical:
-			m.height = m.height / 2
-			p.SetSize(m.width, m.height/2)
-		}
-		//p.Blur()
-		m.Pager = p
-	}
-}
-
 // WithDescription sets the list to show an item's description.
 func WithDescription(desc bool) Option {
 	return func(m *Model) {
