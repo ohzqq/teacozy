@@ -84,7 +84,7 @@ func (m Model) Width() int {
 
 func (m *Model) SetSize(w, h int) {
 	m.width = w
-	m.height = h - 1
+	m.height = h - 2
 
 	nw := m.Width()
 	nh := m.Height()
@@ -100,9 +100,11 @@ func (m *Model) SetSize(w, h int) {
 	if m.HasPager() {
 		m.Pager.SetSize(nw, nh)
 	}
+
 	if m.HasList() {
 		m.List.SetSize(nw, nh)
 	}
+
 	m.Command.Width = m.Width()
 }
 
@@ -268,7 +270,12 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 	case input.FocusMsg:
 		//cmds = append(cmds, m.SetFocus(Cmd))
 	case input.UnfocusMsg:
-		cmds = append(cmds, m.SetFocus(List))
+		switch {
+		case m.HasPager():
+			cmds = append(cmds, m.SetFocus(Pager))
+		case m.HasList():
+			cmds = append(cmds, m.SetFocus(List))
+		}
 	case input.InputValueMsg:
 		m.inputValue = msg.Value
 
@@ -378,16 +385,21 @@ func (m *Model) View() string {
 		in := m.Command.View()
 		sections = append(sections, in)
 	case List:
-		switch {
-		case m.showFilter():
-			sections = append(sections, m.List.FilterInput.View())
-		case m.List.State() == list.Input:
-			sections = append(sections, m.List.Input.View())
-		default:
-			sections = append(sections, m.state.String())
+		if m.HasList() {
+			switch {
+			case m.showFilter():
+				sections = append(sections, m.List.FilterInput.View())
+			case m.List.State() == list.Input:
+				sections = append(sections, m.List.Input.View())
+			default:
+				sections = append(sections, "")
+			}
 		}
 	default:
-		sections = append(sections, m.state.String())
+		status := ""
+		//status = fmt.Sprintf("state %s has list %v", m.state, m.HasList())
+		sections = append(sections, status)
+		//sections = append(sections, m.state.String())
 	}
 	if m.inputValue != "" {
 		sections = append(sections, m.inputValue)

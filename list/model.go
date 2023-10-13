@@ -301,7 +301,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case InputItemMsg:
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
-	case ResetInputMsg, input.UnfocusMsg:
+	case ResetInputMsg:
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:

@@ -44,7 +44,7 @@ func TestNewList(t *testing.T) {
 	//m := NewEditableList(noItems)
 
 	a := New().
-		SetList(m).
+		//SetList(m).
 		SetPager(testPager())
 	//SetPager(m.Pager)
 	p := tea.NewProgram(a)
