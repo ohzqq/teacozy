@@ -62,7 +62,7 @@ func TestNewList(t *testing.T) {
 	for _, s := range sel {
 		fmt.Printf("%#v\n", s)
 	}
-	fmt.Printf("%#v\n", a.HasInput())
+	//fmt.Printf("%#v\n", a.ShowCommand())
 
 	//w, h := util.TermSize()
 	//println(w)

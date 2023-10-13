@@ -45,16 +45,17 @@ type Model struct {
 	height int
 	KeyMap KeyMap
 
-	List *list.Model
+	List     *list.Model
+	showList bool
 
 	// input
-	Command    *input.Model
-	Commands   []Command
-	inputValue string
-	showInput  bool
+	Command     *input.Model
+	Commands    []Command
+	showCommand bool
 
 	// view
-	Pager *pager.Model
+	Pager     *pager.Model
+	showPager bool
 
 	StatusMsg
 }
@@ -123,6 +124,7 @@ func (m *Model) AddCommands(cmds ...Command) *Model {
 
 func (m *Model) SetList(l *list.Model) *Model {
 	m.state = List
+	m.showList = true
 	l.SetHeight(m.Height())
 	l.SetShowFilter(false)
 	l.SetShowInput(false)
@@ -133,17 +135,11 @@ func (m *Model) SetList(l *list.Model) *Model {
 }
 
 func (m *Model) SetPager(l *pager.Model) *Model {
+	m.showPager = true
 	m.state = Pager
 	m.Pager = l
 	m.KeyMap.Pager = l.KeyMap
 	return m
-}
-
-func (m Model) showFilter() bool {
-	if m.HasList() {
-		return m.List.SettingFilter()
-	}
-	return false
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -153,7 +149,7 @@ func (m *Model) Init() tea.Cmd {
 		m.state = List
 	case m.HasPager():
 		m.state = Pager
-	case m.HasInput():
+	case m.ShowCommand():
 		m.state = Cmd
 		return m.SetFocus(Cmd)
 	}
@@ -192,23 +188,27 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, m.KeyMap.Command):
-			if !m.showFilter() {
+			if !m.showFilter() && m.ShowCommand() {
 				m.hideStatusMessage()
 				cmds = append(cmds, m.SetFocus(Cmd))
 			}
 		}
-		for _, c := range m.Commands {
-			if key.Matches(msg, c.Key) {
-				m.Command.SetValue(c.Name + " ")
-				cmds = append(cmds, m.SetFocus(Cmd))
+		if m.ShowCommand() {
+			for _, c := range m.Commands {
+				if key.Matches(msg, c.Key) {
+					m.Command.SetValue(c.Name + " ")
+					cmds = append(cmds, m.SetFocus(Cmd))
+				}
 			}
 		}
 	}
 
 	switch m.State() {
 	case Cmd:
-		cmd = m.updateCommand(msg)
-		cmds = append(cmds, cmd)
+		if m.ShowCommand() {
+			cmd = m.updateCommand(msg)
+			cmds = append(cmds, cmd)
+		}
 	case Pager:
 		if m.HasPager() {
 			cmd = m.updatePager(msg)
@@ -351,28 +351,61 @@ func (m Model) State() State {
 	return m.state
 }
 
+func (m Model) ShowCommand() bool {
+	return m.showCommand
+}
+
+func (m *Model) SetShowCommand(show bool) {
+	m.showCommand = show
+}
+
 func (m Model) HasPager() bool {
 	return m.Pager != nil
 }
 
-func (m Model) HasInput() bool {
-	return m.Command != nil
+func (m Model) ShowPager() bool {
+	if m.HasPager() {
+		return m.showPager
+	}
+	return false
+}
+
+func (m *Model) SetShowPager(show bool) {
+	m.showPager = show
+}
+
+func (m Model) ShowList() bool {
+	if m.HasList() {
+		return m.showList
+	}
+	return false
+}
+
+func (m *Model) SetShowList(show bool) {
+	m.showList = show
 }
 
 func (m Model) HasList() bool {
 	return m.List != nil
 }
 
+func (m Model) showFilter() bool {
+	if m.HasList() {
+		return m.List.SettingFilter()
+	}
+	return false
+}
+
 func (m *Model) View() string {
 	var sections []string
 
 	var li string
-	if m.HasList() {
+	if m.ShowList() {
 		li = m.List.View()
 	}
 
 	var page string
-	if m.HasPager() {
+	if m.ShowPager() {
 		page = m.Pager.View()
 	}
 
@@ -392,7 +425,7 @@ func (m *Model) View() string {
 			footer = m.Command.View()
 		}
 	case List:
-		if m.HasList() {
+		if m.ShowList() {
 			switch {
 			case m.showFilter():
 				sections = append(sections, m.List.FilterInput.View())
