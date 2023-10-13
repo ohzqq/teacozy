@@ -1,9 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -52,17 +52,24 @@ type Model struct {
 
 	// view
 	Pager *pager.Model
+
+	StatusMessageLifetime time.Duration
+
+	statusMessage      string
+	statusMessageTimer *time.Timer
 }
 
 func New() *Model {
 	m := &Model{
-		KeyMap: DefaultKeyMap(),
-		layout: Vertical,
-		Commands: []Command{
-			Command{
-				Name: "",
-				Cmd:  func(string) tea.Cmd { return nil },
-			},
+		KeyMap:                DefaultKeyMap(),
+		layout:                Vertical,
+		StatusMessageLifetime: time.Second,
+	}
+
+	m.Commands = []Command{
+		Command{
+			Name: "",
+			Cmd:  m.NewStatusMessage,
 		},
 	}
 
@@ -159,8 +166,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case input.InputValueMsg:
 		if c, arg, ok := strings.Cut(msg.Value, " "); ok {
 			cmd = m.RunCommand(c, arg)
-			cmds = append(cmds, cmd)
+			return m, cmd
+			//cmds = append(cmds, cmd)
 		}
+	case statusMessageTimeoutMsg:
+		m.hideStatusMessage()
 		//m.Command.Reset()
 
 	case tea.KeyMsg:
@@ -171,6 +181,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.KeyMap.Command):
 			if !m.showFilter() {
+				m.hideStatusMessage()
 				cmds = append(cmds, m.SetFocus(Cmd))
 			}
 		}
@@ -230,6 +241,8 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.List.KeyMap.Filter):
+			m.hideStatusMessage()
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasPager() {
 				switch m.State() {
@@ -248,13 +261,19 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+func (m *Model) hideStatusMessage() {
+	m.statusMessage = ""
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
+	}
+}
+
 type RunCommandMsg Command
 
 func (m *Model) RunCommand(cmd, arg string) tea.Cmd {
 	return func() tea.Msg {
 		for _, c := range m.Commands {
 			if c.Name == cmd {
-				m.inputValue = fmt.Sprintf("cmd %s val %s\n", cmd, arg)
 				return c.Cmd(arg)
 			}
 		}
@@ -391,18 +410,14 @@ func (m *Model) View() string {
 				sections = append(sections, m.List.FilterInput.View())
 			case m.List.State() == list.Input:
 				sections = append(sections, m.List.Input.View())
-			default:
-				sections = append(sections, "")
 			}
 		}
 	default:
 		status := ""
-		//status = fmt.Sprintf("state %s has list %v", m.state, m.HasList())
+		if !m.showFilter() || m.State() != Cmd {
+			status += m.statusMessage
+		}
 		sections = append(sections, status)
-		//sections = append(sections, m.state.String())
-	}
-	if m.inputValue != "" {
-		sections = append(sections, m.inputValue)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
