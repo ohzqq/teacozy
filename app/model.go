@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -10,7 +11,7 @@ import (
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
-	"github.com/ohzqq/teacozy/util"
+	"golang.org/x/term"
 )
 
 type State int
@@ -69,7 +70,7 @@ func New() *Model {
 	m.Command.Prompt = ":"
 	m.KeyMap.Input = m.Command.KeyMap
 
-	m.SetSize(util.TermSize())
+	m.SetSize(TermSize())
 	return m
 }
 
@@ -201,10 +202,10 @@ func (m *Model) updatePager(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasList() {
-				switch {
-				case m.Pager.Focused():
+				switch m.State() {
+				case Pager:
 					cmds = append(cmds, m.SetFocus(List))
-				case m.List.Focused():
+				case List:
 					cmds = append(cmds, m.SetFocus(Pager))
 				}
 			}
@@ -229,10 +230,10 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
 			if m.HasPager() {
-				switch {
-				case m.Pager.Focused():
+				switch m.State() {
+				case Pager:
 					cmds = append(cmds, m.SetFocus(List))
-				case m.List.Focused():
+				case List:
 					cmds = append(cmds, m.SetFocus(Pager))
 				}
 			}
@@ -383,10 +384,10 @@ func (m *Model) View() string {
 		case m.List.State() == list.Input:
 			sections = append(sections, m.List.Input.View())
 		default:
-			sections = append(sections, "")
+			sections = append(sections, m.state.String())
 		}
 	default:
-		sections = append(sections, "")
+		sections = append(sections, m.state.String())
 	}
 	if m.inputValue != "" {
 		sections = append(sections, m.inputValue)
@@ -405,4 +406,9 @@ func (s State) String() string {
 		return "pager"
 	}
 	return ""
+}
+
+func TermSize() (int, int) {
+	w, h, _ := term.GetSize(int(os.Stdout.Fd()))
+	return w, h
 }

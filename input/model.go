@@ -44,7 +44,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if m.Focused() {
 			switch msg.Type {
 			case tea.KeyEsc:
-				cmds = append(cmds, m.Reset)
+				cmds = append(cmds, m.Unfocus())
 			case tea.KeyEnter:
 				val := m.Value()
 				cmd := m.Enter(val)
