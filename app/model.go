@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -55,17 +56,16 @@ type Model struct {
 	// view
 	Pager *pager.Model
 
-	StatusMessageLifetime time.Duration
-
-	statusMessage      string
-	statusMessageTimer *time.Timer
+	StatusMsg
 }
 
 func New() *Model {
 	m := &Model{
-		KeyMap:                DefaultKeyMap(),
-		layout:                Vertical,
-		StatusMessageLifetime: time.Second,
+		KeyMap: DefaultKeyMap(),
+		layout: Vertical,
+		StatusMsg: StatusMsg{
+			StatusMessageLifetime: time.Second,
+		},
 	}
 
 	m.Commands = []Command{
@@ -147,13 +147,11 @@ func (m *Model) Init() tea.Cmd {
 	switch {
 	case m.HasList():
 		m.state = List
-		//return m.List.Focus()
 	case m.HasPager():
 		m.state = Pager
-		//return m.Pager.Focus()
 	case m.HasInput():
 		m.state = Cmd
-		//return m.Command.Focus()
+		return m.SetFocus(Cmd)
 	}
 	return nil
 }
@@ -173,6 +171,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+		status := fmt.Sprintf("%s is not a command", msg.Value)
+		return m, m.NewStatusMessage(status)
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
 
@@ -279,16 +279,9 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, m.SetFocus(List))
 		}
 	case input.InputValueMsg:
-		m.inputValue = msg.Value
+		println(msg.Value)
 
 	case tea.KeyMsg:
-		//switch {
-		//case key.Matches(msg, m.Input.FocusKey):
-		//  if !m.showFilter() {
-		//    cmds = append(cmds, m.SetFocus(Input))
-		//  }
-		//}
-
 	}
 
 	m.Command, cmd = m.Command.Update(msg)
@@ -382,10 +375,12 @@ func (m *Model) View() string {
 	}
 	sections = append(sections, main)
 
+	var footer string
 	switch m.State() {
 	case Cmd:
-		in := m.Command.View()
-		sections = append(sections, in)
+		if m.statusMessage == "" {
+			footer = m.Command.View()
+		}
 	case List:
 		if m.HasList() {
 			switch {
@@ -395,13 +390,11 @@ func (m *Model) View() string {
 				sections = append(sections, m.List.Input.View())
 			}
 		}
-	default:
-		status := ""
-		if !m.showFilter() || m.State() != Cmd {
-			status += m.statusMessage
-		}
-		sections = append(sections, status)
 	}
+	if !m.showFilter() && !m.Command.Focused() {
+		footer += m.statusMessage
+	}
+	sections = append(sections, footer)
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
 }
