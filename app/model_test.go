@@ -72,7 +72,8 @@ func TestNewList(t *testing.T) {
 func testCommand() Command {
 	return Command{
 		Name: "poot",
-		Cmd:  NewStatusMessage,
+		//Key:  inKey,
+		Cmd: NewStatusMessage,
 	}
 }
 

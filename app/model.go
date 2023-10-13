@@ -66,12 +66,11 @@ func New() *Model {
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
-	}
-
-	m.Commands = []Command{
-		Command{
-			Name: "",
-			Cmd:  m.NewStatusMessage,
+		Commands: []Command{
+			Command{
+				Name: "",
+				Cmd:  NewStatusMessage,
+			},
 		},
 	}
 
@@ -198,6 +197,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, m.SetFocus(Cmd))
 			}
 		}
+		for _, c := range m.Commands {
+			if key.Matches(msg, c.Key) {
+				m.Command.SetValue(c.Name + " ")
+				cmds = append(cmds, m.SetFocus(Cmd))
+			}
+		}
 	}
 
 	switch m.State() {
@@ -279,8 +284,6 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	switch msg.(type) {
-	case input.FocusMsg:
-		//cmds = append(cmds, m.SetFocus(Cmd))
 	case input.UnfocusMsg:
 		switch {
 		case m.HasPager():
@@ -288,7 +291,6 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 		case m.HasList():
 			cmds = append(cmds, m.SetFocus(List))
 		}
-
 	case tea.KeyMsg:
 	}
 
