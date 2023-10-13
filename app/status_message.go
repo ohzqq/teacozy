@@ -19,6 +19,13 @@ type StatusMsg struct {
 
 type statusMessageTimeoutMsg struct{}
 
+func (m *Model) hideStatusMessage() {
+	m.statusMessage = ""
+	if m.statusMessageTimer != nil {
+		m.statusMessageTimer.Stop()
+	}
+}
+
 func (m *Model) NewStatusMessage(s string) tea.Cmd {
 	m.statusMessage = s
 	if m.statusMessageTimer != nil {

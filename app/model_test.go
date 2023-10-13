@@ -104,8 +104,6 @@ func testTermSize(t *testing.T) {
 
 }
 
-var noItems = func() []*list.Item { return []*list.Item{} }
-
 //func TestNewBookList(t *testing.T) {
 //  d, err := os.ReadFile("../testdata/search-results.json")
 //  if err != nil {

@@ -35,6 +35,8 @@ type Command struct {
 	Cmd  func(string) tea.Cmd
 }
 
+var noItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
+
 type Model struct {
 	state  State
 	layout Layout
@@ -165,13 +167,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.SetSize(msg.Width, msg.Height)
 	case input.InputValueMsg:
 		if c, arg, ok := strings.Cut(msg.Value, " "); ok {
-			cmd = m.RunCommand(c, arg)
-			return m, cmd
-			//cmds = append(cmds, cmd)
+			for _, co := range m.Commands {
+				if co.Name == c {
+					return m, co.Cmd(arg)
+				}
+			}
 		}
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
-		//m.Command.Reset()
 
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -259,26 +262,6 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
-}
-
-func (m *Model) hideStatusMessage() {
-	m.statusMessage = ""
-	if m.statusMessageTimer != nil {
-		m.statusMessageTimer.Stop()
-	}
-}
-
-type RunCommandMsg Command
-
-func (m *Model) RunCommand(cmd, arg string) tea.Cmd {
-	return func() tea.Msg {
-		for _, c := range m.Commands {
-			if c.Name == cmd {
-				return c.Cmd(arg)
-			}
-		}
-		return nil
-	}
 }
 
 func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
