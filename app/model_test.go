@@ -43,10 +43,10 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	a := New()
-	//SetList(m).
-	//SetPager(testPager())
-	//SetPager(m.Pager)
+	a := New().
+		//SetList(m).
+		SetPager(testPager())
+	a.AddCommands(testCommand())
 	p := tea.NewProgram(a)
 
 	//mod, err := p.Run()
@@ -67,6 +67,13 @@ func TestNewList(t *testing.T) {
 	//w, h := util.TermSize()
 	//println(w)
 	//println(h)
+}
+
+func testCommand() Command {
+	return Command{
+		Name: "poot",
+		Cmd:  NewStatusMessage,
+	}
 }
 
 var inKey = key.NewBinding(

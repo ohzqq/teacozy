@@ -18,11 +18,22 @@ type StatusMsg struct {
 // Status message code from https://github.com/charmbracelet/bubbles/blob/v0.16.1/list/list.go
 
 type statusMessageTimeoutMsg struct{}
+type statusMsg struct {
+	Value string
+}
 
 func (m *Model) hideStatusMessage() {
 	m.statusMessage = ""
 	if m.statusMessageTimer != nil {
 		m.statusMessageTimer.Stop()
+	}
+}
+
+func NewStatusMessage(s string) tea.Cmd {
+	return func() tea.Msg {
+		return statusMsg{
+			Value: s,
+		}
 	}
 }
 

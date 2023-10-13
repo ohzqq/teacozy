@@ -117,6 +117,11 @@ func (m *Model) SetSize(w, h int) {
 	m.Command.Width = m.Width()
 }
 
+func (m *Model) AddCommands(cmds ...Command) *Model {
+	m.Commands = append(m.Commands, cmds...)
+	return m
+}
+
 func (m *Model) SetList(l *list.Model) *Model {
 	m.state = List
 	l.SetHeight(m.Height())
@@ -164,17 +169,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.SetSize(msg.Width, msg.Height)
 	case input.InputValueMsg:
+		status := fmt.Sprintf("%s is not a command", msg.Value)
 		if c, arg, ok := strings.Cut(msg.Value, " "); ok {
+			if c == "" {
+				return m, m.NewStatusMessage(status)
+			}
 			for _, co := range m.Commands {
 				if co.Name == c {
 					return m, co.Cmd(arg)
 				}
 			}
 		}
-		status := fmt.Sprintf("%s is not a command", msg.Value)
 		return m, m.NewStatusMessage(status)
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
+	case statusMsg:
+		return m, m.NewStatusMessage(msg.Value)
 
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -268,7 +278,7 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
+	switch msg.(type) {
 	case input.FocusMsg:
 		//cmds = append(cmds, m.SetFocus(Cmd))
 	case input.UnfocusMsg:
@@ -278,8 +288,6 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 		case m.HasList():
 			cmds = append(cmds, m.SetFocus(List))
 		}
-	case input.InputValueMsg:
-		println(msg.Value)
 
 	case tea.KeyMsg:
 	}
