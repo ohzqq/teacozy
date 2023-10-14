@@ -15,8 +15,8 @@ import (
 func TestNewList(t *testing.T) {
 	opts := []Option{
 		WithList(testItemParser(), testListOpts()...),
-		//WithPager(pager.RenderText, testPagerText()),
-		WithDescription(),
+		WithPager(pager.RenderText, testPagerText()),
+		//WithDescription(),
 		WithLayout(testLayout()),
 	}
 
@@ -52,8 +52,8 @@ var inKey = key.NewBinding(
 
 func testLayout() *Layout {
 	l := NewLayout().
-		Position(Right).
-		//Position(Left).
+		//Position(Right).
+		Position(Left).
 		//Position(Top).
 		//Position(Bottom).
 		//Single().

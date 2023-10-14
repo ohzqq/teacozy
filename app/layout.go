@@ -47,9 +47,6 @@ func (l *Layout) SetSize(w, h int) *Layout {
 }
 
 func (l Layout) Join(li, page string) string {
-	//li = printSize(lipgloss.Size(li)) + " "
-	//log.Fatalf("got %s expect %s\n", li, printSize(l.main()))
-	//page = printSize(lipgloss.Size(page)) + " "
 	if l.split == Horizontal {
 		if l.mainPos == Right {
 			return lipgloss.JoinHorizontal(lipgloss.Center, page, li)

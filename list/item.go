@@ -1,13 +1,16 @@
 package list
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/exp/slices"
 )
 
@@ -329,8 +332,16 @@ func (items Items) Render(w io.Writer, m list.Model, index int, item list.Item) 
 		prefix = items.styles.Prefix.Render(prefix)
 	}
 
-	fmt.Fprintf(w, "[%s]", prefix)
-	items.DefaultDelegate.Render(w, m, index, item)
+	var buf bytes.Buffer
+	mw := io.MultiWriter(w, &buf)
+
+	fmt.Fprintf(mw, "[%s]", prefix)
+	items.DefaultDelegate.Render(mw, m, index, item)
+
+	is := lipgloss.Width(buf.String()) - 1
+	if pad := m.Width() - is; pad > 0 {
+		fmt.Fprintf(mw, strings.Repeat(" ", pad))
+	}
 }
 
 // ItemsStringSlice returns a ParseItems for a slice of strings.
