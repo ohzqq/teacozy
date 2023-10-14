@@ -40,6 +40,16 @@ func NewLayout() *Layout {
 	return l
 }
 
+func (l *Layout) Vertical() *Layout {
+	l.split = Vertical
+	return l
+}
+
+func (l *Layout) Horizontal() *Layout {
+	l.split = Horizontal
+	return l
+}
+
 func (l *Layout) SetSize(w, h int) *Layout {
 	l.width = w
 	l.height = h
@@ -60,48 +70,22 @@ func (l Layout) Join(li, page string) string {
 	return lipgloss.JoinVertical(lipgloss.Left, li, page)
 }
 
-func (l *Layout) Top() (int, int) {
-	switch l.mainPos {
-	case Top:
-		return l.main()
-	case Bottom:
-		return l.sub()
-	default:
-		return 0, 0
-	}
+func (l *Layout) Top() *Layout {
+	l.mainPos = Top
+	return l
 }
 
-func (l *Layout) Left() (int, int) {
-	switch l.mainPos {
-	case Left:
-		return l.main()
-	case Right:
-		return l.sub()
-	default:
-		return 0, 0
-	}
+func (l *Layout) Bottom() *Layout {
+	l.mainPos = Bottom
+	return l
 }
-
-func (l *Layout) Bottom() (int, int) {
-	switch l.mainPos {
-	case Top:
-		return l.sub()
-	case Bottom:
-		return l.main()
-	default:
-		return 0, 0
-	}
+func (l *Layout) Left() *Layout {
+	l.mainPos = Left
+	return l
 }
-
-func (l *Layout) Right() (int, int) {
-	switch l.mainPos {
-	case Left:
-		return l.sub()
-	case Right:
-		return l.main()
-	default:
-		return 0, 0
-	}
+func (l *Layout) Right() *Layout {
+	l.mainPos = Right
+	return l
 }
 
 func (l *Layout) main() (int, int) {

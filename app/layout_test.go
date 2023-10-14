@@ -33,45 +33,6 @@ func TestOneHorizontalLayout(t *testing.T) {
 	if sub != oneSub {
 		t.Errorf("got %s expect %s\n", sub, oneSub)
 	}
-	l.Position(Left)
-	left := printSize(l.Left())
-	right := printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
-
-	l.Position(Right)
-	left = printSize(l.Left())
-	right = printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
 }
 
 func TestHalfHorizontalLayout(t *testing.T) {
@@ -84,45 +45,6 @@ func TestHalfHorizontalLayout(t *testing.T) {
 	}
 	if sub != halfHSub {
 		t.Errorf("got %s expect %s\n", sub, halfHSub)
-	}
-	l.Position(Left)
-	left := printSize(l.Left())
-	right := printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
-
-	l.Position(Right)
-	left = printSize(l.Left())
-	right = printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
 	}
 }
 
@@ -137,45 +59,6 @@ func TestThirdHorizontalLayout(t *testing.T) {
 	if sub != thirdHSub {
 		t.Errorf("got %s expect %s\n", sub, thirdHSub)
 	}
-	l.Position(Left)
-	left := printSize(l.Left())
-	right := printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
-
-	l.Position(Right)
-	left = printSize(l.Left())
-	right = printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
 }
 
 func TestQuarterHorizontalLayout(t *testing.T) {
@@ -188,45 +71,6 @@ func TestQuarterHorizontalLayout(t *testing.T) {
 	}
 	if sub != quarterHSub {
 		t.Errorf("got %s expect %s\n", sub, quarterHSub)
-	}
-	l.Position(Left)
-	left := printSize(l.Left())
-	right := printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
-	}
-
-	l.Position(Right)
-	left = printSize(l.Left())
-	right = printSize(l.Right())
-	switch l.mainPos {
-	case Left:
-		if left != main {
-			t.Errorf("got %s expect %s\n", left, main)
-		}
-		if right != sub {
-			t.Errorf("got %s expect %s\n", right, sub)
-		}
-	case Right:
-		if right != main {
-			t.Errorf("got %s expect %s\n", right, main)
-		}
-		if left != sub {
-			t.Errorf("got %s expect %s\n", left, sub)
-		}
 	}
 }
 
@@ -241,47 +85,6 @@ func TestOneVerticalLayout(t *testing.T) {
 	if sub != oneSub {
 		t.Errorf("got %s expect %s\n", sub, oneSub)
 	}
-
-	l.Position(Top)
-	top := printSize(l.Top())
-	bottom := printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
-	l.Position(Bottom)
-	top = printSize(l.Top())
-	bottom = printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
 }
 
 func TestHalfVerticalLayout(t *testing.T) {
@@ -295,47 +98,6 @@ func TestHalfVerticalLayout(t *testing.T) {
 	if sub != halfVSub {
 		t.Errorf("got %s expect %s\n", sub, halfVSub)
 	}
-
-	l.Position(Top)
-	top := printSize(l.Top())
-	bottom := printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
-	l.Position(Bottom)
-	top = printSize(l.Top())
-	bottom = printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
 }
 
 func TestThirdVerticalLayout(t *testing.T) {
@@ -348,46 +110,6 @@ func TestThirdVerticalLayout(t *testing.T) {
 	if sub != thirdVSub {
 		t.Errorf("got %s expect %s\n", sub, thirdVSub)
 	}
-	l.Position(Top)
-	top := printSize(l.Top())
-	bottom := printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
-	l.Position(Bottom)
-	top = printSize(l.Top())
-	bottom = printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
 }
 
 func TestQuarterVerticalLayout(t *testing.T) {
@@ -400,46 +122,6 @@ func TestQuarterVerticalLayout(t *testing.T) {
 	if sub != quarterVSub {
 		t.Errorf("got %s expect %s\n", sub, quarterVSub)
 	}
-	l.Position(Top)
-	top := printSize(l.Top())
-	bottom := printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
-	l.Position(Bottom)
-	top = printSize(l.Top())
-	bottom = printSize(l.Bottom())
-	switch l.mainPos {
-	case Top:
-		if top != main {
-			t.Errorf("got %s expect %s\n", top, main)
-		}
-		if bottom != sub {
-			t.Errorf("got %s expect %s\n", bottom, sub)
-		}
-	case Bottom:
-		if bottom != main {
-			t.Errorf("got %s expect %s\n", bottom, main)
-		}
-		if top != sub {
-			t.Errorf("got %s expect %s\n", top, sub)
-		}
-	}
-
 }
 
 func printSize(w, h int) string {

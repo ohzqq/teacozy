@@ -51,17 +51,19 @@ var inKey = key.NewBinding(
 )
 
 func testLayout() *Layout {
-	l := NewLayout().
-		//Position(Right).
-		Position(Left).
-		//Position(Top).
-		//Position(Bottom).
-		//Single().
-		//Half().
-		//Third().
-		Quarter().
-		Split(Horizontal)
-		//Split(Vertical)
+	//l := NewLayout().
+	//Position(Right).
+	//Position(Left).
+	//Position(Top).
+	//Position(Bottom).
+	//Single().
+	//Half().
+	//Third().
+	//Quarter().
+	//Split(horizontal)
+	//Split(Vertical)
+	//l := Vertical(Third).Position(Left)
+	l := NewLayout().Horizontal().Top().Third()
 	return l
 }
 
