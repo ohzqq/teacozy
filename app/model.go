@@ -23,10 +23,8 @@ const (
 	Pager
 )
 
-type Split int
-
 const (
-	Vertical Split = iota
+	Vertical = iota
 	Horizontal
 )
 
@@ -39,13 +37,15 @@ type Command struct {
 var noItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
 
 type Model struct {
-	state  State
-	layout Split
-	width  int
-	height int
-	cols   int
-	rows   int
-	KeyMap KeyMap
+	mainView State
+	state    State
+	layout   *Layout
+	split    int
+	width    int
+	height   int
+	cols     int
+	rows     int
+	KeyMap   KeyMap
 
 	List         *list.Model
 	showList     bool
@@ -66,7 +66,8 @@ type Model struct {
 func New(opts ...Option) *Model {
 	m := &Model{
 		KeyMap: DefaultKeyMap(),
-		layout: Vertical,
+		layout: NewLayout(),
+		split:  Vertical,
 		cols:   2,
 		rows:   2,
 		StatusMsg: StatusMsg{
@@ -108,6 +109,20 @@ func (m Model) Width() int {
 	return m.width
 }
 
+func (m Model) main() State {
+	if m.mainView > 0 {
+		return m.mainView
+	}
+	switch {
+	case m.HasList():
+		return List
+	case m.HasPager():
+		return Pager
+	default:
+		return Cmd
+	}
+}
+
 func (m *Model) SetSize(w, h int) {
 	m.width = w
 	m.height = h - 2
@@ -115,7 +130,7 @@ func (m *Model) SetSize(w, h int) {
 	nw := m.Width()
 	nh := m.Height()
 	if m.HasPager() && m.HasList() {
-		switch m.layout {
+		switch m.split {
 		case Vertical:
 			nh = m.Height() / m.rows
 		case Horizontal:
@@ -433,7 +448,7 @@ func (m *Model) View() string {
 	}
 
 	var main string
-	switch m.layout {
+	switch m.split {
 	case Vertical:
 		main = lipgloss.JoinVertical(lipgloss.Left, li, page)
 	case Horizontal:
