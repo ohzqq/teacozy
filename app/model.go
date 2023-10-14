@@ -23,10 +23,10 @@ const (
 	Pager
 )
 
-type Layout int
+type Split int
 
 const (
-	Vertical Layout = iota
+	Vertical Split = iota
 	Horizontal
 )
 
@@ -40,7 +40,7 @@ var noItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
 
 type Model struct {
 	state  State
-	layout Layout
+	layout Split
 	width  int
 	height int
 	cols   int
