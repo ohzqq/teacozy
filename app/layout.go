@@ -8,7 +8,8 @@ const (
 )
 
 const (
-	Half = iota + 2
+	Single = iota + 1
+	Half
 	Third
 	Quarter
 )
@@ -25,7 +26,7 @@ func NewLayout() *Layout {
 	w, h := TermSize()
 	l := &Layout{
 		split:    Vertical,
-		sections: 1,
+		sections: Single,
 		width:    w,
 		height:   h,
 	}
@@ -120,17 +121,6 @@ func (l *Layout) Sub() (int, int) {
 	return w, h
 }
 
-func (l *Layout) GetSize(w, h int) (int, int) {
-	switch l.split {
-	case Vertical:
-		return w, h / l.sections
-	case Horizontal:
-		return w / l.sections, h
-	default:
-		return w, h
-	}
-}
-
 func (l *Layout) Position(p int) *Layout {
 	l.mainPos = p
 	return l
@@ -141,10 +131,31 @@ func (l *Layout) Split(s int) *Layout {
 	return l
 }
 
+func (l *Layout) Half() *Layout {
+	return l.Sections(Half)
+}
+
+func (l *Layout) Third() *Layout {
+	return l.Sections(Third)
+}
+
+func (l *Layout) Quarter() *Layout {
+	return l.Sections(Third)
+}
+
+func (l *Layout) Single() *Layout {
+	return l.Sections(Single)
+}
+
 func (l *Layout) Sections(s int) *Layout {
 	l.sections = s
 	return l
 }
 
-//func (l Layout) Thirds(w, h int) (int, int) {
-//}
+func (l Layout) Width() int {
+	return l.width
+}
+
+func (l Layout) Height() int {
+	return l.height
+}

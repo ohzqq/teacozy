@@ -18,8 +18,8 @@ import (
 type State int
 
 const (
-	List State = iota + 1
-	Cmd
+	Cmd State = iota + 1
+	List
 	Pager
 )
 
@@ -65,11 +65,11 @@ type Model struct {
 
 func New(opts ...Option) *Model {
 	m := &Model{
-		KeyMap: DefaultKeyMap(),
-		layout: NewLayout(),
-		split:  Vertical,
-		cols:   2,
-		rows:   2,
+		KeyMap:   DefaultKeyMap(),
+		split:    Vertical,
+		mainView: Cmd,
+		cols:     2,
+		rows:     2,
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
@@ -88,7 +88,21 @@ func New(opts ...Option) *Model {
 	m.Command.Prompt = ":"
 	m.KeyMap.Input = m.Command.KeyMap
 
+	if m.layout == nil {
+		m.layout = NewLayout()
+		if m.HasPager() {
+			m.mainView = Pager
+		}
+		if m.HasList() {
+			m.mainView = List
+		}
+		if m.HasList() && m.HasPager() {
+			m.layout.Half()
+			m.layout.Position(Top)
+		}
+	}
 	m.SetSize(TermSize())
+
 	return m
 }
 
@@ -102,11 +116,11 @@ func (m *Model) Run() error {
 }
 
 func (m Model) Height() int {
-	return m.height
+	return m.layout.Height()
 }
 
 func (m Model) Width() int {
-	return m.width
+	return m.layout.Width()
 }
 
 func (m Model) main() State {
@@ -126,24 +140,24 @@ func (m Model) main() State {
 func (m *Model) SetSize(w, h int) {
 	m.width = w
 	m.height = h - 2
+	m.layout.SetSize(w, h-2)
 
-	nw := m.Width()
-	nh := m.Height()
-	if m.HasPager() && m.HasList() {
-		switch m.split {
-		case Vertical:
-			nh = m.Height() / m.rows
-		case Horizontal:
-			nw = m.Width() / m.cols
+	if m.HasPager() {
+		switch m.mainView {
+		case Pager:
+			m.Pager.SetSize(m.layout.Main())
+		case List:
+			m.Pager.SetSize(m.layout.Sub())
 		}
 	}
 
-	if m.HasPager() {
-		m.Pager.SetSize(nw, nh)
-	}
-
 	if m.HasList() {
-		m.List.SetSize(nw, nh)
+		switch m.mainView {
+		case Pager:
+			m.List.SetSize(m.layout.Sub())
+		case List:
+			m.List.SetSize(m.layout.Main())
+		}
 	}
 
 	m.Command.Width = m.Width()
@@ -157,7 +171,6 @@ func (m *Model) AddCommands(cmds ...Command) *Model {
 func (m *Model) SetList(l *list.Model) *Model {
 	m.state = List
 	m.showList = true
-	l.SetHeight(m.Height())
 	l.SetShowFilter(false)
 	l.SetShowInput(false)
 	l.SetShowHelp(false)
@@ -495,4 +508,14 @@ func (s State) String() string {
 func TermSize() (int, int) {
 	w, h, _ := term.GetSize(int(os.Stdout.Fd()))
 	return w, h
+}
+
+func TermHeight() int {
+	_, h, _ := term.GetSize(int(os.Stdout.Fd()))
+	return h
+}
+
+func TermWidth() int {
+	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	return w
 }

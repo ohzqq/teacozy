@@ -339,6 +339,7 @@ func (m *Model) SetShowInput(show bool) {
 		m.state = Input
 		return
 	}
+	m.Input.Blur()
 	m.state = Browsing
 }
 
