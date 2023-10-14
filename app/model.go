@@ -267,6 +267,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	cmds = append(cmds, m.NewStatusMessage(m.state.String()))
+
 	return m, tea.Batch(cmds...)
 }
 

@@ -83,7 +83,7 @@ func New(items *Items, opts ...Option) *Model {
 
 	m.Input = input.New()
 	m.Input.Prompt = "Insert Item: "
-	m.Input.Enter = InsertItem
+	m.Input.Enter = m.AddItem
 	m.Input.PromptStyle = m.Styles.FilterPrompt
 	m.Input.Cursor.Style = m.Styles.FilterCursor
 	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
@@ -284,7 +284,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case InputItemMsg:
 		m.SetShowInput(true)
 		cmds = append(cmds, m.Input.Focus())
-	case ResetInputMsg:
+	case ResetInputMsg, InsertItemMsg:
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:
@@ -318,6 +318,15 @@ func InputItem() tea.Msg {
 	return InputItemMsg{}
 }
 
+func (m *Model) AddItem(val string) tea.Cmd {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	item := NewItem(val)
+	cmd = m.InsertItem(m.Index()+1, item)
+	cmds = append(cmds, cmd, ResetInput)
+	return tea.Batch(cmds...)
+}
+
 type ResetInputMsg struct{}
 
 func ResetInput() tea.Msg {
@@ -333,13 +342,12 @@ func ClearFilter() tea.Msg {
 // SetShowInput shows or hides the input model.
 func (m *Model) SetShowInput(show bool) {
 	//m.SetShowTitle(!show)
-	m.showInput = !show
+	m.showInput = show
 	if show {
 		//m.SetHeight(m.Height() - 1)
 		m.state = Input
 		return
 	}
-	m.Input.Blur()
 	m.state = Browsing
 }
 
