@@ -24,8 +24,8 @@ var (
 
 func TestOneHorizontalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(1).Split(Horizontal)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	//fmt.Printf("h: main %s sub %s\n", main, sub)
 	if main != oneMain {
 		t.Errorf("got %s expect %s\n", main, oneMain)
@@ -76,8 +76,8 @@ func TestOneHorizontalLayout(t *testing.T) {
 
 func TestHalfHorizontalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Half).Split(Horizontal)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	//fmt.Printf("h: main %s sub %s\n", main, sub)
 	if main != halfHMain {
 		t.Errorf("got %s expect %s\n", main, halfHMain)
@@ -128,8 +128,8 @@ func TestHalfHorizontalLayout(t *testing.T) {
 
 func TestThirdHorizontalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Third).Split(Horizontal)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	//fmt.Printf("h: main %s sub %s\n", main, sub)
 	if main != thirdHMain {
 		t.Errorf("got %s expect %s\n", main, thirdHMain)
@@ -180,8 +180,8 @@ func TestThirdHorizontalLayout(t *testing.T) {
 
 func TestQuarterHorizontalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Quarter).Split(Horizontal)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	//fmt.Printf("h: main %s sub %s\n", main, sub)
 	if main != quarterHMain {
 		t.Errorf("got %s expect %s\n", main, quarterHMain)
@@ -232,8 +232,8 @@ func TestQuarterHorizontalLayout(t *testing.T) {
 
 func TestOneVerticalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(1)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 
 	if main != oneMain {
 		t.Errorf("got %s expect %s\n", main, oneMain)
@@ -286,8 +286,8 @@ func TestOneVerticalLayout(t *testing.T) {
 
 func TestHalfVerticalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Half)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 
 	if main != halfVMain {
 		t.Errorf("got %s expect %s\n", main, halfVMain)
@@ -340,8 +340,8 @@ func TestHalfVerticalLayout(t *testing.T) {
 
 func TestThirdVerticalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Third)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	if main != thirdVMain {
 		t.Errorf("got %s expect %s\n", main, thirdVMain)
 	}
@@ -392,8 +392,8 @@ func TestThirdVerticalLayout(t *testing.T) {
 
 func TestQuarterVerticalLayout(t *testing.T) {
 	l := NewLayout().SetSize(66, 66).Sections(Quarter)
-	main := printSize(l.Main())
-	sub := printSize(l.Sub())
+	main := printSize(l.main())
+	sub := printSize(l.sub())
 	if main != quarterVMain {
 		t.Errorf("got %s expect %s\n", main, quarterVMain)
 	}

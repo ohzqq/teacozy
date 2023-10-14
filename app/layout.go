@@ -1,9 +1,13 @@
 package app
 
+import (
+	"github.com/charmbracelet/lipgloss"
+)
+
 const (
 	Top = iota + 1
-	Right
 	Bottom
+	Right
 	Left
 )
 
@@ -23,18 +27,15 @@ type Layout struct {
 }
 
 func NewLayout() *Layout {
-	w, h := TermSize()
 	l := &Layout{
 		split:    Vertical,
 		sections: Single,
-		width:    w,
-		height:   h,
 	}
 	switch l.split {
 	case Vertical:
 		l.mainPos = Top
 	case Horizontal:
-		l.mainPos = Left
+		l.mainPos = Right
 	}
 	return l
 }
@@ -45,12 +46,29 @@ func (l *Layout) SetSize(w, h int) *Layout {
 	return l
 }
 
+func (l Layout) Join(li, page string) string {
+	//li = printSize(lipgloss.Size(li)) + " "
+	//log.Fatalf("got %s expect %s\n", li, printSize(l.main()))
+	//page = printSize(lipgloss.Size(page)) + " "
+	if l.split == Horizontal {
+		if l.mainPos == Right {
+			return lipgloss.JoinHorizontal(lipgloss.Center, page, li)
+		}
+		return lipgloss.JoinHorizontal(lipgloss.Center, li, page)
+	}
+
+	if l.mainPos == Bottom {
+		return lipgloss.JoinVertical(lipgloss.Left, page, li)
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, li, page)
+}
+
 func (l *Layout) Top() (int, int) {
 	switch l.mainPos {
 	case Top:
-		return l.Main()
+		return l.main()
 	case Bottom:
-		return l.Sub()
+		return l.sub()
 	default:
 		return 0, 0
 	}
@@ -59,9 +77,9 @@ func (l *Layout) Top() (int, int) {
 func (l *Layout) Left() (int, int) {
 	switch l.mainPos {
 	case Left:
-		return l.Main()
+		return l.main()
 	case Right:
-		return l.Sub()
+		return l.sub()
 	default:
 		return 0, 0
 	}
@@ -70,9 +88,9 @@ func (l *Layout) Left() (int, int) {
 func (l *Layout) Bottom() (int, int) {
 	switch l.mainPos {
 	case Top:
-		return l.Sub()
+		return l.sub()
 	case Bottom:
-		return l.Main()
+		return l.main()
 	default:
 		return 0, 0
 	}
@@ -81,15 +99,15 @@ func (l *Layout) Bottom() (int, int) {
 func (l *Layout) Right() (int, int) {
 	switch l.mainPos {
 	case Left:
-		return l.Sub()
+		return l.sub()
 	case Right:
-		return l.Main()
+		return l.main()
 	default:
 		return 0, 0
 	}
 }
 
-func (l *Layout) Main() (int, int) {
+func (l *Layout) main() (int, int) {
 	w, h := l.width, l.height
 	switch l.split {
 	case Vertical:
@@ -104,7 +122,7 @@ func (l *Layout) Main() (int, int) {
 	return w, h
 }
 
-func (l *Layout) Sub() (int, int) {
+func (l *Layout) sub() (int, int) {
 	w, h := 0, 0
 	switch l.split {
 	case Vertical:
@@ -128,7 +146,21 @@ func (l *Layout) Position(p int) *Layout {
 
 func (l *Layout) Split(s int) *Layout {
 	l.split = s
+	switch s {
+	case Vertical:
+		if l.mainPos > 2 {
+			l.mainPos = Top
+		}
+	case Horizontal:
+		if l.mainPos < 3 {
+			l.mainPos = Right
+		}
+	}
 	return l
+}
+
+func (l *Layout) Single() *Layout {
+	return l.Sections(Single)
 }
 
 func (l *Layout) Half() *Layout {
@@ -140,11 +172,7 @@ func (l *Layout) Third() *Layout {
 }
 
 func (l *Layout) Quarter() *Layout {
-	return l.Sections(Third)
-}
-
-func (l *Layout) Single() *Layout {
-	return l.Sections(Single)
+	return l.Sections(Quarter)
 }
 
 func (l *Layout) Sections(s int) *Layout {

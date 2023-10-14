@@ -25,9 +25,9 @@ func WithPager(render pager.Renderer, text ...string) Option {
 	}
 }
 
-func WithLayout(layout int) Option {
+func WithLayout(layout *Layout) Option {
 	return func(m *Model) {
-		m.split = layout
+		m.layout = layout
 	}
 }
 

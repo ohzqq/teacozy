@@ -90,17 +90,18 @@ func New(opts ...Option) *Model {
 
 	if m.layout == nil {
 		m.layout = NewLayout()
-		if m.HasPager() {
-			m.mainView = Pager
-		}
-		if m.HasList() {
-			m.mainView = List
-		}
 		if m.HasList() && m.HasPager() {
 			m.layout.Half()
 			m.layout.Position(Top)
 		}
 	}
+	if m.HasPager() {
+		m.mainView = Pager
+	}
+	if m.HasList() {
+		m.mainView = List
+	}
+	m.mainView = List
 	m.SetSize(TermSize())
 
 	return m
@@ -123,40 +124,25 @@ func (m Model) Width() int {
 	return m.layout.Width()
 }
 
-func (m Model) main() State {
-	if m.mainView > 0 {
-		return m.mainView
-	}
-	switch {
-	case m.HasList():
-		return List
-	case m.HasPager():
-		return Pager
-	default:
-		return Cmd
-	}
-}
-
 func (m *Model) SetSize(w, h int) {
 	m.width = w
 	m.height = h - 2
 	m.layout.SetSize(w, h-2)
 
-	if m.HasPager() {
-		switch m.mainView {
-		case Pager:
-			m.Pager.SetSize(m.layout.Main())
-		case List:
-			m.Pager.SetSize(m.layout.Sub())
+	switch m.mainView {
+	case List:
+		if m.HasList() {
+			m.List.SetSize(m.layout.main())
 		}
-	}
-
-	if m.HasList() {
-		switch m.mainView {
-		case Pager:
-			m.List.SetSize(m.layout.Sub())
-		case List:
-			m.List.SetSize(m.layout.Main())
+		if m.HasPager() {
+			m.Pager.SetSize(m.layout.sub())
+		}
+	case Pager:
+		if m.HasPager() {
+			m.Pager.SetSize(m.layout.main())
+		}
+		if m.HasList() {
+			m.List.SetSize(m.layout.sub())
 		}
 	}
 
@@ -189,7 +175,6 @@ func (m *Model) SetPager(p *pager.Model) *Model {
 }
 
 func (m *Model) Init() tea.Cmd {
-	m.SetSize(m.Width(), m.Height())
 	switch {
 	case m.HasList():
 		m.state = List
@@ -267,7 +252,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	cmds = append(cmds, m.NewStatusMessage(m.state.String()))
+	//cmds = append(cmds, m.NewStatusMessage(m.state.String()))
 
 	return m, tea.Batch(cmds...)
 }
@@ -462,13 +447,7 @@ func (m *Model) View() string {
 		page = m.Pager.View()
 	}
 
-	var main string
-	switch m.split {
-	case Vertical:
-		main = lipgloss.JoinVertical(lipgloss.Left, li, page)
-	case Horizontal:
-		main = lipgloss.JoinHorizontal(lipgloss.Center, page, li)
-	}
+	main := m.layout.Join(li, page)
 	sections = append(sections, main)
 
 	var footer string

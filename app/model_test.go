@@ -15,7 +15,9 @@ import (
 func TestNewList(t *testing.T) {
 	opts := []Option{
 		WithList(testItemParser(), testListOpts()...),
+		//WithPager(pager.RenderText, testPagerText()),
 		WithDescription(),
+		WithLayout(testLayout()),
 	}
 
 	a := New(opts...)
@@ -48,6 +50,21 @@ var inKey = key.NewBinding(
 	key.WithKeys("a"),
 )
 
+func testLayout() *Layout {
+	l := NewLayout().
+		Position(Right).
+		//Position(Left).
+		//Position(Top).
+		//Position(Bottom).
+		//Single().
+		//Half().
+		//Third().
+		Quarter().
+		Split(Horizontal)
+		//Split(Vertical)
+	return l
+}
+
 func testItemParser() list.ParseItems {
 	return list.ItemsStringSlice(choiceSlice)
 }
@@ -71,6 +88,15 @@ func testPager() *pager.Model {
 	text := strings.Join(txt, "\n- ")
 	p := pager.New(pager.RenderText).SetText(text)
 	return p
+}
+
+func testPagerText() string {
+	txt := []string{
+		"AArtichokeArtichokeArtichokeArtichokeArtichokeArtichokeArtichokertichoke",
+	}
+	txt = append(txt, choiceSlice...)
+	text := strings.Join(txt, "\n- ")
+	return text
 }
 
 func testTermSize(t *testing.T) {
