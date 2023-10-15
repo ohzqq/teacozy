@@ -86,8 +86,14 @@ func New(items *Items, opts ...Option) *Model {
 	m.Input.Enter = m.AddItem
 	m.Input.PromptStyle = m.Styles.FilterPrompt
 	m.Input.Cursor.Style = m.Styles.FilterCursor
-	m.AddFullHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
-	m.AddShortHelpKeys(m.Items.KeyMap.InsertItem, m.Items.KeyMap.RemoveItem)
+	m.AddFullHelpKeys(
+		m.Items.KeyMap.InsertItem,
+		m.Items.KeyMap.RemoveItem,
+	)
+	m.AddShortHelpKeys(
+		m.Items.KeyMap.InsertItem,
+		m.Items.KeyMap.RemoveItem,
+	)
 	m.SetShowInput(false)
 
 	m.AdditionalShortHelpKeys = func() []key.Binding {

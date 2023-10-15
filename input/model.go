@@ -31,6 +31,16 @@ func (m *Model) WithKey(k key.Binding) *Model {
 	return m
 }
 
+func (m *Model) EnterCmd(enter EnterInput) *Model {
+	m.Enter = enter
+	return m
+}
+
+func (m *Model) SetPrompt(p string) *Model {
+	m.Model.Prompt = p
+	return m
+}
+
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
