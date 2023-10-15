@@ -100,18 +100,6 @@ func New(items *Items, opts ...Option) *Model {
 	return m
 }
 
-//func (m *Model) Run() (*Model, error) {
-//  p := tea.NewProgram(m)
-
-//  mod, err := p.Run()
-//  if err != nil {
-//    return m, err
-//  }
-//  rm := mod.(*Model)
-
-//  return rm, nil
-//}
-
 // NewListModel returns a *list.Model.
 func (m *Model) NewListModel(items *Items) *list.Model {
 	del := items.NewDelegate()
@@ -264,6 +252,11 @@ func (m *Model) SetBrowsing() {
 	m.state = Browsing
 }
 
+// SetState sets the UI state.
+func (m *Model) SetState(s State) {
+	m.state = s
+}
+
 // IsBrowsing returns whether or not the list state is Browsing.
 func (m Model) Browsing() bool {
 	return !m.Model.SettingFilter() || m.state == Browsing
@@ -282,7 +275,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case InputItemMsg:
-		m.SetShowInput(true)
+		m.SetState(Input)
 		cmds = append(cmds, m.Input.Focus())
 	case ResetInputMsg, InsertItemMsg:
 		m.SetShowInput(false)
@@ -333,18 +326,12 @@ func ResetInput() tea.Msg {
 	return ResetInputMsg{}
 }
 
-type ClearFilterMsg struct{}
-
-func ClearFilter() tea.Msg {
-	return ClearFilterMsg{}
-}
-
 // SetShowInput shows or hides the input model.
 func (m *Model) SetShowInput(show bool) {
-	//m.SetShowTitle(!show)
+	m.SetShowTitle(!show)
 	m.showInput = show
 	if show {
-		//m.SetHeight(m.Height() - 1)
+		m.SetHeight(m.Height() - 1)
 		m.state = Input
 		return
 	}

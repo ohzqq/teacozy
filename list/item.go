@@ -386,6 +386,7 @@ type ToggleItemMsg struct {
 	Index int
 }
 
+// ToggleItem sends a tea.Cmd to toggle an Item.
 func ToggleItem(idx int) tea.Cmd {
 	return func() tea.Msg {
 		return ToggleItemMsg{Index: idx}

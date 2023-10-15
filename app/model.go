@@ -66,10 +66,7 @@ type Model struct {
 func New(opts ...Option) *Model {
 	m := &Model{
 		KeyMap:   DefaultKeyMap(),
-		split:    Vertical,
 		mainView: Cmd,
-		cols:     2,
-		rows:     2,
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
@@ -100,8 +97,9 @@ func New(opts ...Option) *Model {
 	}
 	if m.HasList() {
 		m.mainView = List
+		m.List.SetShowInput(false)
 	}
-	m.mainView = List
+
 	m.SetSize(TermSize())
 
 	return m
@@ -125,9 +123,7 @@ func (m Model) Width() int {
 }
 
 func (m *Model) SetSize(w, h int) {
-	m.width = w
-	m.height = h - 2
-	m.layout.SetSize(w, h-2)
+	m.layout.SetSize(w, h)
 
 	switch m.mainView {
 	case List:
@@ -368,10 +364,10 @@ func (m *Model) SetFocus(focus State) tea.Cmd {
 		cmds = append(cmds, m.Command.Focus())
 	case Pager:
 		m.state = Pager
-		m.Command.Unfocus()
 		if m.HasList() {
 			m.List.Unfocus()
 		}
+		m.Command.Unfocus()
 		cmds = append(cmds, m.Pager.Focus())
 	case List:
 		m.state = List
@@ -451,6 +447,9 @@ func (m *Model) View() string {
 	sections = append(sections, main)
 
 	var footer string
+	if !m.showFilter() && !m.Command.Focused() {
+		footer = m.statusMessage
+	}
 	switch m.State() {
 	case Cmd:
 		if m.statusMessage == "" {
@@ -460,14 +459,11 @@ func (m *Model) View() string {
 		if m.ShowList() {
 			switch {
 			case m.showFilter():
-				sections = append(sections, m.List.FilterInput.View())
+				footer = m.List.FilterInput.View()
 			case m.List.State() == list.Input:
-				sections = append(sections, m.List.Input.View())
+				footer = m.List.Input.View()
 			}
 		}
-	}
-	if !m.showFilter() && !m.Command.Focused() {
-		footer += m.statusMessage
 	}
 	sections = append(sections, footer)
 
