@@ -8,6 +8,7 @@ type KeyMap struct {
 	ToggleFocus key.Binding
 	Quit        key.Binding
 	Command     key.Binding
+	FullHelp    key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -23,6 +24,10 @@ func DefaultKeyMap() KeyMap {
 		Command: key.NewBinding(
 			key.WithKeys(":", ";"),
 			key.WithHelp(":/;", "enter command"),
+		),
+		FullHelp: key.NewBinding(
+			key.WithKeys("?", "f1"),
+			key.WithHelp("?/f1", "help"),
 		),
 	}
 }

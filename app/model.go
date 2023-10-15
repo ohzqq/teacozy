@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -52,6 +53,10 @@ type Model struct {
 	Pager     *pager.Model
 	showPager bool
 
+	//help
+	Help     help.Model
+	showHelp bool
+
 	StatusMsg
 }
 
@@ -59,6 +64,7 @@ func New(opts ...Option) *Model {
 	m := &Model{
 		KeyMap:   DefaultKeyMap(),
 		mainView: Cmd,
+		Help:     help.New(),
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
@@ -85,10 +91,12 @@ func New(opts ...Option) *Model {
 	}
 	if m.HasPager() {
 		m.mainView = Pager
+		m.SetShowHelp(true)
 	}
 	if m.HasList() {
 		m.mainView = List
 		m.List.SetShowInput(false)
+		m.SetShowHelp(true)
 	}
 
 	m.SetSize(teacozy.TermSize())
@@ -114,6 +122,9 @@ func (m Model) Width() int {
 }
 
 func (m *Model) SetSize(w, h int) {
+	if !m.Help.ShowAll {
+		h--
+	}
 	m.layout.SetSize(w, h)
 
 	switch m.mainView {
@@ -134,6 +145,7 @@ func (m *Model) SetSize(w, h int) {
 	}
 
 	m.Command.Width = m.Width()
+	m.Help.Width = m.Width()
 }
 
 func (m *Model) AddCommands(cmds ...Command) *Model {
@@ -212,7 +224,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, m.SetFocus(Cmd))
 			}
 		case key.Matches(msg, m.KeyMap.ToggleFocus):
+			if m.Help.ShowAll {
+				m.toggleHelp()
+			}
 			return m, m.toggleView()
+		case key.Matches(msg, m.KeyMap.FullHelp):
+			m.toggleHelp()
 		}
 		if m.ShowCommand() {
 			for _, c := range m.Commands {
@@ -317,6 +334,16 @@ func (m *Model) toggleView() tea.Cmd {
 	return nil
 }
 
+func (m *Model) toggleHelp() {
+	m.Help.ShowAll = !m.Help.ShowAll
+	w, h := teacozy.TermSize()
+	if m.Help.ShowAll {
+		m.SetSize(w, h-m.helpViewHeight())
+	} else {
+		m.SetSize(w, h)
+	}
+}
+
 func (m *Model) SetFocus(focus State) tea.Cmd {
 	var cmds []tea.Cmd
 
@@ -368,6 +395,14 @@ func (m Model) State() State {
 	return m.state
 }
 
+func (m Model) ShowHelp() bool {
+	return m.showHelp
+}
+
+func (m *Model) SetShowHelp(show bool) {
+	m.showHelp = show
+}
+
 func (m Model) ShowCommand() bool {
 	return m.showCommand
 }
@@ -413,8 +448,17 @@ func (m Model) showFilter() bool {
 	return false
 }
 
+func (m Model) helpView() string {
+	return m.Help.View(m)
+}
+
+func (m Model) helpViewHeight() int {
+	return lipgloss.Height(m.helpView())
+}
+
 func (m *Model) View() string {
 	var sections []string
+	availHeight := m.Height()
 
 	var li string
 	if m.ShowList() {
@@ -426,7 +470,16 @@ func (m *Model) View() string {
 		page = m.Pager.View()
 	}
 
+	var help string
+	if m.ShowHelp() {
+		help = m.Help.View(m)
+		availHeight -= lipgloss.Height(help)
+	}
+
 	main := m.layout.Join(li, page)
+	main = lipgloss.NewStyle().
+		Height(availHeight).
+		Render(main)
 	sections = append(sections, main)
 
 	var footer string
@@ -449,6 +502,10 @@ func (m *Model) View() string {
 		}
 	}
 	sections = append(sections, footer)
+
+	if m.ShowHelp() {
+		sections = append(sections, help)
+	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
 }
@@ -477,6 +534,10 @@ func (m Model) appHelp() []key.Binding {
 
 	if m.ShowCommand() {
 		h = append(h, m.KeyMap.Command)
+	}
+
+	if m.ShowHelp() {
+		h = append(h, m.KeyMap.FullHelp)
 	}
 
 	return h

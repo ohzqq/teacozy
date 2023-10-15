@@ -63,7 +63,8 @@ func testLayout() *Layout {
 	//Split(horizontal)
 	//Split(Vertical)
 	//l := Vertical(Third).Position(Left)
-	l := NewLayout().Horizontal().Top().Third()
+	l := NewLayout().Vertical().Bottom().Quarter()
+	//l := NewLayout().Horizontal().Left().Third()
 	return l
 }
 
