@@ -33,14 +33,11 @@ type Command struct {
 	Cmd  func(string) tea.Cmd
 }
 
-var noItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
-
 type Model struct {
-	mainView   State
-	subFocused bool
-	state      State
-	layout     *Layout
-	KeyMap     KeyMap
+	mainView State
+	state    State
+	layout   *Layout
+	KeyMap   KeyMap
 
 	List         *list.Model
 	showList     bool
@@ -93,7 +90,6 @@ func New(opts ...Option) *Model {
 	if m.HasList() {
 		m.mainView = List
 		m.List.SetShowInput(false)
-		m.List.Styles.FilterPrompt = m.Command.Style.Prompt
 	}
 
 	m.SetSize(teacozy.TermSize())
@@ -204,7 +200,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
-
 	case statusMsg:
 		return m, m.NewStatusMessage(msg.Value)
 
@@ -472,3 +467,5 @@ func (s State) String() string {
 	}
 	return ""
 }
+
+var NoItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
