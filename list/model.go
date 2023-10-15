@@ -83,7 +83,7 @@ func New(items *Items, opts ...Option) *Model {
 	}
 
 	m.Input.Prompt = "Insert Item: "
-	m.Input.Enter = m.AddItem
+	m.Input.EnterCmd(m.AddItem)
 	m.AddFullHelpKeys(
 		m.Items.KeyMap.InsertItem,
 		m.Items.KeyMap.RemoveItem,

@@ -9,7 +9,7 @@ import (
 
 type Model struct {
 	textinput.Model
-	Enter    EnterInput
+	enter    EnterInput
 	FocusKey key.Binding
 	Style    teacozy.TextinputStyle
 }
@@ -23,7 +23,7 @@ type UnfocusMsg struct{}
 func New() *Model {
 	m := &Model{
 		Model: textinput.New(),
-		Enter: InputValue,
+		enter: InputValue,
 	}
 	m.Width = teacozy.TermWidth()
 	m.SetStyle(teacozy.TextinputDefaultStyle())
@@ -36,7 +36,7 @@ func (m *Model) WithKey(k key.Binding) *Model {
 }
 
 func (m *Model) EnterCmd(enter EnterInput) *Model {
-	m.Enter = enter
+	m.enter = enter
 	return m
 }
 
@@ -67,7 +67,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				cmds = append(cmds, m.Unfocus())
 			case tea.KeyEnter:
 				val := m.Value()
-				cmd := m.Enter(val)
+				cmd := m.enter(val)
 				cmds = append(cmds, cmd)
 				cmds = append(cmds, m.Unfocus())
 			}
