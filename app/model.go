@@ -98,6 +98,7 @@ func New(opts ...Option) *Model {
 	if m.HasList() {
 		m.mainView = List
 		m.List.SetShowInput(false)
+		m.List.Styles.FilterPrompt = m.Command.Style.Prompt
 	}
 
 	m.SetSize(TermSize())

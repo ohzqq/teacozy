@@ -33,7 +33,7 @@ func DefaultStyles() (s list.Styles) {
 		Foreground(color.Red)
 
 	s.FilterPrompt = lipgloss.NewStyle().
-		Foreground(color.Yellow)
+		Foreground(color.Green)
 
 	s.FilterCursor = lipgloss.NewStyle().
 		Foreground(color.Pink)

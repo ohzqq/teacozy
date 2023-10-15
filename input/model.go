@@ -10,6 +10,7 @@ type Model struct {
 	textinput.Model
 	Enter    EnterInput
 	FocusKey key.Binding
+	Style    Style
 }
 
 type EnterInput func(string) tea.Cmd
@@ -23,6 +24,7 @@ func New() *Model {
 		Model: textinput.New(),
 		Enter: InputValue,
 	}
+	m.SetStyle(DefaultStyle())
 	return m
 }
 
@@ -38,6 +40,14 @@ func (m *Model) EnterCmd(enter EnterInput) *Model {
 
 func (m *Model) SetPrompt(p string) *Model {
 	m.Model.Prompt = p
+	return m
+}
+
+func (m *Model) SetStyle(s Style) *Model {
+	m.Style = s
+	m.PromptStyle = s.Prompt
+	m.TextStyle = s.Text
+	m.PlaceholderStyle = s.Placeholder
 	return m
 }
 

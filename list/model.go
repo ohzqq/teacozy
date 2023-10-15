@@ -74,6 +74,7 @@ func New(items *Items, opts ...Option) *Model {
 		Items:  items,
 		state:  Browsing,
 		KeyMap: DefaultKeyMap(),
+		Input:  input.New(),
 	}
 	m.Model = m.NewListModel(items)
 
@@ -81,11 +82,8 @@ func New(items *Items, opts ...Option) *Model {
 		opt(m)
 	}
 
-	m.Input = input.New()
 	m.Input.Prompt = "Insert Item: "
 	m.Input.Enter = m.AddItem
-	m.Input.PromptStyle = m.Styles.FilterPrompt
-	m.Input.Cursor.Style = m.Styles.FilterCursor
 	m.AddFullHelpKeys(
 		m.Items.KeyMap.InsertItem,
 		m.Items.KeyMap.RemoveItem,
@@ -283,7 +281,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case InputItemMsg:
 		m.SetState(Input)
 		cmds = append(cmds, m.Input.Focus())
-	case ResetInputMsg, InsertItemMsg:
+	case input.UnfocusMsg:
+		m.SetState(Browsing)
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:
@@ -322,14 +321,8 @@ func (m *Model) AddItem(val string) tea.Cmd {
 	var cmds []tea.Cmd
 	item := NewItem(val)
 	cmd = m.InsertItem(m.Index()+1, item)
-	cmds = append(cmds, cmd, ResetInput)
+	cmds = append(cmds, cmd, input.Unfocus)
 	return tea.Batch(cmds...)
-}
-
-type ResetInputMsg struct{}
-
-func ResetInput() tea.Msg {
-	return ResetInputMsg{}
 }
 
 // SetShowInput shows or hides the input model.
