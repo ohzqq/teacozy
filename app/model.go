@@ -141,6 +141,7 @@ func (m *Model) SetSize(w, h int) {
 }
 
 func (m *Model) AddCommands(cmds ...Command) *Model {
+	m.SetShowCommand(true)
 	m.Commands = append(m.Commands, cmds...)
 	return m
 }
@@ -185,6 +186,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.SetSize(msg.Width, msg.Height)
+
 	case input.InputValueMsg:
 		status := fmt.Sprintf("%s is not a command", msg.Value)
 		if c, arg, ok := strings.Cut(msg.Value, " "); ok {
@@ -198,8 +200,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, m.NewStatusMessage(status)
+
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
+
 	case statusMsg:
 		return m, m.NewStatusMessage(msg.Value)
 
@@ -343,7 +347,7 @@ func (m *Model) SetFocus(focus State) tea.Cmd {
 		}
 	default:
 		if m.Command.Focused() {
-			cmds = append(cmds, m.Command.Unfocus())
+			cmds = append(cmds, input.Unfocus)
 		}
 	}
 
@@ -356,7 +360,7 @@ func (m *Model) SetFocus(focus State) tea.Cmd {
 		if m.HasList() {
 			m.List.Unfocus()
 		}
-		cmds = append(cmds, m.Command.Focus())
+		cmds = append(cmds, input.Focus)
 	case Pager:
 		m.state = Pager
 		if m.HasList() {

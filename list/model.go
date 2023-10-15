@@ -83,7 +83,7 @@ func New(items *Items, opts ...Option) *Model {
 	}
 
 	m.Input.Prompt = "Insert Item: "
-	m.Input.EnterCmd(m.AddItem)
+	m.Input.Enter(m.AddItem)
 	m.AddFullHelpKeys(
 		m.Items.KeyMap.InsertItem,
 		m.Items.KeyMap.RemoveItem,
@@ -281,7 +281,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case InputItemMsg:
 		m.SetState(Input)
-		cmds = append(cmds, m.Input.Focus())
+		cmds = append(cmds, input.Focus)
+
 	case InsertItemMsg, input.UnfocusMsg:
 		m.SetShowInput(false)
 

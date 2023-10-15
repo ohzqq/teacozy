@@ -9,12 +9,12 @@ import (
 
 type Model struct {
 	textinput.Model
-	enter    EnterInput
+	enter    InputCmd
 	FocusKey key.Binding
 	Style    teacozy.TextinputStyle
 }
 
-type EnterInput func(string) tea.Cmd
+type InputCmd func(string) tea.Cmd
 
 type ResetInputMsg struct{}
 type FocusMsg struct{}
@@ -35,7 +35,7 @@ func (m *Model) WithKey(k key.Binding) *Model {
 	return m
 }
 
-func (m *Model) EnterCmd(enter EnterInput) *Model {
+func (m *Model) Enter(enter InputCmd) *Model {
 	m.enter = enter
 	return m
 }
@@ -56,6 +56,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case UnfocusMsg:
+		//m.Model.Reset()
+		//m.Model.Blur()
+		m.Unfocus()
+	case FocusMsg:
+		m.Focus()
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
@@ -64,12 +70,14 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if m.Focused() {
 			switch msg.Type {
 			case tea.KeyEsc:
-				cmds = append(cmds, m.Unfocus())
+				m.Unfocus()
+				cmds = append(cmds, Unfocus)
 			case tea.KeyEnter:
 				val := m.Value()
 				cmd := m.enter(val)
 				cmds = append(cmds, cmd)
-				cmds = append(cmds, m.Unfocus())
+				m.Unfocus()
+				//cmds = append(cmds, Unfocus)
 			}
 		}
 		m.Model, cmd = m.Model.Update(msg)
@@ -86,18 +94,15 @@ func (m *Model) Reset() tea.Msg {
 }
 
 func (m *Model) Focus() tea.Cmd {
-	return func() tea.Msg {
-		m.Model.Focus()
-		return FocusMsg{}
-	}
+	m.Model.Focus()
+	return nil
 }
 
 func (m *Model) Unfocus() tea.Cmd {
-	return func() tea.Msg {
-		m.Model.Reset()
-		m.Model.Blur()
-		return UnfocusMsg{}
-	}
+	m.Model.Reset()
+	m.Model.Blur()
+	//return UnfocusMsg{}
+	return nil
 }
 
 type InputValueMsg struct {
