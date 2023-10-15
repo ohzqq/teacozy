@@ -2,17 +2,16 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
-	"golang.org/x/term"
 )
 
 type State int
@@ -96,7 +95,7 @@ func New(opts ...Option) *Model {
 		m.List.Styles.FilterPrompt = m.Command.Style.Prompt
 	}
 
-	m.SetSize(TermSize())
+	m.SetSize(teacozy.TermSize())
 
 	return m
 }
@@ -476,19 +475,4 @@ func (s State) String() string {
 		return "pager"
 	}
 	return ""
-}
-
-func TermSize() (int, int) {
-	w, h, _ := term.GetSize(int(os.Stdout.Fd()))
-	return w, h
-}
-
-func TermHeight() int {
-	_, h, _ := term.GetSize(int(os.Stdout.Fd()))
-	return h
-}
-
-func TermWidth() int {
-	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
-	return w
 }

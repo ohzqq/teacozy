@@ -5,9 +5,9 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ohzqq/teacozy"
 	"github.com/ohzqq/teacozy/input"
 	"github.com/ohzqq/teacozy/pager"
-	"github.com/ohzqq/teacozy/util"
 )
 
 type State int
@@ -110,15 +110,13 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	del.ShowDescription = false
 	m.Items.DefaultDelegate = del
 
-	w, h := util.TermSize()
+	w, h := teacozy.TermSize()
 	l := list.New(m.Items.li, m.Items, w, h)
 
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles()
-	l.FilterInput.PromptStyle = m.Input.Style.Prompt
-	l.FilterInput.TextStyle = m.Input.Style.Text
-	l.FilterInput.PlaceholderStyle = m.Input.Style.Placeholder
+	teacozy.SetTextinputStyle(&l.FilterInput, m.Input.Style)
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
 	l.SetShowFilter(false)

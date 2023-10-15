@@ -4,13 +4,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ohzqq/teacozy"
 )
 
 type Model struct {
 	textinput.Model
 	Enter    EnterInput
 	FocusKey key.Binding
-	Style    Style
+	Style    teacozy.TextinputStyle
 }
 
 type EnterInput func(string) tea.Cmd
@@ -24,7 +25,8 @@ func New() *Model {
 		Model: textinput.New(),
 		Enter: InputValue,
 	}
-	m.SetStyle(DefaultStyle())
+	m.Width = teacozy.TermWidth()
+	m.SetStyle(teacozy.TextinputDefaultStyle())
 	return m
 }
 
@@ -43,11 +45,9 @@ func (m *Model) SetPrompt(p string) *Model {
 	return m
 }
 
-func (m *Model) SetStyle(s Style) *Model {
+func (m *Model) SetStyle(s teacozy.TextinputStyle) *Model {
 	m.Style = s
-	m.PromptStyle = s.Prompt
-	m.TextStyle = s.Text
-	m.PlaceholderStyle = s.Placeholder
+	teacozy.SetTextinputStyle(&m.Model, s)
 	return m
 }
 

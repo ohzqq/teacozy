@@ -1,9 +1,22 @@
 package teacozy
 
 import (
-	"github.com/ohzqq/bubbles/textinput"
-	"github.com/ohzqq/teacozy/input"
+	"os"
+
+	"golang.org/x/term"
 )
 
-func SetTextinputStyle(input *textinput.Model, style input.Style) {
+func TermSize() (int, int) {
+	w, h, _ := term.GetSize(int(os.Stdout.Fd()))
+	return w, h
+}
+
+func TermHeight() int {
+	_, h, _ := term.GetSize(int(os.Stdout.Fd()))
+	return h
+}
+
+func TermWidth() int {
+	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	return w
 }
