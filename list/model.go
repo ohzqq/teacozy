@@ -116,9 +116,12 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.KeyMap = m.KeyMap.KeyMap
 	l.Title = ""
 	l.Styles = DefaultStyles()
+	l.FilterInput.PromptStyle = m.Input.Style.Prompt
+	l.FilterInput.TextStyle = m.Input.Style.Text
+	l.FilterInput.PlaceholderStyle = m.Input.Style.Placeholder
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
-	l.SetShowFilter(true)
+	l.SetShowFilter(false)
 
 	// Update paginator style
 	l.Paginator.ActiveDot = l.Styles.ActivePaginationDot.String()
@@ -281,8 +284,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case InputItemMsg:
 		m.SetState(Input)
 		cmds = append(cmds, m.Input.Focus())
-	case input.UnfocusMsg:
-		m.SetState(Browsing)
+	case InsertItemMsg, input.UnfocusMsg:
 		m.SetShowInput(false)
 
 	case ItemsChosenMsg:

@@ -40,11 +40,6 @@ type Model struct {
 	mainView State
 	state    State
 	layout   *Layout
-	split    int
-	width    int
-	height   int
-	cols     int
-	rows     int
 	KeyMap   KeyMap
 
 	List         *list.Model
