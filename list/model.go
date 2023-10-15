@@ -39,7 +39,7 @@ const (
 
 type Model struct {
 	*list.Model
-	*Items
+	Items *Items
 
 	KeyMap        KeyMap
 	shortHelpKeys []key.Binding
@@ -236,6 +236,13 @@ type UnfocusMsg struct{}
 func (m *Model) Focus() tea.Cmd {
 	return func() tea.Msg {
 		m.focused = true
+		m.KeyMap.CursorUp.SetEnabled(true)
+		m.KeyMap.CursorDown.SetEnabled(true)
+		m.KeyMap.PrevPage.SetEnabled(true)
+		m.KeyMap.NextPage.SetEnabled(true)
+		m.KeyMap.GoToStart.SetEnabled(true)
+		m.KeyMap.GoToEnd.SetEnabled(true)
+		m.KeyMap.Filter.SetEnabled(true)
 		return FocusMsg{}
 	}
 }
@@ -243,6 +250,13 @@ func (m *Model) Focus() tea.Cmd {
 func (m *Model) Unfocus() tea.Cmd {
 	return func() tea.Msg {
 		m.focused = false
+		m.KeyMap.CursorUp.SetEnabled(false)
+		m.KeyMap.CursorDown.SetEnabled(false)
+		m.KeyMap.PrevPage.SetEnabled(false)
+		m.KeyMap.NextPage.SetEnabled(false)
+		m.KeyMap.GoToStart.SetEnabled(false)
+		m.KeyMap.GoToEnd.SetEnabled(false)
+		m.KeyMap.Filter.SetEnabled(false)
 		return UnfocusMsg{}
 	}
 }

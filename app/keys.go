@@ -2,18 +2,12 @@ package app
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/ohzqq/teacozy/list"
-	"github.com/ohzqq/teacozy/pager"
 )
 
 type KeyMap struct {
 	ToggleFocus key.Binding
 	Quit        key.Binding
 	Command     key.Binding
-	List        list.KeyMap
-	Pager       pager.KeyMap
-	Input       textinput.KeyMap
 }
 
 func DefaultKeyMap() KeyMap {

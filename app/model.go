@@ -75,7 +75,6 @@ func New(opts ...Option) *Model {
 
 	m.Command = input.New()
 	m.Command.Prompt = ":"
-	m.KeyMap.Input = m.Command.KeyMap
 
 	if m.layout == nil {
 		m.layout = NewLayout()
@@ -150,7 +149,6 @@ func (m *Model) SetList(l *list.Model) *Model {
 	l.SetShowInput(false)
 	l.SetShowHelp(false)
 	m.List = l
-	m.KeyMap.List = l.KeyMap
 	return m
 }
 
@@ -159,7 +157,6 @@ func (m *Model) SetPager(p *pager.Model) *Model {
 	m.state = Pager
 	p.SetContent(p.Render())
 	m.Pager = p
-	m.KeyMap.Pager = p.KeyMap
 	return m
 }
 
@@ -454,6 +451,52 @@ func (m *Model) View() string {
 	sections = append(sections, footer)
 
 	return lipgloss.JoinVertical(lipgloss.Left, sections...)
+}
+
+func (m Model) ShortHelp() []key.Binding {
+	var h []key.Binding
+
+	switch m.State() {
+	case List:
+		h = append(h, m.List.ShortHelp()...)
+	case Pager:
+		h = append(h, m.Pager.ShortHelp()...)
+	}
+
+	h = append(h, m.appHelp()...)
+	h = append(h, m.KeyMap.Quit)
+	return h
+}
+
+func (m Model) appHelp() []key.Binding {
+	var h []key.Binding
+
+	if m.HasList() && m.HasPager() {
+		h = append(h, m.KeyMap.ToggleFocus)
+	}
+
+	if m.ShowCommand() {
+		h = append(h, m.KeyMap.Command)
+	}
+
+	return h
+}
+
+func (m Model) FullHelp() [][]key.Binding {
+	var h [][]key.Binding
+	h = append(h, m.appHelp())
+
+	if m.HasList() {
+		for _, help := range m.List.FullHelp() {
+			h = append(h, help)
+		}
+	}
+
+	if m.HasPager() {
+		h = append(h, m.Pager.FullHelp()...)
+	}
+
+	return h
 }
 
 func (s State) String() string {

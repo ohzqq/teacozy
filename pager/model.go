@@ -184,6 +184,29 @@ func DefaultKeyMap() KeyMap {
 	}
 }
 
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{
+		m.KeyMap.Up,
+		m.KeyMap.Down,
+		m.KeyMap.PageUp,
+		m.KeyMap.PageDown,
+	}
+}
+
+func (m Model) FullHelp() [][]key.Binding {
+	var fh [][]key.Binding
+	b := []key.Binding{
+		m.KeyMap.Up,
+		m.KeyMap.Down,
+		m.KeyMap.HalfPageUp,
+		m.KeyMap.HalfPageDown,
+		m.KeyMap.PageUp,
+		m.KeyMap.PageDown,
+	}
+	fh = append(fh, b)
+	return fh
+}
+
 func defaultKeyMap() viewport.KeyMap {
 	return viewport.KeyMap{
 		PageDown: key.NewBinding(
