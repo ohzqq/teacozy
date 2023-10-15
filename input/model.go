@@ -57,8 +57,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case UnfocusMsg:
-		//m.Model.Reset()
-		//m.Model.Blur()
 		m.Unfocus()
 	case FocusMsg:
 		m.Focus()
@@ -70,14 +68,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if m.Focused() {
 			switch msg.Type {
 			case tea.KeyEsc:
-				m.Unfocus()
 				cmds = append(cmds, Unfocus)
 			case tea.KeyEnter:
 				val := m.Value()
 				cmd := m.enter(val)
 				cmds = append(cmds, cmd)
-				m.Unfocus()
-				//cmds = append(cmds, Unfocus)
+				cmds = append(cmds, Unfocus)
 			}
 		}
 		m.Model, cmd = m.Model.Update(msg)
@@ -87,22 +83,13 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) Reset() tea.Msg {
-	m.Model.Reset()
-	m.Model.Blur()
-	return ResetInputMsg{}
-}
-
-func (m *Model) Focus() tea.Cmd {
+func (m *Model) Focus() {
 	m.Model.Focus()
-	return nil
 }
 
-func (m *Model) Unfocus() tea.Cmd {
+func (m *Model) Unfocus() {
 	m.Model.Reset()
 	m.Model.Blur()
-	//return UnfocusMsg{}
-	return nil
 }
 
 type InputValueMsg struct {
@@ -123,10 +110,6 @@ func Focus() tea.Msg {
 
 func Unfocus() tea.Msg {
 	return UnfocusMsg{}
-}
-
-func Reset() tea.Msg {
-	return ResetInputMsg{}
 }
 
 func (m Model) View() string {

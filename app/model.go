@@ -36,10 +36,11 @@ type Command struct {
 var noItems = list.NewItems(func() []*list.Item { return []*list.Item{} })
 
 type Model struct {
-	mainView State
-	state    State
-	layout   *Layout
-	KeyMap   KeyMap
+	mainView   State
+	subFocused bool
+	state      State
+	layout     *Layout
+	KeyMap     KeyMap
 
 	List         *list.Model
 	showList     bool
@@ -218,6 +219,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.hideStatusMessage()
 				cmds = append(cmds, m.SetFocus(Cmd))
 			}
+		case key.Matches(msg, m.KeyMap.ToggleFocus):
+			return m, m.toggleView()
 		}
 		if m.ShowCommand() {
 			for _, c := range m.Commands {
@@ -256,21 +259,6 @@ func (m *Model) updatePager(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.KeyMap.ToggleFocus):
-			if m.HasList() {
-				switch m.State() {
-				case Pager:
-					cmds = append(cmds, m.SetFocus(List))
-				case List:
-					cmds = append(cmds, m.SetFocus(Pager))
-				}
-			}
-		}
-	}
-
 	m.Pager, cmd = m.Pager.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -289,15 +277,6 @@ func (m *Model) updateList(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, m.List.KeyMap.Filter):
 			m.hideStatusMessage()
-		case key.Matches(msg, m.KeyMap.ToggleFocus):
-			if m.HasPager() {
-				switch m.State() {
-				case Pager:
-					cmds = append(cmds, m.SetFocus(List))
-				case List:
-					cmds = append(cmds, m.SetFocus(Pager))
-				}
-			}
 		}
 	}
 
@@ -318,12 +297,7 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 
 	switch msg.(type) {
 	case input.UnfocusMsg:
-		switch {
-		case m.HasPager():
-			cmds = append(cmds, m.SetFocus(Pager))
-		case m.HasList():
-			cmds = append(cmds, m.SetFocus(List))
-		}
+		cmds = append(cmds, m.focusMain())
 	case tea.KeyMsg:
 	}
 
@@ -331,6 +305,24 @@ func (m *Model) updateCommand(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) focusMain() tea.Cmd {
+	return m.SetFocus(m.mainView)
+}
+
+func (m *Model) toggleView() tea.Cmd {
+	switch m.State() {
+	case List:
+		if m.HasPager() {
+			return m.SetFocus(Pager)
+		}
+	case Pager:
+		if m.HasList() {
+			return m.SetFocus(List)
+		}
+	}
+	return nil
 }
 
 func (m *Model) SetFocus(focus State) tea.Cmd {
