@@ -451,14 +451,14 @@ func (m *Model) SetSize(w, h int) {
 			m.List.SetSize(mw, mh)
 		}
 		if m.HasPager() {
-			m.Pager.SetSize(sw, sh)
+			m.Pager.SetSize(sw, sh-2)
 		}
 	case Pager:
 		if m.HasPager() {
 			m.Pager.SetSize(mw, mh)
 		}
 		if m.HasList() {
-			m.List.SetSize(sw, sh)
+			m.List.SetSize(sw, sh-2)
 		}
 	}
 

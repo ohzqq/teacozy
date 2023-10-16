@@ -284,7 +284,10 @@ func (m Model) Browsing() bool {
 // CurrentItem returns the selected item.
 func (m Model) CurrentItem() *Item {
 	li := m.Model.SelectedItem()
-	return li.(*Item)
+	if i, ok := li.(*Item); ok {
+		return i
+	}
+	return &Item{}
 }
 
 // Update is the tea.Model update loop.

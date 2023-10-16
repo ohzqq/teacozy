@@ -103,7 +103,7 @@ func (l *Layout) main() (int, int) {
 	if h == 0 {
 		return w, h
 	}
-	return w, h - 2
+	return w, h
 }
 
 func (l *Layout) sub() (int, int) {
@@ -123,7 +123,7 @@ func (l *Layout) sub() (int, int) {
 	if h == 0 {
 		return w, h
 	}
-	return w, h - 2
+	return w, h
 }
 
 func (l *Layout) Position(p int) *Layout {
