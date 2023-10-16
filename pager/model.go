@@ -33,6 +33,7 @@ func New(fn Renderer) *Model {
 		KeyMap:   DefaultKeyMap(),
 	}
 	m.Model.KeyMap = m.KeyMap.KeyMap
+	m.Model.Style = lipgloss.NewStyle()
 
 	return m
 }

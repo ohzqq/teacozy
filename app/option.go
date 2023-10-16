@@ -7,6 +7,30 @@ import (
 
 type Option func(m *Model)
 
+func EditableList(parser list.ParseItems, opts ...list.Option) Option {
+	return func(m *Model) {
+		items := list.NewItems(parser)
+		li := list.Edit(items, opts...)
+		m.SetList(li)
+	}
+}
+
+func ChooseAny(parser list.ParseItems, opts ...list.Option) Option {
+	return func(m *Model) {
+		items := list.NewItems(parser)
+		li := list.ChooseAny(items, opts...)
+		m.SetList(li)
+	}
+}
+
+func ChooseOne(parser list.ParseItems, opts ...list.Option) Option {
+	return func(m *Model) {
+		items := list.NewItems(parser)
+		li := list.ChooseOne(items, opts...)
+		m.SetList(li)
+	}
+}
+
 func WithList(parser list.ParseItems, opts ...list.Option) Option {
 	return func(m *Model) {
 		items := list.NewItems(parser)
@@ -36,5 +60,6 @@ func WithDescription() Option {
 	return func(m *Model) {
 		m.showItemDesc = true
 		m.SetPager(pager.New(pager.RenderText))
+		m.SetLayout(NewLayout().Vertical().Top().Quarter())
 	}
 }

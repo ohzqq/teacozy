@@ -117,7 +117,7 @@ func (m *Model) NewListModel(items *Items) *list.Model {
 	l.Title = ""
 	l.Styles = DefaultStyles()
 	teacozy.SetTextinputStyle(&l.FilterInput, m.Input.Style)
-	l.SetShowTitle(false)
+	l.SetShowTitle(true)
 	l.SetShowStatusBar(false)
 	l.SetShowFilter(false)
 

@@ -14,10 +14,10 @@ import (
 
 func TestNewList(t *testing.T) {
 	opts := []Option{
-		WithList(testItemParser(), testListOpts()...),
-		WithPager(pager.RenderText, testPagerText()),
-		//WithDescription(),
-		WithLayout(testLayout()),
+		ChooseAny(testItemParser(), testListOpts()...),
+		//WithPager(pager.RenderText, testPagerText()),
+		//WithLayout(testLayout()),
+		WithDescription(),
 	}
 
 	a := New(opts...)
@@ -63,7 +63,7 @@ func testLayout() *Layout {
 	//Split(horizontal)
 	//Split(Vertical)
 	//l := Vertical(Third).Position(Left)
-	l := NewLayout().Vertical().Bottom().Quarter()
+	l := NewLayout().Vertical().Top().Quarter()
 	//l := NewLayout().Horizontal().Left().Third()
 	return l
 }
@@ -76,8 +76,8 @@ func testListOpts() []list.Option {
 	opts := []list.Option{
 		list.WithFiltering(true),
 		//OrderedList(),
-		list.Editable(true),
-		list.WithLimit(10),
+		//list.Editable(true),
+		//list.WithLimit(10),
 		//WithDescription(true),
 	}
 	return opts

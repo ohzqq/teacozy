@@ -122,25 +122,32 @@ func (m Model) Width() int {
 }
 
 func (m *Model) SetSize(w, h int) {
-	if !m.Help.ShowAll {
-		h--
-	}
 	m.layout.SetSize(w, h)
+
+	mw, mh := m.layout.main()
+	sw, sh := m.layout.sub()
+	if !m.Help.ShowAll {
+		mh--
+		//sh--
+	} else {
+		mh++
+		sh++
+	}
 
 	switch m.mainView {
 	case List:
 		if m.HasList() {
-			m.List.SetSize(m.layout.main())
+			m.List.SetSize(mw, mh)
 		}
 		if m.HasPager() {
-			m.Pager.SetSize(m.layout.sub())
+			m.Pager.SetSize(sw, sh)
 		}
 	case Pager:
 		if m.HasPager() {
-			m.Pager.SetSize(m.layout.main())
+			m.Pager.SetSize(mw, mh)
 		}
 		if m.HasList() {
-			m.List.SetSize(m.layout.sub())
+			m.List.SetSize(sw, sh)
 		}
 	}
 
@@ -169,6 +176,11 @@ func (m *Model) SetPager(p *pager.Model) *Model {
 	m.state = Pager
 	p.SetContent(p.Render())
 	m.Pager = p
+	return m
+}
+
+func (m *Model) SetLayout(l *Layout) *Model {
+	m.layout = l
 	return m
 }
 
@@ -230,6 +242,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.toggleView()
 		case key.Matches(msg, m.KeyMap.FullHelp):
 			m.toggleHelp()
+			cmds = append(cmds, tea.ClearScreen)
 		}
 		if m.ShowCommand() {
 			for _, c := range m.Commands {
@@ -458,7 +471,7 @@ func (m Model) helpViewHeight() int {
 
 func (m *Model) View() string {
 	var sections []string
-	availHeight := m.Height()
+	//availHeight := m.Height()
 
 	var li string
 	if m.ShowList() {
@@ -470,16 +483,16 @@ func (m *Model) View() string {
 		page = m.Pager.View()
 	}
 
-	var help string
-	if m.ShowHelp() {
-		help = m.Help.View(m)
-		availHeight -= lipgloss.Height(help)
-	}
+	//var help string
+	//if m.ShowHelp() {
+	//help = m.Help.View(m)
+	//availHeight -= lipgloss.Height(help)
+	//}
 
 	main := m.layout.Join(li, page)
-	main = lipgloss.NewStyle().
-		Height(availHeight).
-		Render(main)
+	//main = lipgloss.NewStyle().
+	//Height(availHeight).
+	//Render(main)
 	sections = append(sections, main)
 
 	var footer string
@@ -504,6 +517,7 @@ func (m *Model) View() string {
 	sections = append(sections, footer)
 
 	if m.ShowHelp() {
+		help := m.Help.View(m)
 		sections = append(sections, help)
 	}
 
