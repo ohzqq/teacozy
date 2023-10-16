@@ -128,7 +128,6 @@ func (m *Model) SetSize(w, h int) {
 	sw, sh := m.layout.sub()
 	if !m.Help.ShowAll {
 		mh--
-		//sh--
 	} else {
 		mh++
 		sh++
@@ -161,9 +160,10 @@ func (m *Model) AddCommands(cmds ...Command) *Model {
 	return m
 }
 
-func (m *Model) SetList(l *list.Model) *Model {
-	m.state = List
+func (m *Model) SetList(parser list.ParseItems, opts ...list.Option) *Model {
 	m.showList = true
+	items := list.NewItems(parser)
+	l := list.New(items, opts...)
 	l.SetShowFilter(false)
 	l.SetShowInput(false)
 	l.SetShowHelp(false)
@@ -171,9 +171,12 @@ func (m *Model) SetList(l *list.Model) *Model {
 	return m
 }
 
-func (m *Model) SetPager(p *pager.Model) *Model {
+func (m *Model) SetPager(render pager.Renderer, text ...string) *Model {
 	m.showPager = true
-	m.state = Pager
+	p := pager.New(render)
+	if len(text) > 0 {
+		p.SetText(text[0])
+	}
 	p.SetContent(p.Render())
 	m.Pager = p
 	return m
