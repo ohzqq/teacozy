@@ -100,7 +100,10 @@ func (l *Layout) main() (int, int) {
 			w = w / l.sections * (l.sections - 1)
 		}
 	}
-	return w, h
+	if h == 0 {
+		return w, h
+	}
+	return w, h - 2
 }
 
 func (l *Layout) sub() (int, int) {
@@ -117,7 +120,10 @@ func (l *Layout) sub() (int, int) {
 			h = l.height
 		}
 	}
-	return w, h
+	if h == 0 {
+		return w, h
+	}
+	return w, h - 2
 }
 
 func (l *Layout) Position(p int) *Layout {

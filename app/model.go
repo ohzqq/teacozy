@@ -121,39 +121,6 @@ func (m Model) Width() int {
 	return m.layout.Width()
 }
 
-func (m *Model) SetSize(w, h int) {
-	m.layout.SetSize(w, h)
-
-	mw, mh := m.layout.main()
-	sw, sh := m.layout.sub()
-	if !m.Help.ShowAll {
-		mh--
-	} else {
-		mh++
-		sh++
-	}
-
-	switch m.mainView {
-	case List:
-		if m.HasList() {
-			m.List.SetSize(mw, mh)
-		}
-		if m.HasPager() {
-			m.Pager.SetSize(sw, sh)
-		}
-	case Pager:
-		if m.HasPager() {
-			m.Pager.SetSize(mw, mh)
-		}
-		if m.HasList() {
-			m.List.SetSize(sw, sh)
-		}
-	}
-
-	m.Command.Width = m.Width()
-	m.Help.Width = m.Width()
-}
-
 func (m *Model) AddCommands(cmds ...Command) *Model {
 	m.SetShowCommand(true)
 	m.Commands = append(m.Commands, cmds...)
@@ -352,12 +319,6 @@ func (m *Model) toggleView() tea.Cmd {
 
 func (m *Model) toggleHelp() {
 	m.Help.ShowAll = !m.Help.ShowAll
-	w, h := teacozy.TermSize()
-	if m.Help.ShowAll {
-		m.SetSize(w, h-m.helpViewHeight())
-	} else {
-		m.SetSize(w, h)
-	}
 }
 
 func (m *Model) SetFocus(focus State) tea.Cmd {
@@ -469,12 +430,44 @@ func (m Model) helpView() string {
 }
 
 func (m Model) helpViewHeight() int {
-	return lipgloss.Height(m.helpView())
+	if m.Help.ShowAll {
+		return lipgloss.Height(m.helpView())
+	}
+	return 1
+}
+
+func (m *Model) SetSize(w, h int) {
+	if m.Help.ShowAll {
+		h = h - m.helpViewHeight()
+	}
+	m.layout.SetSize(w, h)
+
+	mw, mh := m.layout.main()
+	sw, sh := m.layout.sub()
+
+	switch m.mainView {
+	case List:
+		if m.HasList() {
+			m.List.SetSize(mw, mh)
+		}
+		if m.HasPager() {
+			m.Pager.SetSize(sw, sh)
+		}
+	case Pager:
+		if m.HasPager() {
+			m.Pager.SetSize(mw, mh)
+		}
+		if m.HasList() {
+			m.List.SetSize(sw, sh)
+		}
+	}
+
+	m.Command.Width = m.Width()
+	m.Help.Width = m.Width()
 }
 
 func (m *Model) View() string {
 	var sections []string
-	//availHeight := m.Height()
 
 	var li string
 	if m.ShowList() {
@@ -486,16 +479,7 @@ func (m *Model) View() string {
 		page = m.Pager.View()
 	}
 
-	//var help string
-	//if m.ShowHelp() {
-	//help = m.Help.View(m)
-	//availHeight -= lipgloss.Height(help)
-	//}
-
 	main := m.layout.Join(li, page)
-	//main = lipgloss.NewStyle().
-	//Height(availHeight).
-	//Render(main)
 	sections = append(sections, main)
 
 	var footer string

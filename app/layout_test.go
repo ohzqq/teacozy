@@ -7,19 +7,19 @@ import (
 
 var (
 	oneSub       = "0x0"
-	oneMain      = "66x66"
-	halfVMain    = "66x33"
-	halfVSub     = "66x33"
-	halfHMain    = "33x66"
-	halfHSub     = "33x66"
-	thirdVMain   = "66x44"
-	thirdVSub    = "66x22"
-	thirdHMain   = "44x66"
-	thirdHSub    = "22x66"
-	quarterVMain = "66x48"
-	quarterVSub  = "66x16"
-	quarterHMain = "48x66"
-	quarterHSub  = "16x66"
+	oneMain      = "66x64"
+	halfVMain    = "66x31"
+	halfVSub     = "66x31"
+	halfHMain    = "33x64"
+	halfHSub     = "33x64"
+	thirdVMain   = "66x42"
+	thirdVSub    = "66x20"
+	thirdHMain   = "44x64"
+	thirdHSub    = "22x64"
+	quarterVMain = "66x46"
+	quarterVSub  = "66x14"
+	quarterHMain = "48x64"
+	quarterHSub  = "16x64"
 )
 
 func TestOneHorizontalLayout(t *testing.T) {
