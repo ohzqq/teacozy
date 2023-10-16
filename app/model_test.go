@@ -1,59 +1,84 @@
-package list
+package app
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/ohzqq/teacozy/list"
 	"github.com/ohzqq/teacozy/pager"
-	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/term"
 )
 
 func TestNewList(t *testing.T) {
-	//var opts []Option
-	//opts = append(opts, NoLimit())
-	//cs := New(choiceSlice, opts...).Choose()
-	//fmt.Printf("%#v\n", cs)
-	//items := NewItems(ItemsMap(choiceMap), OrderedList())
-	//p.SetSize(0, 10)
-
-	items := NewItems(ItemsStringSlice(choiceSlice))
-
 	opts := []Option{
-		WithFiltering(true),
-		//OrderedList(),
-		Editable(true),
-		//WithPager(testPager()),
-		//WithLimit(10),
-		//WithDescription(true),
+		ChooseAny(testItemParser(), testListOpts()...),
+		//WithPager(pager.RenderText, testPagerText()),
+		//WithLayout(testLayout()),
+		WithDescription(),
 	}
 
-	m := New(items, opts...)
-	//m := Edit(items)
-	//m := New(items, WithLimit(1))
-	//m := ChooseSome(items, 2)
-	//m := New(ItemsMap(choiceMap))
-	//m.Editable()
+	a := New(opts...)
+	//  //SetList(m).
+	//  //SetPager(testPager())
+	a.AddCommands(testCommand())
 
-	//m := EditableList(items)
-	//m := NewEditableList(noItems)
-
-	_, err := m.Run()
+	err := a.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	//sel := m.Chosen()
+	//for _, s := range sel {
+	//fmt.Printf("%#v\n", s)
+	//  //}
+	//  //fmt.Printf("%#v\n", a.ShowCommand())
 
-	sel := m.Chosen()
-	for _, s := range sel {
-		fmt.Printf("%#v\n", s)
+	//	 println(10 / 1 * (1 - 0))
+}
+
+func testCommand() *Command {
+	c := BlockingCommand("sleep")
+	c.Key(inKey)
+	return c
+}
+
+var inKey = key.NewBinding(
+	key.WithKeys("a"),
+)
+
+func testLayout() *Layout {
+	//l := NewLayout().
+	//Position(Right).
+	//Position(Left).
+	//Position(Top).
+	//Position(Bottom).
+	//Single().
+	//Half().
+	//Third().
+	//Quarter().
+	//Split(horizontal)
+	//Split(Vertical)
+	//l := Vertical(Third).Position(Left)
+	l := NewLayout().Vertical().Top().Quarter()
+	//l := NewLayout().Horizontal().Left().Third()
+	return l
+}
+
+func testItemParser() list.ParseItems {
+	return list.ItemsStringSlice(choiceSlice)
+}
+
+func testListOpts() []list.Option {
+	opts := []list.Option{
+		list.WithFiltering(true),
+		//OrderedList(),
+		//list.Editable(true),
+		//list.WithLimit(10),
+		//WithDescription(true),
 	}
-
-	w, h := util.TermSize()
-	println(w)
-	println(h)
+	return opts
 }
 
 func testPager() *pager.Model {
@@ -64,6 +89,15 @@ func testPager() *pager.Model {
 	text := strings.Join(txt, "\n- ")
 	p := pager.New(pager.RenderText).SetText(text)
 	return p
+}
+
+func testPagerText() string {
+	txt := []string{
+		"AArtichokeArtichokeArtichokeArtichokeArtichokeArtichokeArtichokertichoke",
+	}
+	txt = append(txt, choiceSlice...)
+	text := strings.Join(txt, "\n- ")
+	return text
 }
 
 func testTermSize(t *testing.T) {
@@ -86,8 +120,6 @@ func testTermSize(t *testing.T) {
 	println("width:", width, "height:", height)
 
 }
-
-var noItems = func() []*Item { return []*Item{} }
 
 //func TestNewBookList(t *testing.T) {
 //  d, err := os.ReadFile("../testdata/search-results.json")
