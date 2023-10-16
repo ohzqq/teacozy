@@ -28,12 +28,6 @@ const (
 	Horizontal
 )
 
-type Command struct {
-	Name string
-	Key  key.Binding
-	Cmd  func(string) tea.Cmd
-}
-
 type Model struct {
 	mainView State
 	state    State
@@ -46,7 +40,7 @@ type Model struct {
 
 	// input
 	Command     *input.Model
-	Commands    []Command
+	Commands    []*Command
 	showCommand bool
 
 	// view
@@ -68,12 +62,7 @@ func New(opts ...Option) *Model {
 		StatusMsg: StatusMsg{
 			StatusMessageLifetime: time.Second,
 		},
-		Commands: []Command{
-			Command{
-				Name: "",
-				Cmd:  NewStatusMessage,
-			},
-		},
+		Commands: []*Command{NewCommand("")},
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -121,7 +110,7 @@ func (m Model) Width() int {
 	return m.layout.Width()
 }
 
-func (m *Model) AddCommands(cmds ...Command) *Model {
+func (m *Model) AddCommands(cmds ...*Command) *Model {
 	m.SetShowCommand(true)
 	m.Commands = append(m.Commands, cmds...)
 	return m
@@ -189,6 +178,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.NewStatusMessage(status)
 
+	case ExecCmdErrMsg:
+		if msg.err != nil {
+			status := fmt.Sprintf("%s", msg.err)
+			return m, m.NewStatusMessage(status)
+		}
+
 	case statusMessageTimeoutMsg:
 		m.hideStatusMessage()
 	case statusMsg:
@@ -216,9 +211,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.ShowCommand() {
 			for _, c := range m.Commands {
-				if key.Matches(msg, c.Key) {
-					m.Command.SetValue(c.Name + " ")
-					cmds = append(cmds, m.SetFocus(Cmd))
+				if key.Matches(msg, c.key) {
+					n := strings.Split(m.Command.Value(), " ")
+					if n[0] != c.Name {
+						m.Command.SetValue(c.Name + " ")
+						if !m.Command.Focused() {
+							//cmds = append(cmds, m.SetFocus(Cmd))
+							return m, m.SetFocus(Cmd)
+						}
+					}
 				}
 			}
 		}

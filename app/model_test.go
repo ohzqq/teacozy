@@ -38,12 +38,10 @@ func TestNewList(t *testing.T) {
 	//	 println(10 / 1 * (1 - 0))
 }
 
-func testCommand() Command {
-	return Command{
-		Name: "poot",
-		//Key:  inKey,
-		Cmd: NewStatusMessage,
-	}
+func testCommand() *Command {
+	c := BlockingCommand("sleep")
+	c.Key(inKey)
+	return c
 }
 
 var inKey = key.NewBinding(
