@@ -1,12 +1,12 @@
 package list
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/teacozy/pager"
 	"github.com/ohzqq/teacozy/util"
 	"golang.org/x/term"
@@ -27,7 +27,7 @@ func TestNewList(t *testing.T) {
 		//OrderedList(),
 		Editable(true),
 		//WithPager(testPager()),
-		//WithLimit(10),
+		WithLimit(10),
 		//WithDescription(true),
 	}
 
@@ -41,15 +41,20 @@ func TestNewList(t *testing.T) {
 	//m := EditableList(items)
 	//m := NewEditableList(noItems)
 
-	_, err := m.Run()
+	//_, err := m.Run()
+	//if err != nil {
+	//log.Fatal(err)
+	//}
+	p := tea.NewProgram(m)
+	_, err := p.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sel := m.Chosen()
-	for _, s := range sel {
-		fmt.Printf("%#v\n", s)
-	}
+	//sel := m.Chosen()
+	//for _, s := range sel {
+	//fmt.Printf("%#v\n", s)
+	//}
 
 	w, h := util.TermSize()
 	println(w)

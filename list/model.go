@@ -291,7 +291,7 @@ func (m Model) CurrentItem() *Item {
 }
 
 // Update is the tea.Model update loop.
-func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
